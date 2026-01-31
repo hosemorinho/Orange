@@ -111,6 +111,13 @@ jobs:
           flutter --version
           flutter pub get
 
+      - name: Generate XBoard Config
+        shell: bash
+        run: |
+          if [ ! -f assets/config/xboard.config.yaml ]; then
+            cp assets/config/xboard.config.example.yaml assets/config/xboard.config.yaml
+          fi
+
       - name: Generate Code
         run: dart run build_runner build --delete-conflicting-outputs
 

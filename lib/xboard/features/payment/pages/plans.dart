@@ -309,18 +309,18 @@ class _PlansViewState extends ConsumerState<PlansView> {
             final screenWidth = MediaQuery.of(context).size.width;
             final isDesktop = screenWidth > 768;
             if (isDesktop) {
-              return SingleChildScrollView(
+              return GridView.builder(
                 padding: const EdgeInsets.all(16),
-                child: Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: plans.map((plan) {
-                    return SizedBox(
-                      width: 350, // 固定宽度
-                      child: _buildPlanCard(plan),
-                    );
-                  }).toList(),
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 400,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  mainAxisExtent: 220,
                 ),
+                itemCount: plans.length,
+                itemBuilder: (context, index) {
+                  return _buildPlanCard(plans[index]);
+                },
               );
             } else {
               return ListView.builder(
@@ -335,18 +335,6 @@ class _PlansViewState extends ConsumerState<PlansView> {
       ),
     );
     
-    // 移动端需要拦截返回按钮，桌面端直接返回 scaffold
-    if (isDesktop) {
-      return scaffold;
-    } else {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          context.go('/');
-        },
-        child: scaffold,
-      );
-    }
+    return scaffold;
   }
 }

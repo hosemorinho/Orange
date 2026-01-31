@@ -162,7 +162,14 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
           return Container(
             decoration: BoxDecoration(
               color: isStart ? startColor : stopColor,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: (isStart ? startColor : stopColor).withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Material(
               color: Colors.transparent,
@@ -170,16 +177,16 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
                 onTap: () {
                   handleSwitchStart();
                 },
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       AnimatedIcon(
                         icon: AnimatedIcons.play_pause,
                         progress: _animation,
-                        size: 24,
+                        size: 28,
                         color: isDark ? Colors.black : Colors.white,
                       ),
                       const SizedBox(width: 10),
@@ -190,7 +197,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
                             isStart
                               ? AppLocalizations.of(context).xboardStopProxy
                               : AppLocalizations.of(context).xboardStartProxy,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: isDark ? Colors.black : Colors.white,
                               fontWeight: FontWeight.bold,
                             ),

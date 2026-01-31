@@ -6,12 +6,12 @@ import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dar
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:fl_clash/l10n/l10n.dart';
 
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_status_checker.dart';
 import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
+
 import '../widgets/subscription_usage_card.dart';
 import '../widgets/xboard_connect_button.dart';
 class XBoardHomePage extends ConsumerStatefulWidget {
@@ -86,43 +86,20 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);  // 必须调用，配合 AutomaticKeepAliveClientMixin
-    
-    final appLocalizations = AppLocalizations.of(context);
+
     // 根据操作系统平台判断设备类型
     final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
     
     return Scaffold(
       appBar: isDesktop ? null : AppBar(
         automaticallyImplyLeading: false,
-        leadingWidth: 120,
-        leading: TextButton.icon(
-          icon: const Icon(Icons.support_agent, size: 20),
-          label: Text(appLocalizations.onlineSupport),
-          onPressed: () {
-            // 移动端独有的按钮，使用 push 创建路由栈
-            context.push('/support');
-          },
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        title: Text(
+          appName,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          TextButton.icon(
-            icon: const Icon(Icons.card_giftcard, size: 20),
-            label: Text(appLocalizations.xboardPlanInfo),
-            onPressed: () {
-              // 移动端独有的按钮，使用 push 创建路由栈
-              context.push('/plans');
-            },
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-          ),
-        ],
+        centerTitle: false,
       ),
       body: Consumer(
         builder: (_, ref, __) {

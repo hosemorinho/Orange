@@ -2,8 +2,6 @@ import 'dart:io';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -73,8 +71,6 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                   _buildTrafficCard(theme, subscription),
                   const SizedBox(height: 16),
                   _buildTimeInfoCard(theme, subscription),
-                  const SizedBox(height: 16),
-                  _buildSubscriptionUrlCard(theme, subscription),
                 ],
               ),
             ),
@@ -459,107 +455,6 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
         ),
       ],
     );
-  }
-
-  Widget _buildSubscriptionUrlCard(ThemeData theme, DomainSubscription sub) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.link, size: 20, color: theme.colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                '订阅链接',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              sub.subscribeUrl,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontFamily: 'monospace',
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
-              ),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () => _copySubscriptionUrl(sub.subscribeUrl),
-                  icon: const Icon(Icons.copy, size: 18),
-                  label: const Text('复制链接'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _importSubscription(sub.subscribeUrl),
-                  icon: const Icon(Icons.download, size: 18),
-                  label: const Text('一键导入'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 16,
-                  color: theme.colorScheme.tertiary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '请妥善保管您的订阅链接，不要分享给他人',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.tertiary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _copySubscriptionUrl(String url) {
-    Clipboard.setData(ClipboardData(text: url));
-    XBoardNotification.showSuccess('订阅链接已复制到剪贴板');
-  }
-
-  void _importSubscription(String url) {
-    Clipboard.setData(ClipboardData(text: url));
-    XBoardNotification.showSuccess('订阅链接已复制，请在首页导入');
   }
 
   ({String label, Color color}) _getStatusInfo(DomainSubscription sub, ThemeData theme) {

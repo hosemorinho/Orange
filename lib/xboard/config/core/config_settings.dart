@@ -4,11 +4,13 @@
 class ConfigSettings {
   final String currentProvider;
   final RemoteConfigSettings remoteConfig;
+  final SubscriptionSettings subscription;
   final LogSettings log;
 
   const ConfigSettings({
     this.currentProvider = 'Flclash',
     this.remoteConfig = const RemoteConfigSettings(),
+    this.subscription = const SubscriptionSettings(),
     this.log = const LogSettings(),
   });
 
@@ -18,6 +20,9 @@ class ConfigSettings {
       currentProvider: json['currentProvider'] as String? ?? 'Flclash',
       remoteConfig: RemoteConfigSettings.fromJson(
         json['remoteConfig'] as Map<String, dynamic>? ?? {}
+      ),
+      subscription: SubscriptionSettings.fromJson(
+        json['subscription'] as Map<String, dynamic>? ?? {}
       ),
       log: LogSettings.fromJson(
         json['log'] as Map<String, dynamic>? ?? {}
@@ -30,6 +35,7 @@ class ConfigSettings {
     return {
       'currentProvider': currentProvider,
       'remoteConfig': remoteConfig.toJson(),
+      'subscription': subscription.toJson(),
       'log': log.toJson(),
     };
   }
@@ -50,6 +56,30 @@ class ConfigSettings {
   @override
   String toString() {
     return 'ConfigSettings(provider: $currentProvider)';
+  }
+}
+
+/// 订阅设置
+class SubscriptionSettings {
+  final bool preferEncrypt;
+
+  const SubscriptionSettings({
+    this.preferEncrypt = false,
+  });
+
+  /// 是否启用竞速（跟随加密选项）
+  bool get enableRace => preferEncrypt;
+
+  factory SubscriptionSettings.fromJson(Map<String, dynamic> json) {
+    return SubscriptionSettings(
+      preferEncrypt: json['prefer_encrypt'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'prefer_encrypt': preferEncrypt,
+    };
   }
 }
 

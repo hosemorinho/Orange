@@ -19,9 +19,9 @@ const appHelperService = "FlClashHelperService";
 const coreName = "clash.meta";
 const browserUa =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-const packageName = _envPackageName.isEmpty ? "com.follow.clash" : _envPackageName;
+const packageName = _envPackageName == '' ? "com.follow.clash" : _envPackageName;
 const apiBaseUrl = _envApiBaseUrl; // 空字符串表示使用配置文件域名竞速
-const themeColorHex = _envThemeColor.isEmpty ? "66558E" : _envThemeColor;
+const themeColorHex = _envThemeColor == '' ? "66558E" : _envThemeColor;
 final unixSocketPath = "/tmp/FlClashSocket_${Random().nextInt(10000)}.sock";
 const helperPort = 47890;
 const maxTextScale = 1.4;

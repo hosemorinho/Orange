@@ -6,11 +6,8 @@ import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/xboard/features/profile/profile.dart';
-import 'package:fl_clash/xboard/features/subscription/services/encrypted_subscription_service.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_downloader.dart';
-import 'package:fl_clash/xboard/features/subscription/utils/utils.dart';
 import 'package:fl_clash/xboard/core/core.dart';
-import 'package:fl_clash/xboard/config/utils/config_file_loader.dart';
 
 // 初始化文件级日志器
 final _logger = FileLogger('profile_import_service.dart');
@@ -123,15 +120,6 @@ class XBoardProfileImportService {
     try {
       _logger.info('开始下载配置: $url');
       
-      // 先检查用户配置是否禁用了加密订阅
-      final preferEncrypt = await ConfigFileLoaderHelper.getPreferEncrypt();
-      
-      // 用户启用加密，检查URL是否需要使用加密订阅服务
-      if (preferEncrypt && SubscriptionUrlHelper.shouldUseEncryptedService(url)) {
-        _logger.info('🔐 检测到加密订阅URL且用户启用加密，使用加密解密服务');
-        return await _downloadEncryptedProfile(url);
-      }
-      
       // 使用 XBoard 订阅下载服务
       _logger.info('📄 使用 XBoard 订阅下载服务（并发竞速）');
       final profile = await SubscriptionDownloader.downloadSubscription(
@@ -158,114 +146,6 @@ class XBoardProfileImportService {
         throw Exception('配置文件格式错误: $e');
       }
       throw Exception('下载配置失败: $e');
-    }
-  }
-
-  /// 下载加密的订阅配置
-  Future<Profile> _downloadEncryptedProfile(String url) async {
-    try {
-      _logger.info('📦 开始下载加密订阅配置流程');
-      _logger.debug('🔗 目标URL: $url');
-
-      // 从本地配置读取订阅偏好设置（竞速自动跟随加密选项）
-      final preferEncrypt = await ConfigFileLoaderHelper.getPreferEncrypt();
-      
-      _logger.info('📝 本地配置: preferEncrypt=$preferEncrypt (竞速: ${preferEncrypt ? "启用" : "禁用"})');
-
-      // 优先从登录数据获取token，如果失败再从URL解析
-      String? token;
-      SubscriptionResult result;
-      
-      try {
-        _logger.debug('🔑 尝试从登录数据获取token');
-        result = await EncryptedSubscriptionService.getSubscriptionSmart(
-          null,
-          preferEncrypt: preferEncrypt,
-          enableRace: preferEncrypt, // 竞速自动等于加密选项
-        );
-
-        if (!result.success) {
-          // 如果从登录数据获取失败，尝试从URL提取token
-          _logger.warning('⚠️ 从登录数据获取失败，尝试从URL提取token: ${result.error}');
-          token = SubscriptionUrlHelper.extractTokenFromUrl(url);
-          if (token == null) {
-            throw Exception('无法从URL中提取token且登录数据获取失败: $url');
-          }
-
-          _logger.debug('🔑 从URL提取到token: ${token.substring(0, 8)}...');
-          result = await EncryptedSubscriptionService.getSubscriptionSmart(
-            token,
-            preferEncrypt: preferEncrypt,
-            enableRace: preferEncrypt, // 竞速自动等于加密选项
-          );
-        } else {
-          _logger.info('✅ 成功从登录数据获取订阅');
-        }
-      } catch (e) {
-        // 最后的fallback：从URL提取token
-        _logger.warning('⚠️ 登录方式失败，fallback到URL解析', e);
-        token = SubscriptionUrlHelper.extractTokenFromUrl(url);
-        if (token == null) {
-          throw Exception('所有token获取方式都失败: $url');
-        }
-
-        _logger.debug('🔄 Fallback - 从URL提取到token: ${token.substring(0, 8)}...');
-        result = await EncryptedSubscriptionService.getSubscriptionSmart(
-          token,
-          preferEncrypt: preferEncrypt,
-          enableRace: preferEncrypt, // 竞速自动等于加密选项
-        );
-      }
-
-      if (!result.success) {
-        throw Exception('加密订阅获取失败: ${result.error}');
-      }
-
-      _logger.info('🎉 加密订阅获取成功！加密模式: ${result.encryptionUsed}');
-      if (result.keyUsed != null) {
-        _logger.debug('🔑 使用解密密钥: ${result.keyUsed?.substring(0, 8)}...');
-      }
-      
-      // 验证解密后的配置内容
-      _logger.debug('📄 验证解密后的配置内容，长度: ${result.content!.length}');
-      if (result.content!.trim().isEmpty) {
-        throw Exception('解密后的配置内容为空');
-      }
-
-      // 记录配置内容的基本统计信息
-      final lines = result.content!.split('\n');
-      final nonEmptyLines = lines.where((line) => line.trim().isNotEmpty).length;
-      _logger.debug('📄 配置内容统计: 总行数 ${lines.length}, 非空行数 $nonEmptyLines');
-
-      // 移除冗余的格式检查，让ClashMeta核心进行权威验证
-      _logger.debug('⚡ 跳过客户端格式验证，将由ClashMeta核心进行权威验证');
-
-      // 创建Profile并保存解密的配置内容
-      _logger.debug('💾 开始保存解密的配置内容到Profile...');
-      final profile = Profile.normal(url: url);
-      final profileWithContent = await profile.saveFileWithString(result.content!);
-      _logger.info('✅ 配置内容已成功保存并通过ClashMeta核心验证');
-      
-      // 获取订阅信息并更新Profile
-      _logger.info('📊 开始获取加密订阅的订阅信息...');
-      final subscriptionInfo = await ProfileSubscriptionInfoService.instance.getSubscriptionInfo(
-        subscriptionUserInfo: result.subscriptionUserInfo,
-      );
-      _logger.info('📊 Profile订阅信息获取完成: upload=${subscriptionInfo.upload}, download=${subscriptionInfo.download}, total=${subscriptionInfo.total}');
-
-      // 返回带有订阅信息的Profile
-      final updatedProfile = profileWithContent.copyWith(
-        subscriptionInfo: subscriptionInfo,
-      );
-
-      _logger.info('🎉 加密配置验证和保存成功！最终Profile订阅信息: ${updatedProfile.subscriptionInfo}');
-      _logger.debug('✅ 完整的加密订阅处理流程已成功完成');
-      return updatedProfile;
-      
-    } catch (e) {
-      _logger.error('💥 加密配置下载失败', e);
-      _logger.debug('❌ 加密订阅处理流程异常终止');
-      throw Exception('加密订阅处理失败: $e');
     }
   }
 

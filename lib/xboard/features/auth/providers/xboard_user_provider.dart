@@ -339,7 +339,9 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       try {
         ref.invalidate(getUserInfoProvider);
         userInfo = await ref.read(getUserInfoProvider.future);
-        await _storageService.saveDomainUser(userInfo);
+        if (userInfo != null) {
+          await _storageService.saveDomainUser(userInfo!);
+        }
         ref.read(userInfoProvider.notifier).state = userInfo;
       } catch (e) {
         _logger.info('获取用户详细信息失败: $e');
@@ -348,7 +350,9 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       try {
         ref.invalidate(getSubscriptionProvider);
         subscriptionData = await ref.read(getSubscriptionProvider.future);
-        await _storageService.saveDomainSubscription(subscriptionData);
+        if (subscriptionData != null) {
+          await _storageService.saveDomainSubscription(subscriptionData!);
+        }
         ref.read(subscriptionInfoProvider.notifier).state = subscriptionData;
       } catch (e) {
         _logger.info('获取订阅信息失败: $e');
@@ -394,7 +398,9 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       try {
         ref.invalidate(getUserInfoProvider);
         userInfo = await ref.read(getUserInfoProvider.future);
-        await _storageService.saveDomainUser(userInfo);
+        if (userInfo != null) {
+          await _storageService.saveDomainUser(userInfo!);
+        }
         ref.read(userInfoProvider.notifier).state = userInfo;
       } catch (e) {
         _logger.info('获取用户详细信息失败: $e');
@@ -403,7 +409,9 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       try {
         ref.invalidate(getSubscriptionProvider);
         subscriptionData = await ref.read(getSubscriptionProvider.future);
-        await _storageService.saveDomainSubscription(subscriptionData);
+        if (subscriptionData != null) {
+          await _storageService.saveDomainSubscription(subscriptionData!);
+        }
         ref.read(subscriptionInfoProvider.notifier).state = subscriptionData;
       } catch (e) {
         _logger.info('获取订阅信息失败: $e');

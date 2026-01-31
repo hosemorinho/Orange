@@ -147,7 +147,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               }
             });
-          } else if (foundOrder.status == OrderStatus.cancelled) {
+          } else if (foundOrder.status == OrderStatus.canceled) {
             _stopAutoPolling();
             if (!silent) {
               XBoardNotification.showInfo('支付已取消');

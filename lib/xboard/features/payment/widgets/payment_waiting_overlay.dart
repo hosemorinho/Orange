@@ -6,6 +6,7 @@ import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/infrastructure/api/api.dart';
+import 'package:fl_clash/xboard/domain/domain.dart';
 import '../models/payment_step.dart';
 
 // 初始化文件级日志器

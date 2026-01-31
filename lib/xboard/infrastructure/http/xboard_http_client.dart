@@ -39,7 +39,7 @@ class XBoardHttpConfig {
   /// 
   /// 常用场景：
   /// - 订阅下载：UserAgentScenario.subscription
-  /// - API/域名竞速：UserAgentScenario.apiEncrypted
+  /// - API/域名竞速：UserAgentScenario.api
   /// - 并发订阅：UserAgentScenario.subscriptionRacing
   /// - 消息附件：UserAgentScenario.attachment
   

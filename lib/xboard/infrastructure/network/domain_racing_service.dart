@@ -248,12 +248,12 @@ class DomainRacingService {
       // 设置请求头
       if (_isIpWithPort(withoutProtocol)) {
         // IP+端口：使用加密User-Agent（Caddy认证）
-        final apiUserAgent = await UserAgentConfig.get(UserAgentScenario.apiEncrypted);
+        final apiUserAgent = UserAgentConfig.get(UserAgentScenario.api);
         request.headers.set(HttpHeaders.userAgentHeader, apiUserAgent);
         _logger.info('[域名竞速] 域名 #$index 使用加密User-Agent（Caddy认证）');
       } else {
         // 域名：使用域名竞速测试User-Agent
-        final domainUserAgent = await UserAgentConfig.get(UserAgentScenario.domainRacingTest);
+        final domainUserAgent = UserAgentConfig.get(UserAgentScenario.domainRacingTest);
         request.headers.set(HttpHeaders.userAgentHeader, domainUserAgent);
         _logger.info('[域名竞速] 域名 #$index 使用域名竞速测试User-Agent');
       }

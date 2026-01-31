@@ -37,7 +37,7 @@ val dartDefines = (project.findProperty("dart-defines") as? String)
 val appPackageName = dartDefines["APP_PACKAGE_NAME"]?.takeIf { it.isNotEmpty() } ?: "com.follow.clash"
 
 android {
-    namespace = appPackageName
+    namespace = "com.follow.clash"
     compileSdk = 35
     ndkVersion = "28.0.13004108"
 

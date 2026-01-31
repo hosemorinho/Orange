@@ -1,3 +1,4 @@
+import java.util.Base64
 import java.util.Properties
 
 plugins {
@@ -27,7 +28,7 @@ val dartDefines = (project.findProperty("dart-defines") as? String)
     ?.split(",")
     ?.mapNotNull { encoded ->
         try {
-            val decoded = String(java.util.Base64.getDecoder().decode(encoded))
+            val decoded = String(Base64.getDecoder().decode(encoded))
             val parts = decoded.split("=", limit = 2)
             if (parts.size == 2) parts[0] to parts[1] else null
         } catch (_: Exception) { null }

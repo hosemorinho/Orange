@@ -67,8 +67,9 @@ app.*.map.json
 /xboard.config.yml
 assets/config/xboard.config.yaml
 
-# 忽略证书文件
-assets/cer/
+# 忽略证书文件（保留目录结构）
+assets/cer/*
+!assets/cer/.gitkeep
 
 # Claude Code
 .claude/

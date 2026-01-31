@@ -577,6 +577,11 @@ class BuildCommand extends Command {
       '"Flclash"',
       '"$appName"',
     );
+    _patchFile(
+      join(current, 'linux', 'CMakeLists.txt'),
+      'FlClashCore',
+      coreName,
+    );
     for (final pkg in ['deb', 'rpm', 'appimage']) {
       final path = join(current, 'linux', 'packaging', pkg, 'make_config.yaml');
       _patchFile(path, 'display_name: Flclash', 'display_name: $appName');
@@ -591,6 +596,11 @@ class BuildCommand extends Command {
       join(current, 'macos', 'Runner', 'Configs', 'AppInfo.xcconfig'),
       'PRODUCT_NAME = Flclash',
       'PRODUCT_NAME = $appName',
+    );
+    _patchFile(
+      join(current, 'macos', 'Runner.xcodeproj', 'project.pbxproj'),
+      'FlClashCore',
+      coreName,
     );
     final dmgConfig = join(current, 'macos', 'packaging', 'dmg', 'make_config.yaml');
     _patchFile(dmgConfig, 'title: Flclash', 'title: $appName');

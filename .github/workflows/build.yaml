@@ -21,7 +21,6 @@ on:
 
 env:
   IS_STABLE: ${{ !contains(github.ref, '-') }}
-  # 从 repository variables 读取自定义配置（Settings → Secrets and variables → Actions → Variables）
   APP_PACKAGE_NAME: ${{ inputs.package_name || vars.APP_PACKAGE_NAME || '' }}
   API_BASE_URL: ${{ inputs.api_url || vars.API_BASE_URL || '' }}
   THEME_COLOR: ${{ inputs.theme_color || vars.THEME_COLOR || '' }}
@@ -29,16 +28,17 @@ env:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         include:
+          - platform: android
+            os: ubuntu-latest
+          - platform: linux
+            os: ubuntu-22.04
+            arch: amd64
           - platform: windows
-            os: self-hosted
+            os: windows-latest
             arch: amd64
           - platform: macos
             os: macos-13
@@ -46,123 +46,73 @@ jobs:
           - platform: macos
             os: macos-latest
             arch: arm64
-          - platform: android
-            os: ubuntu-latest
-          - platform: linux
-            os: ubuntu-22.04
-            arch: amd64
 
     steps:
-      - name: Setup rust
-        if: startsWith(matrix.os, 'windows-11-arm')
-        run: |
-          Invoke-WebRequest -Uri "https://win.rustup.rs/aarch64" -OutFile rustup-init.exe
-          .\rustup-init.exe -y --default-toolchain stable
-          $cargoPath = "$env:USERPROFILE\.cargo\bin"
-          Add-Content $env:GITHUB_PATH $cargoPath
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup Android Signing
-        if: startsWith(matrix.platform,'android')
-        run: |
-          echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/local.properties
-          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/local.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/local.properties
+      - name: Setup Java
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-      - name: Setup Windows Build Environment
-        if: startsWith(matrix.platform, 'windows')
+      - name: Setup Android Signing
+        if: matrix.platform == 'android'
         shell: bash
         run: |
-          TOOLS_DIR="/c/runner-tools"
-          mkdir -p "$TOOLS_DIR"
-
-          if command -v jq &> /dev/null; then
-            echo "✓ jq already available"
-          else
-            if choco install jq -y --no-progress; then
-              export PATH="/c/ProgramData/chocolatey/bin:$PATH"
-              echo "/c/ProgramData/chocolatey/bin" >> $GITHUB_PATH
-            fi
+          if [ -n "${{ secrets.KEYSTORE }}" ]; then
+            echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
+            echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/local.properties
+            echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/local.properties
+            echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/local.properties
           fi
 
-          if ! command -v cargo &> /dev/null; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-            source "$HOME/.cargo/env"
-            echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-          fi
-          cargo --version
-
-          ATL_HEADER="/c/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/*/atlmfc/include/atlstr.h"
-          if ! ls $ATL_HEADER 1> /dev/null 2>&1; then
-            choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.ATL --add Microsoft.VisualStudio.Component.VC.ATLMFC --includeRecommended --quiet" -y --force
-          fi
-
-          INNO_SETUP_PATH="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
-          if [ ! -f "$INNO_SETUP_PATH" ]; then
-            choco install innosetup -y --no-progress
-            echo "/c/Program Files (x86)/Inno Setup 6" >> $GITHUB_PATH
-          fi
-
-      - name: Verify Go Installation
-        run: |
-          go version
-          go env GOPATH
-
-      - name: Setup Flutter Master
-        if: startsWith(matrix.os, 'windows-11-arm') || startsWith(matrix.os, 'ubuntu-24.04-arm')
-        uses: subosito/flutter-action@v2
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          channel: 'master'
-          cache: true
+          go-version: 'stable'
 
       - name: Setup Flutter
-        if: ${{ !(startsWith(matrix.os, 'windows-11-arm') || startsWith(matrix.os, 'ubuntu-24.04-arm') || matrix.os == 'self-hosted') }}
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: Use Local Flutter (Self-hosted Windows)
-        if: matrix.os == 'self-hosted' && startsWith(matrix.platform, 'windows')
+      - name: Install Linux Dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build libgtk-3-dev libayatana-appindicator3-dev libkeybinder-3.0-dev
+
+      - name: Setup Windows Build Tools
+        if: matrix.platform == 'windows'
         shell: bash
         run: |
-          echo "Using local Flutter installation"
-          flutter --version
+          # Install Inno Setup for Windows packaging
+          choco install innosetup -y --no-progress
+          echo "C:\Program Files (x86)\Inno Setup 6" >> $GITHUB_PATH
 
-      - name: Get Flutter Dependency
+          # Activate flutter_distributor
+          dart pub global activate flutter_distributor
+          echo "$LOCALAPPDATA\Pub\Cache\bin" >> $GITHUB_PATH
+
+      - name: Setup macOS Dependencies
+        if: matrix.platform == 'macos'
+        run: npm install -g appdmg
+
+      - name: Get Flutter Dependencies
         run: flutter pub get
 
       - name: Generate Code
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Clean Swift Package Manager cache
-        if: startsWith(matrix.platform, 'macos')
-        run: |
-          find macos -name "Package.resolved" -delete
-          rm -rf macos/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
-          rm -rf macos/Runner.xcworkspace/xcshareddata/swiftpm/
-
-      - name: Prepare Windows Build Environment
-        if: startsWith(matrix.platform, 'windows')
-        shell: bash
-        run: |
-          PUB_CACHE_BIN="/c/Users/$(whoami)/AppData/Local/Pub/Cache/bin"
-          INNO_SETUP_DIR="/c/Program Files (x86)/Inno Setup 6"
-          export PATH="$PUB_CACHE_BIN:$INNO_SETUP_DIR:$PATH"
-          echo "$PUB_CACHE_BIN" >> $GITHUB_PATH
-          echo "$INNO_SETUP_DIR" >> $GITHUB_PATH
-
-          if ! command -v flutter_distributor &> /dev/null; then
-            dart pub global activate flutter_distributor
-          fi
-
       - name: Build Custom Args
         id: custom-args
+        shell: bash
         run: |
           ARGS=""
           if [ -n "${{ env.APP_PACKAGE_NAME }}" ]; then
@@ -176,68 +126,48 @@ jobs:
           fi
           echo "args=$ARGS" >> $GITHUB_OUTPUT
 
-      - name: Setup
+      - name: Build
+        shell: bash
         run: dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }} ${{ steps.custom-args.outputs.args }}
 
-      - name: Upload
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifact-${{ matrix.platform }}${{ matrix.arch && format('-{0}', matrix.arch) }}
           path: ./dist
           overwrite: true
 
-  upload:
+  release:
     permissions: write-all
-    needs: [ build ]
+    needs: [build]
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Download
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./dist/
           pattern: artifact-*
           merge-multiple: true
 
-      - name: Generate release.md
+      - name: Generate Release Notes
         run: |
-          tags=($(git tag --merged $(git rev-parse HEAD) --sort=-creatordate))
-          preTag=$(curl --silent "https://api.github.com/repos/${{ github.repository }}/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")' || echo "")
-          currentTag=""
-          for ((i = 0; i <= ${#tags[@]}; i++)); do
-            if (( i < ${#tags[@]} )); then
-              tag=${tags[$i]}
-            else
-              tag=""
-            fi
-            if [ -n "$currentTag" ]; then
-              if [ "$(echo -e "$currentTag\n$preTag" | sort -V | head -n 1)" == "$currentTag" ]; then
-                break
-              fi
-            fi
-            if [ -n "$currentTag" ]; then
-              if [ -n "$tag" ]; then
-                git log --pretty=format:"%B" "$tag..$currentTag" | awk 'NF {print "- " $0} !NF {print ""}' >> release.md
-              else
-                git log --pretty=format:"%B" "$currentTag" | awk 'NF {print "- " $0} !NF {print ""}' >> release.md
-              fi
-              echo "" >> release.md
-            fi
-            currentTag=$tag
-          done
+          echo "## Changes" > release.md
+          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || git rev-list --max-parents=0 HEAD)..HEAD >> release.md 2>/dev/null || echo "- Initial release" >> release.md
 
-      - name: Generate sha256
+      - name: Generate SHA256
         run: |
           cd ./dist
           for file in $(find . -type f -not -name "*.sha256"); do
             sha256sum "$file" > "${file}.sha256"
           done
 
-      - name: Release
+      - name: Create Release
         if: ${{ !contains(github.ref, '-') }}
         uses: softprops/action-gh-release@v2
         with:

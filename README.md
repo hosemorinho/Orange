@@ -90,44 +90,38 @@ dart setup.dart android \
 
 ## GitHub Actions CI
 
-项目包含自动构建工作流，支持两种触发方式：
+项目包含自动构建工作流，支持三种触发方式：
 
-### 1. 推送标签触发
+### 1. 推送到 main 分支
 
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+每次 push 到 `main` 自动构建，产物以 zip 形式上传到 **workflow artifacts**，可在 Actions 页面直接下载测试。
 
-稳定版标签（不含 `-`）会自动创建 GitHub Release。
+### 2. 创建 Release
 
-### 2. 手动触发 (workflow_dispatch)
+在 GitHub 页面手动创建 Release 后，自动触发构建并将产物（含 SHA256 校验）上传到该 Release。
+
+### 3. 手动触发 (workflow_dispatch)
 
 进入 GitHub → Actions → build → Run workflow，可输入：
 - `package_name`：覆盖包名
 - `api_url`：覆盖 API 地址
 - `theme_color`：覆盖主题色
 
-### 3. Repository Variables（长期配置）
+### Secrets 配置
 
-进入 Settings → Secrets and variables → Actions → Variables，添加：
-
-| Variable | 说明 |
-|----------|------|
-| `APP_PACKAGE_NAME` | 自定义包名 |
-| `API_BASE_URL` | V2Board 面板地址 |
-| `THEME_COLOR` | 主题种子色 hex |
-
-### 4. Secrets（签名配置）
-
-Android 签名需在 Secrets 中配置：
+进入 Settings → Secrets and variables → Actions → **Secrets**，添加：
 
 | Secret | 说明 |
 |--------|------|
-| `KEYSTORE` | keystore 文件 base64 编码 |
+| `APP_PACKAGE_NAME` | 自定义包名 |
+| `API_BASE_URL` | V2Board 面板地址 |
+| `THEME_COLOR` | 主题种子色 hex |
+| `KEYSTORE` | Android keystore 文件 base64 编码 |
 | `KEY_ALIAS` | 密钥别名 |
 | `STORE_PASSWORD` | keystore 密码 |
 | `KEY_PASSWORD` | 密钥密码 |
+
+> **注意**：`APP_PACKAGE_NAME`、`API_BASE_URL`、`THEME_COLOR` 必须放在 Secrets（而非 Variables）中，避免在 Actions 日志中泄露。
 
 ### 构建产物
 

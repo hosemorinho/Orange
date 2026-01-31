@@ -132,9 +132,11 @@ class Build {
         ),
       ];
 
-  static String get appName => "Flclash";
+  static String get defaultAppName => "Flclash";
 
-  static String get coreName => "FlClashCore";
+  static String coreNameFor(String appName) => "${appName}Core";
+
+  static String helperNameFor(String appName) => "${appName}HelperService";
 
   static String get libName => "libclash";
 
@@ -219,8 +221,10 @@ class Build {
     required Mode mode,
     required Target target,
     Arch? arch,
+    String? appName,
   }) async {
     final isLib = mode == Mode.lib;
+    final coreName = coreNameFor(appName ?? defaultAppName);
 
     final items = buildItems.where(
       (element) {
@@ -285,7 +289,8 @@ class Build {
     return corePaths;
   }
 
-  static buildHelper(Target target, String token) async {
+  static buildHelper(Target target, String token, {String? appName}) async {
+    final helperName = helperNameFor(appName ?? defaultAppName);
     await exec(
       [
         "cargo",
@@ -296,6 +301,7 @@ class Build {
       ],
       environment: {
         "TOKEN": token,
+        "SERVICE_NAME": helperName,
       },
       name: "build helper",
       workingDirectory: _servicesDir,
@@ -309,7 +315,7 @@ class Build {
     final targetPath = join(
       outDir,
       target.name,
-      "FlClashHelperService${target.executableExtensionName}",
+      "$helperName${target.executableExtensionName}",
     );
     await File(outPath).copy(targetPath);
   }
@@ -512,6 +518,9 @@ class BuildCommand extends Command {
   }
 
   static void _patchAppName(String appName) {
+    final coreName = Build.coreNameFor(appName);
+    final helperName = Build.helperNameFor(appName);
+
     // distribute_options.yaml
     _patchFile(join(current, 'distribute_options.yaml'), 'Flclash', appName);
 
@@ -527,22 +536,40 @@ class BuildCommand extends Command {
       '>$appName<',
     );
 
-    // Windows
+    // Windows — main.cpp window title
     _patchFile(
       join(current, 'windows', 'runner', 'main.cpp'),
       'L"FlClash"',
       'L"$appName"',
     );
+
+    // Windows — Runner.rc version info fields
+    final runnerRc = join(current, 'windows', 'runner', 'Runner.rc');
     for (final field in ['"FileDescription"', '"InternalName"', '"ProductName"']) {
-      _patchFile(
-        join(current, 'windows', 'runner', 'Runner.rc'),
-        '$field, "Flclash"',
-        '$field, "$appName"',
-      );
+      _patchFile(runnerRc, '$field, "Flclash"', '$field, "$appName"');
     }
+    _patchFile(runnerRc, '"OriginalFilename", "Flclash.exe"', '"OriginalFilename", "$appName.exe"');
+
+    // Windows — CMakeLists.txt project name, binary name, core/helper references
+    final winCMake = join(current, 'windows', 'CMakeLists.txt');
+    _patchFile(winCMake, 'project(Flclash ', 'project($appName ');
+    _patchFile(winCMake, 'BINARY_NAME "Flclash"', 'BINARY_NAME "$appName"');
+    _patchFile(winCMake, 'FlClashCore.exe', '$coreName.exe');
+    _patchFile(winCMake, 'FlClashHelperService.exe', '$helperName.exe');
+
+    // Windows — packaging exe config
     final winPkgConfig = join(current, 'windows', 'packaging', 'exe', 'make_config.yaml');
     _patchFile(winPkgConfig, 'app_name: Flclash', 'app_name: $appName');
     _patchFile(winPkgConfig, 'display_name: Flclash', 'display_name: $appName');
+    _patchFile(winPkgConfig, 'executable_name: Flclash.exe', 'executable_name: $appName.exe');
+    _patchFile(winPkgConfig, 'output_base_file_name: Flclash.exe', 'output_base_file_name: $appName.exe');
+
+    // Windows — Inno Setup process killer list
+    _patchFile(
+      join(current, 'windows', 'packaging', 'exe', 'inno_setup.iss'),
+      "Processes := ['Flclash.exe', 'FlClashCore.exe', 'FlClashHelperService.exe']",
+      "Processes := ['$appName.exe', '$coreName.exe', '$helperName.exe']",
+    );
 
     // Linux
     _patchFile(
@@ -613,6 +640,7 @@ class BuildCommand extends Command {
       target: target,
       arch: arch,
       mode: mode,
+      appName: appNameArg,
     );
 
     if (out != "app") {
@@ -624,7 +652,7 @@ class BuildCommand extends Command {
         final token = target != Target.android
             ? await Build.calcSha256(corePaths.first)
             : null;
-        Build.buildHelper(target, token!);
+        Build.buildHelper(target, token!, appName: appNameArg);
         _buildDistributor(
           target: target,
           targets: "exe,zip",

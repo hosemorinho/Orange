@@ -16,14 +16,14 @@ const _envAppName = String.fromEnvironment('APP_NAME');
 
 const appName = _envAppName == '' ? "Flclash" : _envAppName;
 const appNameEn = appName; // 用于 HTTP User-Agent 的英文名称
-const appHelperService = "FlClashHelperService";
+final appHelperService = "${appName}HelperService";
 const coreName = "clash.meta";
 const browserUa =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 const packageName = _envPackageName == '' ? "com.follow.clash" : _envPackageName;
 const apiBaseUrl = _envApiBaseUrl; // 空字符串表示使用配置文件域名竞速
 const themeColorHex = _envThemeColor == '' ? "66558E" : _envThemeColor;
-final unixSocketPath = "/tmp/FlClashSocket_${Random().nextInt(10000)}.sock";
+final unixSocketPath = "/tmp/${appName}Socket_${Random().nextInt(10000)}.sock";
 const helperPort = 47890;
 const maxTextScale = 1.4;
 const minTextScale = 0.8;
@@ -99,9 +99,9 @@ double getWidgetHeight(num lines) {
 
 const maxLength = 150;
 
-final mainIsolate = "FlClashMainIsolate";
+final mainIsolate = "${appName}MainIsolate";
 
-final serviceIsolate = "FlClashServiceIsolate";
+final serviceIsolate = "${appName}ServiceIsolate";
 
 /// 解析环境变量中的主题色（hex 字符串 → int）
 int parseThemeColor() {

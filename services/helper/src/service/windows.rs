@@ -16,7 +16,10 @@ use windows_service::{
     service_dispatcher, Result,
 };
 
-const SERVICE_NAME: &str = "FlClashHelperService";
+const SERVICE_NAME: &str = match option_env!("SERVICE_NAME") {
+    Some(name) => name,
+    None => "FlClashHelperService",
+};
 
 const SERVICE_TYPE: ServiceType = ServiceType::OWN_PROCESS;
 

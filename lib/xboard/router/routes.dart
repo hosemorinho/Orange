@@ -4,6 +4,7 @@ import 'package:fl_clash/xboard/features/payment/pages/plans.dart';
 import 'package:fl_clash/xboard/features/payment/pages/plan_purchase_page.dart';
 import 'package:fl_clash/xboard/features/payment/pages/payment_gateway_page.dart';
 import 'package:fl_clash/xboard/features/invite/pages/invite_page.dart';
+import 'package:fl_clash/xboard/features/ticket/ticket.dart';
 import 'package:fl_clash/xboard/features/auth/pages/login_page.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:flutter/material.dart';
@@ -43,6 +44,19 @@ final List<RouteBase> routes = [
               name: 'plans',
               pageBuilder: (context, state) => const NoTransitionPage(
                 child: PlansView(),
+              ),
+            ),
+          ],
+        ),
+
+        // 工单页面分支
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/support',
+              name: 'support',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: TicketListPage(),
               ),
             ),
           ],
@@ -97,6 +111,27 @@ final List<RouteBase> routes = [
       pageBuilder: (context, state) => const MaterialPage(
         child: SubscriptionPage(),
       ),
+    ),
+
+    // 创建工单页面
+    GoRoute(
+      path: '/support/create',
+      name: 'support_create',
+      pageBuilder: (context, state) => const MaterialPage(
+        child: CreateTicketPage(),
+      ),
+    ),
+
+    // 工单详情页面
+    GoRoute(
+      path: '/support/detail',
+      name: 'support_detail',
+      pageBuilder: (context, state) {
+        final ticketId = state.extra as int;
+        return MaterialPage(
+          child: TicketDetailPage(ticketId: ticketId),
+        );
+      },
     ),
     
     // 登录页面

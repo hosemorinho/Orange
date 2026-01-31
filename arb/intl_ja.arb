@@ -802,5 +802,18 @@
   },
   "contactSupport": "サポートに連絡",
   "configurationError": "アプリケーション設定エラー、サポートにお問い合わせください",
-  "onlineSupportWebSocketConfigNotFound": "オンラインサポートWebSocket設定が見つかりません。設定を確認してください"
+  "onlineSupportWebSocketConfigNotFound": "オンラインサポートWebSocket設定が見つかりません。設定を確認してください",
+  "emailPrefixHint": "メールプレフィックス",
+  "pleaseEnterEmailPrefix": "メールプレフィックスを入力してください",
+  "invalidEmailFormat": "無効なメール形式",
+  "pleaseSelectEmailSuffix": "メールサフィックスを選択してください",
+  "pleaseSelectSuffix": "サフィックスを選択してください",
+  "fullEmailPreview": "完全なメール: {email}",
+  "@fullEmailPreview": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  }
 }

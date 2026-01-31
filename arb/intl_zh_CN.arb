@@ -1033,5 +1033,18 @@
   "contactSupport": "联系客服",
   "configurationError": "应用配置异常，请联系客服",
   "onlineSupportWebSocketConfigNotFound": "在线客服WebSocket配置未找到，请检查配置",
-  "newMessageFromSupport": "客服新消息"
+  "newMessageFromSupport": "客服新消息",
+  "emailPrefixHint": "邮箱前缀",
+  "pleaseEnterEmailPrefix": "请输入邮箱前缀",
+  "invalidEmailFormat": "邮箱格式不正确",
+  "pleaseSelectEmailSuffix": "请选择邮箱后缀",
+  "pleaseSelectSuffix": "请选择后缀",
+  "fullEmailPreview": "完整邮箱: {email}",
+  "@fullEmailPreview": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  }
 }

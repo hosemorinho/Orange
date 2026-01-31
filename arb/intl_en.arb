@@ -1065,5 +1065,18 @@
   "contactSupport": "Support",
   "configurationError": "Application configuration error, please contact support",
   "onlineSupportWebSocketConfigNotFound": "Online support WebSocket configuration not found, please check configuration",
-  "newMessageFromSupport": "New message from support"
+  "newMessageFromSupport": "New message from support",
+  "emailPrefixHint": "Email prefix",
+  "pleaseEnterEmailPrefix": "Please enter email prefix",
+  "invalidEmailFormat": "Invalid email format",
+  "pleaseSelectEmailSuffix": "Please select email suffix",
+  "pleaseSelectSuffix": "Please select suffix",
+  "fullEmailPreview": "Full email: {email}",
+  "@fullEmailPreview": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  }
 }

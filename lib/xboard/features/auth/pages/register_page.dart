@@ -158,7 +158,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     }
 
     if (_selectedEmailSuffix == null || _selectedEmailSuffix!.isEmpty) {
-      XBoardNotification.showError('请选择邮箱后缀');
+      XBoardNotification.showError(appLocalizations.pleaseSelectEmailSuffix);
       return;
     }
 
@@ -231,7 +231,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               child: TextFormField(
                 controller: _emailPrefixController,
                 decoration: InputDecoration(
-                  hintText: '用户名',
+                  hintText: appLocalizations.emailPrefixHint,
                   hintStyle: TextStyle(
                     color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                   ),
@@ -272,11 +272,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return '请输入邮箱用户名';
+                    return appLocalizations.pleaseEnterEmailPrefix;
                   }
                   // 验证邮箱前缀格式（只允许字母、数字、点、下划线、连字符）
                   if (!RegExp(r'^[a-zA-Z0-9._-]+$').hasMatch(value)) {
-                    return '邮箱格式不正确';
+                    return appLocalizations.invalidEmailFormat;
                   }
                   return null;
                 },
@@ -345,7 +345,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return '请选择后缀';
+                    return appLocalizations.pleaseSelectSuffix;
                   }
                   return null;
                 },
@@ -358,7 +358,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           Padding(
             padding: const EdgeInsets.only(top: 8, left: 4),
             child: Text(
-              '完整邮箱: $_fullEmail',
+              appLocalizations.fullEmailPreview(_fullEmail),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.primary.withValues(alpha: 0.8),
                 fontStyle: FontStyle.italic,

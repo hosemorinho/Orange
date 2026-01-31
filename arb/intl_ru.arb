@@ -802,5 +802,18 @@
   },
   "contactSupport": "Связаться с поддержкой",
   "configurationError": "Ошибка конфигурации приложения, обратитесь в службу поддержки",
-  "onlineSupportWebSocketConfigNotFound": "Конфигурация WebSocket онлайн поддержки не найдена, проверьте настройки"
+  "onlineSupportWebSocketConfigNotFound": "Конфигурация WebSocket онлайн поддержки не найдена, проверьте настройки",
+  "emailPrefixHint": "Префикс email",
+  "pleaseEnterEmailPrefix": "Пожалуйста, введите префикс email",
+  "invalidEmailFormat": "Неверный формат email",
+  "pleaseSelectEmailSuffix": "Пожалуйста, выберите суффикс email",
+  "pleaseSelectSuffix": "Пожалуйста, выберите суффикс",
+  "fullEmailPreview": "Полный email: {email}",
+  "@fullEmailPreview": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  }
 }

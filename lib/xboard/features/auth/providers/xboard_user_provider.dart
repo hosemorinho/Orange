@@ -496,8 +496,8 @@ final xboardUserAuthProvider = NotifierProvider<XBoardUserAuthNotifier, UserAuth
 );
 final xboardUserProvider = xboardUserAuthProvider;
 extension UserInfoHelpers on WidgetRef {
-  DomainUser? get userInfo => read(userInfoProvider);
-  DomainSubscription? get subscriptionInfo => read(subscriptionInfoProvider);
-  UserAuthState get userAuthState => read(xboardUserAuthProvider);
-  bool get isAuthenticated => read(xboardUserAuthProvider).isAuthenticated;
+  DomainUser? get userInfo => watch(userInfoProvider);
+  DomainSubscription? get subscriptionInfo => watch(subscriptionInfoProvider);
+  UserAuthState get userAuthState => watch(xboardUserAuthProvider);
+  bool get isAuthenticated => watch(xboardUserAuthProvider).isAuthenticated;
 }

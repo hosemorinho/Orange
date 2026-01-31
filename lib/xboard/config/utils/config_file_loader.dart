@@ -263,9 +263,9 @@ extension ConfigFileLoaderHelper on ConfigFileLoader {
   static Future<String> getAppWebsite() async {
     try {
       final app = await getAppConfig();
-      return app['website'] as String? ?? 'example.com';
+      return app['website'] as String? ?? '';
     } catch (e) {
-      return 'example.com';
+      return '';
     }
   }
   

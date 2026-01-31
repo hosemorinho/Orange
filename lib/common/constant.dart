@@ -93,6 +93,9 @@ const viewModeColumnsMap = {
 
 const defaultPrimaryColor = 0xFF66558E;
 
+/// 环境变量配置的主题色（运行时解析）
+final int configuredPrimaryColor = parseThemeColor();
+
 double getWidgetHeight(num lines) {
   return max(lines * 84 + (lines - 1) * 16, 0).ap;
 }
@@ -121,6 +124,16 @@ const defaultPrimaryColors = [
   defaultPrimaryColor,
   0XFF665390,
 ];
+
+/// 包含环境变量配置色的调色盘
+final List<int> configuredPrimaryColors = () {
+  final colors = List<int>.from(defaultPrimaryColors);
+  final envColor = configuredPrimaryColor;
+  if (envColor != defaultPrimaryColor && !colors.contains(envColor)) {
+    colors.insert(0, envColor);
+  }
+  return colors;
+}();
 
 const scriptTemplate = """
 const main = (config) => {

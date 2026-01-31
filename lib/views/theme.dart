@@ -189,8 +189,8 @@ class _PrimaryColorItemState extends ConsumerState<_PrimaryColorItem> {
     ref.read(themeSettingProvider.notifier).updateState(
       (state) {
         return state.copyWith(
-          primaryColors: defaultPrimaryColors,
-          primaryColor: defaultPrimaryColor,
+          primaryColors: configuredPrimaryColors,
+          primaryColor: configuredPrimaryColor,
           schemeVariant: DynamicSchemeVariant.tonalSpot,
         );
       },
@@ -217,8 +217,8 @@ class _PrimaryColorItemState extends ConsumerState<_PrimaryColorItem> {
           ..remove(_removablePrimaryColor);
         int? newPrimaryColor = state.primaryColor;
         if (state.primaryColor == _removablePrimaryColor) {
-          if (newPrimaryColors.contains(defaultPrimaryColor)) {
-            newPrimaryColor = defaultPrimaryColor;
+          if (newPrimaryColors.contains(configuredPrimaryColor)) {
+            newPrimaryColor = configuredPrimaryColor;
           } else {
             newPrimaryColor = null;
           }
@@ -297,8 +297,8 @@ class _PrimaryColorItemState extends ConsumerState<_PrimaryColorItem> {
           a: state.primaryColor,
           b: state.primaryColors,
           c: state.schemeVariant,
-          d: state.primaryColor == defaultPrimaryColor &&
-              intListEquality.equals(state.primaryColors, defaultPrimaryColors),
+          d: state.primaryColor == configuredPrimaryColor &&
+              intListEquality.equals(state.primaryColors, configuredPrimaryColors),
         ),
       ),
     );

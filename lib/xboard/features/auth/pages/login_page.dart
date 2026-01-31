@@ -9,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'register_page.dart';
 import 'forgot_password_page.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
-import 'package:fl_clash/xboard/config/utils/config_file_loader.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -24,28 +23,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _isPasswordVisible = false;
   late XBoardStorageService _storageService;
   
-  // 应用信息
-  String _appWebsite = 'example.com';
-  
   @override
   void initState() {
     super.initState();
     _storageService = ref.read(storageServiceProvider);
     _loadSavedCredentials();
-    _loadAppInfo();
-    
+
     // ✅ 调用统一初始化服务
     _initializeXBoard();
-  }
-  
-  /// 加载应用信息（网站地址）
-  Future<void> _loadAppInfo() async {
-    final website = await ConfigFileLoaderHelper.getAppWebsite();
-    if (mounted) {
-      setState(() {
-        _appWebsite = website;
-      });
-    }
   }
   @override
   void dispose() {
@@ -226,13 +211,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               style: textTheme.displaySmall?.copyWith(
                                 color: colorScheme.onSurface,
                                 fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _appWebsite,
-                              style: textTheme.titleMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],

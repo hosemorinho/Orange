@@ -34,6 +34,8 @@ export 'utils/config_file_loader.dart';
 
 // ========== 便捷API ==========
 
+import 'package:fl_clash/common/constant.dart' show apiBaseUrl;
+
 import 'core/module_initializer.dart';
 import 'core/config_settings.dart';
 import 'internal/xboard_config_accessor.dart';
@@ -211,6 +213,16 @@ class XBoardConfig {
   /// 如果所有URL都失败，则返回null
   /// 注意：返回的URL会强制转换为HTTPS格式，以适配SDK的私有证书配置
   static Future<String?> getFastestPanelUrl() async {
+    // 如果设置了 API_BASE_URL 环境变量，直接返回，跳过域名竞速
+    if (apiBaseUrl.isNotEmpty) {
+      _lastRacingResult = DomainRacingResult(
+        domain: apiBaseUrl,
+        useProxy: false,
+        responseTime: 0,
+      );
+      return apiBaseUrl;
+    }
+
     // 如果已经有正在进行的竞速，直接返回该结果（请求合并）
     if (_racingFuture != null) {
       return _racingFuture;

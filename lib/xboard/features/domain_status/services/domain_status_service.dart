@@ -1,3 +1,4 @@
+import 'package:fl_clash/common/constant.dart' show apiBaseUrl;
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';
 // SDK通过Provider自动初始化
@@ -42,6 +43,19 @@ class DomainStatusService {
     }
 
     try {
+      // 如果设置了 API_BASE_URL 环境变量，跳过域名竞速
+      if (apiBaseUrl.isNotEmpty) {
+        _logger.info('使用环境变量 API 地址，跳过域名竞速: $apiBaseUrl');
+        await _initializeXBoardService(apiBaseUrl);
+        return {
+          'success': true,
+          'domain': apiBaseUrl,
+          'latency': 0,
+          'availableDomains': [apiBaseUrl],
+          'message': null,
+        };
+      }
+
       _logger.info('开始检查域名状态');
 
       // 使用竞速方式获取最优域名信息

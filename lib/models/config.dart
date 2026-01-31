@@ -37,7 +37,8 @@ const defaultProxiesStyle = ProxiesStyle();
 const defaultWindowProps = WindowProps();
 const defaultAccessControl = AccessControl();
 final defaultThemeProps = ThemeProps(
-  primaryColor: defaultPrimaryColor,
+  primaryColor: configuredPrimaryColor,
+  primaryColors: configuredPrimaryColors,
 );
 
 const List<DashboardWidget> defaultDashboardWidgets = [

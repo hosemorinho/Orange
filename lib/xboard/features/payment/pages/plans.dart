@@ -129,14 +129,17 @@ class _PlansViewState extends ConsumerState<PlansView> {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.blue.shade400, Colors.blue.shade600],
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
                       _getLowestPrice(plan),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -175,8 +178,8 @@ class _PlansViewState extends ConsumerState<PlansView> {
                   icon: const Icon(Icons.shopping_cart),
                   label: Text(appLocalizations.xboardBuyNow),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     padding: EdgeInsets.symmetric(vertical: isDesktop ? 8 : 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -255,10 +258,10 @@ class _PlansViewState extends ConsumerState<PlansView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.error_outline,
                       size: 64,
-                      color: Colors.red,
+                      color: Theme.of(context).colorScheme.error,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -266,13 +269,13 @@ class _PlansViewState extends ConsumerState<PlansView> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.red.shade700,
+                        color: Theme.of(context).colorScheme.error,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       uiState.errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -285,21 +288,21 @@ class _PlansViewState extends ConsumerState<PlansView> {
               );
             }
             if (plans.isEmpty) {
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.inbox_outlined,
                       size: 64,
-                      color: Colors.grey,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text(
                       '暂无套餐信息',
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.grey,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],

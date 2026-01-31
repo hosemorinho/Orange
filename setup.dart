@@ -397,6 +397,10 @@ class BuildCommand extends Command {
       help: 'The $name build env',
     );
     argParser.addOption(
+      "app-name",
+      help: 'Override application display name (e.g. Orange)',
+    );
+    argParser.addOption(
       "package-name",
       help: 'Override APP_PACKAGE_NAME via --dart-define',
     );
@@ -496,18 +500,97 @@ class BuildCommand extends Command {
     return null;
   }
 
+  static void _patchFile(String filePath, String from, String to) {
+    final file = File(filePath);
+    if (!file.existsSync()) return;
+    final content = file.readAsStringSync();
+    final patched = content.replaceAll(from, to);
+    if (patched != content) {
+      file.writeAsStringSync(patched);
+      print('Patched app name in $filePath');
+    }
+  }
+
+  static void _patchAppName(String appName) {
+    // distribute_options.yaml
+    _patchFile(join(current, 'distribute_options.yaml'), 'Flclash', appName);
+
+    // Android
+    _patchFile(
+      join(current, 'android', 'app', 'src', 'main', 'AndroidManifest.xml'),
+      'android:label="Flclash"',
+      'android:label="$appName"',
+    );
+    _patchFile(
+      join(current, 'android', 'app', 'src', 'main', 'res', 'values', 'strings.xml'),
+      '>FlClash<',
+      '>$appName<',
+    );
+
+    // Windows
+    _patchFile(
+      join(current, 'windows', 'runner', 'main.cpp'),
+      'L"FlClash"',
+      'L"$appName"',
+    );
+    for (final field in ['"FileDescription"', '"InternalName"', '"ProductName"']) {
+      _patchFile(
+        join(current, 'windows', 'runner', 'Runner.rc'),
+        '$field, "Flclash"',
+        '$field, "$appName"',
+      );
+    }
+    final winPkgConfig = join(current, 'windows', 'packaging', 'exe', 'make_config.yaml');
+    _patchFile(winPkgConfig, 'app_name: Flclash', 'app_name: $appName');
+    _patchFile(winPkgConfig, 'display_name: Flclash', 'display_name: $appName');
+
+    // Linux
+    _patchFile(
+      join(current, 'linux', 'my_application.cc'),
+      '"Flclash"',
+      '"$appName"',
+    );
+    for (final pkg in ['deb', 'rpm', 'appimage']) {
+      final path = join(current, 'linux', 'packaging', pkg, 'make_config.yaml');
+      _patchFile(path, 'display_name: Flclash', 'display_name: $appName');
+      _patchFile(path, 'generic_name: Flclash', 'generic_name: $appName');
+      if (pkg == 'deb') {
+        _patchFile(path, 'package_name: Flclash', 'package_name: $appName');
+      }
+    }
+
+    // macOS
+    _patchFile(
+      join(current, 'macos', 'Runner', 'Configs', 'AppInfo.xcconfig'),
+      'PRODUCT_NAME = Flclash',
+      'PRODUCT_NAME = $appName',
+    );
+    final dmgConfig = join(current, 'macos', 'packaging', 'dmg', 'make_config.yaml');
+    _patchFile(dmgConfig, 'title: Flclash', 'title: $appName');
+    _patchFile(dmgConfig, 'path: Flclash.app', 'path: $appName.app');
+  }
+
   @override
   Future<void> run() async {
     final mode = target == Target.android ? Mode.lib : Mode.core;
     final String out = argResults?["out"] ?? (target.same ? "app" : "core");
     final archName = argResults?["arch"];
     final env = argResults?["env"] ?? "stable";
+    final appNameArg = argResults?["app-name"] as String?;
     final packageNameArg = argResults?["package-name"] as String?;
     final apiUrlArg = argResults?["api-url"] as String?;
     final themeColorArg = argResults?["theme-color"] as String?;
 
+    // 替换平台文件中的应用名称
+    if (appNameArg != null && appNameArg.isNotEmpty) {
+      _patchAppName(appNameArg);
+    }
+
     // 构建额外的 --dart-define 参数
     final extraDefinesBuf = StringBuffer();
+    if (appNameArg != null && appNameArg.isNotEmpty) {
+      extraDefinesBuf.write(' --build-dart-define=APP_NAME=$appNameArg');
+    }
     if (packageNameArg != null && packageNameArg.isNotEmpty) {
       extraDefinesBuf.write(' --build-dart-define=APP_PACKAGE_NAME=$packageNameArg');
     }

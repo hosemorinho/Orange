@@ -53,6 +53,7 @@ Orange 是基于 [FlClash](https://github.com/chen08209/FlClash) 的增强版本
 
 | 环境变量 | 说明 | 默认值 |
 |----------|------|--------|
+| `APP_NAME` | 应用显示名称（窗口标题、安装包名等） | `Flclash` |
 | `APP_PACKAGE_NAME` | Android 包名 (applicationId) | `com.follow.clash` |
 | `API_BASE_URL` | V2Board 面板地址（跳过域名竞速） | 空（使用配置文件竞速） |
 | `THEME_COLOR` | 主题种子色 (6位 hex) | `66558E` |
@@ -65,6 +66,7 @@ flutter build apk
 
 # 自定义构建
 flutter build apk \
+  --dart-define=APP_NAME=MyVPN \
   --dart-define=APP_PACKAGE_NAME=com.example.myvpn \
   --dart-define=API_BASE_URL=https://panel.example.com \
   --dart-define=THEME_COLOR=FF5722
@@ -75,6 +77,7 @@ flutter build apk \
 ```bash
 dart setup.dart android \
   --env stable \
+  --app-name MyVPN \
   --package-name com.example.myvpn \
   --api-url https://panel.example.com \
   --theme-color FF5722
@@ -113,6 +116,7 @@ dart setup.dart android \
 
 | Secret | 说明 |
 |--------|------|
+| `APP_NAME` | 应用显示名称（如 MyVPN） |
 | `APP_PACKAGE_NAME` | 自定义包名 |
 | `API_BASE_URL` | V2Board 面板地址 |
 | `THEME_COLOR` | 主题种子色 hex |

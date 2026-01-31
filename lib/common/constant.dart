@@ -12,9 +12,10 @@ import 'package:flutter/material.dart';
 const _envPackageName = String.fromEnvironment('APP_PACKAGE_NAME');
 const _envApiBaseUrl = String.fromEnvironment('API_BASE_URL');
 const _envThemeColor = String.fromEnvironment('THEME_COLOR');
+const _envAppName = String.fromEnvironment('APP_NAME');
 
-const appName = "Flclash";
-const appNameEn = "Flclash"; // 用于 HTTP User-Agent 的英文名称
+const appName = _envAppName == '' ? "Flclash" : _envAppName;
+const appNameEn = appName; // 用于 HTTP User-Agent 的英文名称
 const appHelperService = "FlClashHelperService";
 const coreName = "clash.meta";
 const browserUa =

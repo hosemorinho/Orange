@@ -2,222 +2,204 @@
 
 # Orange
 
-[![许可证](https://img.shields.io/github/license/chen08209/FlClash?style=flat-square)](LICENSE)
-[![Telegram群组](https://img.shields.io/badge/Telegram-加入群组-blue?style=flat-square&logo=telegram)](https://t.me/V2Hiidify)
-
-**基于 FlClash v0.8.85 的多平台代理客户端，深度集成全新 XBoard 面板支持**
-
-[English](README.md) | [简体中文](README_zh_CN.md)
+**基于 FlClash 的多平台代理客户端，集成 V2Board 面板支持，支持环境变量自定义构建**
 
 </div>
 
 ---
 
-<div align="center">
+## 项目简介
 
----
-📢 **广告位** 📢
+Orange 是基于 [FlClash](https://github.com/chen08209/FlClash) 的增强版本，集成了 **V2Board v1.7.2** 面板支持。所有面板相关功能封装在独立的 `lib/xboard` 模块中，与上游 FlClash 代码解耦。
 
-**感谢 MotionPay 对本项目的支持，以下是他们提供的内容**
----
+### 设计特点
 
-## 💳 MotionPay - 专业支付解决方案
-
-**MotionPay** - 低费率·稳定可靠·快速结算
-
-📋 [服务详情](https://t.me/Motionzf/206) | 💬 [业务咨询](https://t.me/MotionIDC) | 🤖 [客服支持](https://t.me/MotionPaySupportBot)
+- **模块化架构**：V2Board 功能独立于 FlClash 核心，便于跟进上游更新
+- **直接 HTTP 调用**：不依赖第三方 SDK，直接对接 V2Board API
+- **自定义构建**：通过 `--dart-define` 环境变量配置包名、API 地址、主题色
+- **Material 3 主题**：使用 Google tonal 算法从种子色衍生完整色板
 
 ---
 
-</div>
+## 核心功能
 
----
-
-## 📖 项目简介
-
-Orange 是基于 [FlClash v0.8.85](https://github.com/chen08209/FlClash) 的增强版本，深度集成了 **XBoard v20250905-b144770** 面板支持。本项目采用模块化设计理念，将所有 XBoard 相关功能封装在独立的 `lib/xboard` 模块中，最大限度减少与上游 FlClash 的代码冲突，便于后续跟进上游更新。
-
-### 🎯 核心设计理念
-
-- **FlClash 作为 Core**：将原版 FlClash 视为核心依赖，所有定制功能均在独立模块中实现
-- **最小侵入式改动**：涉及原生 UI 修改时（如订阅组件），采用复制原实现并独立维护的方式
-- **SDK 化设计**：XBoard SDK 独立于 FlClash，可方便嵌入其他 Flutter 项目使用
-- **更新友好**：最大限度减少 `git pull` 上游更新时的合并冲突问题
-
----
-
-## ✨ 核心特性
-
-### 🛡️ 入口域名防封锁机制
-- 多域名竞速策略
-- 国内中转服务器支持
-- 数据混淆与加密传输
-- UA 对等密钥验证
-
-### 🚀 高可用性保障
-- 域名竞速自动选择最快节点
-- 多源配置自动降级
-- 缓存机制提升响应速度
-- 自动容灾切换
-
-### 🔐 安全与加密
-- TLS 证书验证
-- 订阅数据加密
-- API 响应混淆
-- 私有证书支持
-
-### 🌐 配置文件托管
-- GitHub/Gitee 多源配置
-- 客户端加密解密
-- CDN 加速支持
-- 灵活的降级策略
-
-### 📡 扩展功能
-- 在线客服系统集成
-- 设备上报与远程任务
-- 自动更新检查
-- WebSocket 实时通信
-
-> 📚 **详细说明**：查看 [核心特性文档](docs/features.md)
-
----
-
-## 🚀 快速开始
-
-> 📖 **配置教程**：[最小可用性配置指南](docs/quick-start.md) | [配置示例](docs/examples/minimal.md)
-
-### 1. 构建应用
-
-> 🛠️ **详细步骤**：[构建指南](docs/build-guide.md)
-
-### 2. 配置应用
-
-详细配置步骤请查看文档：
-
-> ⚙️ **配置指南**：[快速开始](docs/quick-start.md) | [配置文档](docs/configuration.md) | [配置示例](docs/examples/minimal.md)
-
----
-
-## 📚 文档导航
-
-| 文档 | 说明 |
+| 功能 | 说明 |
 |------|------|
-| [快速开始](docs/quick-start.md) | 5分钟最小可用性配置教程 |
-| [构建指南](docs/build-guide.md) | 完整的构建和运行环境配置 |
-| [配置文档](docs/configuration.md) | 完整的配置说明和示例 |
-| [核心特性](docs/features.md) | 详细的功能说明和使用方法 |
-| [服务端部署](docs/server-deployment.md) | XBoard 面板和 Caddy 反代配置 |
-| [安全配置](docs/security.md) | 证书、加密、混淆等安全配置 |
-| [文档中心](docs/README.md) | 所有文档的索引和导航 |
+| 用户认证 | 登录、注册、找回密码、邮箱验证 |
+| 订阅管理 | 查看/刷新订阅、流量统计、到期提醒 |
+| 套餐购买 | 浏览套餐、下单、多支付方式、订单管理 |
+| 邀请返利 | 邀请码生成、佣金查看、提现 |
+| 公告通知 | V2Board 公告展示 |
+| 工单系统 | 通过 V2Board 工单与客服沟通 |
+| 多域名竞速 | 自动选择最快面板域名 |
+| 自动更新 | 应用版本检查与更新 |
 
 ---
 
-## 📸 应用截图
-
-<div align="center">
-
-<img src="images/homepage.jpg" width="160" alt="主页"/> <img src="images/plans.jpg" width="160" alt="套餐计划"/> <img src="images/purchase.jpg" width="160" alt="购买页面"/> <img src="images/invitepage.jpg" width="160" alt="邀请页面"/> <img src="images/notice.jpg" width="160" alt="通知公告"/>
-
-<details>
-<summary>📱 点击查看大图预览</summary>
-
-<br/>
-
-**主页界面**
-![主页](images/homepage.jpg)
-
----
-
-**套餐计划**
-![套餐计划](images/plans.jpg)
-
----
-
-**购买页面**
-![购买](images/purchase.jpg)
-
----
-
-**邀请页面**
-![邀请](images/invitepage.jpg)
-
----
-
-**通知公告**
-![通知](images/notice.jpg)
-
-</details>
-
-</div>
-
----
-
-## 📱 平台支持
+## 平台支持
 
 | 平台 | 状态 | 备注 |
-|-----|------|------|
-| Android | ✅ 支持 | 推荐 Android 7.0+ |
-| Windows | ✅ 支持 | Windows 10+ |
-| macOS | ✅ 支持 | macOS 10.14+ |
-| Linux | ✅ 支持 | 需安装依赖 |
-| iOS | ⏳ 规划中 | 待适配 |
+|------|------|------|
+| Android | 支持 | Android 7.0+ |
+| Windows | 支持 | Windows 10+ |
+| macOS | 支持 | macOS 10.14+ |
+| Linux | 支持 | 需安装依赖 |
 
 ---
 
-## ⚠️ 免责声明
+## 自定义构建
 
-1. **开源声明**：
-   - 本项目基于开源协议发布
-   - 核心代码来自 FlClash 和 Clash Meta
-   - XBoard 模块为独立开发
+通过 `--dart-define` 环境变量在编译时配置应用参数，无需修改源代码：
 
-2. **使用风险**：
-   - 本软件仅供学习和研究使用
-   - 使用前请充分评估隐私和安全风险
-   - 用户需自行承担使用本软件的风险
+| 环境变量 | 说明 | 默认值 |
+|----------|------|--------|
+| `APP_PACKAGE_NAME` | Android 包名 (applicationId) | `com.follow.clash` |
+| `API_BASE_URL` | V2Board 面板地址（跳过域名竞速） | 空（使用配置文件竞速） |
+| `THEME_COLOR` | 主题种子色 (6位 hex) | `66558E` |
 
-3. **安全警告**：
-   - 关闭证书验证将导致严重安全风险
-   - 仅在可信的测试环境中使用
-   - 生产环境必须启用 HTTPS 证书验证
+### 构建示例
 
-4. **效果声明**：
-   - 数据混淆功能的有效性未经权威验证
-   - 不保证能够完全防止检测和封锁
-   - 请根据实际需求谨慎使用
+```bash
+# 默认构建
+flutter build apk
+
+# 自定义构建
+flutter build apk \
+  --dart-define=APP_PACKAGE_NAME=com.example.myvpn \
+  --dart-define=API_BASE_URL=https://panel.example.com \
+  --dart-define=THEME_COLOR=FF5722
+```
+
+通过 `setup.dart` 构建（与 CI 一致）：
+
+```bash
+dart setup.dart android \
+  --env stable \
+  --package-name com.example.myvpn \
+  --api-url https://panel.example.com \
+  --theme-color FF5722
+```
+
+### 主题色
+
+`THEME_COLOR` 作为 Material 3 的种子色，通过 `ColorScheme.fromSeed()` 自动衍生完整色板（primary、secondary、tertiary、surface 等），无需手动配置每个颜色。
+
+默认色 `#66558E`（深紫色）。传入任意 6 位 hex 值即可改变整个应用配色。
 
 ---
 
-## 🤝 贡献与支持
+## GitHub Actions CI
 
-### 上游项目
+项目包含自动构建工作流，支持两种触发方式：
+
+### 1. 推送标签触发
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+稳定版标签（不含 `-`）会自动创建 GitHub Release。
+
+### 2. 手动触发 (workflow_dispatch)
+
+进入 GitHub → Actions → build → Run workflow，可输入：
+- `package_name`：覆盖包名
+- `api_url`：覆盖 API 地址
+- `theme_color`：覆盖主题色
+
+### 3. Repository Variables（长期配置）
+
+进入 Settings → Secrets and variables → Actions → Variables，添加：
+
+| Variable | 说明 |
+|----------|------|
+| `APP_PACKAGE_NAME` | 自定义包名 |
+| `API_BASE_URL` | V2Board 面板地址 |
+| `THEME_COLOR` | 主题种子色 hex |
+
+### 4. Secrets（签名配置）
+
+Android 签名需在 Secrets 中配置：
+
+| Secret | 说明 |
+|--------|------|
+| `KEYSTORE` | keystore 文件 base64 编码 |
+| `KEY_ALIAS` | 密钥别名 |
+| `STORE_PASSWORD` | keystore 密码 |
+| `KEY_PASSWORD` | 密钥密码 |
+
+### 构建产物
+
+| 平台 | 产物 |
+|------|------|
+| Android | APK (split per ABI) |
+| Windows | EXE + ZIP |
+| macOS | DMG |
+| Linux | DEB + AppImage + RPM |
+
+---
+
+## 面板配置
+
+### xboard.config.yaml
+
+在 `assets/config/` 下创建 `xboard.config.yaml`：
+
+```yaml
+provider: v2board
+
+panel:
+  urls:
+    - https://your-panel.example.com
+
+proxy:
+  urls: []
+
+update:
+  urls: []
+
+subscription:
+  urls:
+    - https://your-panel.example.com
+```
+
+或通过 `API_BASE_URL` 环境变量直接指定面板地址，跳过配置文件和域名竞速。
+
+---
+
+## 项目结构
+
+```
+lib/
+  xboard/
+    adapter/          # 状态适配层（Riverpod providers）
+    config/           # 配置加载与管理
+    core/             # 基础工具（日志、Result、异常）
+    domain/           # 领域模型（User, Plan, Order 等）
+    features/         # 功能模块
+      auth/           # 认证（登录、注册、找回密码）
+      invite/         # 邀请返利
+      notice/         # 公告
+      payment/        # 支付与订单
+      subscription/   # 订阅管理
+    infrastructure/   # 基础设施
+      api/            # V2Board API 客户端与映射
+      http/           # HTTP 客户端封装
+    router/           # 路由配置
+    services/         # 存储等服务
+    widgets/          # 通用 UI 组件
+```
+
+---
+
+## 上游项目
 
 - [FlClash](https://github.com/chen08209/FlClash) - 多平台 Clash 客户端
 - [Clash Meta](https://github.com/MetaCubeX/Clash.Meta) - Clash 内核
 
-### 问题反馈
-
-如果您在使用过程中遇到问题或有改进建议：
-- 提交 [Issue](https://github.com/hakimi-x/Xboard-Mihomo/issues)
-- 加入 [Telegram 群组](https://t.me/V2Hiidify)
-
-### Star 支持
-
-如果这个项目对您有帮助，欢迎给个 ⭐ Star！
-
-### 💰 打赏支持
-
-如果您觉得这个项目对您有帮助，可以请作者喝杯咖啡 ☕
-
-| 币种 | 地址 |
-|------|------|
-| **TRC-USDT** | `TFPvpxb5k2mYYcvABe5BrCz7Tt6BhnZxxj` |
-| **POL-USDT** | `0xFbbfD2b98fB3F7a4084275ad3139ba179bFDFa0F` |
-
 ---
 
-<div align="center">
+## 免责声明
 
-**© 2025 Orange. All Rights Reserved.**
-
-</div>
+本软件仅供学习和研究使用。用户需自行承担使用本软件的风险。

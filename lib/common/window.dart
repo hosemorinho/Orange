@@ -13,11 +13,6 @@ class Window {
     if (!acquire) {
       exit(0);
     }
-    if (Platform.isWindows) {
-      protocol.register("clash");
-      protocol.register("clashmeta");
-      protocol.register("flclash");
-    }
     await windowManager.ensureInitialized();
     
     // 获取主屏幕信息

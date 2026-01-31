@@ -77,8 +77,6 @@ protected:
 private:
   friend class WindowClassRegistrar;
 
-  bool SendAppLinkToInstance(const std::wstring &title);
-
   // OS callback called by message pump. Handles the WM_NCCREATE message which
   // is passed when the non-client area is being created and enables automatic
   // non-client DPI scaling so that the non-client area automatically

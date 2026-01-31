@@ -24,8 +24,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _isPasswordVisible = false;
   late XBoardStorageService _storageService;
   
-  // 从配置文件加载的应用信息
-  String _appTitle = 'XBoard';
+  // 应用信息
   String _appWebsite = 'example.com';
   
   @override
@@ -39,13 +38,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     _initializeXBoard();
   }
   
-  /// 加载应用信息（标题和网站）
+  /// 加载应用信息（网站地址）
   Future<void> _loadAppInfo() async {
-    final title = await ConfigFileLoaderHelper.getAppTitle();
     final website = await ConfigFileLoaderHelper.getAppWebsite();
     if (mounted) {
       setState(() {
-        _appTitle = title;
         _appWebsite = website;
       });
     }
@@ -91,6 +88,27 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
+      // 如果尚未初始化，先尝试初始化
+      final initState = ref.read(initializationProvider);
+      if (!initState.isReady) {
+        try {
+          await ref.read(initializationProvider.notifier).refresh();
+        } catch (e) {
+          if (mounted) {
+            XBoardNotification.showError('${appLocalizations.xboardLoginFailed}: $e');
+          }
+          return;
+        }
+        // 再次检查初始化是否成功
+        final updatedState = ref.read(initializationProvider);
+        if (!updatedState.isReady) {
+          if (mounted) {
+            XBoardNotification.showError(updatedState.errorMessage ?? appLocalizations.xboardLoginFailed);
+          }
+          return;
+        }
+      }
+
       final userNotifier = ref.read(xboardUserProvider.notifier);
       final success = await userNotifier.login(
         _emailController.text,
@@ -204,7 +222,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                             const SizedBox(height: 24),
                             Text(
-                              _appTitle,
+                              appName,
                               style: textTheme.displaySmall?.copyWith(
                                 color: colorScheme.onSurface,
                                 fontWeight: FontWeight.bold,
@@ -296,7 +314,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       SizedBox(
                         height: 48,
                         child: FilledButton(
-                          onPressed: initState.isReady && !userState.isLoading ? _login : null,
+                          onPressed: !userState.isLoading ? _login : null,
                           child: userState.isLoading
                               ? const SizedBox(
                                   width: 20,

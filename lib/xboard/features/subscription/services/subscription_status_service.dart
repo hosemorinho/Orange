@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
 import 'package:fl_clash/models/models.dart' as fl_models;
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/auth/auth.dart';

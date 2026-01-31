@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
 import 'package:fl_clash/xboard/adapter/state/notice_state.dart';
+import 'package:fl_clash/xboard/infrastructure/api/api.dart';
 
 /// 公告状态
 class NoticeState {
@@ -55,8 +55,7 @@ class NoticeNotifier extends StateNotifier<NoticeState> {
     state = state.copyWith(isLoading: true, error: null);
     
     try {
-      final noticeModels = await _ref.read(getNoticesProvider.future);
-      final notices = noticeModels.map(_mapNotice).toList();
+      final notices = await _ref.read(getNoticesProvider.future);
       state = state.copyWith(
         notices: notices,
         isLoading: false,
@@ -86,16 +85,4 @@ final noticeProvider = StateNotifierProvider<NoticeNotifier, NoticeState>((ref) 
   return NoticeNotifier(ref);
 });
 
-DomainNotice _mapNotice(NoticeModel notice) {
-  return DomainNotice(
-    id: notice.id,
-    title: notice.title,
-    content: notice.content,
-    imageUrls: notice.imgUrl != null && notice.imgUrl!.isNotEmpty ? [notice.imgUrl!] : [],
-    tags: notice.tags ?? [],
-    isVisible: notice.show,
-    createdAt: DateTime.fromMillisecondsSinceEpoch(notice.createdAt * 1000),
-    updatedAt: DateTime.fromMillisecondsSinceEpoch(notice.updatedAt * 1000),
-  );
-}
 

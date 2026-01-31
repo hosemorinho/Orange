@@ -8,13 +8,20 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:flutter/material.dart';
 
+// 环境变量配置（通过 --dart-define 传入）
+const _envPackageName = String.fromEnvironment('APP_PACKAGE_NAME');
+const _envApiBaseUrl = String.fromEnvironment('API_BASE_URL');
+const _envThemeColor = String.fromEnvironment('THEME_COLOR');
+
 const appName = "Flclash";
 const appNameEn = "Flclash"; // 用于 HTTP User-Agent 的英文名称
 const appHelperService = "FlClashHelperService";
 const coreName = "clash.meta";
 const browserUa =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-const packageName = "com.follow.clash";
+const packageName = _envPackageName.isEmpty ? "com.follow.clash" : _envPackageName;
+const apiBaseUrl = _envApiBaseUrl; // 空字符串表示使用配置文件域名竞速
+const themeColorHex = _envThemeColor.isEmpty ? "66558E" : _envThemeColor;
 final unixSocketPath = "/tmp/FlClashSocket_${Random().nextInt(10000)}.sock";
 const helperPort = 47890;
 const maxTextScale = 1.4;
@@ -83,7 +90,7 @@ const viewModeColumnsMap = {
 // const toolsStoreKey = PageStorageKey<String>('tools');
 // const profilesStoreKey = PageStorageKey<String>('profiles');
 
-const defaultPrimaryColor = 0XFFD8C0C3;
+const defaultPrimaryColor = 0xFF66558E;
 
 double getWidgetHeight(num lines) {
   return max(lines * 84 + (lines - 1) * 16, 0).ap;
@@ -94,6 +101,15 @@ const maxLength = 150;
 final mainIsolate = "FlClashMainIsolate";
 
 final serviceIsolate = "FlClashServiceIsolate";
+
+/// 解析环境变量中的主题色（hex 字符串 → int）
+int parseThemeColor() {
+  if (themeColorHex.isEmpty) return 0xFF66558E;
+  final hex = themeColorHex.replaceFirst('#', '');
+  final value = int.tryParse(hex, radix: 16);
+  if (value == null) return 0xFF66558E;
+  return hex.length <= 6 ? (0xFF000000 | value) : value;
+}
 
 const defaultPrimaryColors = [
   0xFF795548,

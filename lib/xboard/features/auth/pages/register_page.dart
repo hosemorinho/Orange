@@ -1,12 +1,12 @@
 import 'package:fl_clash/xboard/features/auth/auth.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/services/services.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart' show ConfigModel;
+import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
+import 'package:fl_clash/xboard/infrastructure/api/api.dart';
 import 'package:go_router/go_router.dart';
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -24,7 +24,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isSendingEmailCode = false;
-  
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -38,15 +38,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     // 获取配置
     final configAsync = ref.read(configProvider);
     final config = configAsync.value;
-    final isInviteForce = config?.isInviteForce ?? false;
-    final isEmailVerify = config?.isEmailVerify ?? false;
-    
-    // 检查邮请码是否必填
+    final isInviteForce = config?['is_invite_force'] == 1;
+    final isEmailVerify = config?['is_email_verify'] == 1;
+
+    // 检查邀请码是否必填
     if (isInviteForce && _inviteCodeController.text.trim().isEmpty) {
       _showInviteCodeDialog();
       return;
     }
-    
+
     // 检查邮箱验证码是否必填
     if (isEmailVerify && _emailCodeController.text.trim().isEmpty) {
       XBoardNotification.showError('请输入邮箱验证码');
@@ -58,23 +58,26 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         _isRegistering = true;
       });
       try {
-        // 使用 AuthRepository 注册
-        // 使用 SDK 注册
-        final success = await XBoardSDK.instance.auth.register(
+        // 使用 V2Board API 注册
+        final api = await ref.read(xboardSdkProvider.future);
+        final json = await api.register(
           _emailController.text,
           _passwordController.text,
-          inviteCode: _inviteCodeController.text.trim().isNotEmpty 
-              ? _inviteCodeController.text 
+          inviteCode: _inviteCodeController.text.trim().isNotEmpty
+              ? _inviteCodeController.text
               : null,
           emailCode: isEmailVerify && _emailCodeController.text.trim().isNotEmpty
               ? _emailCodeController.text
               : null,
         );
-        
-        if (!success) {
-          throw Exception('注册失败');
+
+        // V2Board register returns token on success
+        final data = json['data'] as Map<String, dynamic>? ?? {};
+        final token = data['token'] as String?;
+        if (token != null && token.isNotEmpty) {
+          await api.saveAndSetToken(token);
         }
-        
+
         // 注册成功
         if (mounted) {
           final storageService = ref.read(storageServiceProvider);
@@ -96,37 +99,26 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         if (mounted) {
           // 提取详细的错误信息
           String errorMessage = '注册失败';
-          
-          final errorStr = e.toString();
-          
-          // 尝试提取具体的错误信息
-          if (errorStr.contains('XBoardException')) {
-            // 格式1: XBoardException(400): 具体错误信息
-            if (errorStr.contains('): ')) {
-              final parts = errorStr.split('): ');
-              if (parts.length > 1) {
-                errorMessage = parts.sublist(1).join('): ').trim();
-              }
-            } 
-            // 格式2: XBoardException: 具体错误信息
-            else if (errorStr.contains('XBoardException: ')) {
-              errorMessage = errorStr.split('XBoardException: ').last.trim();
-            }
+
+          if (e is V2BoardApiException) {
+            errorMessage = e.message;
           } else {
-            // 其他类型的错误，直接使用错误文本
-            errorMessage = errorStr;
+            final errorStr = e.toString();
+            // 移除可能的 "Error: " 前缀
+            if (errorStr.startsWith('Error: ')) {
+              errorMessage = errorStr.substring(7);
+            } else if (errorStr.startsWith('Exception: ')) {
+              errorMessage = errorStr.substring(11);
+            } else {
+              errorMessage = errorStr;
+            }
           }
-          
-          // 移除可能的 "Error: " 前缀
-          if (errorMessage.startsWith('Error: ')) {
-            errorMessage = errorMessage.substring(7);
-          }
-          
+
           // 500错误或通用错误提示：可能是邀请码问题
           if (errorMessage.contains('遇到了些问题') || errorMessage.contains('500')) {
             errorMessage = appLocalizations.inviteCodeIncorrect;
           }
-          
+
           XBoardNotification.showError(errorMessage);
         }
       } finally {
@@ -155,9 +147,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     });
 
     try {
-      // 使用 AuthRepository 发送验证码
-      // 使用 SDK 发送验证码
-      await XBoardSDK.instance.auth.sendEmailVerifyCode(_emailController.text);
+      // 使用 V2Board API 发送验证码
+      final api = await ref.read(xboardSdkProvider.future);
+      await api.sendEmailVerify(_emailController.text);
 
       if (mounted) {
         XBoardNotification.showSuccess(appLocalizations.verificationCodeSentCheckEmail);
@@ -195,31 +187,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     );
   }
 
-  Widget _buildInviteCodeField(ConfigModel? config) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final configAsync = ref.watch(configProvider);
-    
-    // 处理异步加载状态
-    return configAsync.when(
-      loading: () => const SizedBox.shrink(), // Or a placeholder
-      error: (error, stack) => const SizedBox.shrink(), // Or an error message
-      data: (configData) => XBInputField(
-        controller: _inviteCodeController,
-        labelText: (configData?.isInviteForce ?? false)
-            ? '${appLocalizations.xboardInviteCode} *' 
-            : appLocalizations.inviteCodeOptional,
-        hintText: appLocalizations.pleaseEnterInviteCode,
-        prefixIcon: Icons.card_giftcard_outlined,
-        enabled: true,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final configAsync = ref.watch(configProvider);
-    
+
     // 处理异步加载状态
     return configAsync.when(
       loading: () => Scaffold(
@@ -230,8 +202,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       data: (config) => _buildPage(context, colorScheme, config),
     );
   }
-  
-  Widget _buildPage(BuildContext context, ColorScheme colorScheme, ConfigModel? config) {
+
+  Widget _buildPage(BuildContext context, ColorScheme colorScheme, Map<String, dynamic>? config) {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: XBContainer(
@@ -352,7 +324,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         ),
                         const SizedBox(height: 20),
                         // 根据配置决定是否显示邮箱验证码字段
-                        if (config?.isEmailVerify == true)
+                        if (config?['is_email_verify'] == 1)
                           Column(
                             children: [
                                   XBInputField(
@@ -387,8 +359,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         // 邀请码：始终显示，根据配置改变标签（必填 vs 可选）
                         XBInputField(
                           controller: _inviteCodeController,
-                          labelText: (config?.isInviteForce ?? false)
-                              ? '${appLocalizations.xboardInviteCode} *' 
+                          labelText: (config?['is_invite_force'] == 1)
+                              ? '${appLocalizations.xboardInviteCode} *'
                               : appLocalizations.inviteCodeOptional,
                           hintText: appLocalizations.pleaseEnterInviteCode,
                           prefixIcon: Icons.card_giftcard_outlined,
@@ -461,4 +433,4 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       ),
     );
   }
-} 
+}

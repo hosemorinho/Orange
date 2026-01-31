@@ -396,6 +396,18 @@ class BuildCommand extends Command {
       ].join(','),
       help: 'The $name build env',
     );
+    argParser.addOption(
+      "package-name",
+      help: 'Override APP_PACKAGE_NAME via --dart-define',
+    );
+    argParser.addOption(
+      "api-url",
+      help: 'Override API_BASE_URL via --dart-define',
+    );
+    argParser.addOption(
+      "theme-color",
+      help: 'Override THEME_COLOR via --dart-define',
+    );
   }
 
   @override
@@ -463,12 +475,13 @@ class BuildCommand extends Command {
     required String targets,
     String args = '',
     required String env,
+    String extraDefines = '',
   }) async {
     await Build.getDistributor();
     await Build.exec(
       name: name,
       Build.getExecutable(
-        "flutter_distributor package --skip-clean --platform ${target.name} --targets $targets --flutter-build-args=verbose$args --build-dart-define=APP_ENV=$env",
+        "flutter_distributor package --skip-clean --platform ${target.name} --targets $targets --flutter-build-args=verbose$args --build-dart-define=APP_ENV=$env$extraDefines",
       ),
     );
   }
@@ -489,6 +502,22 @@ class BuildCommand extends Command {
     final String out = argResults?["out"] ?? (target.same ? "app" : "core");
     final archName = argResults?["arch"];
     final env = argResults?["env"] ?? "stable";
+    final packageNameArg = argResults?["package-name"] as String?;
+    final apiUrlArg = argResults?["api-url"] as String?;
+    final themeColorArg = argResults?["theme-color"] as String?;
+
+    // 构建额外的 --dart-define 参数
+    final extraDefinesBuf = StringBuffer();
+    if (packageNameArg != null && packageNameArg.isNotEmpty) {
+      extraDefinesBuf.write(' --build-dart-define=APP_PACKAGE_NAME=$packageNameArg');
+    }
+    if (apiUrlArg != null && apiUrlArg.isNotEmpty) {
+      extraDefinesBuf.write(' --build-dart-define=API_BASE_URL=$apiUrlArg');
+    }
+    if (themeColorArg != null && themeColorArg.isNotEmpty) {
+      extraDefinesBuf.write(' --build-dart-define=THEME_COLOR=$themeColorArg');
+    }
+    final extraDefines = extraDefinesBuf.toString();
     final currentArches =
         arches.where((element) => element.name == archName).toList();
     final arch = currentArches.isEmpty ? null : currentArches.first;
@@ -519,6 +548,7 @@ class BuildCommand extends Command {
           args:
               " --description $archName --build-dart-define=CORE_SHA256=$token",
           env: env,
+          extraDefines: extraDefines,
         );
         return;
       case Target.linux:
@@ -539,6 +569,7 @@ class BuildCommand extends Command {
           args:
               " --description $archName --build-target-platform $defaultTarget",
           env: env,
+          extraDefines: extraDefines,
         );
         return;
       case Target.android:
@@ -558,6 +589,7 @@ class BuildCommand extends Command {
           args:
               ",split-per-abi --build-target-platform ${defaultTargets.join(",")}",
           env: env,
+          extraDefines: extraDefines,
         );
         return;
       case Target.macos:
@@ -567,6 +599,7 @@ class BuildCommand extends Command {
           targets: "dmg",
           args: " --description $archName",
           env: env,
+          extraDefines: extraDefines,
         );
         return;
     }

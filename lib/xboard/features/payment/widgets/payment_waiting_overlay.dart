@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fl_clash/common/common.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
+import 'package:fl_clash/xboard/infrastructure/api/api.dart';
 import '../models/payment_step.dart';
 
 // 初始化文件级日志器
@@ -98,10 +99,10 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
   void _startPaymentStatusCheck() {
     _logger.info('[PaymentWaiting] 开始定时检测支付状态，订单号: $_currentTradeNo');
     _paymentCheckTimer?.cancel();
-    
+
     // 立即执行一次检查
     _checkPaymentStatus();
-    
+
     _paymentCheckTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       _checkPaymentStatus();
     });
@@ -116,40 +117,43 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
     try {
       _logger.info('[PaymentWaiting] ===== 开始检测支付状态 =====');
       _logger.info('[PaymentWaiting] 订单号: $_currentTradeNo');
-      
-      // 使用 SDK 检查订单状态
-      final orderModels = await XBoardSDK.instance.order.getOrders();
-      final orderData = orderModels.firstWhere(
-        (o) => o.tradeNo == _currentTradeNo,
-        orElse: () => const OrderModel(status: -1),
-      );
-      
-      _logger.info('[PaymentWaiting] API 调用完成，订单状态: ${orderData.status}');
-      
-      if (orderData.status != -1) {
+
+      // 使用 V2Board API 检查订单状态
+      final api = await ref.read(xboardSdkProvider.future);
+      final json = await api.fetchOrders();
+      final dataList = json['data'] as List<dynamic>? ?? [];
+      final orders = dataList
+          .whereType<Map<String, dynamic>>()
+          .map(mapOrder)
+          .toList();
+
+      final order = orders.where((o) => o.tradeNo == _currentTradeNo).firstOrNull;
+
+      _logger.info('[PaymentWaiting] API 调用完成，订单状态: ${order?.status.name ?? 'null'}');
+
+      if (order != null) {
         // 检查订单状态
-        // 状态值: 0=待付款, 1=开通中, 2=已取消, 3=已完成, 4=已折抵
-        if (orderData.status == 3) {
+        if (order.status == OrderStatus.completed) {
           // 支付成功，立即执行成功回调
-          _logger.info('[PaymentWaiting] ===== 检测到支付成功！状态: ${orderData.status} =====');
+          _logger.info('[PaymentWaiting] ===== 检测到支付成功！状态: ${order.status.name} =====');
           _paymentCheckTimer?.cancel();
           if (mounted) {
             setState(() {
               _currentStep = PaymentStep.paymentSuccess;
             });
             _pulseController.stop();
-            
+
             // 立即执行成功回调
             if (widget.onPaymentSuccess != null) {
               widget.onPaymentSuccess?.call();
             }
           }
-        } else if (orderData.status == 0 || orderData.status == 1) {
-          // 仍在等待支付 (0: 待付款, 1: 开通中)
-          _logger.info('[PaymentWaiting] 支付仍在等待中 (状态: ${orderData.status})...');
+        } else if (order.status == OrderStatus.pending || order.status == OrderStatus.processing) {
+          // 仍在等待支付
+          _logger.info('[PaymentWaiting] 支付仍在等待中 (状态: ${order.status.name})...');
         } else {
-          // 其他状态视为失败 (2: 已取消, 4: 已折抵)
-          _logger.info('[PaymentWaiting] 支付视为失败/结束，状态: ${orderData.status}');
+          // 其他状态视为失败
+          _logger.info('[PaymentWaiting] 支付视为失败/结束，状态: ${order.status.name}');
           _paymentCheckTimer?.cancel();
           if (mounted) {
             widget.onClose?.call();

@@ -1,16 +1,14 @@
 /// 配置设置
-/// 
+///
 /// 包含模块的各种配置参数
 class ConfigSettings {
   final String currentProvider;
   final RemoteConfigSettings remoteConfig;
-  final SubscriptionSettings subscription;
   final LogSettings log;
 
   const ConfigSettings({
     this.currentProvider = 'Flclash',
     this.remoteConfig = const RemoteConfigSettings(),
-    this.subscription = const SubscriptionSettings(),
     this.log = const LogSettings(),
   });
 
@@ -20,9 +18,6 @@ class ConfigSettings {
       currentProvider: json['currentProvider'] as String? ?? 'Flclash',
       remoteConfig: RemoteConfigSettings.fromJson(
         json['remoteConfig'] as Map<String, dynamic>? ?? {}
-      ),
-      subscription: SubscriptionSettings.fromJson(
-        json['subscription'] as Map<String, dynamic>? ?? {}
       ),
       log: LogSettings.fromJson(
         json['log'] as Map<String, dynamic>? ?? {}
@@ -35,35 +30,26 @@ class ConfigSettings {
     return {
       'currentProvider': currentProvider,
       'remoteConfig': remoteConfig.toJson(),
-      'subscription': subscription.toJson(),
       'log': log.toJson(),
     };
   }
 
   /// 验证配置
   bool validate() {
-    // 移除 provider 硬编码限制，允许使用任意 provider
-    // 只要远程配置 JSON 中有对应的键名即可
-    return remoteConfig.validate() && subscription.validate() && log.validate();
+    return remoteConfig.validate() && log.validate();
   }
 
   /// 获取验证错误
   List<String> getValidationErrors() {
     final errors = <String>[];
-
-    // 移除 provider 硬编码限制
-    // provider 仅作为 key 从远程配置的 panels 对象中选择数据
-
     errors.addAll(remoteConfig.getValidationErrors());
-    errors.addAll(subscription.getValidationErrors());
     errors.addAll(log.getValidationErrors());
-
     return errors;
   }
 
   @override
   String toString() {
-    return 'ConfigSettings(provider: $currentProvider, subscription: $subscription)';
+    return 'ConfigSettings(provider: $currentProvider)';
   }
 }
 
@@ -105,9 +91,9 @@ class RemoteConfigSettings {
   }
 
   bool validate() {
-    return sources.isNotEmpty && 
-           maxRetries > 0 && 
-           timeout.inSeconds > 0 && 
+    return sources.isNotEmpty &&
+           maxRetries > 0 &&
+           timeout.inSeconds > 0 &&
            retryDelay.inSeconds >= 0;
   }
 
@@ -195,45 +181,6 @@ class RemoteSourceConfig {
     }
 
     return errors;
-  }
-}
-
-/// 订阅设置
-class SubscriptionSettings {
-  final bool preferEncrypt;
-
-  const SubscriptionSettings({
-    this.preferEncrypt = false,
-  });
-
-  /// 是否启用竞速（自动跟随加密选项）
-  bool get enableRace => preferEncrypt;
-
-  factory SubscriptionSettings.fromJson(Map<String, dynamic> json) {
-    return SubscriptionSettings(
-      preferEncrypt: json['preferEncrypt'] as bool? ?? json['prefer_encrypt'] as bool? ?? false,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'preferEncrypt': preferEncrypt,
-    };
-  }
-
-  bool validate() {
-    // 布尔值总是有效的
-    return true;
-  }
-
-  List<String> getValidationErrors() {
-    // 没有验证错误
-    return [];
-  }
-
-  @override
-  String toString() {
-    return 'SubscriptionSettings(preferEncrypt: $preferEncrypt, enableRace: $enableRace)';
   }
 }
 

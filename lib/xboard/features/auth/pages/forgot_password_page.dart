@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
+import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:go_router/go_router.dart';
 
@@ -23,12 +23,12 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final _codeController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   ResetPasswordStep _currentStep = ResetPasswordStep.sendCode;
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -46,11 +46,12 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
-      // 使用 SDK 发送验证码
-      await XBoardSDK.instance.auth.sendEmailVerifyCode(_emailController.text);
-      
+      // 使用 V2Board API 发送验证码
+      final api = await ref.read(xboardSdkProvider.future);
+      await api.sendEmailVerify(_emailController.text);
+
       if (mounted) {
         setState(() {
           _currentStep = ResetPasswordStep.resetPassword;
@@ -83,20 +84,16 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
-      // 使用 AuthRepository 重置密码
-      // 使用 SDK 重置密码
-      final success = await XBoardSDK.instance.auth.forgotPassword(
+      // 使用 V2Board API 重置密码
+      final api = await ref.read(xboardSdkProvider.future);
+      await api.forget(
         _emailController.text,
         _codeController.text,
         _passwordController.text,
       );
-      
-      if (!success) {
-        throw Exception('重置密码失败');
-      }
-      
+
       if (mounted) {
         XBoardNotification.showSuccess(AppLocalizations.of(context).passwordResetSuccessful);
         context.pop();
@@ -403,4 +400,4 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       ),
     );
   }
-} 
+}

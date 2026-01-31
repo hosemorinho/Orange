@@ -6,7 +6,6 @@ library;
 import 'dart:convert';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/infrastructure/infrastructure.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart' as sdk;
 import 'package:fl_clash/xboard/domain/domain.dart';
 
 /// XBoard 存储服务

@@ -22,8 +22,21 @@ val isRelease = mStoreFile.exists()
         && mKeyAlias != null
         && mKeyPassword != null
 
+// 从 --dart-define 读取包名（Flutter 以 base64 编码传入）
+val dartDefines = (project.findProperty("dart-defines") as? String)
+    ?.split(",")
+    ?.mapNotNull { encoded ->
+        try {
+            val decoded = String(java.util.Base64.getDecoder().decode(encoded))
+            val parts = decoded.split("=", limit = 2)
+            if (parts.size == 2) parts[0] to parts[1] else null
+        } catch (_: Exception) { null }
+    }?.toMap() ?: emptyMap()
+
+val appPackageName = dartDefines["APP_PACKAGE_NAME"]?.takeIf { it.isNotEmpty() } ?: "com.follow.clash"
+
 android {
-    namespace = "com.follow.clash"
+    namespace = appPackageName
     compileSdk = 35
     ndkVersion = "28.0.13004108"
 
@@ -37,7 +50,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.follow.clash"
+        applicationId = appPackageName
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -1,26 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
+import 'package:fl_clash/xboard/adapter/state/config_state.dart';
 
 /// 配置数据Provider
 /// 获取系统配置信息，如邮箱验证、邀请码等设置
 /// 使用 autoDispose 确保每次进入注册页面都重新获取最新配置
-final configProvider = FutureProvider.autoDispose<ConfigModel?>((ref) async {
+final configProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
   try {
-    return await XBoardSDK.instance.config.getConfig();
+    return await ref.watch(getConfigProvider.future);
   } catch (e) {
     // 配置获取失败时返回null，使用默认值
     return null;
   }
 });
 
-/// 配置状态Provider  
+/// 配置状态Provider
 /// 提供配置的加载状态和错误信息
 final configStateProvider = StateNotifierProvider<ConfigStateNotifier, ConfigState>((ref) {
-  return ConfigStateNotifier();
+  return ConfigStateNotifier(ref);
 });
 
 class ConfigState {
-  final ConfigModel? data;
+  final Map<String, dynamic>? data;
   final bool isLoading;
   final String? error;
 
@@ -31,7 +31,7 @@ class ConfigState {
   });
 
   ConfigState copyWith({
-    ConfigModel? data,
+    Map<String, dynamic>? data,
     bool? isLoading,
     String? error,
   }) {
@@ -44,16 +44,17 @@ class ConfigState {
 }
 
 class ConfigStateNotifier extends StateNotifier<ConfigState> {
-  ConfigStateNotifier() : super(const ConfigState(isLoading: false)) {
-    // 自动加载配置
+  final Ref _ref;
+
+  ConfigStateNotifier(this._ref) : super(const ConfigState(isLoading: false)) {
     loadConfig();
   }
 
   Future<void> loadConfig() async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
-      final config = await XBoardSDK.instance.config.getConfig();
+      final config = await _ref.read(getConfigProvider.future);
       state = state.copyWith(
         data: config,
         isLoading: false,

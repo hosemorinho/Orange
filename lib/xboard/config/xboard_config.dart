@@ -19,7 +19,6 @@ export 'core/config_settings.dart' show
 // 数据模型（外部需要访问配置数据）
 export 'models/config_entry.dart';
 export 'models/proxy_info.dart';
-export 'models/websocket_info.dart';
 export 'models/update_info.dart';
 // 注意：SubscriptionInfo与SDK中的同名，这里只导出SubscriptionUrlInfo
 export 'models/subscription_info.dart' show SubscriptionUrlInfo;
@@ -40,7 +39,6 @@ import 'core/config_settings.dart';
 import 'internal/xboard_config_accessor.dart';
 import 'models/config_entry.dart';
 import 'models/proxy_info.dart';
-import 'models/websocket_info.dart';
 import 'models/update_info.dart';
 import 'models/subscription_info.dart';
 import '../infrastructure/infrastructure.dart';
@@ -56,7 +54,7 @@ class _XBoardConfigProvider implements ConfigProviderInterface {
   _XBoardConfigProvider(this.accessor);
   
   @override
-  String getPanelType() => accessor.getPanelType();
+  String getPanelType() => 'v2board';
   
   @override
   String? getPanelUrl() => accessor.getFirstPanelUrl();
@@ -65,7 +63,7 @@ class _XBoardConfigProvider implements ConfigProviderInterface {
   String? getProxyUrl() => accessor.getFirstProxyUrl();
   
   @override
-  String? getWebSocketUrl() => accessor.getFirstWebSocketUrl();
+  String? getWebSocketUrl() => null; // V2Board doesn't use WebSocket
   
   @override
   String? getUpdateUrl() => accessor.getFirstUpdateUrl();
@@ -78,7 +76,7 @@ class _XBoardConfigProvider implements ConfigProviderInterface {
   
   @override
   String? buildSubscriptionUrl(String token, {bool preferEncrypt = true}) {
-    return getSubscriptionInfo()?.buildSubscriptionUrl(token, forceEncrypt: preferEncrypt);
+    return getSubscriptionInfo()?.buildSubscriptionUrl(token);
   }
   
   @override
@@ -113,7 +111,7 @@ class _XBoardConfigProvider implements ConfigProviderInterface {
   List<String> getAllProxyUrls() => accessor.getProxyConfigList().map((e) => e.url).toList();
   
   @override
-  List<String> getAllWebSocketUrls() => accessor.getWebSocketConfigList().map((e) => e.url).toList();
+  List<String> getAllWebSocketUrls() => []; // V2Board doesn't use WebSocket
   
   @override
   Future<void> refresh() async {
@@ -247,8 +245,8 @@ class XBoardConfig {
   /// 获取第一个代理URL
   static String? get proxyUrl => _accessor.getFirstProxyUrl();
   
-  /// 获取第一个WebSocket URL
-  static String? get wsUrl => _accessor.getFirstWebSocketUrl();
+  /// 获取第一个WebSocket URL (V2Board doesn't use WebSocket)
+  static String? get wsUrl => null;
   
   /// 获取第一个更新URL
   static String? get updateUrl => _accessor.getFirstUpdateUrl();
@@ -259,8 +257,8 @@ class XBoardConfig {
   /// 获取代理配置列表
   static List<ProxyInfo> get proxyList => _accessor.getProxyConfigList();
   
-  /// 获取WebSocket配置列表
-  static List<WebSocketInfo> get webSocketList => _accessor.getWebSocketConfigList();
+  /// 获取WebSocket配置列表 (V2Board doesn't use WebSocket)
+  static List<Map<String, dynamic>> get webSocketList => [];
   
   /// 获取更新配置列表
   static List<UpdateInfo> get updateList => _accessor.getUpdateConfigList();
@@ -274,51 +272,9 @@ class XBoardConfig {
   /// 获取第一个订阅URL
   static String? get subscriptionUrl => subscriptionInfo?.firstUrl;
 
-  /// 获取第一个支持加密的订阅URL
-  static String? get encryptSubscriptionUrl => subscriptionInfo?.firstEncryptUrl?.url;
-
-  /// 构建订阅URL（带token）
-  static String? buildSubscriptionUrl(String token, {bool preferEncrypt = true}) {
-    return subscriptionInfo?.buildSubscriptionUrl(token, forceEncrypt: preferEncrypt);
-  }
-
-  /// 并发竞速获取最快的订阅URL
-  /// 
-  /// 对所有订阅URL进行并发测试，返回第一个成功（200响应）的URL
-  /// [token] 用户订阅token
-  /// [preferEncrypt] 是否优先使用加密端点
-  /// 
-  /// 返回最快响应成功的订阅URL，如果都失败则返回第一个URL
-  static Future<String?> getFastestSubscriptionUrl(
-    String token, {
-    bool preferEncrypt = true,
-  }) async {
-    final subInfo = subscriptionInfo;
-    if (subInfo == null || subInfo.urls.isEmpty) return null;
-    
-    // 构建所有可能的订阅URL
-    final List<String> subscriptionUrls = [];
-    
-    for (final urlInfo in subInfo.urls) {
-      final url = urlInfo.buildSubscriptionUrl(token, preferEncrypt: preferEncrypt);
-      if (url.isNotEmpty) {
-        subscriptionUrls.add(url);
-      }
-    }
-    
-    if (subscriptionUrls.isEmpty) return null;
-    
-    // 获取所有代理
-    final proxyUrls = allProxyUrls;
-    
-    // 使用竞速服务选择最快的订阅URL
-    final racingResult = await DomainRacingService.raceSelectFastestDomain(
-      subscriptionUrls,
-      forceHttpsResult: false, // 订阅URL保持原始格式
-      proxyUrls: proxyUrls,
-    );
-    
-    return racingResult?.domain;
+  /// 构建订阅URL（带token）- V2Board format
+  static String? buildSubscriptionUrl(String token) {
+    return subscriptionInfo?.buildSubscriptionUrl(token);
   }
   
   /// 获取所有面板URL列表
@@ -327,18 +283,14 @@ class XBoardConfig {
   /// 获取所有代理URL列表
   static List<String> get allProxyUrls => proxyList.map((e) => e.url).toList();
   
-  /// 获取所有WebSocket URL列表
-  static List<String> get allWsUrls => webSocketList.map((e) => e.url).toList();
+  /// 获取所有WebSocket URL列表 (V2Board doesn't use WebSocket)
+  static List<String> get allWsUrls => [];
   
   /// 获取所有更新URL列表
   static List<String> get allUpdateUrls => updateList.map((e) => e.url).toList();
 
   /// 获取所有订阅URL列表
   static List<String> get allSubscriptionUrls => subscriptionUrlList.map((e) => e.url).toList();
-
-  /// 获取所有支持加密的订阅URL列表
-  static List<String> get allEncryptSubscriptionUrls => 
-      subscriptionUrlList.where((e) => e.supportEncrypt).map((e) => e.url).toList();
   
   /// 刷新配置
   static Future<void> refresh() async {

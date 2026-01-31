@@ -16,7 +16,6 @@ import 'package:go_router/go_router.dart';
 
 import 'controller.dart';
 import 'xboard/xboard.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
 import 'package:fl_clash/xboard/router/app_router.dart' as xboard_router;
 import 'package:fl_clash/xboard/features/initialization/initialization.dart';
 
@@ -242,10 +241,6 @@ class ApplicationState extends ConsumerState<Application> {
       _buildState(
         Consumer(
           builder: (_, ref, child) {
-            // 初始化 WebSocket 自动连接器 - 监听登录状态并自动管理 WebSocket 连接
-            // 这个 Provider 会在登录成功时自动连接,登出时自动断开
-            ref.watch(webSocketAutoConnectorProvider);
-
             final locale =
                 ref.watch(appSettingProvider.select((state) => state.locale));
             final themeProps = ref.watch(themeSettingProvider);
@@ -333,22 +328,15 @@ class ApplicationState extends ConsumerState<Application> {
       linkManager.destroy();
       _autoUpdateGroupTaskTimer?.cancel();
       _autoUpdateProfilesTaskTimer?.cancel();
-      
-      // 释放XBoard SDK资源
-      try {
-        XBoardSDK.instance.dispose();
-      // ignore: empty_catches
-      } catch (e) {
-      }
-      
+
       await clashCore.destroy();
       await globalState.appController.savePreferences();
       await globalState.appController.handleExit();
-      
+
     // ignore: empty_catches
     } catch (e) {
     }
-    
+
     super.dispose();
   }
 }

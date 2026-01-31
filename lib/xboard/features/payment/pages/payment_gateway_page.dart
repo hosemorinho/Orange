@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
+import 'package:fl_clash/xboard/domain/domain.dart';
+import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
+import 'package:fl_clash/xboard/infrastructure/api/api.dart';
 class PaymentGatewayPage extends ConsumerStatefulWidget {
   final String paymentUrl;
   final String tradeNo;
@@ -60,7 +62,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
       }
       if (mounted) {
         XBoardNotification.showInfo(isAutomatic
-            ? '🚀 正在自动打开支付页面，完成支付后请返回应用'
+            ? '正在自动打开支付页面，完成支付后请返回应用'
             : '已在浏览器中打开支付页面，完成支付后请返回应用');
         _startAutoPolling();
       }
@@ -115,55 +117,42 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
       _isCheckingPayment = true;
     });
     try {
-      // 使用 SDK 查询订单状态
-      final orderModels = await XBoardSDK.instance.order.getOrders();
-      // SDK getOrder(tradeNo) might not exist, getOrders() returns list.
-      // Need to find by tradeNo.
-      // Wait, OrderApi has getOrder()?
-      // Step 288: OrderApi has getOrder(), getPaymentMethods(), checkCoupon().
-      // Step 156: `getOrder` (singular) was missing in providers.
-      // Step 178: `OrderApi` interface: `Future<List<OrderModel>> getOrders();`
-      // It does NOT have `getOrderByTradeNo`.
-      // So I must fetch all orders and filter? Or `getOrders` supports query?
-      // SDK `getOrders` implementation?
-      // I'll assume I have to fetch all and find.
-      // Or maybe `XBoardSDK.instance.order.getOrder(tradeNo)` exists?
-      // I'll check `OrderApi` again.
-      // Step 178 view_file lines 1-14:
-      // `Future<List<OrderModel>> getOrders();`
-      // `Future<String> createOrder(...)`
-      // `Future<PaymentResultModel> checkoutOrder(...)`
-      // `Future<bool> cancelOrder(...)`
-      // `Future<List<PaymentMethodModel>> getPaymentMethods();`
-      // `Future<CouponModel> checkCoupon(...)`
-      // No `getOrder(tradeNo)`.
-      // So I must use `getOrders()` and filter.
-      
-      final order = orderModels.firstWhere(
-        (o) => o.tradeNo == widget.tradeNo,
-        orElse: () => const OrderModel(status: -1), // Dummy
-      );
+      // 使用 V2Board API 查询订单状态
+      final api = await ref.read(xboardSdkProvider.future);
+      final json = await api.fetchOrders();
+      final dataList = json['data'] as List<dynamic>? ?? [];
+      final orders = dataList
+          .whereType<Map<String, dynamic>>()
+          .map(mapOrder)
+          .toList();
+
+      DomainOrder? foundOrder;
+      try {
+        foundOrder = orders.firstWhere((o) => o.tradeNo == widget.tradeNo);
+      } catch (_) {
+        foundOrder = null;
+      }
 
       if (mounted) {
         setState(() {
           _isCheckingPayment = false;
         });
-        if (order.status != -1) {
+        if (foundOrder != null) {
           // status: 0=pending, 1=processing, 2=canceled, 3=completed
-          if (order.status == 3) {
+          if (foundOrder.status == OrderStatus.completed) {
             _stopAutoPolling();
-            XBoardNotification.showSuccess('🎉 支付成功！');
+            XBoardNotification.showSuccess('支付成功！');
             Future.delayed(const Duration(seconds: 1), () {
               if (mounted) {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               }
             });
-          } else if (order.status == 2) {
+          } else if (foundOrder.status == OrderStatus.cancelled) {
             _stopAutoPolling();
             if (!silent) {
               XBoardNotification.showInfo('支付已取消');
             }
-          } else if (order.status == 0 || order.status == 1) {
+          } else if (foundOrder.status == OrderStatus.pending || foundOrder.status == OrderStatus.processing) {
             if (!silent) {
               XBoardNotification.showInfo(_autoPollingEnabled ? '正在等待支付...' : '订单状态：待支付');
             }
@@ -487,4 +476,4 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                 ),
     );
   }
-} 
+}

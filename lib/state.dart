@@ -83,8 +83,10 @@ class GlobalState {
     try {
       corePalette = await DynamicColorPlugin.getCorePalette();
       accentColor = await DynamicColorPlugin.getAccentColor() ??
-          Color(defaultPrimaryColor);
-    } catch (_) {}
+          Color(parseThemeColor());
+    } catch (_) {
+      accentColor = Color(parseThemeColor());
+    }
   }
 
   init() async {

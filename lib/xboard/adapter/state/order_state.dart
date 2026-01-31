@@ -1,7 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
+import 'package:fl_clash/xboard/infrastructure/api/api.dart';
+import 'package:fl_clash/xboard/domain/domain.dart';
 
 part 'generated/order_state.g.dart';
 
@@ -9,28 +10,36 @@ part 'generated/order_state.g.dart';
 
 /// 获取订单列表
 @riverpod
-Future<List<OrderModel>> getOrders(Ref ref) async {
-  final sdk = await ref.watch(xboardSdkProvider.future);
-  return await sdk.order.getOrders();
+Future<List<DomainOrder>> getOrders(Ref ref) async {
+  final api = await ref.watch(xboardSdkProvider.future);
+  final json = await api.fetchOrders();
+  final dataList = json['data'] as List<dynamic>? ?? [];
+  return dataList
+      .whereType<Map<String, dynamic>>()
+      .map(mapOrder)
+      .toList();
 }
 
 /// 获取单个订单
 @riverpod
-Future<OrderModel?> getOrder(Ref ref, String tradeNo) async {
-  final sdk = await ref.watch(xboardSdkProvider.future);
-  return await sdk.order.getOrder(tradeNo);
+Future<DomainOrder?> getOrder(Ref ref, String tradeNo) async {
+  final api = await ref.watch(xboardSdkProvider.future);
+  final json = await api.fetchOrderDetail(tradeNo);
+  final data = json['data'];
+  if (data is Map<String, dynamic>) {
+    return mapOrder(data);
+  }
+  return null;
 }
 
 /// 获取订单支付方式
 @riverpod
-Future<List<PaymentMethodModel>> getOrderPaymentMethods(Ref ref, String tradeNo) async {
-  final sdk = await ref.watch(xboardSdkProvider.future);
-  return await sdk.order.getPaymentMethods(tradeNo);
-}
-
-/// 检查优惠券
-@riverpod
-Future<CouponModel?> checkCoupon(Ref ref, {required String code, required int planId}) async {
-  final sdk = await ref.watch(xboardSdkProvider.future);
-  return await sdk.order.checkCoupon(code, planId);
+Future<List<DomainPaymentMethod>> getOrderPaymentMethods(Ref ref) async {
+  final api = await ref.watch(xboardSdkProvider.future);
+  final json = await api.getPaymentMethod();
+  final dataList = json['data'] as List<dynamic>? ?? [];
+  return dataList
+      .whereType<Map<String, dynamic>>()
+      .map(mapPaymentMethod)
+      .toList();
 }

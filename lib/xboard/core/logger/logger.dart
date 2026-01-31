@@ -5,6 +5,7 @@ library;
 
 export 'logger_interface.dart';
 export 'console_logger.dart';
+export 'disk_logger.dart';
 export 'file_logger.dart';
 
 import 'logger_interface.dart';

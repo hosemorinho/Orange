@@ -478,6 +478,15 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       isInitialized: true, // 登出后保持初始化状态，只重置认证信息
     );
   }
+  /// 强制设置 isInitialized = true
+  /// 用于初始化流程完全失败时的兜底，确保路由不会卡在 /loading
+  void forceInitialized() {
+    if (!state.isInitialized) {
+      _logger.info('强制设置 isInitialized = true（兜底）');
+      state = state.copyWith(isInitialized: true);
+    }
+  }
+
   String? get currentAuthToken => null; // Token管理已委托给API Service
   bool get isAuthenticated => state.isAuthenticated;
   String? get currentEmail => state.email;

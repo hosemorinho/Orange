@@ -90,35 +90,38 @@ class ApplicationState extends ConsumerState<Application> {
 
   /// 使用新域名服务架构进行快速认证检查
   void _performQuickAuthWithDomainService() {
-    // 等待初始化完成后再检查
     Future.microtask(() async {
       try {
         debugPrint('[Application] 开始快速认证检查...');
-        
-        // ✅ 等待初始化完成
+
+        // 等待初始化完成（最多 15 秒）
         final initState = ref.read(initializationProvider);
         if (!initState.isReady) {
           debugPrint('[Application] 等待初始化完成...');
-          // 等待初始化完成（最多 30 秒）
-          final deadline = DateTime.now().add(const Duration(seconds: 30));
-          while (!ref.read(initializationProvider).isReady && 
+          final deadline = DateTime.now().add(const Duration(seconds: 15));
+          while (!ref.read(initializationProvider).isReady &&
                  DateTime.now().isBefore(deadline)) {
             await Future.delayed(const Duration(milliseconds: 500));
           }
-          
+
           if (!ref.read(initializationProvider).isReady) {
-            debugPrint('[Application] 初始化超时，跳过快速认证');
-            return;
+            debugPrint('[Application] 初始化超时，但仍执行 quickAuth 以设置 isInitialized');
           }
         }
-        
-        // SDK 已初始化，执行快速认证
+
+        // 无论初始化成功与否，都执行 quickAuth
+        // quickAuth 内部 finally 保证 isInitialized = true
+        // 这样即使 SDK 未就绪，路由也能从 /loading 跳转到 /login
         final userNotifier = ref.read(xboardUserProvider.notifier);
         await userNotifier.quickAuth();
 
         debugPrint('[Application] 快速认证检查完成');
       } catch (e) {
         debugPrint('[Application] 快速认证检查失败: $e');
+        // quickAuth 的 finally 已保证 isInitialized = true
+        // 但如果连 quickAuth 都没执行到，兜底通过 forceInitialized 处理
+        final userNotifier = ref.read(xboardUserProvider.notifier);
+        userNotifier.forceInitialized();
       }
     });
   }

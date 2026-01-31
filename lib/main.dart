@@ -20,10 +20,23 @@ import 'clash/core.dart';
 import 'clash/lib.dart';
 import 'common/common.dart';
 import 'models/models.dart';
+import 'xboard/core/core.dart';
 
 Future<void> main() async {
   globalState.isService = false;
-  WidgetsFlutterBinding.ensureInitialized(); // 确保 Flutter 绑定已初始化
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 桌面平台启用磁盘日志（Windows release 无控制台）
+  if (system.isDesktop) {
+    try {
+      final logDir = await appPath.homeDirPath;
+      final diskLogger = await DiskLogger.init(logDir);
+      XBoardLogger.setLogger(diskLogger);
+      debugPrint('[Main] 磁盘日志已启用: $logDir/xboard.log');
+    } catch (e) {
+      debugPrint('[Main] 磁盘日志初始化失败: $e');
+    }
+  }
 
   // 初始化XBoard配置模块
   await _initializeXBoardServices();
@@ -32,7 +45,7 @@ Future<void> main() async {
   await clashCore.preload();
   await globalState.initApp(version);
   await android?.init();
-  await window?.init(version); // 假设 window?.init(version) 是正确的调用
+  await window?.init(version);
   HttpOverrides.global = FlClashHttpOverrides();
 
   runApp(ProviderScope(

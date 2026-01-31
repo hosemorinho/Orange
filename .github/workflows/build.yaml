@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       package_name:
@@ -22,7 +22,7 @@ on:
         default: ''
 
 env:
-  IS_STABLE: ${{ !contains(github.ref, '-') }}
+  IS_STABLE: ${{ github.event_name == 'release' }}
   APP_PACKAGE_NAME: ${{ inputs.package_name || vars.APP_PACKAGE_NAME || '' }}
   API_BASE_URL: ${{ inputs.api_url || vars.API_BASE_URL || '' }}
   THEME_COLOR: ${{ inputs.theme_color || vars.THEME_COLOR || '' }}
@@ -143,24 +143,14 @@ jobs:
     permissions: write-all
     needs: [build]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'release'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./dist/
           pattern: artifact-*
           merge-multiple: true
-
-      - name: Generate Release Notes
-        run: |
-          echo "## Changes" > release.md
-          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || git rev-list --max-parents=0 HEAD)..HEAD >> release.md 2>/dev/null || echo "- Initial release" >> release.md
 
       - name: Generate SHA256
         run: |
@@ -169,9 +159,7 @@ jobs:
             sha256sum "$file" > "${file}.sha256"
           done
 
-      - name: Create Release
-        if: ${{ !contains(github.ref, '-') }}
+      - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
           files: ./dist/*
-          body_path: './release.md'

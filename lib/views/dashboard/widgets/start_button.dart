@@ -77,10 +77,20 @@ class _StartButtonState extends ConsumerState<StartButton>
     if (!state.isInit || !state.hasProfile) {
       return Container();
     }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    // 使用 Material 3 的语义化颜色
+    // 运行时：使用 tertiary（通常是绿色系）
+    // 停止时：使用 primary（主题色）
+    final backgroundColor = isStart ? colorScheme.tertiary : colorScheme.primary;
+    final foregroundColor = isStart ? colorScheme.onTertiary : colorScheme.onPrimary;
+
     return Theme(
       data: Theme.of(context).copyWith(
         floatingActionButtonTheme: FloatingActionButtonThemeData(
-          sizeConstraints: BoxConstraints(
+          backgroundColor: backgroundColor,
+          foregroundColor: foregroundColor,
+          sizeConstraints: const BoxConstraints(
             minWidth: 56,
             maxWidth: 200,
           ),
@@ -131,13 +141,14 @@ class _StartButtonState extends ConsumerState<StartButton>
           builder: (_, ref, __) {
             final runTime = ref.watch(runTimeProvider);
             final text = utils.getTimeText(runTime);
+            final foregroundColor = isStart ? colorScheme.onTertiary : colorScheme.onPrimary;
             return Text(
               text,
               maxLines: 1,
               overflow: TextOverflow.visible,
               style:
                   Theme.of(context).textTheme.titleMedium?.toSoftBold.copyWith(
-                        color: context.colorScheme.onPrimaryContainer,
+                        color: foregroundColor,
                       ),
             );
           },

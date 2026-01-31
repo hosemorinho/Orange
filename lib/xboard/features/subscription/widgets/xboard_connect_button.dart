@@ -82,16 +82,18 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
   }
   Widget _buildFloatingButton(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    // 暗黑模式使用浅色背景配黑色文字
-    final startColor = isDark ? Colors.green.shade200 : Colors.green.shade600;
-    final stopColor = isDark ? Colors.blue.shade200 : colorScheme.primary;
-    
+
+    // 使用 Material 3 的语义化颜色
+    // 运行时：使用 tertiary（通常是绿色系）
+    // 停止时：使用 primary（主题色）
+    final backgroundColor = isStart ? colorScheme.tertiary : colorScheme.primary;
+    final foregroundColor = isStart ? colorScheme.onTertiary : colorScheme.onPrimary;
+
     return Theme(
       data: Theme.of(context).copyWith(
         floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: isStart ? startColor : stopColor,
-          foregroundColor: isDark ? Colors.black : Colors.white,
+          backgroundColor: backgroundColor,
+          foregroundColor: foregroundColor,
           sizeConstraints: const BoxConstraints(
             minWidth: 56,
             maxWidth: 200,
@@ -133,13 +135,14 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
           builder: (_, ref, __) {
             final runTime = ref.watch(runTimeProvider);
             final text = utils.getTimeText(runTime);
-            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final colorScheme = Theme.of(context).colorScheme;
+            final foregroundColor = isStart ? colorScheme.onTertiary : colorScheme.onPrimary;
             return Text(
               text,
               maxLines: 1,
               overflow: TextOverflow.visible,
               style: Theme.of(context).textTheme.titleMedium?.toSoftBold.copyWith(
-                color: isDark ? Colors.black : Colors.white,
+                color: foregroundColor,
               ),
             );
           },
@@ -149,11 +152,13 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
   }
   Widget _buildInlineButton(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    // 暗黑模式使用浅色背景配黑色文字
-    final startColor = isDark ? Colors.green.shade200 : Colors.green.shade600;
-    final stopColor = isDark ? Colors.blue.shade200 : colorScheme.primary;
-    
+
+    // 使用 Material 3 的语义化颜色
+    // 运行时：使用 tertiaryContainer（通常是绿色系容器）
+    // 停止时：使用 primaryContainer（主题色容器）
+    final backgroundColor = isStart ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
+    final foregroundColor = isStart ? colorScheme.onTertiaryContainer : colorScheme.onPrimaryContainer;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: AnimatedBuilder(
@@ -161,11 +166,11 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
         builder: (_, child) {
           return Container(
             decoration: BoxDecoration(
-              color: isStart ? startColor : stopColor,
+              color: backgroundColor,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: (isStart ? startColor : stopColor).withValues(alpha: 0.3),
+                  color: backgroundColor.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -187,7 +192,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
                         icon: AnimatedIcons.play_pause,
                         progress: _animation,
                         size: 28,
-                        color: isDark ? Colors.black : Colors.white,
+                        color: foregroundColor,
                       ),
                       const SizedBox(width: 10),
                       Column(
@@ -198,7 +203,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
                               ? AppLocalizations.of(context).xboardStopProxy
                               : AppLocalizations.of(context).xboardStartProxy,
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: isDark ? Colors.black : Colors.white,
+                              color: foregroundColor,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -211,9 +216,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
                                 return Text(
                                   AppLocalizations.of(context).xboardRunningTime(text),
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isDark 
-                                        ? Colors.black.withValues(alpha: 0.7)
-                                        : Colors.white.withValues(alpha: 0.9),
+                                    color: foregroundColor.withValues(alpha: 0.8),
                                     fontSize: 12,
                                   ),
                                 );

@@ -609,14 +609,15 @@ ColorScheme genColorScheme(
     ),
   );
   if (color == null && (ignoreConfig == true || vm2.a == null)) {
-    // if (globalState.corePalette != null) {
-    //   return globalState.corePalette!.toColorScheme(brightness: brightness);
-    // }
+    // 如果通过 --dart-define=THEME_COLOR 明确配置了主题色，优先使用
+    final hasExplicitThemeColor = configuredPrimaryColor != defaultPrimaryColor;
     return ColorScheme.fromSeed(
-      seedColor: globalState.corePalette
-              ?.toColorScheme(brightness: brightness)
-              .primary ??
-          globalState.accentColor,
+      seedColor: hasExplicitThemeColor
+          ? Color(configuredPrimaryColor)
+          : (globalState.corePalette
+                  ?.toColorScheme(brightness: brightness)
+                  .primary ??
+              globalState.accentColor),
       brightness: brightness,
       dynamicSchemeVariant: vm2.b,
     );

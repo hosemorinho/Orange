@@ -175,10 +175,13 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
 
       final api = await ref.read(xboardSdkProvider.future);
       final json = await api.login(email, password);
+
+      // V2Board 登录响应: {"data": {"auth_data": "xxx"}}
       final data = json['data'] as Map<String, dynamic>? ?? {};
-      final token = data['token'] as String?;
+      final token = data['auth_data'] as String?;
 
       if (token == null || token.isEmpty) {
+        _logger.info('登录响应中未找到 auth_data 字段: $data');
         state = state.copyWith(
           isLoading: false,
           errorMessage: '登录失败',
@@ -264,9 +267,9 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
         emailCode: emailCode,
       );
 
-      // V2Board register returns token on success
+      // V2Board 注册响应: {"data": {"auth_data": "xxx"}}
       final data = json['data'] as Map<String, dynamic>? ?? {};
-      final token = data['token'] as String?;
+      final token = data['auth_data'] as String?;
       if (token != null && token.isNotEmpty) {
         await api.saveAndSetToken(token);
       }

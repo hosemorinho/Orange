@@ -46,14 +46,14 @@ class OrderDetailSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Order Information Section
-                  _buildSectionTitle(theme, appLocalizations.xboardOrderInfo),
+                  _buildSectionTitle(theme, context.appLocalizations.xboardOrderInfo),
                   const SizedBox(height: 12),
                   _buildOrderInfoSection(theme),
                   const SizedBox(height: 24),
 
                   // Plan Information Section
                   if (order.planName != null) ...[
-                    _buildSectionTitle(theme, appLocalizations.xboardPlanInfo),
+                    _buildSectionTitle(theme, context.appLocalizations.xboardPlanInfo),
                     const SizedBox(height: 12),
                     _buildPlanInfoSection(theme),
                   ],
@@ -84,7 +84,7 @@ class OrderDetailSheet extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            appLocalizations.xboardOrderDetails,
+            context.appLocalizations.xboardOrderDetails,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -124,7 +124,7 @@ class OrderDetailSheet extends StatelessWidget {
         children: [
           _buildDetailRow(
             theme,
-            appLocalizations.xboardTradeNo,
+            context.appLocalizations.xboardTradeNo,
             order.tradeNo,
             monospace: true,
             copyable: true,
@@ -132,13 +132,13 @@ class OrderDetailSheet extends StatelessWidget {
           const SizedBox(height: 12),
           _buildDetailRow(
             theme,
-            appLocalizations.xboardPeriod,
+            context.appLocalizations.xboardPeriod,
             _formatPeriod(order.period),
           ),
           const SizedBox(height: 12),
           _buildDetailRow(
             theme,
-            appLocalizations.xboardTotalAmount,
+            context.appLocalizations.xboardTotalAmount,
             _formatPrice(order.totalAmount),
             bold: true,
           ),
@@ -148,7 +148,7 @@ class OrderDetailSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               theme,
-              appLocalizations.xboardHandlingFee,
+              context.appLocalizations.xboardHandlingFee,
               _formatPrice(order.handlingAmount),
             ),
           ],
@@ -156,7 +156,7 @@ class OrderDetailSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               theme,
-              appLocalizations.xboardBalanceAmount,
+              context.appLocalizations.xboardBalanceAmount,
               _formatPrice(order.balanceAmount),
             ),
           ],
@@ -164,7 +164,7 @@ class OrderDetailSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               theme,
-              appLocalizations.xboardRefundAmount,
+              context.appLocalizations.xboardRefundAmount,
               _formatPrice(order.refundAmount),
             ),
           ],
@@ -172,7 +172,7 @@ class OrderDetailSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               theme,
-              appLocalizations.xboardDiscountAmount,
+              context.appLocalizations.xboardDiscountAmount,
               _formatPrice(order.discountAmount),
             ),
           ],
@@ -180,7 +180,7 @@ class OrderDetailSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               theme,
-              appLocalizations.xboardSurplusAmount,
+              context.appLocalizations.xboardSurplusAmount,
               _formatPrice(order.surplusAmount),
             ),
           ],
@@ -188,7 +188,7 @@ class OrderDetailSheet extends StatelessWidget {
           const SizedBox(height: 12),
           _buildDetailRow(
             theme,
-            appLocalizations.xboardCreatedAt,
+            context.appLocalizations.xboardCreatedAt,
             _formatDateTime(order.createdAt),
           ),
         ],
@@ -327,7 +327,7 @@ class OrderDetailSheet extends StatelessWidget {
             backgroundColor: colorScheme.primary,
             minimumSize: const Size.fromHeight(48),
           ),
-          child: Text(appLocalizations.xboardGoToPay),
+          child: Text(context.appLocalizations.xboardGoToPay),
         ),
       ),
     );
@@ -335,14 +335,14 @@ class OrderDetailSheet extends StatelessWidget {
 
   String _formatPeriod(String period) {
     final periodMap = {
-      'month_price': appLocalizations.xboardMonthlyPayment,
-      'quarter_price': appLocalizations.xboardQuarterlyPayment,
-      'half_year_price': appLocalizations.xboardHalfYearPayment,
-      'year_price': appLocalizations.xboardYearlyPayment,
-      'two_year_price': appLocalizations.xboardTwoYearPayment,
-      'three_year_price': appLocalizations.xboardThreeYearPayment,
-      'onetime_price': appLocalizations.xboardOnetimePayment,
-      'reset_price': appLocalizations.xboardResetTraffic,
+      'month_price': context.appLocalizations.xboardMonthlyPayment,
+      'quarter_price': context.appLocalizations.xboardQuarterlyPayment,
+      'half_year_price': context.appLocalizations.xboardHalfYearPayment,
+      'year_price': context.appLocalizations.xboardYearlyPayment,
+      'two_year_price': context.appLocalizations.xboardTwoYearPayment,
+      'three_year_price': context.appLocalizations.xboardThreeYearPayment,
+      'onetime_price': context.appLocalizations.xboardOnetimePayment,
+      'reset_price': context.appLocalizations.xboardResetTraffic,
     };
     return periodMap[period] ?? period;
   }

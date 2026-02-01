@@ -294,7 +294,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
 
     if (confirmed == true && mounted) {
       try {
-        await ref.read(orderProviderProvider.notifier).cancelOrder(tradeNo);
+        await ref.read(cancelOrderProvider(tradeNo).future);
         ref.invalidate(getOrdersProvider);
 
         if (mounted) {

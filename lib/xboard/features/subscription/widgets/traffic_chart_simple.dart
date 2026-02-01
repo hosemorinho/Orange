@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/domain/models/traffic_record.dart';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 /// Simple traffic chart widget using CustomPainter
 class TrafficChartSimple extends ConsumerStatefulWidget {
@@ -338,7 +339,7 @@ class _TrafficChartPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
+      textDirection: ui.TextDirection.ltr,
     );
 
     for (int i = 0; i <= yTicks; i++) {
@@ -420,7 +421,7 @@ class _TrafficChartPainter extends CustomPainter {
   ) {
     final barWidth = chartWidth / data.length;
     final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
+      textDirection: ui.TextDirection.ltr,
     );
 
     for (int i = 0; i < data.length; i++) {

@@ -58,44 +58,33 @@ class InviteDataProvider extends _$InviteDataProvider {
   }
 }
 
-/// Invite operations provider
-///
-/// Handles invite mutations like:
-/// - Create invite code
-/// - Transfer commission
+/// Create a new invite code
 @riverpod
-class InviteProvider extends _$InviteProvider {
-  @override
-  void build() {
-    // No initial state needed
+Future<void> createInviteCode(CreateInviteCodeRef ref) async {
+  try {
+    final api = await ref.read(xboardSdkProvider.future);
+    await api.createInviteCode();
+
+    // Refresh invite data
+    ref.invalidate(inviteDataProviderProvider);
+  } catch (e, stackTrace) {
+    _logger.error('[createInviteCode] Failed to create invite code', e, stackTrace);
+    rethrow;
   }
+}
 
-  /// Create a new invite code
-  Future<void> createInviteCode() async {
-    try {
-      final api = await ref.read(xboardSdkProvider.future);
-      await api.createInviteCode();
+/// Transfer commission to balance
+@riverpod
+Future<void> transferCommission(TransferCommissionRef ref, double amount) async {
+  try {
+    final api = await ref.read(xboardSdkProvider.future);
+    await api.transferCommission(amount);
 
-      // Refresh invite data
-      ref.invalidate(inviteDataProviderProvider);
-    } catch (e, stackTrace) {
-      _logger.error('[InviteProvider] Failed to create invite code', e, stackTrace);
-      rethrow;
-    }
-  }
-
-  /// Transfer commission to balance
-  Future<void> transferCommission(double amount) async {
-    try {
-      final api = await ref.read(xboardSdkProvider.future);
-      await api.transferCommission(amount);
-
-      // Refresh invite data and user info
-      ref.invalidate(inviteDataProviderProvider);
-      // TODO: Also invalidate user provider when needed
-    } catch (e, stackTrace) {
-      _logger.error('[InviteProvider] Failed to transfer commission', e, stackTrace);
-      rethrow;
-    }
+    // Refresh invite data and user info
+    ref.invalidate(inviteDataProviderProvider);
+    // TODO: Also invalidate user provider when needed
+  } catch (e, stackTrace) {
+    _logger.error('[transferCommission] Failed to transfer commission', e, stackTrace);
+    rethrow;
   }
 }

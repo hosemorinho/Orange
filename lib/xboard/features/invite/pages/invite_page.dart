@@ -29,7 +29,7 @@ class _InvitePageState extends ConsumerState<InvitePage> {
     setState(() => _isCreatingCode = true);
 
     try {
-      await ref.read(inviteProviderProvider.notifier).createInviteCode();
+      await ref.read(createInviteCodeProvider.future);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

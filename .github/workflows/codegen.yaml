@@ -51,36 +51,26 @@ jobs:
         id: verify
         run: |
           echo "✅ Code generation completed successfully"
-          echo "Generated files are excluded from git (see .gitignore)"
-
-          # Check if there are any non-generated file changes
-          # (e.g., localization files that should be committed)
-          NON_GENERATED_CHANGES=$(git status --porcelain | grep -v '\.g\.dart$' | grep -v '\.freezed\.dart$' || true)
-
-          if [[ -n "$NON_GENERATED_CHANGES" ]]; then
-            echo "has_non_generated_changes=true" >> $GITHUB_OUTPUT
-            echo "⚠️ Non-generated files changed:"
-            echo "$NON_GENERATED_CHANGES"
+          
+          # Check for any changes (including generated files)
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Files changed:"
+            git status --porcelain
           else
-            echo "has_non_generated_changes=false" >> $GITHUB_OUTPUT
-            echo "✅ Only generated files changed (as expected)"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "✅ No changes detected"
           fi
 
-      - name: Commit Non-Generated Files
-        if: steps.verify.outputs.has_non_generated_changes == 'true' && github.event_name == 'push'
+      - name: Commit Generated Files
+        if: steps.verify.outputs.has_changes == 'true' && github.event_name == 'push'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          # Only commit localization and platform-specific generated files
-          # (NOT Freezed/JSON serialization files)
-          git add lib/l10n/*.dart arb/*.arb || true
-          git add linux/flutter/generated_*.* || true
-          git add macos/Flutter/Generated*.* || true
-          git add windows/flutter/generated_*.* || true
-          git add pubspec.lock || true
-
-          git commit -m "chore: update localization and platform files [skip ci]" || true
+          # Commit all generated files including .g.dart and .freezed.dart
+          git add -A
+          git commit -m "chore: update generated files [skip ci]" || true
           git push
 
       - name: Comment on PR (if non-generated changes)

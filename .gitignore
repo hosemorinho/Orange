@@ -36,8 +36,9 @@ migrate_working_dir/
 /dist/
 
 # Generated files (build_runner, freezed, etc.)
-*.g.dart
-*.freezed.dart
+# Temporarily commit generated files to fix CI build
+# *.g.dart
+# *.freezed.dart
 
 # Symbolication related
 app.*.symbols

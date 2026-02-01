@@ -109,7 +109,7 @@ class LoadingPage extends ConsumerWidget {
                       color: colorScheme.errorContainer,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: colorScheme.error.withOpacity(0.3),
+                        color: colorScheme.error.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Column(
@@ -185,7 +185,7 @@ class LoadingPage extends ConsumerWidget {
                 Text(
                   '首次启动可能需要一些时间\n请耐心等待...',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       ),
                   textAlign: TextAlign.center,
                 ),

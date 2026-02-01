@@ -84,7 +84,7 @@ class XBInputField extends StatelessWidget {
           color: colorScheme.onSurfaceVariant,
         ),
         hintStyle: TextStyle(
-          color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,

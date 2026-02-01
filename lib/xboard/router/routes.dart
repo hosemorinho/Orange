@@ -5,6 +5,7 @@ import 'package:fl_clash/xboard/features/payment/pages/plan_purchase_page.dart';
 import 'package:fl_clash/xboard/features/payment/pages/payment_gateway_page.dart';
 import 'package:fl_clash/xboard/features/ticket/ticket.dart';
 import 'package:fl_clash/xboard/features/auth/pages/login_page.dart';
+import 'package:fl_clash/xboard/features/initialization/pages/loading_page.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -134,11 +135,7 @@ final List<RouteBase> routes = [
       path: '/loading',
       name: 'loading',
       pageBuilder: (context, state) => const MaterialPage(
-        child: Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        ),
+        child: LoadingPage(),
       ),
     ),
 ];

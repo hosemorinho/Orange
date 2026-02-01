@@ -115,23 +115,26 @@ class ApplicationState extends ConsumerState<Application> {
       try {
         debugPrint('[Application] 开始快速认证检查...');
 
-        // 并行等待初始化，但不阻塞认证流程
+        // 等待初始化完成，最多 30 秒（与 initializationProvider 的超时一致）
         // 使用 Future.any 确保任一条件满足就继续
         await Future.any([
           // 等待初始化完成或失败
           Future(() async {
             while (true) {
-              await Future.delayed(const Duration(milliseconds: 100));
+              await Future.delayed(const Duration(milliseconds: 200));
               final current = ref.read(initializationProvider);
               if (current.isReady || current.isFailed) {
                 debugPrint('[Application] 初始化状态: ${current.status}');
+                debugPrint('[Application] 错误信息: ${current.errorMessage}');
                 break;
               }
             }
           }),
-          // 5秒超时兜底，确保不会永久阻塞
-          Future.delayed(const Duration(seconds: 5), () {
-            debugPrint('[Application] 初始化等待超时（5秒），继续执行 quickAuth');
+          // 30秒超时兜底（匹配 Provider 的超时时间）
+          Future.delayed(const Duration(seconds: 30), () {
+            debugPrint('[Application] 初始化等待超时（30秒），继续执行 quickAuth');
+            final current = ref.read(initializationProvider);
+            debugPrint('[Application] 超时时的初始化状态: ${current.status}');
           }),
         ]);
 

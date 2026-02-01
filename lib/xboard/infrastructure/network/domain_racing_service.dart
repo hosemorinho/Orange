@@ -44,8 +44,15 @@ class DomainRacingService {
 
       _logger.info('[域名竞速] 加载自定义CA证书: $_configuredCertPath');
 
-      // 加载证书文件
-      final ByteData certData = await rootBundle.load(_configuredCertPath!);
+      // 加载证书文件（带超时保护，避免永久阻塞）
+      final ByteData certData = await rootBundle.load(_configuredCertPath!)
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () {
+              _logger.warning('[域名竞速] CA证书加载超时（3秒），使用默认证书');
+              throw TimeoutException('证书加载超时');
+            },
+          );
       final Uint8List certBytes = certData.buffer.asUint8List();
 
       // 创建SecurityContext并添加证书

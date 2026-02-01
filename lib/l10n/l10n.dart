@@ -7013,6 +7013,66 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Email prefix`
+  String get emailPrefixHint {
+    return Intl.message(
+      'Email prefix',
+      name: 'emailPrefixHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please enter email prefix`
+  String get pleaseEnterEmailPrefix {
+    return Intl.message(
+      'Please enter email prefix',
+      name: 'pleaseEnterEmailPrefix',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invalid email format`
+  String get invalidEmailFormat {
+    return Intl.message(
+      'Invalid email format',
+      name: 'invalidEmailFormat',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please select email suffix`
+  String get pleaseSelectEmailSuffix {
+    return Intl.message(
+      'Please select email suffix',
+      name: 'pleaseSelectEmailSuffix',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please select suffix`
+  String get pleaseSelectSuffix {
+    return Intl.message(
+      'Please select suffix',
+      name: 'pleaseSelectSuffix',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Full email: {email}`
+  String fullEmailPreview(String email) {
+    return Intl.message(
+      'Full email: $email',
+      name: 'fullEmailPreview',
+      desc: '',
+      args: [email],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

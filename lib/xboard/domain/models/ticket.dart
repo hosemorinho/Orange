@@ -57,11 +57,11 @@ extension DomainTicketX on DomainTicket {
     }
   }
 
-  /// 是否已关闭
+  /// 是否已关闭（不能回复）
   bool get isClosed => status == TicketStatus.closed;
 
-  /// 是否待回复
-  bool get isPendingReply => status == TicketStatus.pending;
+  /// 是否可以回复（未关闭）
+  bool get canReply => status == TicketStatus.pending;
 
   /// 未读消息数
   int get unreadCount {
@@ -76,18 +76,19 @@ extension DomainTicketX on DomainTicket {
 }
 
 /// 工单状态枚举
+///
+/// V2Board API 状态定义：
+/// - 0: 待处理/进行中（可以回复）
+/// - 1: 已关闭（不能回复）
 enum TicketStatus {
-  /// 待处理
+  /// 待处理/进行中
   pending(0, '待处理'),
-  
-  /// 已回复
-  replied(1, '已回复'),
-  
+
   /// 已关闭
-  closed(2, '已关闭');
+  closed(1, '已关闭');
 
   const TicketStatus(this.code, this.label);
-  
+
   final int code;
   final String label;
 

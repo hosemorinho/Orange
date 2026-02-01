@@ -87,7 +87,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     final plan = widget.plan;
     final l10n = AppLocalizations.of(context);
 
-    if (plan.monthlyPrice != null) {
+    // 只添加有效价格的周期（不为 null 且大于 0）
+    // 参考 V2Board API: OrderController.php:92-94
+    if (plan.monthlyPrice != null && plan.monthlyPrice! > 0) {
       periods.add({
         'period': 'month_price',
         'label': l10n.xboardMonthlyPayment,
@@ -95,7 +97,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         'description': l10n.xboardMonthlyRenewal,
       });
     }
-    if (plan.quarterlyPrice != null) {
+    if (plan.quarterlyPrice != null && plan.quarterlyPrice! > 0) {
       periods.add({
         'period': 'quarter_price',
         'label': l10n.xboardQuarterlyPayment,
@@ -103,7 +105,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         'description': l10n.xboardThreeMonthCycle,
       });
     }
-    if (plan.halfYearlyPrice != null) {
+    if (plan.halfYearlyPrice != null && plan.halfYearlyPrice! > 0) {
       periods.add({
         'period': 'half_year_price',
         'label': l10n.xboardHalfYearlyPayment,
@@ -111,7 +113,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         'description': l10n.xboardSixMonthCycle,
       });
     }
-    if (plan.yearlyPrice != null) {
+    if (plan.yearlyPrice != null && plan.yearlyPrice! > 0) {
       periods.add({
         'period': 'year_price',
         'label': l10n.xboardYearlyPayment,
@@ -119,7 +121,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         'description': l10n.xboardTwelveMonthCycle,
       });
     }
-    if (plan.twoYearPrice != null) {
+    if (plan.twoYearPrice != null && plan.twoYearPrice! > 0) {
       periods.add({
         'period': 'two_year_price',
         'label': l10n.xboardTwoYearPayment,
@@ -127,7 +129,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         'description': l10n.xboardTwentyFourMonthCycle,
       });
     }
-    if (plan.threeYearPrice != null) {
+    if (plan.threeYearPrice != null && plan.threeYearPrice! > 0) {
       periods.add({
         'period': 'three_year_price',
         'label': l10n.xboardThreeYearPayment,
@@ -135,7 +137,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         'description': l10n.xboardThirtySixMonthCycle,
       });
     }
-    if (plan.onetimePrice != null) {
+    if (plan.onetimePrice != null && plan.onetimePrice! > 0) {
       periods.add({
         'period': 'onetime_price',
         'label': l10n.xboardOneTimePayment,

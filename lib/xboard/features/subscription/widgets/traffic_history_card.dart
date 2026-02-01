@@ -1,3 +1,4 @@
+import 'package:fl_clash/common/common.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,7 +52,7 @@ class _TrafficHistoryCardState extends ConsumerState<TrafficHistoryCard> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = appLocalizations;
+    final l10n = context.appLocalizations;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 

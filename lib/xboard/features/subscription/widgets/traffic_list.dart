@@ -1,3 +1,4 @@
+import 'package:fl_clash/common/common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -25,7 +26,7 @@ class _TrafficListState extends ConsumerState<TrafficList> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final l10n = appLocalizations;
+    final l10n = context.appLocalizations;
 
     if (widget.loading) {
       return _buildLoadingState(colorScheme);

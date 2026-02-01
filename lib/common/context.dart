@@ -1,8 +1,10 @@
 import 'package:fl_clash/manager/message_manager.dart';
 import 'package:fl_clash/widgets/scaffold.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
 extension BuildContextExtension on BuildContext {
+  AppLocalizations get appLocalizations => AppLocalizations.of(this);
   CommonScaffoldState? get commonScaffoldState {
     return findAncestorStateOfType<CommonScaffoldState>();
   }

@@ -26,11 +26,11 @@ class XBCard extends StatelessWidget {
     return Container(
       margin: margin,
       child: Material(
-        elevation: elevation ?? (isSelected ? 4 : 2),
+        elevation: 0,
         borderRadius: borderRadius ?? defaultBorderRadius,
-        color: backgroundColor ?? 
-               (isSelected 
-                 ? colorScheme.primaryContainer 
+        color: backgroundColor ??
+               (isSelected
+                 ? colorScheme.primaryContainer
                  : colorScheme.surfaceContainer),
         child: InkWell(
           onTap: onTap,

@@ -175,15 +175,6 @@ class _PeriodCard extends StatelessWidget {
             color: isSelected ? Colors.blue.shade600 : Colors.grey.shade300,
             width: isSelected ? 1.5 : 1,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.blue.shade200.withValues(alpha: 0.5),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

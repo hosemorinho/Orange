@@ -116,7 +116,7 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
       height: 40,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark 
+        color: isDark
             ? Theme.of(context).colorScheme.surfaceContainerHighest
             : Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
@@ -124,13 +124,6 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Row(
         children: [
@@ -337,22 +330,6 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
                   : Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
               width: isDark ? 1.5 : 1,
             ),
-            boxShadow: [
-              // 增强暗色主题下的阴影
-              BoxShadow(
-                color: isDark 
-                    ? Colors.black.withValues(alpha: 0.5)
-                    : Colors.black.withValues(alpha: 0.1),
-                blurRadius: isDark ? 30 : 20,
-                spreadRadius: isDark ? 2 : 0,
-                offset: const Offset(0, 10),
-              ),
-              BoxShadow(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.05),
-                blurRadius: 40,
-                offset: const Offset(0, 5),
-              ),
-            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -804,16 +781,6 @@ class NoticePopupDialog extends StatelessWidget {
                   : Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
               width: isDark ? 1.5 : 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: isDark
-                    ? Colors.black.withValues(alpha: 0.6)
-                    : Colors.black.withValues(alpha: 0.15),
-                blurRadius: isDark ? 40 : 30,
-                spreadRadius: isDark ? 3 : 0,
-                offset: const Offset(0, 12),
-              ),
-            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -844,13 +811,6 @@ class NoticePopupDialog extends StatelessWidget {
                           ],
                         ),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xff0369A1).withValues(alpha: 0.3),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
                       ),
                       child: const Icon(
                         Icons.campaign_rounded,

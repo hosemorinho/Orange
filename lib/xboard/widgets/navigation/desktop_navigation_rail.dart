@@ -34,13 +34,6 @@ class DesktopNavigationRail extends ConsumerWidget {
               )
             : null,
         color: isDark ? null : colorScheme.surfaceContainer,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(2, 0),
-          ),
-        ],
       ),
       child: Column(
         children: [

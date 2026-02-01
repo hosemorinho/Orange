@@ -49,13 +49,6 @@ class SubscriptionUsageCard extends ConsumerWidget {
           color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -131,13 +124,6 @@ class SubscriptionUsageCard extends ConsumerWidget {
           color: statusColor.withValues(alpha: 0.2),
           width: 1.5,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: statusColor.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -329,13 +315,6 @@ class SubscriptionUsageCard extends ConsumerWidget {
           color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       padding: const EdgeInsets.all(20),
       child: Column(

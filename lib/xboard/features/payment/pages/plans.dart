@@ -114,13 +114,6 @@ class _PlansViewState extends ConsumerState<PlansView> {
           color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: IntrinsicHeight(
         child: Padding(
@@ -154,13 +147,6 @@ class _PlansViewState extends ConsumerState<PlansView> {
                         ],
                       ),
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xff0369A1).withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
                     ),
                     child: Text(
                       _getLowestPrice(plan),

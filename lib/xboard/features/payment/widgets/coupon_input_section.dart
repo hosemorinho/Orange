@@ -87,13 +87,6 @@ class _DiscountBadge extends StatelessWidget {
           colors: [Colors.green.shade400, Colors.green.shade600],
         ),
         borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.green.shade200.withValues(alpha: 0.5),
-          blurRadius: 4,
-          offset: const Offset(0, 2),
-        ),
-      ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

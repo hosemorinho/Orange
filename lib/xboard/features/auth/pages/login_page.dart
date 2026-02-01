@@ -185,13 +185,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         color: colorScheme.outlineVariant.withValues(alpha: 0.3),
                         width: 1,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colorScheme.shadow.withValues(alpha: 0.08),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
                     ),
                     padding: const EdgeInsets.all(32),
                     child: Column(
@@ -213,13 +206,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       const Color(0xff0EA5E9),
                                     ],
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xff0369A1).withValues(alpha: 0.3),
-                                      blurRadius: 16,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
                                 ),
                                 child: const Icon(
                                   Icons.vpn_lock_outlined,

@@ -85,73 +85,28 @@ class _StartButtonState extends ConsumerState<StartButton>
     final backgroundColor = isStart ? colorScheme.tertiary : colorScheme.primary;
     final foregroundColor = isStart ? colorScheme.onTertiary : colorScheme.onPrimary;
 
-    return Theme(
-      data: Theme.of(context).copyWith(
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: backgroundColor,
-          foregroundColor: foregroundColor,
-          sizeConstraints: const BoxConstraints(
-            minWidth: 56,
-            maxWidth: 200,
-          ),
+    return Center(
+      child: Container(
+        width: 72,
+        height: 72,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          shape: BoxShape.circle,
         ),
-      ),
-      child: AnimatedBuilder(
-        animation: _controller.view,
-        builder: (_, child) {
-          final textWidth = globalState.measure
-                  .computeTextSize(
-                    Text(
-                      utils.getTimeDifference(
-                        DateTime.now(),
-                      ),
-                      style: context.textTheme.titleMedium?.toSoftBold,
-                    ),
-                  )
-                  .width +
-              16;
-          return FloatingActionButton(
-            clipBehavior: Clip.antiAlias,
-            materialTapTargetSize: MaterialTapTargetSize.padded,
-            heroTag: null,
-            onPressed: () {
-              handleSwitchStart();
-            },
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Container(
-                  height: 56,
-                  width: 56,
-                  alignment: Alignment.center,
-                  child: AnimatedIcon(
-                    icon: AnimatedIcons.play_pause,
-                    progress: _animation,
-                  ),
-                ),
-                SizedBox(
-                  width: textWidth * _animation.value,
-                  child: child!,
-                )
-              ],
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: handleSwitchStart,
+            customBorder: const CircleBorder(),
+            child: Center(
+              child: AnimatedIcon(
+                icon: AnimatedIcons.play_pause,
+                progress: _animation,
+                size: 36,
+                color: foregroundColor,
+              ),
             ),
-          );
-        },
-        child: Consumer(
-          builder: (_, ref, __) {
-            final runTime = ref.watch(runTimeProvider);
-            final text = utils.getTimeText(runTime);
-            final foregroundColor = isStart ? colorScheme.onTertiary : colorScheme.onPrimary;
-            return Text(
-              text,
-              maxLines: 1,
-              overflow: TextOverflow.visible,
-              style:
-                  Theme.of(context).textTheme.titleMedium?.toSoftBold.copyWith(
-                        color: foregroundColor,
-                      ),
-            );
-          },
+          ),
         ),
       ),
     );

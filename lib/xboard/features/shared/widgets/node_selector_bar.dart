@@ -133,13 +133,6 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
           color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -260,13 +253,6 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
             color: theme.colorScheme.error.withValues(alpha: 0.2),
             width: 1.5,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.error.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 3),
-            ),
-          ],
         ),
         padding: const EdgeInsets.all(16),
         child: Row(

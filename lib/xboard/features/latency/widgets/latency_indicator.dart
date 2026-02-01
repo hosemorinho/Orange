@@ -137,13 +137,6 @@ class LatencyIndicator extends StatelessWidget {
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color?.withValues(alpha: 0.3) ?? Colors.grey.withValues(alpha: 0.3),
-                  blurRadius: 2,
-                  spreadRadius: 1,
-                ),
-              ],
             ),
           ),
           const SizedBox(width: 6),

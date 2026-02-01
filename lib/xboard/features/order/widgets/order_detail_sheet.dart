@@ -23,6 +23,7 @@ class OrderDetailSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final mediaQuery = MediaQuery.of(context);
+    final l10n = l10n;
 
     return Container(
       constraints: BoxConstraints(
@@ -36,7 +37,7 @@ class OrderDetailSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Header
-          _buildHeader(theme),
+          _buildHeader(context, theme, l10n),
 
           // Scrollable content
           Flexible(
@@ -46,16 +47,16 @@ class OrderDetailSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Order Information Section
-                  _buildSectionTitle(theme, context.appLocalizations.xboardOrderInfo),
+                  _buildSectionTitle(theme, l10n.xboardOrderInfo),
                   const SizedBox(height: 12),
-                  _buildOrderInfoSection(theme),
+                  _buildOrderInfoSection(theme, l10n),
                   const SizedBox(height: 24),
 
                   // Plan Information Section
                   if (order.planName != null) ...[
-                    _buildSectionTitle(theme, context.appLocalizations.xboardPlanInfo),
+                    _buildSectionTitle(theme, l10n.xboardPlanInfo),
                     const SizedBox(height: 12),
-                    _buildPlanInfoSection(theme),
+                    _buildPlanInfoSection(theme, l10n),
                   ],
                 ],
               ),
@@ -63,13 +64,13 @@ class OrderDetailSheet extends StatelessWidget {
           ),
 
           // Footer with Pay button
-          if (order.canPay) _buildFooter(context, theme),
+          if (order.canPay) _buildFooter(context, theme, l10n),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
+  Widget _buildHeader(BuildContext context, ThemeData theme, AppLocalizations l10n) {
     final colorScheme = theme.colorScheme;
 
     return Container(
@@ -84,7 +85,7 @@ class OrderDetailSheet extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            context.appLocalizations.xboardOrderDetails,
+            l10n.xboardOrderDetails,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -111,7 +112,7 @@ class OrderDetailSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderInfoSection(ThemeData theme) {
+  Widget _buildOrderInfoSection(ThemeData theme, AppLocalizations l10n) {
     final colorScheme = theme.colorScheme;
 
     return Container(
@@ -124,7 +125,7 @@ class OrderDetailSheet extends StatelessWidget {
         children: [
           _buildDetailRow(
             theme,
-            context.appLocalizations.xboardTradeNo,
+            l10n.xboardTradeNo,
             order.tradeNo,
             monospace: true,
             copyable: true,
@@ -132,13 +133,13 @@ class OrderDetailSheet extends StatelessWidget {
           const SizedBox(height: 12),
           _buildDetailRow(
             theme,
-            context.appLocalizations.xboardPeriod,
-            _formatPeriod(order.period),
+            l10n.xboardPeriod,
+            _formatPeriod(order.period, l10n),
           ),
           const SizedBox(height: 12),
           _buildDetailRow(
             theme,
-            context.appLocalizations.xboardTotalAmount,
+            l10n.xboardTotalAmount,
             _formatPrice(order.totalAmount),
             bold: true,
           ),
@@ -148,7 +149,7 @@ class OrderDetailSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               theme,
-              context.appLocalizations.xboardHandlingFee,
+              l10n.xboardHandlingFee,
               _formatPrice(order.handlingAmount),
             ),
           ],
@@ -156,7 +157,7 @@ class OrderDetailSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               theme,
-              context.appLocalizations.xboardBalanceAmount,
+              l10n.xboardBalanceAmount,
               _formatPrice(order.balanceAmount),
             ),
           ],
@@ -164,7 +165,7 @@ class OrderDetailSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               theme,
-              context.appLocalizations.xboardRefundAmount,
+              l10n.xboardRefundAmount,
               _formatPrice(order.refundAmount),
             ),
           ],
@@ -172,7 +173,7 @@ class OrderDetailSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               theme,
-              context.appLocalizations.xboardDiscountAmount,
+              l10n.xboardDiscountAmount,
               _formatPrice(order.discountAmount),
             ),
           ],
@@ -180,7 +181,7 @@ class OrderDetailSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               theme,
-              context.appLocalizations.xboardSurplusAmount,
+              l10n.xboardSurplusAmount,
               _formatPrice(order.surplusAmount),
             ),
           ],
@@ -188,7 +189,7 @@ class OrderDetailSheet extends StatelessWidget {
           const SizedBox(height: 12),
           _buildDetailRow(
             theme,
-            context.appLocalizations.xboardCreatedAt,
+            l10n.xboardCreatedAt,
             _formatDateTime(order.createdAt),
           ),
         ],
@@ -196,7 +197,7 @@ class OrderDetailSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildPlanInfoSection(ThemeData theme) {
+  Widget _buildPlanInfoSection(ThemeData theme, AppLocalizations l10n) {
     final colorScheme = theme.colorScheme;
 
     return Container(
@@ -303,7 +304,7 @@ class OrderDetailSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildFooter(BuildContext context, ThemeData theme) {
+  Widget _buildFooter(BuildContext context, ThemeData theme, AppLocalizations l10n) {
     final colorScheme = theme.colorScheme;
 
     return Container(
@@ -327,22 +328,22 @@ class OrderDetailSheet extends StatelessWidget {
             backgroundColor: colorScheme.primary,
             minimumSize: const Size.fromHeight(48),
           ),
-          child: Text(context.appLocalizations.xboardGoToPay),
+          child: Text(l10n.xboardGoToPay),
         ),
       ),
     );
   }
 
-  String _formatPeriod(String period) {
+  String _formatPeriod(String period, AppLocalizations l10n) {
     final periodMap = {
-      'month_price': context.appLocalizations.xboardMonthlyPayment,
-      'quarter_price': context.appLocalizations.xboardQuarterlyPayment,
-      'half_year_price': context.appLocalizations.xboardHalfYearPayment,
-      'year_price': context.appLocalizations.xboardYearlyPayment,
-      'two_year_price': context.appLocalizations.xboardTwoYearPayment,
-      'three_year_price': context.appLocalizations.xboardThreeYearPayment,
-      'onetime_price': context.appLocalizations.xboardOnetimePayment,
-      'reset_price': context.appLocalizations.xboardResetTraffic,
+      'month_price': l10n.xboardMonthlyPayment,
+      'quarter_price': l10n.xboardQuarterlyPayment,
+      'half_year_price': l10n.xboardHalfYearPayment,
+      'year_price': l10n.xboardYearlyPayment,
+      'two_year_price': l10n.xboardTwoYearPayment,
+      'three_year_price': l10n.xboardThreeYearPayment,
+      'onetime_price': l10n.xboardOnetimePayment,
+      'reset_price': l10n.xboardResetTraffic,
     };
     return periodMap[period] ?? period;
   }

@@ -8173,6 +8173,36 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Half-yearly`
+  String get xboardHalfYearPayment {
+    return Intl.message(
+      'Half-yearly',
+      name: 'xboardHalfYearPayment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `One-time`
+  String get xboardOnetimePayment {
+    return Intl.message(
+      'One-time',
+      name: 'xboardOnetimePayment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset traffic`
+  String get xboardResetTraffic {
+    return Intl.message(
+      'Reset traffic',
+      name: 'xboardResetTraffic',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

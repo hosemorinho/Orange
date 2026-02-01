@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 
 /// Order detail bottom sheet matching frontend OrderDetailModal

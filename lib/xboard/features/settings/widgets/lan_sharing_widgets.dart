@@ -234,7 +234,6 @@ class _LanInfoCardState extends ConsumerState<LanInfoCard> {
             ],
           ],
         ),
-      ),
     );
   }
 }

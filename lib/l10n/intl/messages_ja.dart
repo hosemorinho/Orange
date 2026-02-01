@@ -28,41 +28,43 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m4(label) => "現在の${label}は既に存在しています";
 
-  static String m7(label) => "現在${label}はありません";
+  static String m5(email) => "完全なメール: ${email}";
 
-  static String m8(label) => "${label}は数字でなければなりません";
+  static String m8(label) => "現在${label}はありません";
 
-  static String m9(statusCode) => "メッセージの取得に失敗しました: ${statusCode}";
+  static String m9(label) => "${label}は数字でなければなりません";
 
-  static String m10(error) => "画像の選択に失敗しました: ${error}";
+  static String m10(statusCode) => "メッセージの取得に失敗しました: ${statusCode}";
 
-  static String m11(method) => "サポートされていないHTTPメソッド: ${method}";
+  static String m11(error) => "画像の選択に失敗しました: ${error}";
 
-  static String m12(error) => "アップロードに失敗しました: ${error}";
+  static String m12(method) => "サポートされていないHTTPメソッド: ${method}";
 
-  static String m16(label) => "${label} は 1024 から 49151 の間でなければなりません";
+  static String m13(error) => "アップロードに失敗しました: ${error}";
 
-  static String m18(count) => "${count} 項目が選択されています";
+  static String m17(label) => "${label} は 1024 から 49151 の間でなければなりません";
 
-  static String m20(date) => "プランは${date}に期限切れになりました。継続利用には更新してください";
+  static String m19(count) => "${count} 項目が選択されています";
 
-  static String m21(days) => "プランは${days}日後に期限切れになります。タイムリーに更新してください";
+  static String m21(date) => "プランは${date}に期限切れになりました。継続利用には更新してください";
 
-  static String m22(days) => "サブスクリプションは${days}日後に期限切れになります";
+  static String m22(days) => "プランは${days}日後に期限切れになります。タイムリーに更新してください";
 
-  static String m27(version) => "現在のバージョン: ${version}";
+  static String m23(days) => "サブスクリプションは${days}日後に期限切れになります";
 
-  static String m28(version) => "強制アップデート: ${version}";
+  static String m28(version) => "現在のバージョン: ${version}";
 
-  static String m29(version) => "新しいバージョンが見つかりました: ${version}";
+  static String m29(version) => "強制アップデート: ${version}";
 
-  static String m30(statusCode) => "サーバーがエラーステータスコード ${statusCode} を返しました";
+  static String m30(version) => "新しいバージョンが見つかりました: ${version}";
 
-  static String m31(label) => "${label}はURLである必要があります";
+  static String m31(statusCode) => "サーバーがエラーステータスコード ${statusCode} を返しました";
 
-  static String m34(time) => "実行時間: ${time}";
+  static String m32(label) => "${label}はURLである必要があります";
 
-  static String m35(count) => "${count} 件のルールを設定済み";
+  static String m35(count) => "${count} 件のルールが設定済み";
+
+  static String m36(time) => "実行時間: ${time}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -215,6 +217,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "domainStatusUnavailable": MessageLookupByLibrary.simpleMessage("サービス利用不可"),
     "download": MessageLookupByLibrary.simpleMessage("ダウンロード"),
     "edit": MessageLookupByLibrary.simpleMessage("編集"),
+    "emailPrefixHint": MessageLookupByLibrary.simpleMessage("メールプレフィックス"),
     "emptyTip": m3,
     "en": MessageLookupByLibrary.simpleMessage("英語"),
     "enableOverride": MessageLookupByLibrary.simpleMessage("上書きを有効化"),
@@ -256,6 +259,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontFamily": MessageLookupByLibrary.simpleMessage("フォントファミリー"),
     "fourColumns": MessageLookupByLibrary.simpleMessage("4列"),
     "fruitSaladScheme": MessageLookupByLibrary.simpleMessage("フルーツサラダ"),
+    "fullEmailPreview": m5,
     "general": MessageLookupByLibrary.simpleMessage("一般"),
     "generalDesc": MessageLookupByLibrary.simpleMessage("一般設定を変更"),
     "geoData": MessageLookupByLibrary.simpleMessage("地域データ"),
@@ -290,6 +294,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "internet": MessageLookupByLibrary.simpleMessage("インターネット"),
     "interval": MessageLookupByLibrary.simpleMessage("インターバル"),
     "intranetIP": MessageLookupByLibrary.simpleMessage("イントラネットIP"),
+    "invalidEmailFormat": MessageLookupByLibrary.simpleMessage("無効なメール形式"),
     "ipcidr": MessageLookupByLibrary.simpleMessage("IPCIDR"),
     "ipv6Desc": MessageLookupByLibrary.simpleMessage("有効化するとIPv6トラフィックを受信可能"),
     "ipv6InboundDesc": MessageLookupByLibrary.simpleMessage("IPv6インバウンドを許可"),
@@ -362,8 +367,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "nullProfileDesc": MessageLookupByLibrary.simpleMessage(
       "プロファイルがありません。追加してください",
     ),
-    "nullTip": m7,
-    "numberTip": m8,
+    "nullTip": m8,
+    "numberTip": m9,
     "oneColumn": MessageLookupByLibrary.simpleMessage("1列"),
     "onlineSupport": MessageLookupByLibrary.simpleMessage("オンラインサポート"),
     "onlineSupportAddMore": MessageLookupByLibrary.simpleMessage("さらに追加"),
@@ -389,7 +394,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlineSupportDisconnected": MessageLookupByLibrary.simpleMessage(
       "切断されました",
     ),
-    "onlineSupportGetMessagesFailed": m9,
+    "onlineSupportGetMessagesFailed": m10,
     "onlineSupportInputHint": MessageLookupByLibrary.simpleMessage(
       "ご質問を入力してください...",
     ),
@@ -397,7 +402,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "メッセージがありません。メッセージを送信して相談を開始してください",
     ),
     "onlineSupportSelectImages": MessageLookupByLibrary.simpleMessage("画像を選択"),
-    "onlineSupportSelectImagesFailed": m10,
+    "onlineSupportSelectImagesFailed": m11,
     "onlineSupportSend": MessageLookupByLibrary.simpleMessage("送信"),
     "onlineSupportSendImage": MessageLookupByLibrary.simpleMessage("画像を送信"),
     "onlineSupportSendMessageFailed": MessageLookupByLibrary.simpleMessage(
@@ -410,8 +415,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlineSupportTokenNotFound": MessageLookupByLibrary.simpleMessage(
       "認証トークンが見つかりません",
     ),
-    "onlineSupportUnsupportedHttpMethod": m11,
-    "onlineSupportUploadFailed": m12,
+    "onlineSupportUnsupportedHttpMethod": m12,
+    "onlineSupportUploadFailed": m13,
     "onlineSupportWebSocketConfigNotFound":
         MessageLookupByLibrary.simpleMessage(
           "オンラインサポートWebSocket設定が見つかりません。設定を確認してください",
@@ -443,11 +448,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "pleaseBindWebDAV": MessageLookupByLibrary.simpleMessage(
       "WebDAVをバインドしてください",
     ),
+    "pleaseEnterEmailPrefix": MessageLookupByLibrary.simpleMessage(
+      "メールプレフィックスを入力してください",
+    ),
     "pleaseEnterScriptName": MessageLookupByLibrary.simpleMessage(
       "スクリプト名を入力してください",
     ),
     "pleaseInputAdminPassword": MessageLookupByLibrary.simpleMessage(
       "管理者パスワードを入力",
+    ),
+    "pleaseSelectEmailSuffix": MessageLookupByLibrary.simpleMessage(
+      "メールサフィックスを選択してください",
+    ),
+    "pleaseSelectSuffix": MessageLookupByLibrary.simpleMessage(
+      "サフィックスを選択してください",
     ),
     "pleaseUploadFile": MessageLookupByLibrary.simpleMessage(
       "ファイルをアップロードしてください",
@@ -457,7 +471,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "port": MessageLookupByLibrary.simpleMessage("ポート"),
     "portConflictTip": MessageLookupByLibrary.simpleMessage("別のポートを入力してください"),
-    "portTip": m16,
+    "portTip": m17,
     "preferH3Desc": MessageLookupByLibrary.simpleMessage("DOHのHTTP/3を優先使用"),
     "pressKeyboard": MessageLookupByLibrary.simpleMessage("キーボードを押してください"),
     "preview": MessageLookupByLibrary.simpleMessage("プレビュー"),
@@ -550,7 +564,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "seconds": MessageLookupByLibrary.simpleMessage("秒"),
     "selectAll": MessageLookupByLibrary.simpleMessage("すべて選択"),
     "selected": MessageLookupByLibrary.simpleMessage("選択済み"),
-    "selectedCountTitle": m18,
+    "selectedCountTitle": m19,
     "settings": MessageLookupByLibrary.simpleMessage("設定"),
     "show": MessageLookupByLibrary.simpleMessage("表示"),
     "shrink": MessageLookupByLibrary.simpleMessage("縮小"),
@@ -575,7 +589,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionExpired": MessageLookupByLibrary.simpleMessage(
       "サブスクリプションが期限切れです",
     ),
-    "subscriptionExpiredDetail": m20,
+    "subscriptionExpiredDetail": m21,
     "subscriptionExpiresToday": MessageLookupByLibrary.simpleMessage(
       "サブスクリプションが本日期限切れ",
     ),
@@ -585,7 +599,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionExpiringInDays": MessageLookupByLibrary.simpleMessage(
       "サブスクリプションがまもなく期限切れ",
     ),
-    "subscriptionExpiringInDaysDetail": m21,
+    "subscriptionExpiringInDaysDetail": m22,
     "subscriptionNoSubscription": MessageLookupByLibrary.simpleMessage(
       "サブスクリプションがありません",
     ),
@@ -603,7 +617,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "プランのトラフィックを使い切りました。より多くのトラフィックを購入するかプランをアップグレードしてください",
     ),
     "subscriptionValid": MessageLookupByLibrary.simpleMessage("サブスクリプション有効"),
-    "subscriptionValidDetail": m22,
+    "subscriptionValidDetail": m23,
     "sync": MessageLookupByLibrary.simpleMessage("同期"),
     "system": MessageLookupByLibrary.simpleMessage("システム"),
     "systemApp": MessageLookupByLibrary.simpleMessage("システムアプリ"),
@@ -649,15 +663,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "updateCheckAllServersUnavailable": MessageLookupByLibrary.simpleMessage(
       "設定されたすべてのアップデートサーバーが利用できません",
     ),
-    "updateCheckCurrentVersion": m27,
-    "updateCheckForceUpdate": m28,
+    "updateCheckCurrentVersion": m28,
+    "updateCheckForceUpdate": m29,
     "updateCheckMustUpdate": MessageLookupByLibrary.simpleMessage("アップデート必須"),
-    "updateCheckNewVersionFound": m29,
+    "updateCheckNewVersionFound": m30,
     "updateCheckNoServerUrlsConfigured": MessageLookupByLibrary.simpleMessage(
       "アップデートサーバーURLが設定されていません。設定を確認してください",
     ),
     "updateCheckReleaseNotes": MessageLookupByLibrary.simpleMessage("リリースノート："),
-    "updateCheckServerError": m30,
+    "updateCheckServerError": m31,
     "updateCheckServerTemporarilyUnavailable":
         MessageLookupByLibrary.simpleMessage(
           "サーバーが一時的に利用できません。しばらくしてから再試行してください",
@@ -670,7 +684,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("アップロード"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("URL経由でプロファイルを取得"),
-    "urlTip": m31,
+    "urlTip": m32,
     "useHosts": MessageLookupByLibrary.simpleMessage("ホストを使用"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("システムホストを使用"),
     "value": MessageLookupByLibrary.simpleMessage("値"),
@@ -699,6 +713,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardAfterPurchasingPlan": MessageLookupByLibrary.simpleMessage(
       "プラン購入後、あなたは以下を享受できます：",
     ),
+    "xboardAllowLan": MessageLookupByLibrary.simpleMessage("LANに共有"),
     "xboardApiUrlNotConfigured": MessageLookupByLibrary.simpleMessage(
       "API URLが設定されていません",
     ),
@@ -721,6 +736,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardBuyNow": MessageLookupByLibrary.simpleMessage("今すぐ購入"),
     "xboardBuyoutPlan": MessageLookupByLibrary.simpleMessage("買い切りプラン"),
+    "xboardBypassDomain": MessageLookupByLibrary.simpleMessage("バイパスドメイン/IP"),
+    "xboardBypassDomainCount": m35,
+    "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
+      "直接接続するドメインとIPを追加",
+    ),
     "xboardCancel": MessageLookupByLibrary.simpleMessage("キャンセル"),
     "xboardCancelPayment": MessageLookupByLibrary.simpleMessage("支払いキャンセル"),
     "xboardCheckPaymentFailed": MessageLookupByLibrary.simpleMessage(
@@ -764,6 +784,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardConnectionTimeout": MessageLookupByLibrary.simpleMessage(
       "接続タイムアウト、ネットワーク接続を確認してください",
     ),
+    "xboardCopied": MessageLookupByLibrary.simpleMessage("クリップボードにコピーしました"),
     "xboardCopyFailed": MessageLookupByLibrary.simpleMessage("コピーに失敗しました"),
     "xboardCopyLink": MessageLookupByLibrary.simpleMessage("リンクをコピー"),
     "xboardCopyPaymentLink": MessageLookupByLibrary.simpleMessage("リンクをコピー"),
@@ -785,8 +806,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardDeductibleDuringPayment": MessageLookupByLibrary.simpleMessage(
       "支払い時に控除可能",
     ),
-    "xboardDiscounted": MessageLookupByLibrary.simpleMessage("割引済み"),
     "xboardDisconnected": MessageLookupByLibrary.simpleMessage("切断済み"),
+    "xboardDiscounted": MessageLookupByLibrary.simpleMessage("割引済み"),
     "xboardDownloadingConfig": MessageLookupByLibrary.simpleMessage(
       "設定ファイルをダウンロード中",
     ),
@@ -817,6 +838,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardGlobalNodes": MessageLookupByLibrary.simpleMessage("グローバルノード"),
     "xboardGood": MessageLookupByLibrary.simpleMessage("良好"),
     "xboardGroup": MessageLookupByLibrary.simpleMessage("グループ"),
+    "xboardHalfYearPayment": MessageLookupByLibrary.simpleMessage("半年払い"),
     "xboardHalfYearlyPayment": MessageLookupByLibrary.simpleMessage("半年払い"),
     "xboardHandleLater": MessageLookupByLibrary.simpleMessage("後で処理"),
     "xboardHighSpeedNetwork": MessageLookupByLibrary.simpleMessage("高速ネットワーク"),
@@ -832,10 +854,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardInvalidResponseFormat": MessageLookupByLibrary.simpleMessage(
       "サーバーからの無効なレスポンス形式",
     ),
-    "inviteCodeIncorrect": MessageLookupByLibrary.simpleMessage("招待コードが正しくない可能性があります。確認して再入力してください"),
     "xboardInviteCode": MessageLookupByLibrary.simpleMessage("招待コード"),
     "xboardKeepSubscriptionLinkSafe": MessageLookupByLibrary.simpleMessage(
       "サブスクリプションリンクを安全に保管し、他人と共有しないでください",
+    ),
+    "xboardLanSharing": MessageLookupByLibrary.simpleMessage("LANプロキシ共有"),
+    "xboardLanSharingDesc": MessageLookupByLibrary.simpleMessage(
+      "LANデバイスがこのプロキシを使用することを許可",
     ),
     "xboardLater": MessageLookupByLibrary.simpleMessage("後で"),
     "xboardLoadingFailed": MessageLookupByLibrary.simpleMessage("読み込みに失敗しました"),
@@ -869,6 +894,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNetworkConnectionFailed": MessageLookupByLibrary.simpleMessage(
       "ネットワーク接続に失敗しました、ネットワーク設定を確認してください",
     ),
+    "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage("ネットワーク設定"),
     "xboardNewVersionFound": MessageLookupByLibrary.simpleMessage(
       "新しいバージョンが見つかりました",
     ),
@@ -895,6 +921,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNone": MessageLookupByLibrary.simpleMessage("なし"),
     "xboardNotLoggedIn": MessageLookupByLibrary.simpleMessage("未ログイン"),
     "xboardOneTimePayment": MessageLookupByLibrary.simpleMessage("一回払い"),
+    "xboardOnetimePayment": MessageLookupByLibrary.simpleMessage("一回限り"),
     "xboardOpenPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "支払いページを開けませんでした",
     ),
@@ -975,6 +1002,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "ネットワークプライバシーを保護",
     ),
     "xboardProxy": MessageLookupByLibrary.simpleMessage("プロキシ"),
+    "xboardProxyCommands": MessageLookupByLibrary.simpleMessage("プロキシコマンド設定"),
+    "xboardProxyInfo": MessageLookupByLibrary.simpleMessage("プロキシ情報"),
     "xboardProxyMode": MessageLookupByLibrary.simpleMessage("プロキシモード"),
     "xboardProxyModeDirectDescription": MessageLookupByLibrary.simpleMessage(
       "すべてのトラフィックがプロキシなしで直接接続",
@@ -985,6 +1014,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardProxyModeRuleDescription": MessageLookupByLibrary.simpleMessage(
       "ルールに基づいて直接またはプロキシを自動選択",
     ),
+    "xboardProxyPort": MessageLookupByLibrary.simpleMessage("プロキシポート"),
     "xboardPurchasePlan": MessageLookupByLibrary.simpleMessage("プランを購入"),
     "xboardPurchaseSubscription": MessageLookupByLibrary.simpleMessage(
       "サブスクリプション購入",
@@ -1013,38 +1043,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReopenPaymentPageTip": MessageLookupByLibrary.simpleMessage(
       "再度開くには、下の\\\"再開\\\"ボタンをクリックしてください",
     ),
+    "xboardResetTraffic": MessageLookupByLibrary.simpleMessage("トラフィックをリセット"),
     "xboardRetry": MessageLookupByLibrary.simpleMessage("再試行"),
     "xboardRetryGet": MessageLookupByLibrary.simpleMessage("再試行"),
     "xboardReturn": MessageLookupByLibrary.simpleMessage("戻る"),
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. 支払い後にアプリに戻ると、システムが自動検出します",
     ),
-    "xboardAllowLan": MessageLookupByLibrary.simpleMessage("LANに共有"),
-    "xboardBypassDomain": MessageLookupByLibrary.simpleMessage(
-      "除外ドメイン/IP",
-    ),
-    "xboardBypassDomainCount": m35,
-    "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
-      "プロキシを経由しないドメインとIPを追加",
-    ),
-    "xboardCopied": MessageLookupByLibrary.simpleMessage(
-      "クリップボードにコピーしました",
-    ),
-    "xboardLanSharing": MessageLookupByLibrary.simpleMessage("LANプロキシ共有"),
-    "xboardLanSharingDesc": MessageLookupByLibrary.simpleMessage(
-      "LANデバイスがこのプロキシを使用することを許可",
-    ),
-    "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage(
-      "ネットワーク設定",
-    ),
-    "xboardProxyCommands": MessageLookupByLibrary.simpleMessage(
-      "プロキシコマンドを設定",
-    ),
-    "xboardProxyInfo": MessageLookupByLibrary.simpleMessage("プロキシ情報"),
-    "xboardProxyPort": MessageLookupByLibrary.simpleMessage("プロキシポート"),
-    "xboardRunningTime": m34,
+    "xboardRunningTime": m36,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("ノードを検索"),
-    "xboardSettings": MessageLookupByLibrary.simpleMessage("設定"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage("セキュア暗号化"),
     "xboardSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage(
       "支払い期間を選択",
@@ -1054,6 +1061,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "認証コードを送信",
     ),
     "xboardServerError": MessageLookupByLibrary.simpleMessage("サーバーエラー"),
+    "xboardSettings": MessageLookupByLibrary.simpleMessage("設定"),
     "xboardSetup": MessageLookupByLibrary.simpleMessage("設定"),
     "xboardSixMonthCycle": MessageLookupByLibrary.simpleMessage("6ヶ月サイクル"),
     "xboardSpeedLimit": MessageLookupByLibrary.simpleMessage("速度制限"),

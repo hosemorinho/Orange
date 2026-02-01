@@ -1,0 +1,30 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of '../notice_state.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+String _$getNoticesHash() => r'1a9b11a572fcf3bb6a9f569abdf61c556ef4d15f';
+
+/// 公告状态管理
+/// 获取公告列表
+///
+/// Copied from [getNotices].
+@ProviderFor(getNotices)
+final getNoticesProvider =
+    AutoDisposeFutureProvider<List<DomainNotice>>.internal(
+  getNotices,
+  name: r'getNoticesProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$getNoticesHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GetNoticesRef = AutoDisposeFutureProviderRef<List<DomainNotice>>;
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

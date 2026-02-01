@@ -29,44 +29,46 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m4(label) => "Текущий ${label} уже существует";
 
-  static String m7(label) => "Сейчас ${label} нет";
+  static String m5(email) => "Полный email: ${email}";
 
-  static String m8(label) => "${label} должно быть числом";
+  static String m8(label) => "Сейчас ${label} нет";
 
-  static String m9(statusCode) =>
+  static String m9(label) => "${label} должно быть числом";
+
+  static String m10(statusCode) =>
       "Не удалось получить сообщения: ${statusCode}";
 
-  static String m10(error) => "Не удалось выбрать изображения: ${error}";
+  static String m11(error) => "Не удалось выбрать изображения: ${error}";
 
-  static String m11(method) => "Неподдерживаемый HTTP метод: ${method}";
+  static String m12(method) => "Неподдерживаемый HTTP метод: ${method}";
 
-  static String m12(error) => "Загрузка не удалась: ${error}";
+  static String m13(error) => "Загрузка не удалась: ${error}";
 
-  static String m16(label) => "${label} должен быть числом от 1024 до 49151";
+  static String m17(label) => "${label} должен быть числом от 1024 до 49151";
 
-  static String m18(count) => "Выбрано ${count} элементов";
+  static String m19(count) => "Выбрано ${count} элементов";
 
-  static String m20(date) =>
+  static String m21(date) =>
       "План истёк ${date}, пожалуйста продлите для продолжения использования";
 
-  static String m21(days) =>
+  static String m22(days) =>
       "План истёк через ${days} дней, пожалуйста продлите вовремя";
 
-  static String m22(days) => "Подписка истёк через ${days} дней";
+  static String m23(days) => "Подписка истёк через ${days} дней";
 
-  static String m27(version) => "Текущая версия: ${version}";
+  static String m28(version) => "Текущая версия: ${version}";
 
-  static String m28(version) => "Принудительное обновление: ${version}";
+  static String m29(version) => "Принудительное обновление: ${version}";
 
-  static String m29(version) => "Найдена новая версия: ${version}";
+  static String m30(version) => "Найдена новая версия: ${version}";
 
-  static String m30(statusCode) => "Сервер вернул код ошибки ${statusCode}";
+  static String m31(statusCode) => "Сервер вернул код ошибки ${statusCode}";
 
-  static String m31(label) => "${label} должен быть URL";
-
-  static String m34(time) => "Время работы: ${time}";
+  static String m32(label) => "${label} должен быть URL";
 
   static String m35(count) => "${count} правил настроено";
+
+  static String m36(time) => "Время работы: ${time}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -291,6 +293,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "download": MessageLookupByLibrary.simpleMessage("Скачивание"),
     "edit": MessageLookupByLibrary.simpleMessage("Редактировать"),
+    "emailPrefixHint": MessageLookupByLibrary.simpleMessage("Префикс email"),
     "emptyTip": m3,
     "en": MessageLookupByLibrary.simpleMessage("Английский"),
     "enableOverride": MessageLookupByLibrary.simpleMessage(
@@ -348,6 +351,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "fontFamily": MessageLookupByLibrary.simpleMessage("Семейство шрифтов"),
     "fourColumns": MessageLookupByLibrary.simpleMessage("Четыре столбца"),
     "fruitSaladScheme": MessageLookupByLibrary.simpleMessage("Фруктовый микс"),
+    "fullEmailPreview": m5,
     "general": MessageLookupByLibrary.simpleMessage("Общие"),
     "generalDesc": MessageLookupByLibrary.simpleMessage(
       "Изменение общих настроек",
@@ -402,6 +406,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "internet": MessageLookupByLibrary.simpleMessage("Интернет"),
     "interval": MessageLookupByLibrary.simpleMessage("Интервал"),
     "intranetIP": MessageLookupByLibrary.simpleMessage("Внутренний IP"),
+    "invalidEmailFormat": MessageLookupByLibrary.simpleMessage(
+      "Неверный формат email",
+    ),
     "ipcidr": MessageLookupByLibrary.simpleMessage("IPCIDR"),
     "ipv6Desc": MessageLookupByLibrary.simpleMessage(
       "При включении будет возможно получать IPv6 трафик",
@@ -502,8 +509,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "nullProfileDesc": MessageLookupByLibrary.simpleMessage(
       "Нет профиля, пожалуйста, добавьте профиль",
     ),
-    "nullTip": m7,
-    "numberTip": m8,
+    "nullTip": m8,
+    "numberTip": m9,
     "oneColumn": MessageLookupByLibrary.simpleMessage("Один столбец"),
     "onlineSupport": MessageLookupByLibrary.simpleMessage("Онлайн поддержка"),
     "onlineSupportAddMore": MessageLookupByLibrary.simpleMessage(
@@ -535,7 +542,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlineSupportDisconnected": MessageLookupByLibrary.simpleMessage(
       "Отключено",
     ),
-    "onlineSupportGetMessagesFailed": m9,
+    "onlineSupportGetMessagesFailed": m10,
     "onlineSupportInputHint": MessageLookupByLibrary.simpleMessage(
       "Пожалуйста, введите ваш вопрос...",
     ),
@@ -545,7 +552,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlineSupportSelectImages": MessageLookupByLibrary.simpleMessage(
       "Выбрать изображения",
     ),
-    "onlineSupportSelectImagesFailed": m10,
+    "onlineSupportSelectImagesFailed": m11,
     "onlineSupportSend": MessageLookupByLibrary.simpleMessage("Отправить"),
     "onlineSupportSendImage": MessageLookupByLibrary.simpleMessage(
       "Отправить изображение",
@@ -562,8 +569,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlineSupportTokenNotFound": MessageLookupByLibrary.simpleMessage(
       "Токен аутентификации не найден",
     ),
-    "onlineSupportUnsupportedHttpMethod": m11,
-    "onlineSupportUploadFailed": m12,
+    "onlineSupportUnsupportedHttpMethod": m12,
+    "onlineSupportUploadFailed": m13,
     "onlineSupportWebSocketConfigNotFound": MessageLookupByLibrary.simpleMessage(
       "Конфигурация WebSocket онлайн поддержки не найдена, проверьте настройки",
     ),
@@ -606,11 +613,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "pleaseBindWebDAV": MessageLookupByLibrary.simpleMessage(
       "Пожалуйста, привяжите WebDAV",
     ),
+    "pleaseEnterEmailPrefix": MessageLookupByLibrary.simpleMessage(
+      "Пожалуйста, введите префикс email",
+    ),
     "pleaseEnterScriptName": MessageLookupByLibrary.simpleMessage(
       "Пожалуйста, введите название скрипта",
     ),
     "pleaseInputAdminPassword": MessageLookupByLibrary.simpleMessage(
       "Пожалуйста, введите пароль администратора",
+    ),
+    "pleaseSelectEmailSuffix": MessageLookupByLibrary.simpleMessage(
+      "Пожалуйста, выберите суффикс email",
+    ),
+    "pleaseSelectSuffix": MessageLookupByLibrary.simpleMessage(
+      "Пожалуйста, выберите суффикс",
     ),
     "pleaseUploadFile": MessageLookupByLibrary.simpleMessage(
       "Пожалуйста, загрузите файл",
@@ -622,7 +638,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "portConflictTip": MessageLookupByLibrary.simpleMessage(
       "Введите другой порт",
     ),
-    "portTip": m16,
+    "portTip": m17,
     "preferH3Desc": MessageLookupByLibrary.simpleMessage(
       "Приоритетное использование HTTP/3 для DOH",
     ),
@@ -751,7 +767,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "seconds": MessageLookupByLibrary.simpleMessage("Секунд"),
     "selectAll": MessageLookupByLibrary.simpleMessage("Выбрать все"),
     "selected": MessageLookupByLibrary.simpleMessage("Выбрано"),
-    "selectedCountTitle": m18,
+    "selectedCountTitle": m19,
     "settings": MessageLookupByLibrary.simpleMessage("Настройки"),
     "show": MessageLookupByLibrary.simpleMessage("Показать"),
     "shrink": MessageLookupByLibrary.simpleMessage("Сжать"),
@@ -780,7 +796,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionExpired": MessageLookupByLibrary.simpleMessage(
       "Подписка истекла",
     ),
-    "subscriptionExpiredDetail": m20,
+    "subscriptionExpiredDetail": m21,
     "subscriptionExpiresToday": MessageLookupByLibrary.simpleMessage(
       "Подписка истекает сегодня",
     ),
@@ -790,7 +806,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionExpiringInDays": MessageLookupByLibrary.simpleMessage(
       "Подписка скоро истекает",
     ),
-    "subscriptionExpiringInDaysDetail": m21,
+    "subscriptionExpiringInDaysDetail": m22,
     "subscriptionNoSubscription": MessageLookupByLibrary.simpleMessage(
       "Нет подписки",
     ),
@@ -812,7 +828,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionValid": MessageLookupByLibrary.simpleMessage(
       "Подписка действительна",
     ),
-    "subscriptionValidDetail": m22,
+    "subscriptionValidDetail": m23,
     "sync": MessageLookupByLibrary.simpleMessage("Синхронизация"),
     "system": MessageLookupByLibrary.simpleMessage("Система"),
     "systemApp": MessageLookupByLibrary.simpleMessage("Системное приложение"),
@@ -870,19 +886,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "updateCheckAllServersUnavailable": MessageLookupByLibrary.simpleMessage(
       "Все настроенные серверы обновлений недоступны",
     ),
-    "updateCheckCurrentVersion": m27,
-    "updateCheckForceUpdate": m28,
+    "updateCheckCurrentVersion": m28,
+    "updateCheckForceUpdate": m29,
     "updateCheckMustUpdate": MessageLookupByLibrary.simpleMessage(
       "Необходимо обновить",
     ),
-    "updateCheckNewVersionFound": m29,
+    "updateCheckNewVersionFound": m30,
     "updateCheckNoServerUrlsConfigured": MessageLookupByLibrary.simpleMessage(
       "URL серверов обновлений не настроены, проверьте конфигурацию",
     ),
     "updateCheckReleaseNotes": MessageLookupByLibrary.simpleMessage(
       "Примечания к выпуску:",
     ),
-    "updateCheckServerError": m30,
+    "updateCheckServerError": m31,
     "updateCheckServerTemporarilyUnavailable":
         MessageLookupByLibrary.simpleMessage(
           "Сервер временно недоступен, попробуйте позже",
@@ -901,7 +917,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "urlDesc": MessageLookupByLibrary.simpleMessage(
       "Получить профиль через URL",
     ),
-    "urlTip": m31,
+    "urlTip": m32,
     "useHosts": MessageLookupByLibrary.simpleMessage("Использовать hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage(
       "Использовать системные hosts",
@@ -942,6 +958,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardAfterPurchasingPlan": MessageLookupByLibrary.simpleMessage(
       "После покупки плана вы получите:",
     ),
+    "xboardAllowLan": MessageLookupByLibrary.simpleMessage("Поделиться в LAN"),
     "xboardApiUrlNotConfigured": MessageLookupByLibrary.simpleMessage(
       "URL API не настроен",
     ),
@@ -966,6 +983,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardBuyNow": MessageLookupByLibrary.simpleMessage("Купить сейчас"),
     "xboardBuyoutPlan": MessageLookupByLibrary.simpleMessage("План выкупа"),
+    "xboardBypassDomain": MessageLookupByLibrary.simpleMessage(
+      "Обход домена/IP",
+    ),
+    "xboardBypassDomainCount": m35,
+    "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
+      "Добавить домены и IP для прямого подключения",
+    ),
     "xboardCancel": MessageLookupByLibrary.simpleMessage("Отмена"),
     "xboardCancelPayment": MessageLookupByLibrary.simpleMessage(
       "Отменить платёж",
@@ -1021,6 +1045,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardConnectionTimeout": MessageLookupByLibrary.simpleMessage(
       "Таймаут соединения, проверьте сетевое подключение",
     ),
+    "xboardCopied": MessageLookupByLibrary.simpleMessage(
+      "Скопировано в буфер обмена",
+    ),
     "xboardCopyFailed": MessageLookupByLibrary.simpleMessage(
       "Копирование не удалось",
     ),
@@ -1056,8 +1083,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardDeductibleDuringPayment": MessageLookupByLibrary.simpleMessage(
       "Вычитается при оплате",
     ),
-    "xboardDiscounted": MessageLookupByLibrary.simpleMessage("Со скидкой"),
     "xboardDisconnected": MessageLookupByLibrary.simpleMessage("Отключено"),
+    "xboardDiscounted": MessageLookupByLibrary.simpleMessage("Со скидкой"),
     "xboardDownloadingConfig": MessageLookupByLibrary.simpleMessage(
       "Загрузка файла конфигурации",
     ),
@@ -1096,6 +1123,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardGood": MessageLookupByLibrary.simpleMessage("Хорошо"),
     "xboardGroup": MessageLookupByLibrary.simpleMessage("Группа"),
+    "xboardHalfYearPayment": MessageLookupByLibrary.simpleMessage(
+      "Полугодовая",
+    ),
     "xboardHalfYearlyPayment": MessageLookupByLibrary.simpleMessage(
       "Полугодично",
     ),
@@ -1123,10 +1153,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardInvalidResponseFormat": MessageLookupByLibrary.simpleMessage(
       "Неверный формат ответа от сервера",
     ),
-    "inviteCodeIncorrect": MessageLookupByLibrary.simpleMessage("Код приглашения может быть неверным, проверьте и введите снова"),
     "xboardInviteCode": MessageLookupByLibrary.simpleMessage("Код приглашения"),
     "xboardKeepSubscriptionLinkSafe": MessageLookupByLibrary.simpleMessage(
       "Храните ссылку на подписку в безопасности и не делитесь ею с другими",
+    ),
+    "xboardLanSharing": MessageLookupByLibrary.simpleMessage(
+      "Общий доступ к LAN прокси",
+    ),
+    "xboardLanSharingDesc": MessageLookupByLibrary.simpleMessage(
+      "Разрешить устройствам LAN использовать этот прокси",
     ),
     "xboardLater": MessageLookupByLibrary.simpleMessage("Позже"),
     "xboardLoadingFailed": MessageLookupByLibrary.simpleMessage(
@@ -1170,6 +1205,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNetworkConnectionFailed": MessageLookupByLibrary.simpleMessage(
       "Сетевое соединение не удалось, проверьте настройки сети",
     ),
+    "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage(
+      "Настройки сети",
+    ),
     "xboardNewVersionFound": MessageLookupByLibrary.simpleMessage(
       "Найдена новая версия",
     ),
@@ -1196,6 +1234,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNone": MessageLookupByLibrary.simpleMessage("Нет"),
     "xboardNotLoggedIn": MessageLookupByLibrary.simpleMessage("Не авторизован"),
     "xboardOneTimePayment": MessageLookupByLibrary.simpleMessage("Однократно"),
+    "xboardOnetimePayment": MessageLookupByLibrary.simpleMessage("Одноразовая"),
     "xboardOpenPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Не удалось открыть страницу оплаты",
     ),
@@ -1301,6 +1340,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Защитите вашу сетевую конфиденциальность",
     ),
     "xboardProxy": MessageLookupByLibrary.simpleMessage("Прокси"),
+    "xboardProxyCommands": MessageLookupByLibrary.simpleMessage(
+      "Команды настройки прокси",
+    ),
+    "xboardProxyInfo": MessageLookupByLibrary.simpleMessage(
+      "Информация о прокси",
+    ),
     "xboardProxyMode": MessageLookupByLibrary.simpleMessage("Режим прокси"),
     "xboardProxyModeDirectDescription": MessageLookupByLibrary.simpleMessage(
       "Все соединения прямые, без использования прокси",
@@ -1311,6 +1356,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardProxyModeRuleDescription": MessageLookupByLibrary.simpleMessage(
       "Автоматически выбирать прямое соединение или прокси на основе правил",
     ),
+    "xboardProxyPort": MessageLookupByLibrary.simpleMessage("Порт прокси"),
     "xboardPurchasePlan": MessageLookupByLibrary.simpleMessage("Купить план"),
     "xboardPurchaseSubscription": MessageLookupByLibrary.simpleMessage(
       "Купить подписку",
@@ -1351,44 +1397,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReopenPaymentPageTip": MessageLookupByLibrary.simpleMessage(
       "Для повторного открытия нажмите кнопку \\\"Открыть заново\\\" ниже",
     ),
+    "xboardResetTraffic": MessageLookupByLibrary.simpleMessage("Сброс трафика"),
     "xboardRetry": MessageLookupByLibrary.simpleMessage("Повторить"),
     "xboardRetryGet": MessageLookupByLibrary.simpleMessage("Повторить"),
     "xboardReturn": MessageLookupByLibrary.simpleMessage("Вернуться"),
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. Вернитесь в приложение после оплаты, система автоматически определит",
     ),
-    "xboardAllowLan": MessageLookupByLibrary.simpleMessage(
-      "Поделиться в LAN",
-    ),
-    "xboardBypassDomain": MessageLookupByLibrary.simpleMessage(
-      "Обход домена/IP",
-    ),
-    "xboardBypassDomainCount": m35,
-    "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
-      "Добавить домены и IP для прямого подключения",
-    ),
-    "xboardCopied": MessageLookupByLibrary.simpleMessage(
-      "Скопировано в буфер обмена",
-    ),
-    "xboardLanSharing": MessageLookupByLibrary.simpleMessage(
-      "Общий доступ к прокси LAN",
-    ),
-    "xboardLanSharingDesc": MessageLookupByLibrary.simpleMessage(
-      "Разрешить устройствам LAN использовать этот прокси",
-    ),
-    "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage(
-      "Настройки сети",
-    ),
-    "xboardProxyCommands": MessageLookupByLibrary.simpleMessage(
-      "Команды настройки прокси",
-    ),
-    "xboardProxyInfo": MessageLookupByLibrary.simpleMessage(
-      "Информация о прокси",
-    ),
-    "xboardProxyPort": MessageLookupByLibrary.simpleMessage("Порт прокси"),
-    "xboardRunningTime": m34,
+    "xboardRunningTime": m36,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("Поиск узлов"),
-    "xboardSettings": MessageLookupByLibrary.simpleMessage("Настройки"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage(
       "Безопасное шифрование",
     ),
@@ -1402,6 +1419,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Отправить код подтверждения",
     ),
     "xboardServerError": MessageLookupByLibrary.simpleMessage("Ошибка сервера"),
+    "xboardSettings": MessageLookupByLibrary.simpleMessage("Настройки"),
     "xboardSetup": MessageLookupByLibrary.simpleMessage("Настройка"),
     "xboardSixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "6-месячный цикл",

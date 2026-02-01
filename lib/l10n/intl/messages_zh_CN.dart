@@ -30,67 +30,69 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m4(label) => "${label}当前已存在";
 
-  static String m5(error) => "登出失败：${error}";
+  static String m5(email) => "完整邮箱: ${email}";
 
-  static String m6(amount) => "最大可划转: ¥${amount}";
+  static String m6(error) => "登出失败：${error}";
 
-  static String m7(label) => "暂无${label}";
+  static String m7(amount) => "最大可划转: ¥${amount}";
 
-  static String m8(label) => "${label}必须为数字";
+  static String m8(label) => "暂无${label}";
 
-  static String m9(statusCode) => "获取消息失败: ${statusCode}";
+  static String m9(label) => "${label}必须为数字";
 
-  static String m10(error) => "选择图片失败: ${error}";
+  static String m10(statusCode) => "获取消息失败: ${statusCode}";
 
-  static String m11(method) => "不支持的HTTP方法: ${method}";
+  static String m11(error) => "选择图片失败: ${error}";
 
-  static String m12(error) => "上传失败: ${error}";
+  static String m12(method) => "不支持的HTTP方法: ${method}";
 
-  static String m13(amount) => "订单金额: ${amount}";
+  static String m13(error) => "上传失败: ${error}";
 
-  static String m14(orderNo) => "订单: ${orderNo}";
+  static String m14(amount) => "订单金额: ${amount}";
 
-  static String m15(page) => "第 ${page} 页";
+  static String m15(orderNo) => "订单: ${orderNo}";
 
-  static String m16(label) => "${label} 必须在 1024 到 49151 之间";
+  static String m16(page) => "第 ${page} 页";
 
-  static String m17(e) => "注册失败: ${e}";
+  static String m17(label) => "${label} 必须在 1024 到 49151 之间";
 
-  static String m18(count) => "已选择 ${count} 项";
+  static String m18(e) => "注册失败: ${e}";
 
-  static String m19(e) => "发送验证码失败: ${e}";
+  static String m19(count) => "已选择 ${count} 项";
 
-  static String m20(date) => "套餐已于 ${date} 过期，请续费后继续使用";
+  static String m20(e) => "发送验证码失败: ${e}";
 
-  static String m21(days) => "套餐将在 ${days} 天后过期，建议及时续费";
+  static String m21(date) => "套餐已于 ${date} 过期，请续费后继续使用";
 
-  static String m22(days) => "订阅将在 ${days} 天后过期";
+  static String m22(days) => "套餐将在 ${days} 天后过期，建议及时续费";
 
-  static String m23(count) => "共 ${count} 条记录";
+  static String m23(days) => "订阅将在 ${days} 天后过期";
 
-  static String m24(amount) => "划转金额不能超过 ¥${amount}";
+  static String m24(count) => "共 ${count} 条记录";
 
-  static String m25(error) => "划转失败：${error}";
+  static String m25(amount) => "划转金额不能超过 ¥${amount}";
 
-  static String m26(amount) => "划转成功！已划转 ¥${amount} 到钱包";
+  static String m26(error) => "划转失败：${error}";
 
-  static String m27(version) => "当前版本: ${version}";
+  static String m27(amount) => "划转成功！已划转 ¥${amount} 到钱包";
 
-  static String m28(version) => "强制更新: ${version}";
+  static String m28(version) => "当前版本: ${version}";
 
-  static String m29(version) => "发现新版本: ${version}";
+  static String m29(version) => "强制更新: ${version}";
 
-  static String m30(statusCode) => "服务器返回错误状态码 ${statusCode}";
+  static String m30(version) => "发现新版本: ${version}";
 
-  static String m31(label) => "${label}必须为URL";
+  static String m31(statusCode) => "服务器返回错误状态码 ${statusCode}";
 
-  static String m32(email) => "验证码已发送到 ${email}，请查收并输入验证码和新密码";
+  static String m32(label) => "${label}必须为URL";
 
-  static String m33(amount) => "可提现金额: ${amount}";
+  static String m33(email) => "验证码已发送到 ${email}，请查收并输入验证码和新密码";
 
-  static String m34(time) => "运行时间: ${time}";
+  static String m34(amount) => "可提现金额: ${amount}";
 
   static String m35(count) => "已添加 ${count} 项规则";
+
+  static String m36(time) => "运行时间: ${time}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -254,6 +256,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "download": MessageLookupByLibrary.simpleMessage("下载"),
     "edit": MessageLookupByLibrary.simpleMessage("编辑"),
     "emailAddress": MessageLookupByLibrary.simpleMessage("邮箱地址"),
+    "emailPrefixHint": MessageLookupByLibrary.simpleMessage("邮箱前缀"),
     "emailVerificationCode": MessageLookupByLibrary.simpleMessage("邮箱验证码"),
     "emptyTip": m3,
     "en": MessageLookupByLibrary.simpleMessage("英语"),
@@ -300,6 +303,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "好友邀请的人成功消费，您也能赚取佣金",
     ),
     "fruitSaladScheme": MessageLookupByLibrary.simpleMessage("果缤纷"),
+    "fullEmailPreview": m5,
     "general": MessageLookupByLibrary.simpleMessage("常规"),
     "generalDesc": MessageLookupByLibrary.simpleMessage("修改通用设置"),
     "generatingInviteCode": MessageLookupByLibrary.simpleMessage("正在生成邀请码..."),
@@ -333,12 +337,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "internet": MessageLookupByLibrary.simpleMessage("互联网"),
     "interval": MessageLookupByLibrary.simpleMessage("间隔"),
     "intranetIP": MessageLookupByLibrary.simpleMessage("内网 IP"),
+    "invalidEmailFormat": MessageLookupByLibrary.simpleMessage("邮箱格式不正确"),
     "invalidTransferAmount": MessageLookupByLibrary.simpleMessage("请输入有效的划转金额"),
     "invite": MessageLookupByLibrary.simpleMessage("邀请"),
     "inviteCode": MessageLookupByLibrary.simpleMessage("邀请码"),
     "inviteCodeGenFailed": MessageLookupByLibrary.simpleMessage("邀请码生成失败"),
+    "inviteCodeIncorrect": MessageLookupByLibrary.simpleMessage(
+      "邀请码可能不正确，请检查后重新输入",
+    ),
     "inviteCodeOptional": MessageLookupByLibrary.simpleMessage("邀请码（可选）"),
-    "inviteCodeIncorrect": MessageLookupByLibrary.simpleMessage("邀请码可能不正确，请检查后重新输入"),
     "inviteCodeRequired": MessageLookupByLibrary.simpleMessage("需要邀请码"),
     "inviteCodeRequiredMessage": MessageLookupByLibrary.simpleMessage(
       "注册需要邀请码，请联系已注册用户获取邀请码后再进行注册。",
@@ -371,19 +378,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "logcatDesc": MessageLookupByLibrary.simpleMessage("禁用将会隐藏日志入口"),
     "loggedOutSuccess": MessageLookupByLibrary.simpleMessage("已成功登出"),
     "loginNow": MessageLookupByLibrary.simpleMessage("立即登录"),
-    "noAccount": MessageLookupByLibrary.simpleMessage("还没有账号？"),
     "logout": MessageLookupByLibrary.simpleMessage("登出"),
     "logoutConfirmMsg": MessageLookupByLibrary.simpleMessage(
       "确定要登出当前账户吗？登出后需要重新登录。",
     ),
-    "logoutFailed": m5,
+    "logoutFailed": m6,
     "logs": MessageLookupByLibrary.simpleMessage("日志"),
     "logsDesc": MessageLookupByLibrary.simpleMessage("日志捕获记录"),
     "logsTest": MessageLookupByLibrary.simpleMessage("日志测试"),
     "loopback": MessageLookupByLibrary.simpleMessage("回环解锁工具"),
     "loopbackDesc": MessageLookupByLibrary.simpleMessage("用于UWP回环解锁"),
     "loose": MessageLookupByLibrary.simpleMessage("宽松"),
-    "maxTransferable": m6,
+    "maxTransferable": m7,
     "memoryInfo": MessageLookupByLibrary.simpleMessage("内存信息"),
     "messageTest": MessageLookupByLibrary.simpleMessage("消息测试"),
     "messageTestTip": MessageLookupByLibrary.simpleMessage("这是一条消息。"),
@@ -410,6 +416,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "neutralScheme": MessageLookupByLibrary.simpleMessage("中性"),
     "newMessageFromSupport": MessageLookupByLibrary.simpleMessage("客服新消息"),
     "newPassword": MessageLookupByLibrary.simpleMessage("新密码"),
+    "noAccount": MessageLookupByLibrary.simpleMessage("还没有账号？"),
     "noCommissionRecord": MessageLookupByLibrary.simpleMessage("暂无佣金记录"),
     "noData": MessageLookupByLibrary.simpleMessage("暂无数据"),
     "noHotKey": MessageLookupByLibrary.simpleMessage("暂无快捷键"),
@@ -425,8 +432,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "none": MessageLookupByLibrary.simpleMessage("无"),
     "notSelectedTip": MessageLookupByLibrary.simpleMessage("当前代理组无法选中"),
     "nullProfileDesc": MessageLookupByLibrary.simpleMessage("没有配置文件,请先添加配置文件"),
-    "nullTip": m7,
-    "numberTip": m8,
+    "nullTip": m8,
+    "numberTip": m9,
     "oneColumn": MessageLookupByLibrary.simpleMessage("一列"),
     "onlineSupport": MessageLookupByLibrary.simpleMessage("在线客服"),
     "onlineSupportAddMore": MessageLookupByLibrary.simpleMessage("添加更多"),
@@ -448,7 +455,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "连接错误",
     ),
     "onlineSupportDisconnected": MessageLookupByLibrary.simpleMessage("已断开"),
-    "onlineSupportGetMessagesFailed": m9,
+    "onlineSupportGetMessagesFailed": m10,
     "onlineSupportInputHint": MessageLookupByLibrary.simpleMessage(
       "请输入您的问题...",
     ),
@@ -456,7 +463,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "暂无消息，发送消息开始咨询",
     ),
     "onlineSupportSelectImages": MessageLookupByLibrary.simpleMessage("选择图片"),
-    "onlineSupportSelectImagesFailed": m10,
+    "onlineSupportSelectImagesFailed": m11,
     "onlineSupportSend": MessageLookupByLibrary.simpleMessage("发送"),
     "onlineSupportSendImage": MessageLookupByLibrary.simpleMessage("发送图片"),
     "onlineSupportSendMessageFailed": MessageLookupByLibrary.simpleMessage(
@@ -469,8 +476,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "onlineSupportTokenNotFound": MessageLookupByLibrary.simpleMessage(
       "未找到认证token",
     ),
-    "onlineSupportUnsupportedHttpMethod": m11,
-    "onlineSupportUploadFailed": m12,
+    "onlineSupportUnsupportedHttpMethod": m12,
+    "onlineSupportUploadFailed": m13,
     "onlineSupportWebSocketConfigNotFound":
         MessageLookupByLibrary.simpleMessage("在线客服WebSocket配置未找到，请检查配置"),
     "onlyIcon": MessageLookupByLibrary.simpleMessage("仅图标"),
@@ -481,8 +488,8 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "openWebFailed": MessageLookupByLibrary.simpleMessage("打开网页失败，请手动访问网页版"),
     "options": MessageLookupByLibrary.simpleMessage("选项"),
-    "orderAmount": m13,
-    "orderNumber": m14,
+    "orderAmount": m14,
+    "orderNumber": m15,
     "other": MessageLookupByLibrary.simpleMessage("其他"),
     "otherContributors": MessageLookupByLibrary.simpleMessage("其他贡献者"),
     "outboundMode": MessageLookupByLibrary.simpleMessage("出站模式"),
@@ -492,7 +499,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "overrideDnsDesc": MessageLookupByLibrary.simpleMessage("开启后将覆盖配置中的DNS选项"),
     "overrideInvalidTip": MessageLookupByLibrary.simpleMessage("在脚本模式下不生效"),
     "overrideOriginRules": MessageLookupByLibrary.simpleMessage("覆盖原始规则"),
-    "pageNumber": m15,
+    "pageNumber": m16,
     "palette": MessageLookupByLibrary.simpleMessage("调色板"),
     "password": MessageLookupByLibrary.simpleMessage("密码"),
     "passwordMin8Chars": MessageLookupByLibrary.simpleMessage("密码至少需要8位字符"),
@@ -516,6 +523,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pleaseEnterEmail": MessageLookupByLibrary.simpleMessage("请输入邮箱地址"),
     "pleaseEnterEmailAddress": MessageLookupByLibrary.simpleMessage("请先输入邮箱地址"),
+    "pleaseEnterEmailPrefix": MessageLookupByLibrary.simpleMessage("请输入邮箱前缀"),
     "pleaseEnterEmailVerificationCode": MessageLookupByLibrary.simpleMessage(
       "请输入邮箱验证码",
     ),
@@ -540,13 +548,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "请输入管理员密码",
     ),
     "pleaseReEnterPassword": MessageLookupByLibrary.simpleMessage("请再次输入密码"),
+    "pleaseSelectEmailSuffix": MessageLookupByLibrary.simpleMessage("请选择邮箱后缀"),
+    "pleaseSelectSuffix": MessageLookupByLibrary.simpleMessage("请选择后缀"),
     "pleaseUploadFile": MessageLookupByLibrary.simpleMessage("请上传文件"),
     "pleaseUploadValidQrcode": MessageLookupByLibrary.simpleMessage(
       "请上传有效的二维码",
     ),
     "port": MessageLookupByLibrary.simpleMessage("端口"),
     "portConflictTip": MessageLookupByLibrary.simpleMessage("请输入不同的端口"),
-    "portTip": m16,
+    "portTip": m17,
     "preferH3Desc": MessageLookupByLibrary.simpleMessage("优先使用DOH的http/3"),
     "pressKeyboard": MessageLookupByLibrary.simpleMessage("请按下按键"),
     "preview": MessageLookupByLibrary.simpleMessage("预览"),
@@ -599,7 +609,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "registerSuccessSaveCredentials": MessageLookupByLibrary.simpleMessage(
       "注册成功 - 保存凭据:",
     ),
-    "registrationFailed": m17,
+    "registrationFailed": m18,
     "rememberPassword": MessageLookupByLibrary.simpleMessage("记起密码了？"),
     "remote": MessageLookupByLibrary.simpleMessage("远程"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage("备份数据到WebDAV"),
@@ -641,10 +651,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectAll": MessageLookupByLibrary.simpleMessage("全选"),
     "selectTheme": MessageLookupByLibrary.simpleMessage("选择主题"),
     "selected": MessageLookupByLibrary.simpleMessage("已选择"),
-    "selectedCountTitle": m18,
+    "selectedCountTitle": m19,
     "sendCodeFailed": MessageLookupByLibrary.simpleMessage("发送验证码失败"),
     "sendVerificationCode": MessageLookupByLibrary.simpleMessage("发送验证码"),
-    "sendVerificationCodeFailed": m19,
+    "sendVerificationCodeFailed": m20,
     "setNewPassword": MessageLookupByLibrary.simpleMessage("设置新密码"),
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
     "show": MessageLookupByLibrary.simpleMessage("显示"),
@@ -668,7 +678,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "subRule": MessageLookupByLibrary.simpleMessage("子规则"),
     "submit": MessageLookupByLibrary.simpleMessage("提交"),
     "subscriptionExpired": MessageLookupByLibrary.simpleMessage("订阅已过期"),
-    "subscriptionExpiredDetail": m20,
+    "subscriptionExpiredDetail": m21,
     "subscriptionExpiresToday": MessageLookupByLibrary.simpleMessage("订阅今日过期"),
     "subscriptionExpiresTodayDetail": MessageLookupByLibrary.simpleMessage(
       "套餐将在今日过期，请立即续费以免影响使用",
@@ -676,7 +686,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionExpiringInDays": MessageLookupByLibrary.simpleMessage(
       "订阅即将过期",
     ),
-    "subscriptionExpiringInDaysDetail": m21,
+    "subscriptionExpiringInDaysDetail": m22,
     "subscriptionNoSubscription": MessageLookupByLibrary.simpleMessage("无订阅套餐"),
     "subscriptionNoSubscriptionDetail": MessageLookupByLibrary.simpleMessage(
       "当前账户暂无可用的订阅套餐，请购买套餐后使用",
@@ -692,7 +702,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "套餐流量已用完，请购买更多流量或升级套餐",
     ),
     "subscriptionValid": MessageLookupByLibrary.simpleMessage("订阅有效"),
-    "subscriptionValidDetail": m22,
+    "subscriptionValidDetail": m23,
     "switchTheme": MessageLookupByLibrary.simpleMessage("切换主题"),
     "sync": MessageLookupByLibrary.simpleMessage("同步"),
     "system": MessageLookupByLibrary.simpleMessage("系统"),
@@ -720,16 +730,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "tools": MessageLookupByLibrary.simpleMessage("工具"),
     "totalCommission": MessageLookupByLibrary.simpleMessage("累计佣金"),
     "totalInvites": MessageLookupByLibrary.simpleMessage("总邀请数"),
-    "totalRecords": m23,
+    "totalRecords": m24,
     "tproxyPort": MessageLookupByLibrary.simpleMessage("Tproxy端口"),
     "trafficUsage": MessageLookupByLibrary.simpleMessage("流量统计"),
     "transfer": MessageLookupByLibrary.simpleMessage("划转"),
     "transferAmount": MessageLookupByLibrary.simpleMessage("划转金额"),
-    "transferAmountExceeded": m24,
-    "transferFailed": m25,
+    "transferAmountExceeded": m25,
+    "transferFailed": m26,
     "transferNote": MessageLookupByLibrary.simpleMessage("划转到钱包的余额可以抵扣app内消费"),
     "transferSuccess": MessageLookupByLibrary.simpleMessage("划转成功！"),
-    "transferSuccessMsg": m26,
+    "transferSuccessMsg": m27,
     "transferToWallet": MessageLookupByLibrary.simpleMessage("划转到钱包"),
     "transferring": MessageLookupByLibrary.simpleMessage("正在划转..."),
     "tun": MessageLookupByLibrary.simpleMessage("虚拟网卡"),
@@ -747,15 +757,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "updateCheckAllServersUnavailable": MessageLookupByLibrary.simpleMessage(
       "所有配置的更新服务器都不可用",
     ),
-    "updateCheckCurrentVersion": m27,
-    "updateCheckForceUpdate": m28,
+    "updateCheckCurrentVersion": m28,
+    "updateCheckForceUpdate": m29,
     "updateCheckMustUpdate": MessageLookupByLibrary.simpleMessage("必须更新"),
-    "updateCheckNewVersionFound": m29,
+    "updateCheckNewVersionFound": m30,
     "updateCheckNoServerUrlsConfigured": MessageLookupByLibrary.simpleMessage(
       "未配置任何更新服务器URL，请检查配置",
     ),
     "updateCheckReleaseNotes": MessageLookupByLibrary.simpleMessage("更新内容："),
-    "updateCheckServerError": m30,
+    "updateCheckServerError": m31,
     "updateCheckServerTemporarilyUnavailable":
         MessageLookupByLibrary.simpleMessage("服务器暂时不可用，请稍后重试"),
     "updateCheckServerUrlNotConfigured": MessageLookupByLibrary.simpleMessage(
@@ -766,7 +776,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("上传"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("通过URL获取配置文件"),
-    "urlTip": m31,
+    "urlTip": m32,
     "useHosts": MessageLookupByLibrary.simpleMessage("使用Hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("使用系统Hosts"),
     "userCenter": MessageLookupByLibrary.simpleMessage("个人中心"),
@@ -781,7 +791,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "verificationCodeSentCheckEmail": MessageLookupByLibrary.simpleMessage(
       "验证码已发送，请查收邮箱",
     ),
-    "verificationCodeSentTo": m32,
+    "verificationCodeSentTo": m33,
     "vibrantScheme": MessageLookupByLibrary.simpleMessage("活力"),
     "view": MessageLookupByLibrary.simpleMessage("查看"),
     "viewHistory": MessageLookupByLibrary.simpleMessage("查看历史记录"),
@@ -800,13 +810,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "whitelistMode": MessageLookupByLibrary.simpleMessage("白名单模式"),
     "withdraw": MessageLookupByLibrary.simpleMessage("提现"),
     "withdrawCommission": MessageLookupByLibrary.simpleMessage("提现佣金"),
-    "withdrawableAmount": m33,
+    "withdrawableAmount": m34,
     "withdrawalAvailable": MessageLookupByLibrary.simpleMessage("可用佣金可申请提现"),
     "xboard": MessageLookupByLibrary.simpleMessage("首页"),
     "xboard24HourCustomerService": MessageLookupByLibrary.simpleMessage(
       "24小时客服支持",
     ),
     "xboardAccountBalance": MessageLookupByLibrary.simpleMessage("账户余额"),
+    "xboardAccountInfo": MessageLookupByLibrary.simpleMessage("账户信息"),
+    "xboardAccountSettings": MessageLookupByLibrary.simpleMessage("账户设置"),
     "xboardAddLinkToConfig": MessageLookupByLibrary.simpleMessage(
       "在配置文件中添加此订阅链接",
     ),
@@ -814,6 +826,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardAfterPurchasingPlan": MessageLookupByLibrary.simpleMessage(
       "购买套餐后您将享受：",
     ),
+    "xboardAllOrders": MessageLookupByLibrary.simpleMessage("全部"),
+    "xboardAllowLan": MessageLookupByLibrary.simpleMessage("共享到局域网"),
     "xboardApiUrlNotConfigured": MessageLookupByLibrary.simpleMessage(
       "API地址未配置",
     ),
@@ -827,7 +841,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "正在自动打开支付页面，完成支付后请返回应用",
     ),
     "xboardAutoTesting": MessageLookupByLibrary.simpleMessage("自动测试中"),
+    "xboardAvailableCommission": MessageLookupByLibrary.simpleMessage("可用佣金"),
     "xboardBack": MessageLookupByLibrary.simpleMessage("返回"),
+    "xboardBalanceAmount": MessageLookupByLibrary.simpleMessage("余额支付"),
+    "xboardBrowsePlans": MessageLookupByLibrary.simpleMessage("浏览可用套餐"),
     "xboardBrowserNotOpenedTip": MessageLookupByLibrary.simpleMessage(
       "如果浏览器未自动打开，可以点击\\\"重新打开\\\"或复制链接手动打开",
     ),
@@ -836,8 +853,20 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardBuyNow": MessageLookupByLibrary.simpleMessage("立即购买"),
     "xboardBuyoutPlan": MessageLookupByLibrary.simpleMessage("买断制"),
+    "xboardBypassDomain": MessageLookupByLibrary.simpleMessage("排除域名/IP"),
+    "xboardBypassDomainCount": m35,
+    "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
+      "添加不走代理的域名和IP段",
+    ),
     "xboardCancel": MessageLookupByLibrary.simpleMessage("取消"),
+    "xboardCancelFailed": MessageLookupByLibrary.simpleMessage("取消失败"),
+    "xboardCancelOrder": MessageLookupByLibrary.simpleMessage("取消订单"),
+    "xboardCancelOrderConfirm": MessageLookupByLibrary.simpleMessage(
+      "确定要取消这个订单吗？",
+    ),
     "xboardCancelPayment": MessageLookupByLibrary.simpleMessage("取消支付"),
+    "xboardCancelledOrders": MessageLookupByLibrary.simpleMessage("已取消"),
+    "xboardChangePassword": MessageLookupByLibrary.simpleMessage("修改密码"),
     "xboardCheckPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "检查支付状态失败",
     ),
@@ -847,9 +876,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardClearError": MessageLookupByLibrary.simpleMessage("清除错误"),
     "xboardClickToCopy": MessageLookupByLibrary.simpleMessage("点击复制"),
     "xboardClickToSetupNodes": MessageLookupByLibrary.simpleMessage("点击设置节点"),
+    "xboardCodeCopied": MessageLookupByLibrary.simpleMessage("邀请码已复制到剪贴板"),
+    "xboardComingSoon": MessageLookupByLibrary.simpleMessage("即将推出"),
+    "xboardCommissionBalance": MessageLookupByLibrary.simpleMessage("佣金余额"),
+    "xboardCommissionRate": MessageLookupByLibrary.simpleMessage("佣金比例"),
     "xboardCompletePaymentInBrowser": MessageLookupByLibrary.simpleMessage(
       "2. 请在浏览器中完成支付操作",
     ),
+    "xboardCompletedOrders": MessageLookupByLibrary.simpleMessage("已完成"),
     "xboardConfigDownloadFailed": MessageLookupByLibrary.simpleMessage(
       "配置文件下载失败，请检查订阅链接",
     ),
@@ -860,7 +894,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "保存配置失败，请检查存储空间",
     ),
     "xboardConfigurationError": MessageLookupByLibrary.simpleMessage("配置错误"),
-    "xboardConfirm": MessageLookupByLibrary.simpleMessage("确定"),
+    "xboardConfirm": MessageLookupByLibrary.simpleMessage("确认"),
     "xboardConfirmAction": MessageLookupByLibrary.simpleMessage("确定"),
     "xboardConfirmPassword": MessageLookupByLibrary.simpleMessage("确认密码"),
     "xboardConfirmPurchase": MessageLookupByLibrary.simpleMessage("确认购买"),
@@ -873,6 +907,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardConnectionTimeout": MessageLookupByLibrary.simpleMessage(
       "连接超时，请检查网络连接",
     ),
+    "xboardContinueToPayment": MessageLookupByLibrary.simpleMessage("继续支付"),
+    "xboardCopied": MessageLookupByLibrary.simpleMessage("已复制"),
+    "xboardCopyCode": MessageLookupByLibrary.simpleMessage("复制码"),
     "xboardCopyFailed": MessageLookupByLibrary.simpleMessage("复制失败"),
     "xboardCopyLink": MessageLookupByLibrary.simpleMessage("复制链接"),
     "xboardCopyPaymentLink": MessageLookupByLibrary.simpleMessage("复制链接"),
@@ -882,25 +919,35 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCouponExpired": MessageLookupByLibrary.simpleMessage("优惠券已过期"),
     "xboardCouponNotYetActive": MessageLookupByLibrary.simpleMessage("优惠券尚未生效"),
     "xboardCouponOptional": MessageLookupByLibrary.simpleMessage("优惠券（可选）"),
+    "xboardCreateInviteCode": MessageLookupByLibrary.simpleMessage("创建邀请码"),
+    "xboardCreatedAt": MessageLookupByLibrary.simpleMessage("创建时间"),
+    "xboardCreating": MessageLookupByLibrary.simpleMessage("创建中..."),
     "xboardCreatingOrder": MessageLookupByLibrary.simpleMessage("正在创建订单"),
     "xboardCreatingOrderPleaseWait": MessageLookupByLibrary.simpleMessage(
       "我们正在为您创建新订单，请稍候",
     ),
     "xboardCurrentNode": MessageLookupByLibrary.simpleMessage("当前节点"),
     "xboardCurrentVersion": MessageLookupByLibrary.simpleMessage("当前版本"),
+    "xboardCustomCommissionRate": MessageLookupByLibrary.simpleMessage("专属比例"),
+    "xboardDailyTraffic": MessageLookupByLibrary.simpleMessage("每日流量"),
     "xboardDays": MessageLookupByLibrary.simpleMessage("天"),
     "xboardDeductibleDuringPayment": MessageLookupByLibrary.simpleMessage(
       "支付时可抵扣",
     ),
-    "xboardDiscounted": MessageLookupByLibrary.simpleMessage("已优惠"),
+    "xboardDetail": MessageLookupByLibrary.simpleMessage("详情"),
     "xboardDisconnected": MessageLookupByLibrary.simpleMessage("已断开"),
+    "xboardDiscount": MessageLookupByLibrary.simpleMessage("优惠"),
+    "xboardDiscountAmount": MessageLookupByLibrary.simpleMessage("折扣金额"),
+    "xboardDiscounted": MessageLookupByLibrary.simpleMessage("已优惠"),
     "xboardDownloadingConfig": MessageLookupByLibrary.simpleMessage("下载配置文件"),
+    "xboardEarnCommission": MessageLookupByLibrary.simpleMessage("邀请返佣奖励"),
     "xboardEmail": MessageLookupByLibrary.simpleMessage("邮箱"),
     "xboardEnableTun": MessageLookupByLibrary.simpleMessage("开启 TUN"),
     "xboardEnjoyFastNetworkExperience": MessageLookupByLibrary.simpleMessage(
       "享受极速网络体验",
     ),
     "xboardEnterCouponCode": MessageLookupByLibrary.simpleMessage("请输入优惠券代码"),
+    "xboardError": MessageLookupByLibrary.simpleMessage("错误"),
     "xboardExcellent": MessageLookupByLibrary.simpleMessage("优秀"),
     "xboardExpiryTime": MessageLookupByLibrary.simpleMessage("过期时间"),
     "xboardFailedToCheckPaymentStatus": MessageLookupByLibrary.simpleMessage(
@@ -918,10 +965,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardFair": MessageLookupByLibrary.simpleMessage("一般"),
     "xboardForceUpdate": MessageLookupByLibrary.simpleMessage("强制更新"),
     "xboardForgotPassword": MessageLookupByLibrary.simpleMessage("忘记密码"),
+    "xboardGetSupport": MessageLookupByLibrary.simpleMessage("获取技术支持"),
     "xboardGettingIP": MessageLookupByLibrary.simpleMessage("获取中..."),
     "xboardGlobalNodes": MessageLookupByLibrary.simpleMessage("全球节点"),
+    "xboardGoToPay": MessageLookupByLibrary.simpleMessage("去支付"),
     "xboardGood": MessageLookupByLibrary.simpleMessage("良好"),
     "xboardGroup": MessageLookupByLibrary.simpleMessage("所属组"),
+    "xboardHalfYearPayment": MessageLookupByLibrary.simpleMessage("半年付"),
     "xboardHalfYearlyPayment": MessageLookupByLibrary.simpleMessage("半年付"),
     "xboardHandleLater": MessageLookupByLibrary.simpleMessage("稍后再说"),
     "xboardHandlingFee": MessageLookupByLibrary.simpleMessage("手续费"),
@@ -939,11 +989,26 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardInvalidResponseFormat": MessageLookupByLibrary.simpleMessage(
       "服务器返回数据格式错误",
     ),
+    "xboardInvite": MessageLookupByLibrary.simpleMessage("邀请"),
     "xboardInviteCode": MessageLookupByLibrary.simpleMessage("邀请码"),
+    "xboardInviteCodeCreated": MessageLookupByLibrary.simpleMessage("邀请码创建成功"),
+    "xboardInviteCodes": MessageLookupByLibrary.simpleMessage("邀请码"),
+    "xboardInviteFriends": MessageLookupByLibrary.simpleMessage("邀请好友"),
+    "xboardInviteSubtitle": MessageLookupByLibrary.simpleMessage(
+      "分享你的邀请码，从推荐中赚取佣金",
+    ),
+    "xboardInviteTitle": MessageLookupByLibrary.simpleMessage("邀请好友赚佣金"),
     "xboardKeepSubscriptionLinkSafe": MessageLookupByLibrary.simpleMessage(
       "请妥善保管您的订阅链接，不要分享给他人",
     ),
+    "xboardLanSharing": MessageLookupByLibrary.simpleMessage("局域网代理共享"),
+    "xboardLanSharingDesc": MessageLookupByLibrary.simpleMessage(
+      "允许局域网设备通过本机代理上网",
+    ),
     "xboardLater": MessageLookupByLibrary.simpleMessage("稍后处理"),
+    "xboardLinkCopied": MessageLookupByLibrary.simpleMessage("邀请链接已复制到剪贴板"),
+    "xboardLoadError": MessageLookupByLibrary.simpleMessage("加载数据失败"),
+    "xboardLoadFailed": MessageLookupByLibrary.simpleMessage("加载失败"),
     "xboardLoadingFailed": MessageLookupByLibrary.simpleMessage("加载失败"),
     "xboardLoadingPaymentPage": MessageLookupByLibrary.simpleMessage(
       "正在加载支付页面",
@@ -964,15 +1029,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardLogoutConfirmTitle": MessageLookupByLibrary.simpleMessage("确认登出"),
     "xboardLogoutFailed": MessageLookupByLibrary.simpleMessage("登出失败"),
     "xboardLogoutSuccess": MessageLookupByLibrary.simpleMessage("已成功登出"),
+    "xboardMaxInviteCodesReached": MessageLookupByLibrary.simpleMessage(
+      "最多允许 5 个邀请码",
+    ),
+    "xboardMemberSince": MessageLookupByLibrary.simpleMessage("注册于"),
     "xboardMissingRequiredField": MessageLookupByLibrary.simpleMessage(
       "缺少必要字段",
     ),
     "xboardMonthlyPayment": MessageLookupByLibrary.simpleMessage("月付"),
     "xboardMonthlyRenewal": MessageLookupByLibrary.simpleMessage("每月续费"),
     "xboardMustUpdate": MessageLookupByLibrary.simpleMessage("必须更新"),
+    "xboardMyOrders": MessageLookupByLibrary.simpleMessage("我的订单"),
     "xboardNetworkConnectionFailed": MessageLookupByLibrary.simpleMessage(
       "网络连接失败，请检查网络设置",
     ),
+    "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage("网络设置"),
     "xboardNewVersionFound": MessageLookupByLibrary.simpleMessage("发现新版本"),
     "xboardNext": MessageLookupByLibrary.simpleMessage("下一条"),
     "xboardNoAvailableNodes": MessageLookupByLibrary.simpleMessage("无可用节点"),
@@ -983,28 +1054,50 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNoInternetConnection": MessageLookupByLibrary.simpleMessage(
       "无网络连接，请检查网络设置",
     ),
+    "xboardNoInviteCodes": MessageLookupByLibrary.simpleMessage("暂无邀请码"),
+    "xboardNoInviteCodesDesc": MessageLookupByLibrary.simpleMessage(
+      "创建你的第一个邀请码以开始赚取佣金",
+    ),
+    "xboardNoOrders": MessageLookupByLibrary.simpleMessage("暂无订单"),
+    "xboardNoOrdersDesc": MessageLookupByLibrary.simpleMessage("您的订单记录将在这里显示"),
+    "xboardNoServerData": MessageLookupByLibrary.simpleMessage("暂无服务器数据"),
     "xboardNoSubscriptionInfo": MessageLookupByLibrary.simpleMessage("暂无套餐信息"),
     "xboardNoSubscriptionPlans": MessageLookupByLibrary.simpleMessage("暂无套餐信息"),
     "xboardNodeName": MessageLookupByLibrary.simpleMessage("节点名称"),
     "xboardNone": MessageLookupByLibrary.simpleMessage("无"),
     "xboardNotLoggedIn": MessageLookupByLibrary.simpleMessage("未登录"),
+    "xboardNoticeDialogGotIt": MessageLookupByLibrary.simpleMessage("知道了"),
+    "xboardNotifications": MessageLookupByLibrary.simpleMessage("通知设置"),
+    "xboardOffline": MessageLookupByLibrary.simpleMessage("离线"),
     "xboardOneTimePayment": MessageLookupByLibrary.simpleMessage("一次性"),
+    "xboardOnetimePayment": MessageLookupByLibrary.simpleMessage("一次性"),
+    "xboardOnline": MessageLookupByLibrary.simpleMessage("在线"),
     "xboardOpenPaymentFailed": MessageLookupByLibrary.simpleMessage("打开支付页面失败"),
     "xboardOpenPaymentLinkFailed": MessageLookupByLibrary.simpleMessage(
       "打开支付链接失败",
     ),
     "xboardOperationFailed": MessageLookupByLibrary.simpleMessage("操作失败"),
     "xboardOperationTips": MessageLookupByLibrary.simpleMessage("操作提示"),
+    "xboardOrderCancelled": MessageLookupByLibrary.simpleMessage("订单已取消"),
     "xboardOrderCreationFailed": MessageLookupByLibrary.simpleMessage("创建订单失败"),
+    "xboardOrderDetails": MessageLookupByLibrary.simpleMessage("订单详情"),
+    "xboardOrderHistory": MessageLookupByLibrary.simpleMessage("订单历史"),
+    "xboardOrderHistoryDesc": MessageLookupByLibrary.simpleMessage(
+      "查看和管理您的订单记录",
+    ),
+    "xboardOrderInfo": MessageLookupByLibrary.simpleMessage("订单信息"),
     "xboardOrderNotFound": MessageLookupByLibrary.simpleMessage("订单不存在"),
     "xboardOrderNumber": MessageLookupByLibrary.simpleMessage("订单号"),
     "xboardOrderStatusPending": MessageLookupByLibrary.simpleMessage(
       "订单状态：待支付",
     ),
+    "xboardOrderSummary": MessageLookupByLibrary.simpleMessage("订单汇总"),
     "xboardPassword": MessageLookupByLibrary.simpleMessage("密码"),
+    "xboardPay": MessageLookupByLibrary.simpleMessage("支付"),
     "xboardPaymentCancelled": MessageLookupByLibrary.simpleMessage("支付已取消"),
     "xboardPaymentComplete": MessageLookupByLibrary.simpleMessage("支付完成"),
     "xboardPaymentCompleted": MessageLookupByLibrary.simpleMessage("支付完成！"),
+    "xboardPaymentDetails": MessageLookupByLibrary.simpleMessage("支付详情"),
     "xboardPaymentFailed": MessageLookupByLibrary.simpleMessage("支付失败"),
     "xboardPaymentGateway": MessageLookupByLibrary.simpleMessage("支付网关"),
     "xboardPaymentInfo": MessageLookupByLibrary.simpleMessage("支付信息"),
@@ -1036,25 +1129,33 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardPaymentSuccess": MessageLookupByLibrary.simpleMessage("支付成功"),
     "xboardPaymentSuccessful": MessageLookupByLibrary.simpleMessage("🎉 支付成功！"),
-    "xboardPlanInfo": MessageLookupByLibrary.simpleMessage("购买订阅"),
+    "xboardPendingCommission": MessageLookupByLibrary.simpleMessage("待确认佣金"),
+    "xboardPendingOrders": MessageLookupByLibrary.simpleMessage("待支付"),
+    "xboardPeriod": MessageLookupByLibrary.simpleMessage("周期"),
+    "xboardPlanInfo": MessageLookupByLibrary.simpleMessage("套餐信息"),
     "xboardPlanNotFound": MessageLookupByLibrary.simpleMessage("套餐不存在"),
+    "xboardPlanSummary": MessageLookupByLibrary.simpleMessage("套餐概览"),
     "xboardPlans": MessageLookupByLibrary.simpleMessage("套餐"),
     "xboardPleaseSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage(
       "请选择购买周期",
     ),
     "xboardPoor": MessageLookupByLibrary.simpleMessage("较差"),
+    "xboardPreferences": MessageLookupByLibrary.simpleMessage("偏好设置"),
     "xboardPreparingImport": MessageLookupByLibrary.simpleMessage("准备导入"),
     "xboardPreparingPaymentPage": MessageLookupByLibrary.simpleMessage(
       "正在准备支付页面，即将跳转",
     ),
     "xboardPrevious": MessageLookupByLibrary.simpleMessage("上一条"),
     "xboardProcessing": MessageLookupByLibrary.simpleMessage("处理中..."),
+    "xboardProcessingOrders": MessageLookupByLibrary.simpleMessage("开通中"),
     "xboardProfessionalSupport": MessageLookupByLibrary.simpleMessage("专业客服"),
     "xboardProfile": MessageLookupByLibrary.simpleMessage("配置文件"),
     "xboardProtectNetworkPrivacy": MessageLookupByLibrary.simpleMessage(
       "保护您的网络隐私",
     ),
     "xboardProxy": MessageLookupByLibrary.simpleMessage("代理"),
+    "xboardProxyCommands": MessageLookupByLibrary.simpleMessage("设置代理命令"),
+    "xboardProxyInfo": MessageLookupByLibrary.simpleMessage("代理信息"),
     "xboardProxyMode": MessageLookupByLibrary.simpleMessage("代理模式"),
     "xboardProxyModeDirectDescription": MessageLookupByLibrary.simpleMessage(
       "所有流量都直接连接，不使用代理",
@@ -1065,6 +1166,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardProxyModeRuleDescription": MessageLookupByLibrary.simpleMessage(
       "根据规则自动选择直连或代理",
     ),
+    "xboardProxyPort": MessageLookupByLibrary.simpleMessage("代理端口"),
     "xboardPurchasePlan": MessageLookupByLibrary.simpleMessage("购买套餐"),
     "xboardPurchaseSubscription": MessageLookupByLibrary.simpleMessage("购买套餐"),
     "xboardPurchaseSubscriptionToUse": MessageLookupByLibrary.simpleMessage(
@@ -1072,16 +1174,21 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardPurchaseTraffic": MessageLookupByLibrary.simpleMessage("购买流量"),
     "xboardQuarterlyPayment": MessageLookupByLibrary.simpleMessage("季付"),
+    "xboardQuickActions": MessageLookupByLibrary.simpleMessage("快捷操作"),
     "xboardRefresh": MessageLookupByLibrary.simpleMessage("刷新"),
     "xboardRefreshStatus": MessageLookupByLibrary.simpleMessage("刷新状态"),
+    "xboardRefundAmount": MessageLookupByLibrary.simpleMessage("退款金额"),
     "xboardRegister": MessageLookupByLibrary.simpleMessage("注册"),
     "xboardRegisterFailed": MessageLookupByLibrary.simpleMessage("注册失败"),
     "xboardRegisterSuccess": MessageLookupByLibrary.simpleMessage(
       "注册成功！正在跳转到登录页面...",
     ),
+    "xboardRegisteredUsers": MessageLookupByLibrary.simpleMessage("注册用户"),
     "xboardReload": MessageLookupByLibrary.simpleMessage("重新获取"),
     "xboardRelogin": MessageLookupByLibrary.simpleMessage("重新登录"),
     "xboardRememberPassword": MessageLookupByLibrary.simpleMessage("记住密码"),
+    "xboardRemindExpire": MessageLookupByLibrary.simpleMessage("套餐到期提醒"),
+    "xboardRemindTraffic": MessageLookupByLibrary.simpleMessage("流量不足提醒"),
     "xboardRenewPlan": MessageLookupByLibrary.simpleMessage("续费套餐"),
     "xboardRenewToContinue": MessageLookupByLibrary.simpleMessage("请续费后继续使用"),
     "xboardReopen": MessageLookupByLibrary.simpleMessage("重新打开"),
@@ -1089,36 +1196,35 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReopenPaymentPageTip": MessageLookupByLibrary.simpleMessage(
       "如需重新打开，可点击下方\\\"重新打开\\\"按钮",
     ),
+    "xboardResetSubscription": MessageLookupByLibrary.simpleMessage("重置订阅"),
+    "xboardResetSubscriptionDesc": MessageLookupByLibrary.simpleMessage(
+      "将生成新的订阅链接并使旧链接失效",
+    ),
+    "xboardResetTraffic": MessageLookupByLibrary.simpleMessage("重置流量"),
     "xboardRetry": MessageLookupByLibrary.simpleMessage("重试"),
     "xboardRetryGet": MessageLookupByLibrary.simpleMessage("重新获取"),
     "xboardReturn": MessageLookupByLibrary.simpleMessage("返回"),
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. 支付完成后返回应用，系统将自动检测",
     ),
-    "xboardAllowLan": MessageLookupByLibrary.simpleMessage("共享到局域网"),
-    "xboardBypassDomain": MessageLookupByLibrary.simpleMessage("排除域名/IP"),
-    "xboardBypassDomainCount": m35,
-    "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
-      "添加不走代理的域名和IP段",
-    ),
-    "xboardCopied": MessageLookupByLibrary.simpleMessage("已复制到剪贴板"),
-    "xboardLanSharing": MessageLookupByLibrary.simpleMessage("局域网代理共享"),
-    "xboardLanSharingDesc": MessageLookupByLibrary.simpleMessage(
-      "允许局域网设备通过本机代理上网",
-    ),
-    "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage("网络设置"),
-    "xboardProxyCommands": MessageLookupByLibrary.simpleMessage("设置代理命令"),
-    "xboardProxyInfo": MessageLookupByLibrary.simpleMessage("代理信息"),
-    "xboardProxyPort": MessageLookupByLibrary.simpleMessage("代理端口"),
-    "xboardRunningTime": m34,
+    "xboardRunningTime": m36,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("搜索节点"),
-    "xboardSettings": MessageLookupByLibrary.simpleMessage("设置"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage("安全加密"),
+    "xboardSecurity": MessageLookupByLibrary.simpleMessage("安全设置"),
     "xboardSelectPaymentMethod": MessageLookupByLibrary.simpleMessage("选择支付方式"),
     "xboardSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage("选择购买周期"),
     "xboardSelectPeriod": MessageLookupByLibrary.simpleMessage("请选择购买周期"),
     "xboardSendVerificationCode": MessageLookupByLibrary.simpleMessage("发送验证码"),
     "xboardServerError": MessageLookupByLibrary.simpleMessage("服务器错误"),
+    "xboardServerHost": MessageLookupByLibrary.simpleMessage("服务器地址"),
+    "xboardServerName": MessageLookupByLibrary.simpleMessage("服务器名称"),
+    "xboardServerOffline": MessageLookupByLibrary.simpleMessage("不可用"),
+    "xboardServerOnline": MessageLookupByLibrary.simpleMessage("可用"),
+    "xboardServerStatus": MessageLookupByLibrary.simpleMessage("服务器状态"),
+    "xboardServersOffline": MessageLookupByLibrary.simpleMessage("台离线"),
+    "xboardServersOnline": MessageLookupByLibrary.simpleMessage("台在线"),
+    "xboardSettings": MessageLookupByLibrary.simpleMessage("设置"),
+    "xboardSettledCommission": MessageLookupByLibrary.simpleMessage("已结算佣金"),
     "xboardSetup": MessageLookupByLibrary.simpleMessage("设置"),
     "xboardSixMonthCycle": MessageLookupByLibrary.simpleMessage("6个月周期"),
     "xboardSpeedLimit": MessageLookupByLibrary.simpleMessage("限速"),
@@ -1140,19 +1246,32 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardSubscriptionPurchase": MessageLookupByLibrary.simpleMessage("订阅购买"),
     "xboardSubscriptionStatus": MessageLookupByLibrary.simpleMessage("订阅状态"),
+    "xboardSubtotal": MessageLookupByLibrary.simpleMessage("小计"),
+    "xboardSupportTickets": MessageLookupByLibrary.simpleMessage("工单支持"),
+    "xboardSurplusAmount": MessageLookupByLibrary.simpleMessage("剩余金额"),
     "xboardSwitch": MessageLookupByLibrary.simpleMessage("切换"),
     "xboardSwitchNode": MessageLookupByLibrary.simpleMessage("切换节点"),
+    "xboardSystemCommissionRate": MessageLookupByLibrary.simpleMessage("系统比例"),
+    "xboardTapToConnect": MessageLookupByLibrary.simpleMessage("轻触即可连接"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("测试中"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage("36个月周期"),
     "xboardThreeMonthCycle": MessageLookupByLibrary.simpleMessage("3个月周期"),
     "xboardThreeYearPayment": MessageLookupByLibrary.simpleMessage("三年付"),
     "xboardTimeout": MessageLookupByLibrary.simpleMessage("超时"),
+    "xboardToday": MessageLookupByLibrary.simpleMessage("今天"),
     "xboardTokenExpiredContent": MessageLookupByLibrary.simpleMessage(
       "您的登录状态已过期，请重新登录以继续使用。",
     ),
     "xboardTokenExpiredTitle": MessageLookupByLibrary.simpleMessage("登录已过期"),
+    "xboardTotal": MessageLookupByLibrary.simpleMessage("总计"),
+    "xboardTotalAmount": MessageLookupByLibrary.simpleMessage("订单金额"),
+    "xboardTradeNo": MessageLookupByLibrary.simpleMessage("订单号"),
     "xboardTraffic": MessageLookupByLibrary.simpleMessage("流量"),
     "xboardTrafficExhausted": MessageLookupByLibrary.simpleMessage("流量已用完"),
+    "xboardTrafficHistory": MessageLookupByLibrary.simpleMessage("流量历史"),
+    "xboardTrafficHistoryTitle": MessageLookupByLibrary.simpleMessage("流量使用历史"),
+    "xboardTrafficNoData": MessageLookupByLibrary.simpleMessage("暂无流量数据"),
+    "xboardTrafficTotal": MessageLookupByLibrary.simpleMessage("总计"),
     "xboardTrafficUsedUp": MessageLookupByLibrary.simpleMessage("流量已用完"),
     "xboardTunEnabled": MessageLookupByLibrary.simpleMessage("TUN已启用"),
     "xboardTwelveMonthCycle": MessageLookupByLibrary.simpleMessage("12个月周期"),
@@ -1166,6 +1285,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardUnknownErrorRetry": MessageLookupByLibrary.simpleMessage("未知错误，请重试"),
     "xboardUnknownUser": MessageLookupByLibrary.simpleMessage("未知用户"),
     "xboardUnlimited": MessageLookupByLibrary.simpleMessage("不限速"),
+    "xboardUnlimitedTime": MessageLookupByLibrary.simpleMessage("不限时"),
     "xboardUnselected": MessageLookupByLibrary.simpleMessage("未选择"),
     "xboardUnsupportedCouponType": MessageLookupByLibrary.simpleMessage(
       "不支持的优惠券类型",
@@ -1179,6 +1299,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardUsageInstructions": MessageLookupByLibrary.simpleMessage("使用说明"),
     "xboardUsed": MessageLookupByLibrary.simpleMessage("已用"),
     "xboardUsedTraffic": MessageLookupByLibrary.simpleMessage("已用"),
+    "xboardUserSpecificRate": MessageLookupByLibrary.simpleMessage("用户专享"),
     "xboardValidatingConfigFormat": MessageLookupByLibrary.simpleMessage(
       "验证配置格式",
     ),
@@ -1186,31 +1307,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardValidityPeriod": MessageLookupByLibrary.simpleMessage("有效期"),
     "xboardVerify": MessageLookupByLibrary.simpleMessage("核验"),
     "xboardVeryPoor": MessageLookupByLibrary.simpleMessage("很差"),
+    "xboardViewChart": MessageLookupByLibrary.simpleMessage("查看图表"),
+    "xboardViewList": MessageLookupByLibrary.simpleMessage("查看列表"),
+    "xboardViewOrders": MessageLookupByLibrary.simpleMessage("查看订单历史"),
     "xboardWaitingForPayment": MessageLookupByLibrary.simpleMessage("正在等待支付"),
     "xboardWaitingPaymentCompletion": MessageLookupByLibrary.simpleMessage(
       "等待支付完成",
     ),
+    "xboardWithdrawTransferComingSoon": MessageLookupByLibrary.simpleMessage(
+      "提现和转账功能即将推出",
+    ),
     "xboardYearlyPayment": MessageLookupByLibrary.simpleMessage("年付"),
-    "xboardQuickActions": MessageLookupByLibrary.simpleMessage("快捷操作"),
-    "xboardPurchaseSubscription": MessageLookupByLibrary.simpleMessage("购买套餐"),
-    "xboardBrowsePlans": MessageLookupByLibrary.simpleMessage("浏览可用套餐"),
-    "xboardMyOrders": MessageLookupByLibrary.simpleMessage("我的订单"),
-    "xboardViewOrders": MessageLookupByLibrary.simpleMessage("查看订单历史"),
-    "xboardSupportTickets": MessageLookupByLibrary.simpleMessage("工单支持"),
-    "xboardGetSupport": MessageLookupByLibrary.simpleMessage("获取技术支持"),
-    "xboardInviteFriends": MessageLookupByLibrary.simpleMessage("邀请好友"),
-    "xboardEarnCommission": MessageLookupByLibrary.simpleMessage("邀请返佣奖励"),
-    "xboardComingSoon": MessageLookupByLibrary.simpleMessage("即将推出"),
-    "xboardServerStatus": MessageLookupByLibrary.simpleMessage("服务器状态"),
-    "xboardServersOnline": MessageLookupByLibrary.simpleMessage("台在线"),
-    "xboardServersOffline": MessageLookupByLibrary.simpleMessage("台离线"),
-    "xboardOnline": MessageLookupByLibrary.simpleMessage("在线"),
-    "xboardOffline": MessageLookupByLibrary.simpleMessage("离线"),
-    "xboardServerName": MessageLookupByLibrary.simpleMessage("服务器名称"),
-    "xboardServerHost": MessageLookupByLibrary.simpleMessage("服务器地址"),
-    "xboardServerOnline": MessageLookupByLibrary.simpleMessage("可用"),
-    "xboardServerOffline": MessageLookupByLibrary.simpleMessage("不可用"),
-    "xboardNoServerData": MessageLookupByLibrary.simpleMessage("暂无服务器数据"),
+    "xboardYesterday": MessageLookupByLibrary.simpleMessage("昨天"),
     "years": MessageLookupByLibrary.simpleMessage("年"),
     "zh_CN": MessageLookupByLibrary.simpleMessage("中文简体"),
   };

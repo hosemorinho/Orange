@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 
@@ -244,22 +244,12 @@ class OrderDetailSheet extends StatelessWidget {
             Container(
               constraints: const BoxConstraints(maxHeight: 200),
               child: SingleChildScrollView(
-                child: Html(
-                  data: order.planContent!,
-                  style: {
-                    'body': Style(
-                      margin: Margins.zero,
-                      padding: HtmlPaddings.zero,
-                      fontSize: FontSize(14),
-                      color: colorScheme.onSurface,
-                    ),
-                    'p': Style(
-                      margin: Margins.only(bottom: 8),
-                    ),
-                    'ul, ol': Style(
-                      margin: Margins.only(bottom: 8, left: 16),
-                    ),
-                  },
+                child: HtmlWidget(
+                  order.planContent!,
+                  textStyle: TextStyle(
+                    fontSize: 14,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
               ),
             ),

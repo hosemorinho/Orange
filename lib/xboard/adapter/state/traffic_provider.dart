@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:fl_clash/xboard/domain/models/traffic_record.dart';
 import 'package:fl_clash/xboard/infrastructure/api/v2board_response.dart';
-import 'package:fl_clash/xboard/adapter/initialization/api_service_provider.dart';
+import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 
 part 'generated/traffic_provider.g.dart';
 
@@ -50,7 +50,7 @@ class TrafficLogs extends _$TrafficLogs {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      final api = ref.read(xboardApiServiceProvider);
+      final api = await ref.read(xboardSdkProvider.future);
       final response = await api.getTrafficLogs(offset: offset, limit: limit);
 
       final v2Response = V2BoardResponse.fromJson(response);

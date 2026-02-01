@@ -142,14 +142,18 @@ class XBoardPaymentNotifier extends Notifier<void> {
     }
     ref.read(userUIStateProvider.notifier).state = const UIState(isLoading: true);
     try {
-      _logger.info('创建订单: planId=$planId, period=$period');
+      _logger.info('创建订单: planId=$planId, period=$period, couponCode=$couponCode');
 
       // 先取消待支付订单
       await cancelPendingOrders();
 
       // 调用 API 创建订单
       final api = await ref.read(xboardSdkProvider.future);
-      final json = await api.saveOrder(planId, period);
+      final json = await api.saveOrder(
+        planId,
+        period,
+        couponCode: couponCode,
+      );
 
       // V2Board saveOrder 返回 trade_no
       final data = json['data'];

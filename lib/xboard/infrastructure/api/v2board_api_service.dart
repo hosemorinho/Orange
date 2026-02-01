@@ -317,13 +317,25 @@ class V2BoardApiService {
   /// 创建订单
   ///
   /// [planId] 套餐 ID
-  /// [cycle] V2Board 周期参数，如 "month_price", "quarter_price" 等
-  Future<Map<String, dynamic>> saveOrder(int planId, String cycle) async {
-    _logger.info('[API] saveOrder: planId=$planId, cycle=$cycle');
-    return await _authPost('/api/v1/user/order/save', data: {
+  /// [period] V2Board 周期参数，如 "month_price", "quarter_price" 等
+  /// [couponCode] 优惠券代码（可选）
+  Future<Map<String, dynamic>> saveOrder(
+    int planId,
+    String period, {
+    String? couponCode,
+  }) async {
+    _logger.info('[API] saveOrder: planId=$planId, period=$period, couponCode=$couponCode');
+    final data = {
       'plan_id': planId,
-      'cycle': cycle,
-    });
+      'period': period,
+    };
+
+    // 添加优惠券代码（如果提供）
+    if (couponCode != null && couponCode.isNotEmpty) {
+      data['coupon_code'] = couponCode;
+    }
+
+    return await _authPost('/api/v1/user/order/save', data: data);
   }
 
   /// 提交支付（结账）

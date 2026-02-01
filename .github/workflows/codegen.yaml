@@ -47,29 +47,44 @@ jobs:
       - name: Generate Code (Freezed, Riverpod, JSON)
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Check for Changes
-        id: check_changes
+      - name: Verify Code Generation Success
+        id: verify
         run: |
-          if [[ -n $(git status --porcelain) ]]; then
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "Generated files changed:"
-            git status --short
+          echo "✅ Code generation completed successfully"
+          echo "Generated files are excluded from git (see .gitignore)"
+
+          # Check if there are any non-generated file changes
+          # (e.g., localization files that should be committed)
+          NON_GENERATED_CHANGES=$(git status --porcelain | grep -v '\.g\.dart$' | grep -v '\.freezed\.dart$' || true)
+
+          if [[ -n "$NON_GENERATED_CHANGES" ]]; then
+            echo "has_non_generated_changes=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Non-generated files changed:"
+            echo "$NON_GENERATED_CHANGES"
           else
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "No generated files changed"
+            echo "has_non_generated_changes=false" >> $GITHUB_OUTPUT
+            echo "✅ Only generated files changed (as expected)"
           fi
 
-      - name: Commit and Push Generated Files
-        if: steps.check_changes.outputs.has_changes == 'true' && github.event_name == 'push'
+      - name: Commit Non-Generated Files
+        if: steps.verify.outputs.has_non_generated_changes == 'true' && github.event_name == 'push'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add lib/**/generated/*.dart lib/l10n/*.dart arb/*.arb
-          git commit -m "chore: auto-generate Freezed models and localization [skip ci]" || true
+
+          # Only commit localization and platform-specific generated files
+          # (NOT Freezed/JSON serialization files)
+          git add lib/l10n/*.dart arb/*.arb || true
+          git add linux/flutter/generated_*.* || true
+          git add macos/Flutter/Generated*.* || true
+          git add windows/flutter/generated_*.* || true
+          git add pubspec.lock || true
+
+          git commit -m "chore: update localization and platform files [skip ci]" || true
           git push
 
-      - name: Comment on PR (if changes detected)
-        if: steps.check_changes.outputs.has_changes == 'true' && github.event_name == 'pull_request'
+      - name: Comment on PR (if non-generated changes)
+        if: steps.verify.outputs.has_non_generated_changes == 'true' && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -77,5 +92,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '⚠️ **Code generation needed**\n\nPlease run `dart run build_runner build --delete-conflicting-outputs` locally and commit the generated files.'
+              body: '⚠️ **Localization or platform files changed**\n\nPlease run `flutter pub run intl_utils:generate` locally and commit the updated files.\n\n**Note**: Generated `.g.dart` and `.freezed.dart` files are excluded from git (see `.gitignore`) and will be auto-generated during build.'
             })

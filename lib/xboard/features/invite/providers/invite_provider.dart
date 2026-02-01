@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/infrastructure/api/v2board_mappers.dart';
@@ -60,7 +61,7 @@ class InviteDataProvider extends _$InviteDataProvider {
 
 /// Create a new invite code
 @riverpod
-Future<void> createInviteCode(CreateInviteCodeRef ref) async {
+Future<void> createInviteCode(Ref ref) async {
   try {
     final api = await ref.read(xboardSdkProvider.future);
     await api.createInviteCode();
@@ -75,7 +76,7 @@ Future<void> createInviteCode(CreateInviteCodeRef ref) async {
 
 /// Transfer commission to balance
 @riverpod
-Future<void> transferCommission(TransferCommissionRef ref, double amount) async {
+Future<void> transferCommission(Ref ref, double amount) async {
   try {
     final api = await ref.read(xboardSdkProvider.future);
     await api.transferCommission(amount);

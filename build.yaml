@@ -11,6 +11,15 @@ targets:
             '^lib/xboard/adapter/state/{{}}.dart': 'lib/xboard/adapter/state/generated/{{}}.g.dart'
             '^lib/xboard/adapter/initialization/{{}}.dart': 'lib/xboard/adapter/initialization/generated/{{}}.g.dart'
             '^lib/xboard/domain/models/{{}}.dart': 'lib/xboard/domain/models/generated/{{}}.g.dart'
+            # lib/xboard/features providers
+            '^lib/xboard/features/auth/providers/{{}}.dart': 'lib/xboard/features/auth/providers/generated/{{}}.g.dart'
+            '^lib/xboard/features/order/providers/{{}}.dart': 'lib/xboard/features/order/providers/generated/{{}}.g.dart'
+            '^lib/xboard/features/invite/providers/{{}}.dart': 'lib/xboard/features/invite/providers/generated/{{}}.g.dart'
+            '^lib/xboard/features/ticket/providers/{{}}.dart': 'lib/xboard/features/ticket/providers/generated/{{}}.g.dart'
+            '^lib/xboard/features/notice/providers/{{}}.dart': 'lib/xboard/features/notice/providers/generated/{{}}.g.dart'
+            '^lib/xboard/features/subscription/providers/{{}}.dart': 'lib/xboard/features/subscription/providers/generated/{{}}.g.dart'
+            '^lib/xboard/features/latency/providers/{{}}.dart': 'lib/xboard/features/latency/providers/generated/{{}}.g.dart'
+            '^lib/xboard/features/domain_status/providers/{{}}.dart': 'lib/xboard/features/domain_status/providers/generated/{{}}.g.dart'
       freezed:
         options:
           build_extensions:

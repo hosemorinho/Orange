@@ -60,7 +60,9 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
       runTimeProvider.select((state) => state != null),
       (prev, next) {
         if (next != _isStart) {
-          _isStart = next;
+          setState(() {
+            _isStart = next;
+          });
           _updateController();
         }
       },
@@ -76,7 +78,9 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
   }
 
   void _handleSwitchStart() {
-    _isStart = !_isStart;
+    setState(() {
+      _isStart = !_isStart;
+    });
     _updateController();
     debouncer.call(
       FunctionTag.updateStatus,

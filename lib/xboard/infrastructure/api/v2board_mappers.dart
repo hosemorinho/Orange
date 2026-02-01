@@ -125,11 +125,20 @@ DomainOrder mapOrder(Map<String, dynamic> json) {
 
 /// V2Board /api/v1/user/order/getPaymentMethod → DomainPaymentMethod
 DomainPaymentMethod mapPaymentMethod(Map<String, dynamic> json) {
+  // handling_fee_percent can be String ("3.00") or num or null
+  final rawFee = json['handling_fee_percent'];
+  double feePercentage = 0.0;
+  if (rawFee is num) {
+    feePercentage = rawFee.toDouble();
+  } else if (rawFee is String) {
+    feePercentage = double.tryParse(rawFee) ?? 0.0;
+  }
+
   return DomainPaymentMethod(
     id: json['id'] as int? ?? 0,
     name: json['name'] as String? ?? '',
     iconUrl: json['icon'] as String?,
-    feePercentage: (json['handling_fee_percent'] as num?)?.toDouble() ?? 0.0,
+    feePercentage: feePercentage,
     isAvailable: true,
   );
 }

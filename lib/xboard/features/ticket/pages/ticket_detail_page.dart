@@ -117,7 +117,9 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
                       child: _buildMessageList(theme, ticket),
                     ),
                     if (ticket.status != TicketStatus.closed)
-                      _buildReplyBar(theme, state),
+                      _isWaitingForAdminReply(ticket)
+                          ? _buildWaitingHint(theme)
+                          : _buildReplyBar(theme, state),
                   ],
                 ),
     );
@@ -246,6 +248,48 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
           ],
         );
       },
+    );
+  }
+
+  bool _isWaitingForAdminReply(DomainTicket ticket) {
+    if (ticket.messages.isEmpty) return false;
+    return ticket.messages.last.isFromUser;
+  }
+
+  Widget _buildWaitingHint(ThemeData theme) {
+    return Container(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 12,
+        bottom: 12 + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.outline.withValues(alpha: 0.1),
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.hourglass_top_rounded,
+            size: 18,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '等待管理员回复后才能继续发送消息',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

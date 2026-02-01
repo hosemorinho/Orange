@@ -10,6 +10,7 @@ import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/payment/providers/xboard_payment_provider.dart';
+import 'package:fl_clash/xboard/adapter/state/payment_state.dart';
 import '../widgets/payment_waiting_overlay.dart';
 import '../widgets/payment_method_selector_dialog.dart';
 import '../widgets/plan_header_card.dart';
@@ -205,7 +206,15 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       _logger.debug('[购买] 实付金额: $actualPayAmount (价格: $displayFinalPrice, 余额抵扣: $balanceToUse)');
 
       // 使用 xboardAvailablePaymentMethodsProvider 获取支付方式
-      final paymentMethods = ref.read(xboardAvailablePaymentMethodsProvider);
+      var paymentMethods = ref.read(xboardAvailablePaymentMethodsProvider);
+
+      // 如果支付方式为空，尝试重新加载
+      if (paymentMethods.isEmpty) {
+        _logger.info('[购买] 支付方式列表为空，尝试重新加载...');
+        ref.invalidate(getPaymentMethodsProvider);
+        await ref.read(xboardPaymentProvider.notifier).loadPaymentMethods();
+        paymentMethods = ref.read(xboardAvailablePaymentMethodsProvider);
+      }
 
       _logger.info('[购买] 获取到的支付方式数量: ${paymentMethods.length}');
       if (paymentMethods.isNotEmpty) {
@@ -218,7 +227,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       }
 
       if (paymentMethods.isEmpty) {
-        throw Exception('暂无可用的支付方式');
+        throw Exception('暂无可用的支付方式，请检查网络或稍后重试');
       }
 
       DomainPaymentMethod? selectedMethod;
@@ -463,12 +472,11 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                 builder: (context, ref, child) {
                   final paymentState = ref.watch(userUIStateProvider);
                   final buttonColorScheme = Theme.of(context).colorScheme;
-                  return ElevatedButton(
+                  return FilledButton.tonal(
                       onPressed: paymentState.isLoading ? null : _proceedToPurchase,
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: buttonColorScheme.primary,
-                      foregroundColor: buttonColorScheme.onPrimary,
-                        elevation: 0,
+                    style: FilledButton.styleFrom(
+                        backgroundColor: buttonColorScheme.primaryContainer,
+                      foregroundColor: buttonColorScheme.onPrimaryContainer,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                       ),
@@ -482,7 +490,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(buttonColorScheme.onPrimary),
+                                  valueColor: AlwaysStoppedAnimation<Color>(buttonColorScheme.onPrimaryContainer),
                                 ),
                               ),
                                 const SizedBox(width: 12),

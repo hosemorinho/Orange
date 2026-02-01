@@ -8,7 +8,6 @@ import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:go_router/go_router.dart';
 import '../services/subscription_status_service.dart';
 import 'package:fl_clash/l10n/l10n.dart';
-import 'arc_gauge.dart';
 class SubscriptionUsageCard extends ConsumerWidget {
   final DomainSubscription? subscriptionInfo;
   final DomainUser? userInfo;
@@ -363,44 +362,34 @@ class SubscriptionUsageCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 140,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Positioned.fill(
-                  child: ArcGauge(
-                    progress: progress,
-                    activeColor: _getProgressColor(progress, theme),
-                    backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+          const SizedBox(height: 12),
+          // Compact progress bar with percentage
+          Row(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 6,
+                    backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      _getProgressColor(progress, theme),
+                    ),
                   ),
                 ),
-                Positioned(
-                  bottom: 8,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${(progress * 100).toInt()}%',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                      Text(
-                        AppLocalizations.of(context).xboardUsed.toLowerCase(),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '${(progress * 100).toInt()}%',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: _getProgressColor(progress, theme),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(

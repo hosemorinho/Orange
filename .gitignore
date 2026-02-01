@@ -73,3 +73,11 @@ assets/cer/*
 
 # Claude Code
 .claude/
+
+# Markdown 文档（仅保留 README）
+*.md
+!README.md
+!CLAUDE.md
+!CHANGELOG.md
+!LICENSE.md
+!CONTRIBUTING.md

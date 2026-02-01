@@ -125,3 +125,151 @@ Always run `dart run build_runner build --delete-conflicting-outputs` after modi
 - ARB files in `arb/` directory, output to `lib/l10n/`
 - Class: `AppLocalizations` (configured in `pubspec.yaml` under `flutter_intl`)
 - Languages: Chinese (primary), English
+
+## Theme System (Material 3)
+
+### Color Scheme
+
+**Default Theme**: Slate Purple (`#66558E`) with **Tonal Spot** variant
+
+The app uses Material 3's `ColorScheme.fromSeed()` with `DynamicSchemeVariant.tonalSpot` (configured in `lib/models/config.dart`):
+
+```dart
+@Default(DynamicSchemeVariant.tonalSpot) DynamicSchemeVariant schemeVariant,
+```
+
+### Color Roles
+
+| Role | Light Mode | Dark Mode | Usage |
+|------|-----------|-----------|-------|
+| `primary` | `#66558E` (deep purple) | `#CDB5FF` (bright purple) | Main actions, brand identity |
+| `primaryContainer` | `#E7DEFF` (light purple) | `#4E3D76` (dark purple) | Large containers, cards |
+| `tertiary` | `#7E525E` (pink-purple) | `#F3B8C6` (light pink) | Status indicators (e.g., VPN running) |
+| `tertiaryContainer` | `#FFD8E2` (light pink) | `#643A47` (dark pink) | Status containers |
+| `error` | System red | System red | Error states |
+| `surface` | `#FFF8FF` | `#141316` | Backgrounds, surfaces |
+| `onPrimary` / `onTertiary` | White | Dark | Text on colored backgrounds |
+
+### Code Guidelines
+
+**Always use theme colors** instead of hardcoded values:
+
+```dart
+// ✅ Good
+color: Theme.of(context).colorScheme.primary,
+backgroundColor: colorScheme.primaryContainer,
+foregroundColor: colorScheme.onPrimaryContainer,
+
+// ❌ Bad
+color: Colors.blue,
+backgroundColor: Colors.white,
+foregroundColor: Colors.black,
+```
+
+**VPN Button States**:
+- Stopped: `primary` / `primaryContainer`
+- Running: `tertiary` / `tertiaryContainer`
+
+**Always pair with `on*` colors**:
+```dart
+Container(
+  color: colorScheme.primary,
+  child: Text('Hello', style: TextStyle(color: colorScheme.onPrimary)),
+)
+```
+
+### Contrast Requirements
+
+All color combinations must meet **WCAG AA** (≥ 4.5:1 contrast). Material 3's `ColorScheme.fromSeed()` automatically ensures this.
+
+## UI Component Patterns
+
+### Start Button (`lib/views/dashboard/widgets/start_button.dart`)
+
+Uses state-based colors:
+- Background: `isStart ? tertiary : primary`
+- Foreground: `isStart ? onTertiary : onPrimary`
+
+### XBoard Connect Button (`lib/xboard/features/subscription/widgets/xboard_connect_button.dart`)
+
+Two modes:
+- **Floating**: Uses `tertiary`/`primary` for background
+- **Inline**: Uses `tertiaryContainer`/`primaryContainer` for better contrast on large surfaces
+
+### Subscription Plans (`lib/xboard/features/payment/pages/plans.dart`)
+
+- Price tags: `primary` gradient with `onPrimary` text
+- Buy buttons: `primary` background with `onPrimary` foreground
+- Error states: `error` color
+- Empty states: `onSurfaceVariant` color
+
+## CI/CD
+
+### GitHub Actions Workflows
+
+**`build.yaml`** (Main build workflow):
+1. Triggers on push to `main`, releases, or manual dispatch
+2. Builds for Android, Linux, Windows, macOS (Intel + ARM)
+3. Runs code generation before building
+4. Uploads artifacts and creates releases
+
+**`codegen.yaml`** (Code generation workflow):
+1. Triggers on push/PR when `.dart`, `pubspec.yaml`, or `build.yaml` changes
+2. Runs `flutter pub run intl_utils:generate`
+3. Runs `dart run build_runner build --delete-conflicting-outputs`
+4. Verifies generation success (does NOT commit `.g.dart` or `.freezed.dart` files)
+5. Only commits localization and platform-specific files if needed
+
+**Important**: Generated `.g.dart` and `.freezed.dart` files are in `.gitignore` and regenerated during build. Do NOT commit them manually.
+
+## Change Log (Recent)
+
+### 2026-02-01: Theme System & UI Refactor
+
+**Theme Changes**:
+- Changed default color scheme variant from `content` to `tonalSpot` for better tonal palette generation
+- Maintains slate purple (`#66558E`) as seed color
+- Auto-generates harmonious colors for light/dark modes with proper contrast
+
+**UI Component Refactor**:
+1. **Subscription Plans** (`plans.dart`):
+   - Price tags: Blue gradient → Primary theme color gradient
+   - Buy button: Hardcoded blue → Theme primary
+   - Error states: Hardcoded red → Theme error color
+   - Empty states: Hardcoded grey → Theme onSurfaceVariant
+
+2. **VPN Start Buttons** (`start_button.dart`, `xboard_connect_button.dart`):
+   - Removed hardcoded green/blue/black/white colors
+   - Stop state: Uses `primary` color (slate purple)
+   - Running state: Uses `tertiary` color (pink-purple accent)
+   - Auto-adapts to light/dark modes with proper contrast
+   - Uses semantic color roles (`primaryContainer`, `tertiaryContainer`, etc.)
+
+3. **CI/CD Workflow**:
+   - Added `codegen.yaml` for automatic code generation
+   - Fixed issue where workflow tried to commit `.gitignore`d files
+   - Only commits localization and platform-specific generated files
+
+**Color Mapping**:
+
+| Component | State | Light Mode | Dark Mode |
+|-----------|-------|------------|-----------|
+| Start Button | Stopped | Deep purple `#66558E` | Bright purple `#CDB5FF` |
+| Start Button | Running | Pink-purple `#7E525E` | Light pink `#F3B8C6` |
+| Price Tag | - | Purple gradient | Bright purple gradient |
+| Buy Button | - | Deep purple | Bright purple |
+
+**Files Modified**:
+- `lib/models/config.dart` - Default scheme variant
+- `lib/xboard/features/payment/pages/plans.dart` - Plan colors
+- `lib/xboard/features/subscription/widgets/xboard_connect_button.dart` - Button colors
+- `lib/views/dashboard/widgets/start_button.dart` - Button colors
+- `.github/workflows/codegen.yaml` - New workflow
+- `.gitignore` - Added MD file exclusions
+
+**Commits**:
+- `a3cc146` - feat: change default color scheme to tonalSpot
+- `e15be60` - fix: adapt subscription plan colors to theme system
+- `24d3d1e` - refactor: modernize VPN start button with Material 3 colors
+- `e5b881e` - docs: add theme implementation documentation
+- `4f757de` - fix: codegen workflow should not commit ignored generated files

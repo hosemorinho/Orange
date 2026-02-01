@@ -115,19 +115,24 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         double verticalPadding;
         double horizontalPadding;
 
+        double connectionCardSpacing;
+
         if (availableHeight < 500) {
           // 小屏幕：紧凑布局
           sectionSpacing = 12.0;
+          connectionCardSpacing = 16.0;
           verticalPadding = 12.0;
           horizontalPadding = 16.0;
         } else if (availableHeight < 650) {
           // 中等屏幕：适中布局
           sectionSpacing = 16.0;
+          connectionCardSpacing = 20.0;
           verticalPadding = 16.0;
           horizontalPadding = 20.0;
         } else {
           // 大屏幕：标准布局
           sectionSpacing = 20.0;
+          connectionCardSpacing = 24.0;
           verticalPadding = 20.0;
           horizontalPadding = 24.0;
         }
@@ -154,7 +159,7 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                             child: const ConnectionStatusCard(),
                           ),
-                          SizedBox(height: sectionSpacing),
+                          SizedBox(height: connectionCardSpacing),
                           // 使用情况卡片
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),

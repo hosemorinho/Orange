@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
@@ -21,24 +22,40 @@ class ConnectionStatusCard extends ConsumerStatefulWidget {
 }
 
 class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
+    with TickerProviderStateMixin {
+  late AnimationController _iconController;
+  late Animation<double> _iconAnimation;
+  late AnimationController _ringController;
+  late Animation<double> _ringAnimation;
   bool _isStart = false;
 
   @override
   void initState() {
     super.initState();
     _isStart = globalState.appState.runTime != null;
-    _controller = AnimationController(
+
+    _iconController = AnimationController(
       vsync: this,
       value: _isStart ? 1 : 0,
       duration: const Duration(milliseconds: 200),
     );
-    _animation = CurvedAnimation(
-      parent: _controller,
+    _iconAnimation = CurvedAnimation(
+      parent: _iconController,
       curve: Curves.easeOutBack,
     );
+
+    _ringController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    );
+    _ringAnimation = CurvedAnimation(
+      parent: _ringController,
+      curve: Curves.easeInOut,
+    );
+    if (_isStart) {
+      _ringController.repeat(reverse: true);
+    }
+
     ref.listenManual(
       runTimeProvider.select((state) => state != null),
       (prev, next) {
@@ -53,7 +70,8 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _iconController.dispose();
+    _ringController.dispose();
     super.dispose();
   }
 
@@ -72,9 +90,12 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
   void _updateController() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_isStart) {
-        _controller.forward();
+        _iconController.forward();
+        _ringController.repeat(reverse: true);
       } else {
-        _controller.reverse();
+        _iconController.reverse();
+        _ringController.stop();
+        _ringController.reset();
       }
     });
   }
@@ -130,6 +151,8 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
     final onStatusColor =
         _isStart ? colorScheme.onTertiary : colorScheme.onPrimary;
 
+    const buttonSize = 100.0;
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -140,93 +163,119 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
             bgColor.withValues(alpha: 0.1),
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: statusColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
           children: [
-            Row(
-              children: [
-                // Connect/Disconnect button
-                GestureDetector(
-                  onTap: _handleSwitchStart,
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: AnimatedIcon(
-                        icon: AnimatedIcons.play_pause,
-                        progress: _animation,
-                        size: 36,
-                        color: onStatusColor,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                // Node info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _isStart
-                            ? AppLocalizations.of(context).xboardConnected
-                            : AppLocalizations.of(context).xboardDisconnected,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+            // Status text
+            Text(
+              _isStart
+                  ? AppLocalizations.of(context).xboardConnected
+                  : AppLocalizations.of(context).xboardDisconnected,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: statusColor,
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Hero button with ring
+            SizedBox(
+              width: buttonSize + 24,
+              height: buttonSize + 24,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Outer ring
+                  AnimatedBuilder(
+                    animation: _ringAnimation,
+                    builder: (context, child) {
+                      return CustomPaint(
+                        size: Size(buttonSize + 24, buttonSize + 24),
+                        painter: _RingPainter(
                           color: statusColor,
+                          isActive: _isStart,
+                          pulseProgress: _ringAnimation.value,
+                          buttonRadius: buttonSize / 2,
+                        ),
+                      );
+                    },
+                  ),
+                  // Button
+                  GestureDetector(
+                    onTap: _handleSwitchStart,
+                    child: Container(
+                      width: buttonSize,
+                      height: buttonSize,
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: statusColor.withValues(alpha: 0.3),
+                            blurRadius: 16,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: AnimatedIcon(
+                          icon: AnimatedIcons.play_pause,
+                          progress: _iconAnimation,
+                          size: 44,
+                          color: onStatusColor,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              proxy.name,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurface,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildLatency(proxy),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          _ModeLabel(
-                            label: Intl.message(mode.name),
-                            color: colorScheme.primary,
-                          ),
-                          if (tunEnabled) ...[
-                            const SizedBox(width: 6),
-                            _ModeLabel(
-                              label: 'TUN',
-                              color: colorScheme.tertiary,
-                              icon: Icons.check,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Node info row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    proxy.name,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
+                _buildLatency(proxy),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
+            // Mode labels
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _ModeLabel(
+                  label: Intl.message(mode.name),
+                  color: colorScheme.primary,
+                ),
+                if (tunEnabled) ...[
+                  const SizedBox(width: 6),
+                  _ModeLabel(
+                    label: 'TUN',
+                    color: colorScheme.tertiary,
+                    icon: Icons.check,
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Switch node button
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -270,7 +319,7 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: colorScheme.error.withValues(alpha: 0.2),
           width: 1.5,
@@ -338,6 +387,51 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
         ],
       ),
     );
+  }
+}
+
+class _RingPainter extends CustomPainter {
+  final Color color;
+  final bool isActive;
+  final double pulseProgress;
+  final double buttonRadius;
+
+  _RingPainter({
+    required this.color,
+    required this.isActive,
+    required this.pulseProgress,
+    required this.buttonRadius,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final baseRadius = buttonRadius + 8;
+
+    if (isActive) {
+      // Pulsing ring when connected
+      final scale = 1.0 + 0.08 * pulseProgress;
+      final opacity = 0.3 + 0.5 * pulseProgress;
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0
+        ..color = color.withValues(alpha: opacity);
+      canvas.drawCircle(center, baseRadius * scale, paint);
+    } else {
+      // Static ring when disconnected
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0
+        ..color = color.withValues(alpha: 0.3);
+      canvas.drawCircle(center, baseRadius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter oldDelegate) {
+    return oldDelegate.isActive != isActive ||
+        oldDelegate.pulseProgress != pulseProgress ||
+        oldDelegate.color != color;
   }
 }
 

@@ -69,7 +69,7 @@ class XBoardOutboundMode extends StatelessWidget {
     Proxy? validProxy;
     for (final proxy in globalGroup.all) {
       _logger.debug('[XBoardOutboundMode] 检查节点: ${proxy.name}');
-      if (proxy.name.toUpperCase() != 'DIRECT' && 
+      if (proxy.name.toUpperCase() != 'DIRECT' &&
           proxy.name.toLowerCase() != 'direct' &&
           proxy.name.toUpperCase() != 'REJECT') {
         validProxy = proxy;
@@ -91,17 +91,14 @@ class XBoardOutboundMode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final tunSelectedColor = colorScheme.tertiaryContainer;
-    final tunCheckmarkColor = colorScheme.onTertiaryContainer;
-    final tunBorderColor = colorScheme.tertiary.withValues(alpha: 0.5);
-    
+
     return Consumer(
       builder: (context, ref, child) {
         final mode = ref.watch(patchClashConfigProvider.select((state) => state.mode));
         final tunEnabled = ref.watch(patchClashConfigProvider.select((state) => state.tun.enable));
         return Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.all(14.0),
@@ -112,7 +109,7 @@ class XBoardOutboundMode extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.tune,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: colorScheme.primary,
                     size: 18,
                   ),
                   const SizedBox(width: 6),
@@ -124,69 +121,49 @@ class XBoardOutboundMode extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<Mode>(
+                  segments: [
+                    ButtonSegment(
+                      value: Mode.rule,
+                      label: Text(Intl.message(Mode.rule.name)),
+                      icon: const Icon(Icons.alt_route, size: 16),
+                    ),
+                    ButtonSegment(
+                      value: Mode.global,
+                      label: Text(Intl.message(Mode.global.name)),
+                      icon: const Icon(Icons.public, size: 16),
+                    ),
+                  ],
+                  selected: {mode == Mode.direct ? Mode.rule : mode},
+                  onSelectionChanged: (selected) {
+                    _handleModeChange(ref, selected.first);
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                      child: FilterChip(
-                        label: Text(Intl.message(Mode.rule.name)),
-                        selected: mode == Mode.rule,
-                        onSelected: (selected) {
-                          if (selected) {
-                            _handleModeChange(ref, Mode.rule);
-                          }
-                        },
-                        selectedColor: Theme.of(context).colorScheme.primaryContainer,
-                        checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                        labelStyle: TextStyle(
-                          fontSize: 13,
-                          color: mode == Mode.rule ? Theme.of(context).colorScheme.onPrimaryContainer : null,
-                        ),
-                      ),
-                    ),
+                  Icon(
+                    Icons.vpn_lock,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
                   ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                      child: FilterChip(
-                        label: Text(Intl.message(Mode.global.name)),
-                        selected: mode == Mode.global,
-                        onSelected: (selected) {
-                          if (selected) {
-                            _handleModeChange(ref, Mode.global);
-                          }
-                        },
-                        selectedColor: Theme.of(context).colorScheme.primaryContainer,
-                        checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                        labelStyle: TextStyle(
-                          fontSize: 13,
-                          color: mode == Mode.global ? Theme.of(context).colorScheme.onPrimaryContainer : null,
-                        ),
-                      ),
-                    ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'TUN',
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                      child: FilterChip(
-                        label: const Text("TUN"),
-                        selected: tunEnabled,
-                        onSelected: (selected) {
-                          _handleTunToggle(context, ref, selected);
-                        },
-                        selectedColor: tunSelectedColor,
-                        checkmarkColor: tunCheckmarkColor,
-                        side: tunEnabled
-                            ? BorderSide(color: tunBorderColor, width: 1)
-                            : null,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                        labelStyle: const TextStyle(fontSize: 13),
-                      ),
-                    ),
+                  const Spacer(),
+                  Switch(
+                    value: tunEnabled,
+                    onChanged: (value) {
+                      _handleTunToggle(context, ref, value);
+                    },
+                    activeColor: colorScheme.tertiary,
+                    activeTrackColor: colorScheme.tertiaryContainer,
                   ),
                 ],
               ),
@@ -194,7 +171,7 @@ class XBoardOutboundMode extends StatelessWidget {
               Text(
                 _getModeDescription(mode, tunEnabled, context),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65),
+                  color: colorScheme.onSurface.withValues(alpha: 0.65),
                   fontSize: 12,
                 ),
               ),

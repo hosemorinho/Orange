@@ -22,7 +22,7 @@ class TicketMessageBubble extends StatelessWidget {
         children: [
           if (!isUser) ...[
             CircleAvatar(
-              radius: 16,
+              radius: 18,
               backgroundColor: theme.colorScheme.primaryContainer,
               child: Icon(
                 Icons.support_agent,
@@ -35,7 +35,7 @@ class TicketMessageBubble extends StatelessWidget {
           Flexible(
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.7,
+                maxWidth: MediaQuery.of(context).size.width * 0.75,
               ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
@@ -77,7 +77,7 @@ class TicketMessageBubble extends StatelessWidget {
           if (isUser) ...[
             const SizedBox(width: 8),
             CircleAvatar(
-              radius: 16,
+              radius: 18,
               backgroundColor: theme.colorScheme.secondaryContainer,
               child: Icon(
                 Icons.person,

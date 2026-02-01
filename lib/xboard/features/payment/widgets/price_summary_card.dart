@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import '../utils/price_calculator.dart';
 
 /// 价格汇总卡片
@@ -7,6 +8,7 @@ class PriceSummaryCard extends StatelessWidget {
   final double? finalPrice;
   final double? discountAmount;
   final double? userBalance;
+  final double? handlingFee;
 
   const PriceSummaryCard({
     super.key,
@@ -14,69 +16,99 @@ class PriceSummaryCard extends StatelessWidget {
     this.finalPrice,
     this.discountAmount,
     this.userBalance,
+    this.handlingFee,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final displayFinalPrice = finalPrice ?? originalPrice;
     final hasDiscount = discountAmount != null && discountAmount! > 0;
     final hasBalance = userBalance != null && userBalance! > 0;
+    final hasFee = handlingFee != null && handlingFee! > 0;
 
     // 计算余额抵扣
     final balanceToUse = hasBalance
         ? (userBalance! > displayFinalPrice ? displayFinalPrice : userBalance!)
         : 0.0;
-    final actualPayAmount = displayFinalPrice - balanceToUse;
+    final actualPayAmount = displayFinalPrice - balanceToUse + (handlingFee ?? 0.0);
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [colorScheme.primaryContainer, colorScheme.primaryContainer],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 1),
-      ),
-      child: Column(
-        children: [
-          // 原价和优惠（如果有折扣）
-          if (hasDiscount) ...[
-            _PriceRow(
-              label: '原价',
-              price: originalPrice,
-              isStrikethrough: true,
-            ),
-            const SizedBox(height: 6),
-            _PriceRow(
-              label: '优惠',
-              price: discountAmount!,
-              isDiscount: true,
-            ),
-            const SizedBox(height: 6),
-          ],
-
-          // 优惠后价格（如果有折扣）
-          if (hasDiscount) ...[
-            _PriceRow(
-              label: '优惠后',
-              price: displayFinalPrice,
-            ),
-            Divider(height: 16, color: colorScheme.primary.withValues(alpha: 0.3)),
-          ],
-
-          // 实付金额（带余额抵扣信息）
-          _FinalPriceRow(
-            price: actualPayAmount,
-            balanceDeducted: balanceToUse > 0 ? balanceToUse : null,
-            remainingBalance: hasBalance && userBalance! > displayFinalPrice
-                ? userBalance! - displayFinalPrice
-                : null,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.xboardOrderSummary,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurfaceVariant,
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              // Subtotal
+              _PriceRow(
+                label: l10n.xboardSubtotal,
+                price: originalPrice,
+                colorScheme: colorScheme,
+              ),
+
+              // Discount
+              if (hasDiscount) ...[
+                const SizedBox(height: 8),
+                _PriceRow(
+                  label: l10n.xboardDiscount,
+                  price: discountAmount!,
+                  isDiscount: true,
+                  colorScheme: colorScheme,
+                ),
+              ],
+
+              // Handling fee
+              if (hasFee) ...[
+                const SizedBox(height: 8),
+                _PriceRow(
+                  label: l10n.xboardHandlingFee,
+                  price: handlingFee!,
+                  colorScheme: colorScheme,
+                ),
+              ],
+
+              // Divider before total
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Divider(
+                  height: 1,
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                ),
+              ),
+
+              // Total
+              _FinalPriceRow(
+                label: l10n.xboardTotal,
+                price: actualPayAmount,
+                balanceDeducted: balanceToUse > 0 ? balanceToUse : null,
+                remainingBalance: hasBalance && userBalance! > displayFinalPrice
+                    ? userBalance! - displayFinalPrice
+                    : null,
+                colorScheme: colorScheme,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -84,26 +116,27 @@ class PriceSummaryCard extends StatelessWidget {
 class _PriceRow extends StatelessWidget {
   final String label;
   final double price;
-  final bool isStrikethrough;
   final bool isDiscount;
+  final ColorScheme colorScheme;
 
   const _PriceRow({
     required this.label,
     required this.price,
-    this.isStrikethrough = false,
+    required this.colorScheme,
     this.isDiscount = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,  // 减小字体
-            color: isDiscount ? colorScheme.tertiary : colorScheme.onSurfaceVariant,
+            fontSize: 13,
+            color: isDiscount
+                ? colorScheme.tertiary
+                : colorScheme.onSurfaceVariant,
           ),
         ),
         const Spacer(),
@@ -112,12 +145,11 @@ class _PriceRow extends StatelessWidget {
               ? '-${PriceCalculator.formatPrice(price)}'
               : PriceCalculator.formatPrice(price),
           style: TextStyle(
-            fontSize: 13,  // 减小字体
-            decoration: isStrikethrough ? TextDecoration.lineThrough : null,
-            fontWeight: isDiscount ? FontWeight.w600 : null,
+            fontSize: 13,
+            fontWeight: isDiscount ? FontWeight.w600 : FontWeight.normal,
             color: isDiscount
                 ? colorScheme.tertiary
-                : (isStrikethrough ? colorScheme.outline : null),
+                : colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -126,60 +158,40 @@ class _PriceRow extends StatelessWidget {
 }
 
 class _FinalPriceRow extends StatelessWidget {
+  final String label;
   final double price;
   final double? balanceDeducted;
   final double? remainingBalance;
+  final ColorScheme colorScheme;
 
   const _FinalPriceRow({
+    required this.label,
     required this.price,
+    required this.colorScheme,
     this.balanceDeducted,
     this.remainingBalance,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    String? balanceInfo;
-    if (balanceDeducted != null) {
-      balanceInfo = '已抵扣余额 ${PriceCalculator.formatPrice(balanceDeducted!)}';
-      if (remainingBalance != null) {
-        balanceInfo += '，剩余 ${PriceCalculator.formatPrice(remainingBalance!)}';
-      }
-    }
-
     return Row(
       children: [
         Text(
-          '实付金额',
+          label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
             color: colorScheme.onSurface,
           ),
         ),
         const Spacer(),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              PriceCalculator.formatPrice(price),
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
-              ),
-            ),
-            if (balanceInfo != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                '($balanceInfo)',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ],
+        Text(
+          PriceCalculator.formatPrice(price),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.primary,
+          ),
         ),
       ],
     );

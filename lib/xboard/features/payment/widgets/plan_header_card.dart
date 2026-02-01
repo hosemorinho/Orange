@@ -30,65 +30,92 @@ class PlanHeaderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.primary,
+        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 左边：大图标（占两行高度）
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: colorScheme.onPrimary.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.workspace_premium,
-              color: colorScheme.onPrimary,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 12),
-          // 右边：上下两行
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // 第一行：套餐名字（稍大，居中）
-                Text(
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.workspace_premium,
+                  color: colorScheme.primary,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
                   plan.name,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: colorScheme.onPrimary,
+                    color: colorScheme.onSurface,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
-                // 第二行：流量 + 速率（居中）
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildCompactInfo(
-                      context,
-                      Icons.cloud_download_outlined,
-                      _getTrafficDisplay(context),
-                    ),
-                    const SizedBox(width: 10),
-                    _buildCompactInfo(
-                      context,
-                      Icons.speed,
-                      _getSpeedLimitDisplay(context),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildFeatureRow(
+            context,
+            Icons.cloud_download_outlined,
+            AppLocalizations.of(context).xboardTraffic,
+            _getTrafficDisplay(context),
+          ),
+          const SizedBox(height: 8),
+          _buildFeatureRow(
+            context,
+            Icons.speed,
+            AppLocalizations.of(context).xboardSpeedLimit,
+            _getSpeedLimitDisplay(context),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFeatureRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Icon(icon, color: colorScheme.primary, size: 18),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.primary,
+          ),
+        ),
+      ],
     );
   }
 
@@ -97,20 +124,20 @@ class PlanHeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: colorScheme.onPrimary.withValues(alpha: 0.15),
+        color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: colorScheme.onPrimary, size: 14),
+          Icon(icon, color: colorScheme.primary, size: 14),
           const SizedBox(width: 5),
           Text(
             text,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: colorScheme.onPrimary,
+              color: colorScheme.primary,
             ),
           ),
         ],

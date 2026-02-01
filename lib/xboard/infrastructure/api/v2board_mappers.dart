@@ -105,7 +105,7 @@ DomainPlan mapPlan(Map<String, dynamic> json) {
 
 /// V2Board /api/v1/user/order/fetch → DomainOrder
 ///
-/// V2Board total_amount 以分为单位
+/// V2Board amounts 以分为单位
 DomainOrder mapOrder(Map<String, dynamic> json) {
   return DomainOrder(
     tradeNo: json['trade_no'] as String? ?? '',
@@ -114,8 +114,21 @@ DomainOrder mapOrder(Map<String, dynamic> json) {
     totalAmount: _centsToYuan(json['total_amount']) ?? 0.0,
     status: OrderStatus.fromCode(json['status'] as int? ?? 0),
     planName: json['plan']?['name'] as String?,
+    planContent: json['plan']?['content'] as String?,
     createdAt: _parseTimestamp(json['created_at']) ?? DateTime.now(),
     paidAt: _parseTimestamp(json['paid_at']),
+    handlingAmount: _centsToYuan(json['handling_amount']) ?? 0.0,
+    balanceAmount: _centsToYuan(json['balance_amount']) ?? 0.0,
+    refundAmount: _centsToYuan(json['refund_amount']) ?? 0.0,
+    discountAmount: _centsToYuan(json['discount_amount']) ?? 0.0,
+    surplusAmount: _centsToYuan(json['surplus_amount']) ?? 0.0,
+    paymentId: json['payment_id'] as int?,
+    paymentName: json['payment']?['name'] as String?,
+    couponId: json['coupon_id'] as int?,
+    commissionStatus: json['commission_status'] != null
+      ? OrderCommissionStatus.fromCode(json['commission_status'] as int)
+      : null,
+    commissionBalance: _centsToYuan(json['commission_balance']) ?? 0.0,
   );
 }
 
@@ -202,6 +215,41 @@ DomainTicket mapTicket(Map<String, dynamic> json) {
 /// 直接返回原始 Map，由 config_state 使用
 Map<String, dynamic> mapGuestConfig(Map<String, dynamic> json) {
   return json;
+}
+
+// ================================================================
+// Invite
+// ================================================================
+
+/// V2Board /api/v1/user/invite/fetch (codes array) → DomainInviteCode
+DomainInviteCode mapInviteCode(Map<String, dynamic> json) {
+  return DomainInviteCode(
+    code: json['code'] as String? ?? '',
+    status: json['status'] as int? ?? 1,
+    commissionRate: (json['commission_rate'] as num?)?.toDouble() ?? 0.0,
+    commissionBalanceInCents: json['commission_balance'] as int? ?? 0,
+    registeredUsers: json['num'] as int? ?? 0,
+    pageViews: json['pv'] as int? ?? 0,
+    createdAt: _parseTimestamp(json['created_at']) ?? DateTime.now(),
+  );
+}
+
+/// V2Board /api/v1/user/invite/fetch (stat array) → DomainInviteStats
+///
+/// API returns: {"codes": [...], "stat": [reg_users, settled, pending, rate, available]}
+/// stat[0]: registered users count
+/// stat[1]: settled commission (cents)
+/// stat[2]: pending commission (cents)
+/// stat[3]: commission rate (percentage)
+/// stat[4]: available commission (cents)
+DomainInviteStats mapInviteStats(List<dynamic> stat) {
+  return DomainInviteStats(
+    registeredUsers: stat.isNotEmpty ? (stat[0] as int? ?? 0) : 0,
+    settledCommissionInCents: stat.length > 1 ? (stat[1] as int? ?? 0) : 0,
+    pendingCommissionInCents: stat.length > 2 ? (stat[2] as int? ?? 0) : 0,
+    commissionRate: stat.length > 3 ? (stat[3] as num?)?.toDouble() ?? 0.0 : 0.0,
+    availableCommissionInCents: stat.length > 4 ? (stat[4] as int? ?? 0) : 0,
+  );
 }
 
 // ================================================================

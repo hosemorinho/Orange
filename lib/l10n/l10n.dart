@@ -6079,6 +6079,12 @@ class AppLocalizations {
     return Intl.message('Login Now', name: 'loginNow', desc: '', args: []);
   }
 
+  /// `Don't have an account?`
+  String get noAccount {
+    return Intl.message('Don\'t have an account?',
+        name: 'noAccount', desc: '', args: []);
+  }
+
   /// `Invite`
   String get invite {
     return Intl.message('Invite', name: 'invite', desc: '', args: []);
@@ -7254,6 +7260,206 @@ class AppLocalizations {
     return Intl.message(
       'Share to LAN',
       name: 'xboardAllowLan',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quick Actions`
+  String get xboardQuickActions {
+    return Intl.message(
+      'Quick Actions',
+      name: 'xboardQuickActions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Purchase Plan`
+  String get xboardPurchaseSubscription {
+    return Intl.message(
+      'Purchase Plan',
+      name: 'xboardPurchaseSubscription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Browse available plans`
+  String get xboardBrowsePlans {
+    return Intl.message(
+      'Browse available plans',
+      name: 'xboardBrowsePlans',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `My Orders`
+  String get xboardMyOrders {
+    return Intl.message(
+      'My Orders',
+      name: 'xboardMyOrders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `View order history`
+  String get xboardViewOrders {
+    return Intl.message(
+      'View order history',
+      name: 'xboardViewOrders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Support Tickets`
+  String get xboardSupportTickets {
+    return Intl.message(
+      'Support Tickets',
+      name: 'xboardSupportTickets',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Get help from support`
+  String get xboardGetSupport {
+    return Intl.message(
+      'Get help from support',
+      name: 'xboardGetSupport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invite Friends`
+  String get xboardInviteFriends {
+    return Intl.message(
+      'Invite Friends',
+      name: 'xboardInviteFriends',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Earn commission by inviting`
+  String get xboardEarnCommission {
+    return Intl.message(
+      'Earn commission by inviting',
+      name: 'xboardEarnCommission',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Coming soon`
+  String get xboardComingSoon {
+    return Intl.message(
+      'Coming soon',
+      name: 'xboardComingSoon',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Server Status`
+  String get xboardServerStatus {
+    return Intl.message(
+      'Server Status',
+      name: 'xboardServerStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `servers online`
+  String get xboardServersOnline {
+    return Intl.message(
+      'servers online',
+      name: 'xboardServersOnline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `servers offline`
+  String get xboardServersOffline {
+    return Intl.message(
+      'servers offline',
+      name: 'xboardServersOffline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `online`
+  String get xboardOnline {
+    return Intl.message(
+      'online',
+      name: 'xboardOnline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `offline`
+  String get xboardOffline {
+    return Intl.message(
+      'offline',
+      name: 'xboardOffline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Server Name`
+  String get xboardServerName {
+    return Intl.message(
+      'Server Name',
+      name: 'xboardServerName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Server Host`
+  String get xboardServerHost {
+    return Intl.message(
+      'Server Host',
+      name: 'xboardServerHost',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Available`
+  String get xboardServerOnline {
+    return Intl.message(
+      'Available',
+      name: 'xboardServerOnline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unavailable`
+  String get xboardServerOffline {
+    return Intl.message(
+      'Unavailable',
+      name: 'xboardServerOffline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No server data available`
+  String get xboardNoServerData {
+    return Intl.message(
+      'No server data available',
+      name: 'xboardNoServerData',
       desc: '',
       args: [],
     );

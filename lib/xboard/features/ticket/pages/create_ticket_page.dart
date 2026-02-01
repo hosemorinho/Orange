@@ -45,97 +45,306 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final state = ref.watch(ticketProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('新建工单'),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              controller: _subjectController,
-              decoration: InputDecoration(
-                labelText: '主题',
-                hintText: '简要描述您的问题',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return '请输入主题';
-                }
-                return null;
-              },
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
-            const SizedBox(height: 16),
-            Text(
-              '优先级',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            SegmentedButton<int>(
-              segments: const [
-                ButtonSegment(value: 0, label: Text('低'), icon: Icon(Icons.arrow_downward, size: 16)),
-                ButtonSegment(value: 1, label: Text('中'), icon: Icon(Icons.remove, size: 16)),
-                ButtonSegment(value: 2, label: Text('高'), icon: Icon(Icons.arrow_upward, size: 16)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSubjectField(theme, colorScheme),
+                const SizedBox(height: 24),
+                _buildPrioritySelector(theme, colorScheme),
+                const SizedBox(height: 24),
+                _buildMessageField(theme, colorScheme),
+                const SizedBox(height: 24),
+                _buildActionButtons(theme, colorScheme, state),
               ],
-              selected: {_priority},
-              onSelectionChanged: (selected) {
-                setState(() {
-                  _priority = selected.first;
-                });
-              },
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _messageController,
-              decoration: InputDecoration(
-                labelText: '详细描述',
-                hintText: '请详细描述您遇到的问题...',
-                alignLabelWithHint: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              maxLines: 8,
-              minLines: 5,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return '请输入详细描述';
-                }
-                return null;
-              },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubjectField(ThemeData theme, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '主题',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _subjectController,
+          decoration: InputDecoration(
+            hintText: '简要描述您的问题',
+            filled: true,
+            fillColor: colorScheme.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
             ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: state.isSubmitting ? null : _submit,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.5),
               ),
-              child: state.isSubmitting
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: theme.colorScheme.onPrimary,
-                      ),
-                    )
-                  : const Text('提交工单'),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.5),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: colorScheme.error,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: colorScheme.error,
+                width: 2,
+              ),
+            ),
+          ),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return '请输入主题';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPrioritySelector(ThemeData theme, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '优先级',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _buildPriorityOption(
+              colorScheme: colorScheme,
+              value: 0,
+              label: '低',
+              icon: Icons.arrow_downward,
+              color: colorScheme.primary,
+            ),
+            const SizedBox(width: 12),
+            _buildPriorityOption(
+              colorScheme: colorScheme,
+              value: 1,
+              label: '中',
+              icon: Icons.remove,
+              color: colorScheme.secondary,
+            ),
+            const SizedBox(width: 12),
+            _buildPriorityOption(
+              colorScheme: colorScheme,
+              value: 2,
+              label: '高',
+              icon: Icons.arrow_upward,
+              color: colorScheme.error,
             ),
           ],
         ),
+      ],
+    );
+  }
+
+  Widget _buildPriorityOption({
+    required ColorScheme colorScheme,
+    required int value,
+    required String label,
+    required IconData icon,
+    required Color color,
+  }) {
+    final isSelected = _priority == value;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _priority = value),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? color : colorScheme.outlineVariant,
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: isSelected ? color : colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? color : colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildMessageField(ThemeData theme, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '详细描述',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _messageController,
+          maxLines: 8,
+          decoration: InputDecoration(
+            hintText: '请详细描述您遇到的问题...',
+            filled: true,
+            fillColor: colorScheme.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.5),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.5),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: colorScheme.error,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: colorScheme.error,
+                width: 2,
+              ),
+            ),
+          ),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return '请输入详细描述';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    TicketState state,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: state.isSubmitting ? null : () => context.pop(),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('取消'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: FilledButton(
+            onPressed: state.isSubmitting ? null : _submit,
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: state.isSubmitting
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colorScheme.onPrimary,
+                    ),
+                  )
+                : const Text('提交工单'),
+          ),
+        ),
+      ],
     );
   }
 }

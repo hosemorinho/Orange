@@ -27,6 +27,7 @@ class XBoardStorageService {
   static const String _savedPasswordKey = 'xboard_saved_password';
   static const String _rememberPasswordKey = 'xboard_remember_password';
   static const String _noticeDialogReadPrefix = 'xboard_notice_dialog_read_'; // 前缀 + noticeId
+  static const String _noticeBannerDismissedKey = 'xboard_notice_banner_dismissed_until'; // 通知横幅关闭时间戳
 
 
   Future<Result<bool>> saveUserEmail(String email) async {
@@ -224,6 +225,18 @@ class XBoardStorageService {
 
     // 如果超过24小时，需要显示
     return difference.inHours >= 24;
+  }
+
+  // ===== 通知横幅关闭时间戳 =====
+
+  /// 保存通知横幅关闭时间戳
+  Future<Result<bool>> saveDismissalTimestamp(int timestamp) async {
+    return await _storage.setInt(_noticeBannerDismissedKey, timestamp);
+  }
+
+  /// 获取通知横幅关闭时间戳
+  Future<Result<int?>> getDismissalTimestamp() async {
+    return await _storage.getInt(_noticeBannerDismissedKey);
   }
 }
 

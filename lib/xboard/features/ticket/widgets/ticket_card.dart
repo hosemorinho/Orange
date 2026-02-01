@@ -14,116 +14,127 @@ class TicketCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final statusInfo = _getStatusInfo(ticket.status, theme);
     final priorityInfo = _getPriorityInfo(ticket.priority, theme);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: theme.colorScheme.outline.withValues(alpha: 0.1),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
         ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      ticket.subject,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    ticket.subject,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusInfo.color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Text(
+                    statusInfo.label,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: statusInfo.color,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (ticket.lastMessage != null)
+              Text(
+                ticket.lastMessage!.content,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: priorityInfo.color.withValues(alpha: 0.4),
+                    ),
+                    color: priorityInfo.color.withValues(alpha: 0.08),
+                  ),
+                  child: Text(
+                    priorityInfo.label,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: priorityInfo.color,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.access_time,
+                  size: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _formatTime(ticket.updatedAt ?? ticket.createdAt),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                if (ticket.unreadCount > 0) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
-                      color: statusInfo.color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
+                      color: colorScheme.primary,
+                      borderRadius: BorderRadius.circular(100),
                     ),
                     child: Text(
-                      statusInfo.label,
+                      '${ticket.unreadCount}',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: statusInfo.color,
+                        color: colorScheme.onPrimary,
+                        fontSize: 10,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 8),
-              if (ticket.lastMessage != null)
-                Text(
-                  ticket.lastMessage!.content,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: priorityInfo.color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      priorityInfo.label,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: priorityInfo.color,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Icon(
-                    Icons.access_time,
-                    size: 12,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _formatTime(ticket.updatedAt ?? ticket.createdAt),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  if (ticket.unreadCount > 0) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${ticket.unreadCount}',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onPrimary,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );

@@ -154,13 +154,13 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
     final statusInfo = _getStatusInfo(ticket.status);
 
     return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
-        border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outline.withValues(alpha: 0.1),
-          ),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
       ),
       child: Row(
@@ -320,11 +320,26 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.primary,
+                    width: 2,
+                  ),
                 ),
                 filled: true,
-                fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                fillColor: theme.colorScheme.surface,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
               maxLines: 3,

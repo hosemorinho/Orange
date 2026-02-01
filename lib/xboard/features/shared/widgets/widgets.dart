@@ -9,5 +9,6 @@ export 'tun_introduction_dialog.dart';
 export 'user_menu_widget.dart';
 export 'xb_card.dart';
 export 'xb_container.dart';
+export 'xb_dashboard_card.dart';
 export 'xb_input_field.dart';
 export 'xboard_outbound_mode.dart';

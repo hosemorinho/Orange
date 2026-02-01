@@ -9,28 +9,61 @@ class DomainOrder with _$DomainOrder {
   const factory DomainOrder({
     /// 订单号（交易号）
     required String tradeNo,
-    
+
     /// 套餐 ID
     required int planId,
-    
+
     /// 周期类型
     required String period,
-    
+
     /// 订单金额（元）
     required double totalAmount,
-    
+
     /// 订单状态
     required OrderStatus status,
-    
+
     /// 套餐名称（可选）
     String? planName,
-    
+
+    /// 套餐内容（HTML，可选）
+    String? planContent,
+
     /// 创建时间
     required DateTime createdAt,
-    
+
     /// 支付时间
     DateTime? paidAt,
-    
+
+    /// 手续费（元）
+    @Default(0) double handlingAmount,
+
+    /// 余额支付金额（元）
+    @Default(0) double balanceAmount,
+
+    /// 退款金额（元）
+    @Default(0) double refundAmount,
+
+    /// 折扣金额（元）
+    @Default(0) double discountAmount,
+
+    /// 剩余金额（元）
+    @Default(0) double surplusAmount,
+
+    /// 支付方式 ID
+    int? paymentId,
+
+    /// 支付方式名称
+    String? paymentName,
+
+    /// 优惠券 ID
+    int? couponId,
+
+    /// 佣金状态
+    OrderCommissionStatus? commissionStatus,
+
+    /// 佣金余额（元）
+    @Default(0) double commissionBalance,
+
     /// 元数据
     @Default({}) Map<String, dynamic> metadata,
   }) = _DomainOrder;

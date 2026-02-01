@@ -5,16 +5,15 @@ import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/auth_scaffold.dart';
+import '../widgets/auth_alert.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
-  @override
-  ConsumerState<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
-}
 
-enum ResetPasswordStep {
-  sendCode,    // 发送验证码步骤
-  resetPassword // 重置密码步骤
+  @override
+  ConsumerState<ForgotPasswordPage> createState() =>
+      _ForgotPasswordPageState();
 }
 
 class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
@@ -22,382 +21,472 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final _emailController = TextEditingController();
   final _codeController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
 
-  ResetPasswordStep _currentStep = ResetPasswordStep.sendCode;
   bool _isLoading = false;
+  bool _isSendingCode = false;
+  bool _codeSent = false;
+  bool _isSuccess = false;
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  int _countdown = 0;
+
+  // Alert state for inline notifications
+  AuthAlertType? _alertType;
+  String? _alertMessage;
 
   @override
   void dispose() {
     _emailController.dispose();
     _codeController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _sendVerificationCode() async {
-    if (!_formKey.currentState!.validate()) {
+    // Validate email only
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      XBoardNotification.showError(
+          AppLocalizations.of(context).pleaseEnterEmail);
+      return;
+    }
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      XBoardNotification.showError(
+          AppLocalizations.of(context).pleaseEnterValidEmail);
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isSendingCode = true);
     try {
-      // 使用 V2Board API 发送验证码
       final api = await ref.read(xboardSdkProvider.future);
       await api.sendEmailVerify(_emailController.text);
-
       if (mounted) {
-        setState(() {
-          _currentStep = ResetPasswordStep.resetPassword;
-        });
-        XBoardNotification.showSuccess(AppLocalizations.of(context).verificationCodeSent);
+        setState(() => _codeSent = true);
+        XBoardNotification.showSuccess(
+            AppLocalizations.of(context).verificationCodeSent);
+        _startCountdown();
       }
     } catch (e) {
       if (mounted) {
-        XBoardNotification.showError('${AppLocalizations.of(context).sendCodeFailed}: $e');
+        XBoardNotification.showError(
+            '${AppLocalizations.of(context).sendCodeFailed}: $e');
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isSendingCode = false);
     }
   }
 
-  Future<void> _resetPassword() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (_passwordController.text != _confirmPasswordController.text) {
-      XBoardNotification.showError(AppLocalizations.of(context).passwordMismatch);
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
+  void _startCountdown() {
+    setState(() => _countdown = 60);
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return false;
+      setState(() => _countdown--);
+      return _countdown > 0;
     });
+  }
 
+  Future<void> _resetPassword() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (!_codeSent) {
+      XBoardNotification.showError(
+          AppLocalizations.of(context).sendVerificationCode);
+      return;
+    }
+
+    setState(() => _isLoading = true);
     try {
-      // 使用 V2Board API 重置密码
       final api = await ref.read(xboardSdkProvider.future);
       await api.forget(
         _emailController.text,
         _codeController.text,
         _passwordController.text,
       );
-
       if (mounted) {
-        XBoardNotification.showSuccess(AppLocalizations.of(context).passwordResetSuccessful);
-        context.pop();
+        setState(() {
+          _isSuccess = true;
+          _alertType = AuthAlertType.success;
+          _alertMessage =
+              AppLocalizations.of(context).passwordResetSuccessful;
+        });
+        XBoardNotification.showSuccess(
+            AppLocalizations.of(context).passwordResetSuccessful);
       }
     } catch (e) {
       if (mounted) {
-        XBoardNotification.showError('${AppLocalizations.of(context).passwordResetFailed}: $e');
+        setState(() {
+          _alertType = AuthAlertType.error;
+          _alertMessage =
+              '${AppLocalizations.of(context).passwordResetFailed}: $e';
+        });
+        XBoardNotification.showError(
+            '${AppLocalizations.of(context).passwordResetFailed}: $e');
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  void _goBackToSendCode() {
-    setState(() {
-      _currentStep = ResetPasswordStep.sendCode;
-      _codeController.clear();
-      _passwordController.clear();
-      _confirmPasswordController.clear();
-    });
-  }
-  Widget _buildSendCodeStep() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          AppLocalizations.of(context).enterEmailForReset,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 32),
-        XBInputField(
-          controller: _emailController,
-          labelText: AppLocalizations.of(context).emailAddress,
-          hintText: AppLocalizations.of(context).pleaseEnterEmail,
-          prefixIcon: Icons.email_outlined,
-          keyboardType: TextInputType.emailAddress,
-          enabled: !_isLoading,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return AppLocalizations.of(context).pleaseEnterEmail;
-            }
-            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-              return AppLocalizations.of(context).pleaseEnterValidEmail;
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 32),
-        SizedBox(
-          width: double.infinity,
-          height: 48,
-          child: _isLoading
-              ? ElevatedButton(
-                  onPressed: null,
-                  child: const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
-                  ),
-                )
-              : ElevatedButton(
-                  onPressed: _sendVerificationCode,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context).sendVerificationCode,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildResetPasswordStep() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          AppLocalizations.of(context).verificationCodeSentTo(_emailController.text),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 32),
-        XBInputField(
-          controller: _codeController,
-          labelText: AppLocalizations.of(context).verificationCode,
-          hintText: AppLocalizations.of(context).pleaseEnterVerificationCode,
-          prefixIcon: Icons.verified_user_outlined,
-          keyboardType: TextInputType.number,
-          enabled: !_isLoading,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return AppLocalizations.of(context).pleaseEnterVerificationCode;
-            }
-            if (value.length < 4) {
-              return AppLocalizations.of(context).pleaseEnterValidVerificationCode;
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        XBInputField(
-          controller: _passwordController,
-          labelText: AppLocalizations.of(context).newPassword,
-          hintText: AppLocalizations.of(context).pleaseEnterNewPassword,
-          prefixIcon: Icons.lock_outlined,
-          obscureText: _obscurePassword,
-          enabled: !_isLoading,
-          suffixIcon: IconButton(
-            icon: Icon(
-              _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-            ),
-            onPressed: () {
-              setState(() {
-                _obscurePassword = !_obscurePassword;
-              });
-            },
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return AppLocalizations.of(context).pleaseEnterNewPassword;
-            }
-            if (value.length < 6) {
-              return AppLocalizations.of(context).passwordMinLength;
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        XBInputField(
-          controller: _confirmPasswordController,
-          labelText: AppLocalizations.of(context).confirmNewPassword,
-          hintText: AppLocalizations.of(context).pleaseConfirmNewPassword,
-          prefixIcon: Icons.lock_outlined,
-          obscureText: _obscureConfirmPassword,
-          enabled: !_isLoading,
-          suffixIcon: IconButton(
-            icon: Icon(
-              _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-            ),
-            onPressed: () {
-              setState(() {
-                _obscureConfirmPassword = !_obscureConfirmPassword;
-              });
-            },
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return AppLocalizations.of(context).pleaseConfirmNewPassword;
-            }
-            if (value != _passwordController.text) {
-              return AppLocalizations.of(context).passwordMismatch;
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 32),
-        SizedBox(
-          width: double.infinity,
-          height: 48,
-          child: _isLoading
-              ? ElevatedButton(
-                  onPressed: null,
-                  child: const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
-                  ),
-                )
-              : ElevatedButton(
-                  onPressed: _resetPassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context).resetPassword,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-        ),
-        const SizedBox(height: 16),
-        TextButton(
-          onPressed: _isLoading ? null : _goBackToSendCode,
-          child: Text(
-            AppLocalizations.of(context).resendVerificationCode,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: XBContainer(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      if (_currentStep == ResetPasswordStep.resetPassword) {
-                        _goBackToSendCode();
-                      } else {
-                        context.pop();
-                      }
-                    },
-                    icon: const Icon(Icons.arrow_back),
-                    style: IconButton.styleFrom(
-                      backgroundColor: colorScheme.surfaceContainerLow,
-                    ),
+    final textTheme = Theme.of(context).textTheme;
+
+    return AuthScaffold(
+      showBackButton: true,
+      onBack: () => context.pop(),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header: key icon + title + subtitle (matching frontend)
+          Center(
+            child: Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.vpn_key_rounded,
+                size: 32,
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            AppLocalizations.of(context).resetPassword,
+            style: textTheme.headlineMedium?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            AppLocalizations.of(context).enterEmailForReset,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+
+          // Alert notification (matching frontend inline alert)
+          if (_alertMessage != null && !_isSuccess) ...[
+            AuthAlert(
+              type: _alertType!,
+              message: _alertMessage!,
+              onClose: () => setState(() => _alertMessage = null),
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          // Success state (matching frontend)
+          if (_isSuccess) ...[
+            Center(
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  // Frontend uses bg-success/10 (green), not tertiary (pink-purple)
+                  color: const Color(0xFF10b981).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_rounded,
+                  size: 32,
+                  color: Color(0xFF10b981), // success green
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              AppLocalizations.of(context).passwordResetSuccessful,
+              style: textTheme.titleMedium?.copyWith(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _emailController.text,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 44,
+              child: OutlinedButton(
+                onPressed: () => context.pop(),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: colorScheme.primary),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(width: 16),
-                  Text(
-                    _currentStep == ResetPasswordStep.sendCode ? AppLocalizations.of(context).resetPassword : AppLocalizations.of(context).setNewPassword,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
+                ),
+                child: Text(
+                  AppLocalizations.of(context).backToLogin,
+                  style: TextStyle(color: colorScheme.primary),
+                ),
+              ),
+            ),
+          ] else ...[
+            // Form: single page (matching frontend ForgotPasswordForm)
+            Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Email
+                  XBInputField(
+                    controller: _emailController,
+                    labelText: AppLocalizations.of(context).emailAddress,
+                    hintText: AppLocalizations.of(context).pleaseEnterEmail,
+                    keyboardType: TextInputType.emailAddress,
+                    enabled: !_isLoading,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppLocalizations.of(context).pleaseEnterEmail;
+                      }
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                          .hasMatch(value)) {
+                        return AppLocalizations.of(context)
+                            .pleaseEnterValidEmail;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // New Password
+                  XBInputField(
+                    controller: _passwordController,
+                    labelText: AppLocalizations.of(context).newPassword,
+                    hintText:
+                        AppLocalizations.of(context).pleaseEnterNewPassword,
+                    obscureText: _obscurePassword,
+                    enabled: !_isLoading,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        setState(
+                            () => _obscurePassword = !_obscurePassword);
+                      },
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppLocalizations.of(context)
+                            .pleaseEnterNewPassword;
+                      }
+                      if (value.length < 6) {
+                        return AppLocalizations.of(context).passwordMinLength;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Email code + send button (matching frontend inline pattern)
+                  _buildEmailCodeField(context, colorScheme, textTheme),
+                  const SizedBox(height: 24),
+
+                  // Submit button
+                  SizedBox(
+                    height: 44,
+                    child: FilledButton(
+                      onPressed: !_isLoading ? _resetPassword : null,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        disabledBackgroundColor:
+                            colorScheme.primary.withValues(alpha: 0.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isLoading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.onPrimary,
+                              ),
+                            )
+                          : Text(
+                              AppLocalizations.of(context).resetPassword,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                     ),
                   ),
                 ],
               ),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (_currentStep == ResetPasswordStep.sendCode)
-                          _buildSendCodeStep()
-                        else
-                          _buildResetPasswordStep(),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              AppLocalizations.of(context).rememberPassword,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () => context.pop(),
-                              child: Text(
-                                AppLocalizations.of(context).backToLogin,
-                                style: TextStyle(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
+            const SizedBox(height: 24),
+
+            // Footer: "Back to Login"
+            Center(
+              child: GestureDetector(
+                onTap: () => context.pop(),
+                child: Text(
+                  AppLocalizations.of(context).backToLogin,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ),
           ],
-        ),
+        ],
       ),
+    );
+  }
+
+  /// Email code field with inline send/resend button
+  /// Matching frontend pattern: flex gap-2, input flex-1 + Button variant=outline
+  Widget _buildEmailCodeField(
+      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          AppLocalizations.of(context).verificationCode,
+          style: textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _codeController,
+                keyboardType: TextInputType.number,
+                enabled: _codeSent && !_isLoading,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context)
+                      .pleaseEnterVerificationCode,
+                  hintStyle: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  ),
+                  filled: true,
+                  fillColor: (_codeSent && !_isLoading)
+                      ? colorScheme.surface
+                      : colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.3),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: colorScheme.error),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
+                  isDense: true,
+                ),
+                validator: (value) {
+                  if (!_codeSent) {
+                    return AppLocalizations.of(context).sendVerificationCode;
+                  }
+                  if (value == null || value.isEmpty) {
+                    return AppLocalizations.of(context)
+                        .pleaseEnterVerificationCode;
+                  }
+                  if (value.length < 4) {
+                    return AppLocalizations.of(context)
+                        .pleaseEnterValidVerificationCode;
+                  }
+                  return null;
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Send/Resend code button (matching: Button variant=outline)
+            SizedBox(
+              height: 44,
+              child: OutlinedButton(
+                onPressed: (_countdown > 0 || _isSendingCode)
+                    ? null
+                    : _sendVerificationCode,
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: colorScheme.primary),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: _isSendingCode
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colorScheme.primary,
+                        ),
+                      )
+                    : Text(
+                        _countdown > 0
+                            ? '${_countdown}s'
+                            : _codeSent
+                                ? AppLocalizations.of(context)
+                                    .resendVerificationCode
+                                : AppLocalizations.of(context)
+                                    .sendVerificationCode,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

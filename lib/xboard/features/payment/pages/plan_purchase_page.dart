@@ -424,6 +424,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   Widget build(BuildContext context) {
     final periods = _getAvailablePeriods(context);
     final currentPrice = _getCurrentPrice();
+    final colorScheme = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktopLayout = screenWidth > 900;
     // 用于判断平台类型
     final isPlatformDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
@@ -431,90 +434,13 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(
-          maxWidth: 700,
+          maxWidth: 1200,
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-              // 套餐信息卡片
-              PlanHeaderCard(plan: widget.plan),
-              const SizedBox(height: 20),
-
-              // 周期选择器
-              PeriodSelector(
-                periods: periods,
-                selectedPeriod: _selectedPeriod,
-                onPeriodSelected: (period) {
-                          setState(() {
-                    _selectedPeriod = period;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // 价格汇总
-              if (_selectedPeriod != null)
-                PriceSummaryCard(
-                  originalPrice: currentPrice,
-                  finalPrice: null,
-                  discountAmount: null,
-                  userBalance: _userBalance,
-                ),
-              const SizedBox(height: 20),
-
-              // 确认购买按钮
-            SizedBox(
-              width: double.infinity,
-                height: 54,
-              child: Consumer(
-                builder: (context, ref, child) {
-                  final paymentState = ref.watch(userUIStateProvider);
-                  final buttonColorScheme = Theme.of(context).colorScheme;
-                  return FilledButton.tonal(
-                      onPressed: paymentState.isLoading ? null : _proceedToPurchase,
-                    style: FilledButton.styleFrom(
-                        backgroundColor: buttonColorScheme.primaryContainer,
-                      foregroundColor: buttonColorScheme.onPrimaryContainer,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    child: paymentState.isLoading
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(buttonColorScheme.onPrimaryContainer),
-                                ),
-                              ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  AppLocalizations.of(context).xboardProcessing,
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                            ],
-                          )
-                        : Text(
-                            AppLocalizations.of(context).xboardConfirmPurchase,
-                            style: const TextStyle(
-                                fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                            ),
-                          ),
-                  );
-                },
-              ),
-            ),
-              const SizedBox(height: 16),
-          ],
-          ),
+          child: isDesktopLayout
+              ? _buildTwoColumnLayout(context, periods, currentPrice, colorScheme)
+              : _buildSingleColumnLayout(context, periods, currentPrice, colorScheme),
         ),
       ),
     );
@@ -530,6 +456,212 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         title: Text(AppLocalizations.of(context).xboardPurchaseSubscription),
       ),
       body: content,
+    );
+  }
+
+  // Two-column layout for desktop
+  Widget _buildTwoColumnLayout(
+    BuildContext context,
+    List<Map<String, dynamic>> periods,
+    double currentPrice,
+    ColorScheme colorScheme,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left column: Plan summary
+        Expanded(
+          flex: 5,
+          child: Column(
+            children: [
+              _buildPlanSummaryCard(context, colorScheme),
+              const SizedBox(height: 16),
+              _buildPeriodSelectorCard(context, periods, colorScheme),
+            ],
+          ),
+        ),
+        const SizedBox(width: 20),
+        // Right column: Payment details
+        Expanded(
+          flex: 7,
+          child: Column(
+            children: [
+              _buildPaymentDetailsCard(context, currentPrice, colorScheme),
+              const SizedBox(height: 16),
+              _buildActionButtons(context, colorScheme),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Single-column layout for mobile
+  Widget _buildSingleColumnLayout(
+    BuildContext context,
+    List<Map<String, dynamic>> periods,
+    double currentPrice,
+    ColorScheme colorScheme,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildPlanSummaryCard(context, colorScheme),
+        const SizedBox(height: 16),
+        _buildPeriodSelectorCard(context, periods, colorScheme),
+        const SizedBox(height: 16),
+        _buildPaymentDetailsCard(context, currentPrice, colorScheme),
+        const SizedBox(height: 16),
+        _buildActionButtons(context, colorScheme),
+      ],
+    );
+  }
+
+  // Plan summary card
+  Widget _buildPlanSummaryCard(BuildContext context, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppLocalizations.of(context).xboardPlanSummary,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          PlanHeaderCard(plan: widget.plan),
+        ],
+      ),
+    );
+  }
+
+  // Period selector card
+  Widget _buildPeriodSelectorCard(
+    BuildContext context,
+    List<Map<String, dynamic>> periods,
+    ColorScheme colorScheme,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: PeriodSelector(
+        periods: periods,
+        selectedPeriod: _selectedPeriod,
+        onPeriodSelected: (period) {
+          setState(() {
+            _selectedPeriod = period;
+          });
+        },
+      ),
+    );
+  }
+
+  // Payment details card
+  Widget _buildPaymentDetailsCard(
+    BuildContext context,
+    double currentPrice,
+    ColorScheme colorScheme,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppLocalizations.of(context).xboardPaymentDetails,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Price summary
+          if (_selectedPeriod != null)
+            PriceSummaryCard(
+              originalPrice: currentPrice,
+              finalPrice: null,
+              discountAmount: null,
+              userBalance: _userBalance,
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Action buttons
+  Widget _buildActionButtons(BuildContext context, ColorScheme colorScheme) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: Consumer(
+        builder: (context, ref, child) {
+          final paymentState = ref.watch(userUIStateProvider);
+          return FilledButton.tonal(
+            onPressed: paymentState.isLoading ? null : _proceedToPurchase,
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.primaryContainer,
+              foregroundColor: colorScheme.onPrimaryContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: paymentState.isLoading
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        AppLocalizations.of(context).xboardProcessing,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  )
+                : Text(
+                    AppLocalizations.of(context).xboardContinueToPayment,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+          );
+        },
+      ),
     );
   }
 }

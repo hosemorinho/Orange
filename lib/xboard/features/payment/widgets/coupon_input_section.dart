@@ -120,12 +120,6 @@ class _CouponTextField extends StatelessWidget {
     this.isValid,
   });
 
-  Color _getBorderColor(ColorScheme colorScheme) {
-    if (isValid == false) return colorScheme.error.withValues(alpha: 0.3);
-    if (isValid == true) return colorScheme.tertiary.withValues(alpha: 0.7);
-    return colorScheme.outlineVariant;
-  }
-
   Color _getIconColor(ColorScheme colorScheme) {
     if (isValid == false) return colorScheme.error.withValues(alpha: 0.7);
     if (isValid == true) return colorScheme.tertiary.withValues(alpha: 0.7);
@@ -135,16 +129,8 @@ class _CouponTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _getBorderColor(colorScheme),
-          width: 1.5,
-        ),
-      ),
+    return SizedBox(
+      height: 44,
       child: TextField(
         controller: controller,
         style: TextStyle(
@@ -154,7 +140,27 @@ class _CouponTextField extends StatelessWidget {
           letterSpacing: 0.5,
         ),
         decoration: InputDecoration(
-          border: InputBorder.none,
+          filled: true,
+          fillColor: colorScheme.surface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(
+              color: colorScheme.outline.withValues(alpha: 0.5),
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(
+              color: colorScheme.outline.withValues(alpha: 0.5),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(
+              color: colorScheme.primary,
+              width: 2,
+            ),
+          ),
           hintText: AppLocalizations.of(context).xboardEnterCouponCode,
           hintStyle: TextStyle(
             color: colorScheme.outline,
@@ -175,7 +181,7 @@ class _CouponTextField extends StatelessWidget {
               : null,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
-            vertical: 14,
+            vertical: 12,
           ),
         ),
         onChanged: (_) => onChanged(),
@@ -197,22 +203,19 @@ class _ValidateButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
-      height: 48,
-      child: ElevatedButton(
+      height: 44,
+      child: OutlinedButton(
         onPressed: isValidating
             ? null
             : () {
-                // 收起键盘
                 FocusScope.of(context).unfocus();
-                // 执行验证
                 onPressed();
               },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.secondary,
-          foregroundColor: colorScheme.onSecondary,
-          elevation: 0,
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: colorScheme.primary),
+          foregroundColor: colorScheme.primary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20),
         ),
@@ -222,7 +225,7 @@ class _ValidateButton extends StatelessWidget {
                 height: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onSecondary),
+                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                 ),
               )
             : Text(

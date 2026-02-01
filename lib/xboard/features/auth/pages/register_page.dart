@@ -8,14 +8,19 @@ import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/infrastructure/api/api.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/auth_scaffold.dart';
+import '../widgets/auth_alert.dart';
+
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
+
   @override
   ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
+
 class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailPrefixController = TextEditingController(); // 邮箱前缀（@之前的部分）
+  final _emailPrefixController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _inviteCodeController = TextEditingController();
@@ -24,16 +29,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isSendingEmailCode = false;
-  String? _selectedEmailSuffix; // 选中的邮箱后缀
+  int _countdown = 0;
+  String? _selectedEmailSuffix;
+
+  // Alert state for inline notifications
+  AuthAlertType? _alertType;
+  String? _alertMessage;
 
   @override
   void initState() {
     super.initState();
-    // 监听邮箱前缀输入，实时更新预览
     _emailPrefixController.addListener(() {
-      setState(() {
-        // 触发重建以更新完整邮箱预览
-      });
+      setState(() {});
     });
   }
 
@@ -47,84 +54,75 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     super.dispose();
   }
 
-  /// 获取完整的邮箱地址
   String get _fullEmail {
     final prefix = _emailPrefixController.text.trim();
     final suffix = _selectedEmailSuffix ?? '';
     if (prefix.isEmpty || suffix.isEmpty) return '';
     return '$prefix@$suffix';
   }
+
   Future<void> _register() async {
-    // 获取配置
     final configAsync = ref.read(configProvider);
     final config = configAsync.value;
     final isInviteForce = config?['is_invite_force'] == 1;
     final isEmailVerify = config?['is_email_verify'] == 1;
 
-    // 检查邀请码是否必填
     if (isInviteForce && _inviteCodeController.text.trim().isEmpty) {
       _showInviteCodeDialog();
       return;
     }
 
-    // 检查邮箱验证码是否必填
     if (isEmailVerify && _emailCodeController.text.trim().isEmpty) {
-      XBoardNotification.showError('请输入邮箱验证码');
+      XBoardNotification.showError(
+          appLocalizations.pleaseEnterEmailVerificationCode);
       return;
     }
 
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isRegistering = true;
-      });
+      setState(() => _isRegistering = true);
       try {
-        // 使用 V2Board API 注册
         final api = await ref.read(xboardSdkProvider.future);
         final json = await api.register(
-          _fullEmail, // 使用组合后的完整邮箱
+          _fullEmail,
           _passwordController.text,
           inviteCode: _inviteCodeController.text.trim().isNotEmpty
               ? _inviteCodeController.text
               : null,
-          emailCode: isEmailVerify && _emailCodeController.text.trim().isNotEmpty
-              ? _emailCodeController.text
-              : null,
+          emailCode:
+              isEmailVerify && _emailCodeController.text.trim().isNotEmpty
+                  ? _emailCodeController.text
+                  : null,
         );
 
-        // V2Board register returns token on success
         final data = json['data'] as Map<String, dynamic>? ?? {};
         final token = data['token'] as String?;
         if (token != null && token.isNotEmpty) {
           await api.saveAndSetToken(token);
         }
 
-        // 注册成功
         if (mounted) {
           final storageService = ref.read(storageServiceProvider);
           await storageService.saveCredentials(
-            _fullEmail, // 使用完整邮箱保存凭据
-            _passwordController.text,
-            true, // 启用记住密码
-          );
+              _fullEmail, _passwordController.text, true);
           if (mounted) {
-            XBoardNotification.showSuccess(appLocalizations.xboardRegisterSuccess);
+            setState(() {
+              _alertType = AuthAlertType.success;
+              _alertMessage = appLocalizations.xboardRegisterSuccess;
+            });
+            XBoardNotification.showSuccess(
+                appLocalizations.xboardRegisterSuccess);
           }
           Future.delayed(const Duration(seconds: 1), () {
-            if (mounted) {
-              context.pop();
-            }
+            if (mounted) context.pop();
           });
         }
       } catch (e) {
         if (mounted) {
-          // 提取详细的错误信息
-          String errorMessage = '注册失败';
-
+          String errorMessage = appLocalizations.xboardRegisterFailed;
           if (e is V2BoardApiException) {
             errorMessage = e.message;
           } else {
             final errorStr = e.toString();
-            // 移除可能的 "Error: " 前缀
             if (errorStr.startsWith('Error: ')) {
               errorMessage = errorStr.substring(7);
             } else if (errorStr.startsWith('Exception: ')) {
@@ -133,20 +131,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               errorMessage = errorStr;
             }
           }
-
-          // 500错误或通用错误提示：可能是邀请码问题
-          if (errorMessage.contains('遇到了些问题') || errorMessage.contains('500')) {
+          if (errorMessage.contains('遇到了些问题') ||
+              errorMessage.contains('500')) {
             errorMessage = appLocalizations.inviteCodeIncorrect;
           }
-
+          setState(() {
+            _alertType = AuthAlertType.error;
+            _alertMessage = errorMessage;
+          });
           XBoardNotification.showError(errorMessage);
         }
       } finally {
-        if (mounted) {
-          setState(() {
-            _isRegistering = false;
-          });
-        }
+        if (mounted) setState(() => _isRegistering = false);
       }
     }
   }
@@ -156,217 +152,38 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       XBoardNotification.showError(appLocalizations.pleaseEnterEmailAddress);
       return;
     }
-
     if (_selectedEmailSuffix == null || _selectedEmailSuffix!.isEmpty) {
       XBoardNotification.showError(appLocalizations.pleaseSelectEmailSuffix);
       return;
     }
 
-    setState(() {
-      _isSendingEmailCode = true;
-    });
-
+    setState(() => _isSendingEmailCode = true);
     try {
-      // 使用 V2Board API 发送验证码
       final api = await ref.read(xboardSdkProvider.future);
       await api.sendEmailVerify(_fullEmail);
-
       if (mounted) {
-        XBoardNotification.showSuccess(appLocalizations.verificationCodeSentCheckEmail);
+        XBoardNotification.showSuccess(
+            appLocalizations.verificationCodeSentCheckEmail);
+        _startCountdown();
       }
     } catch (e) {
       if (mounted) {
-        XBoardNotification.showError(appLocalizations.sendVerificationCodeFailed(e.toString()));
+        XBoardNotification.showError(
+            appLocalizations.sendVerificationCodeFailed(e.toString()));
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isSendingEmailCode = false;
-        });
-      }
+      if (mounted) setState(() => _isSendingEmailCode = false);
     }
   }
 
-  /// 构建邮箱输入组件（前缀 + 后缀选择）
-  Widget _buildEmailInput(BuildContext context, ColorScheme colorScheme, Map<String, dynamic>? config) {
-    // 获取邮箱后缀白名单
-    final emailSuffixes = (config?['email_whitelist_suffix'] as List<dynamic>?)
-        ?.map((e) => e.toString())
-        .toList() ?? [];
-
-    // 如果配置中没有白名单，使用默认列表
-    if (emailSuffixes.isEmpty) {
-      emailSuffixes.addAll([
-        'gmail.com',
-        'outlook.com',
-        'qq.com',
-        '163.com',
-        'foxmail.com',
-        'icloud.com',
-      ]);
-    }
-
-    // 如果还没有选中后缀，默认选中第一个
-    if (_selectedEmailSuffix == null && emailSuffixes.isNotEmpty) {
-      _selectedEmailSuffix = emailSuffixes.first;
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          appLocalizations.emailAddress,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 邮箱前缀输入框
-            Expanded(
-              flex: 3,
-              child: TextFormField(
-                controller: _emailPrefixController,
-                decoration: InputDecoration(
-                  hintText: appLocalizations.emailPrefixHint,
-                  hintStyle: TextStyle(
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                  ),
-                  prefixIcon: Icon(
-                    Icons.email_outlined,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  filled: true,
-                  fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: colorScheme.primary,
-                      width: 2,
-                    ),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: colorScheme.error,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return appLocalizations.pleaseEnterEmailPrefix;
-                  }
-                  // 验证邮箱前缀格式（只允许字母、数字、点、下划线、连字符）
-                  if (!RegExp(r'^[a-zA-Z0-9._-]+$').hasMatch(value)) {
-                    return appLocalizations.invalidEmailFormat;
-                  }
-                  return null;
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-            // @ 符号
-            Padding(
-              padding: const EdgeInsets.only(top: 14),
-              child: Text(
-                '@',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            // 邮箱后缀下拉选择
-            Expanded(
-              flex: 2,
-              child: DropdownButtonFormField<String>(
-                value: _selectedEmailSuffix,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: colorScheme.primary,
-                      width: 2,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 14,
-                  ),
-                ),
-                items: emailSuffixes.map((suffix) {
-                  return DropdownMenuItem(
-                    value: suffix,
-                    child: Text(
-                      suffix,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedEmailSuffix = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return appLocalizations.pleaseSelectSuffix;
-                  }
-                  return null;
-                },
-              ),
-            ),
-          ],
-        ),
-        // 显示完整邮箱预览
-        if (_emailPrefixController.text.isNotEmpty && _selectedEmailSuffix != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8, left: 4),
-            child: Text(
-              appLocalizations.fullEmailPreview(_fullEmail),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.primary.withValues(alpha: 0.8),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-      ],
-    );
+  void _startCountdown() {
+    setState(() => _countdown = 60);
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return false;
+      setState(() => _countdown--);
+      return _countdown > 0;
+    });
   }
 
   void _showInviteCodeDialog() {
@@ -378,9 +195,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           content: Text(appLocalizations.inviteCodeRequiredMessage),
           actions: [
             TextButton(
-              onPressed: () {
-                context.pop();
-              },
+              onPressed: () => context.pop(),
               child: Text(appLocalizations.iUnderstand),
             ),
           ],
@@ -392,233 +207,503 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final configAsync = ref.watch(configProvider);
 
-    // 处理异步加载状态
     return configAsync.when(
       loading: () => Scaffold(
         backgroundColor: colorScheme.surface,
         body: const Center(child: CircularProgressIndicator()),
       ),
-      error: (error, stack) => _buildPage(context, colorScheme, null),
-      data: (config) => _buildPage(context, colorScheme, config),
+      error: (error, stack) => _buildPage(context, colorScheme, textTheme, null),
+      data: (config) => _buildPage(context, colorScheme, textTheme, config),
     );
   }
 
-  Widget _buildPage(BuildContext context, ColorScheme colorScheme, Map<String, dynamic>? config) {
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: XBContainer(
+  Widget _buildPage(BuildContext context, ColorScheme colorScheme,
+      TextTheme textTheme, Map<String, dynamic>? config) {
+    return AuthScaffold(
+      showBackButton: true,
+      onBack: () => context.pop(),
+      child: Form(
+        key: _formKey,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_back),
-                    style: IconButton.styleFrom(
-                      backgroundColor: colorScheme.surfaceContainerLow,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Text(
-                    appLocalizations.createAccount,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+            // Header: centered title + subtitle
+            Text(
+              appLocalizations.createAccount,
+              style: textTheme.headlineMedium?.copyWith(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          appLocalizations.fillInfoToRegister,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        // 邮箱输入（前缀 + 后缀选择）
-                        _buildEmailInput(context, colorScheme, config),
-                        const SizedBox(height: 20),
-                        XBInputField(
-                          controller: _passwordController,
-                          labelText: appLocalizations.password,
-                          hintText: appLocalizations.pleaseEnterAtLeast8CharsPassword,
-                          prefixIcon: Icons.lock_outlined,
-                          obscureText: !_isPasswordVisible,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _isPasswordVisible
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return appLocalizations.pleaseEnterPassword;
-                            }
-                            if (value.length < 8) {
-                              return appLocalizations.passwordMin8Chars;
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        XBInputField(
-                          controller: _confirmPasswordController,
-                          labelText: appLocalizations.confirmNewPassword,
-                          hintText: appLocalizations.pleaseReEnterPassword,
-                          prefixIcon: Icons.lock_outlined,
-                          obscureText: !_isConfirmPasswordVisible,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _isConfirmPasswordVisible
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                              });
-                            },
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return appLocalizations.pleaseConfirmPassword;
-                            }
-                            if (value != _passwordController.text) {
-                              return appLocalizations.passwordsDoNotMatch;
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        // 根据配置决定是否显示邮箱验证码字段
-                        if (config?['is_email_verify'] == 1)
-                          Column(
-                            children: [
-                                  XBInputField(
-                                    controller: _emailCodeController,
-                                    labelText: appLocalizations.emailVerificationCode,
-                                    hintText: appLocalizations.pleaseEnterEmailVerificationCode,
-                                    prefixIcon: Icons.verified_user_outlined,
-                                    keyboardType: TextInputType.number,
-                                    suffixIcon: _isSendingEmailCode
-                                        ? const SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
-                                          )
-                                        : TextButton(
-                                            onPressed: _sendEmailCode,
-                                            child: Text(appLocalizations.sendVerificationCode),
-                                          ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return appLocalizations.pleaseEnterEmailVerificationCode;
-                                      }
-                                      if (value.length != 6) {
-                                        return appLocalizations.verificationCode6Digits;
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: 20),
-                            ],
-                          ),
-                        // 邀请码：始终显示，根据配置改变标签（必填 vs 可选）
-                        XBInputField(
-                          controller: _inviteCodeController,
-                          labelText: (config?['is_invite_force'] == 1)
-                              ? '${appLocalizations.xboardInviteCode} *'
-                              : appLocalizations.inviteCodeOptional,
-                          hintText: appLocalizations.pleaseEnterInviteCode,
-                          prefixIcon: Icons.card_giftcard_outlined,
-                          enabled: true,
-                        ),
-                        const SizedBox(height: 32),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: _isRegistering
-                              ? ElevatedButton(
-                                  onPressed: null,
-                                  child: const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                )
-                              : ElevatedButton(
-                                  onPressed: _register,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: colorScheme.primary,
-                                    foregroundColor: colorScheme.onPrimary,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    appLocalizations.registerAccount,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              appLocalizations.alreadyHaveAccount,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () => context.pop(),
-                              child: Text(
-                                appLocalizations.loginNow,
-                                style: TextStyle(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
+            const SizedBox(height: 8),
+            Text(
+              appLocalizations.fillInfoToRegister,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+
+            // Alert notification (matching frontend inline alert)
+            if (_alertMessage != null) ...[
+              AuthAlert(
+                type: _alertType!,
+                message: _alertMessage!,
+                onClose: () => setState(() => _alertMessage = null),
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            // Email input (prefix + @ + suffix dropdown)
+            _buildEmailInput(context, colorScheme, textTheme, config),
+            const SizedBox(height: 20),
+
+            // Password
+            XBInputField(
+              controller: _passwordController,
+              labelText: appLocalizations.password,
+              hintText: appLocalizations.pleaseEnterAtLeast8CharsPassword,
+              obscureText: !_isPasswordVisible,
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _isPasswordVisible
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  size: 20,
+                ),
+                onPressed: () {
+                  setState(() => _isPasswordVisible = !_isPasswordVisible);
+                },
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return appLocalizations.pleaseEnterPassword;
+                }
+                if (value.length < 8) {
+                  return appLocalizations.passwordMin8Chars;
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+
+            // Confirm Password
+            XBInputField(
+              controller: _confirmPasswordController,
+              labelText: appLocalizations.confirmNewPassword,
+              hintText: appLocalizations.pleaseReEnterPassword,
+              obscureText: !_isConfirmPasswordVisible,
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _isConfirmPasswordVisible
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  size: 20,
+                ),
+                onPressed: () {
+                  setState(() =>
+                      _isConfirmPasswordVisible = !_isConfirmPasswordVisible);
+                },
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return appLocalizations.pleaseConfirmPassword;
+                }
+                if (value != _passwordController.text) {
+                  return appLocalizations.passwordsDoNotMatch;
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+
+            // Invite code
+            XBInputField(
+              controller: _inviteCodeController,
+              labelText: (config?['is_invite_force'] == 1)
+                  ? '${appLocalizations.xboardInviteCode} *'
+                  : appLocalizations.inviteCodeOptional,
+              hintText: appLocalizations.pleaseEnterInviteCode,
+              enabled: true,
+            ),
+
+            // Invite code helper text (matching frontend orange helper)
+            if (config?['is_invite_force'] == 1)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  appLocalizations.inviteCodeRequiredMessage,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: const Color(0xFFea580c), // text-orange-600
                   ),
                 ),
               ),
+
+            // Email verification code (if enabled)
+            if (config?['is_email_verify'] == 1) ...[
+              const SizedBox(height: 20),
+              _buildEmailCodeField(context, colorScheme, textTheme),
+            ],
+
+            const SizedBox(height: 24),
+
+            // Register button
+            SizedBox(
+              height: 44,
+              child: FilledButton(
+                onPressed: !_isRegistering ? _register : null,
+                style: FilledButton.styleFrom(
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
+                  disabledBackgroundColor:
+                      colorScheme.primary.withValues(alpha: 0.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: _isRegistering
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colorScheme.onPrimary,
+                        ),
+                      )
+                    : Text(
+                        appLocalizations.registerAccount,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Footer: "Already have account? Login"
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${appLocalizations.alreadyHaveAccount} ',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => context.pop(),
+                  child: Text(
+                    appLocalizations.loginNow,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// Email input: prefix + @ + suffix dropdown
+  /// Matching frontend's EmailInput component with whitelist support
+  Widget _buildEmailInput(BuildContext context, ColorScheme colorScheme,
+      TextTheme textTheme, Map<String, dynamic>? config) {
+    final emailSuffixes =
+        (config?['email_whitelist_suffix'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [];
+
+    if (emailSuffixes.isEmpty) {
+      emailSuffixes.addAll([
+        'gmail.com',
+        'outlook.com',
+        'qq.com',
+        '163.com',
+        'foxmail.com',
+        'icloud.com',
+      ]);
+    }
+
+    if (_selectedEmailSuffix == null && emailSuffixes.isNotEmpty) {
+      _selectedEmailSuffix = emailSuffixes.first;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label (matching: text-sm font-medium)
+        Text(
+          appLocalizations.emailAddress,
+          style: textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 6),
+        // Input row: prefix + @ + suffix
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Email prefix input
+            Expanded(
+              flex: 3,
+              child: TextFormField(
+                controller: _emailPrefixController,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+                decoration: InputDecoration(
+                  hintText: appLocalizations.emailPrefixHint,
+                  hintStyle: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  ),
+                  filled: true,
+                  fillColor: colorScheme.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: colorScheme.error),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
+                  isDense: true,
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return appLocalizations.pleaseEnterEmailPrefix;
+                  }
+                  if (!RegExp(r'^[a-zA-Z0-9._-]+$').hasMatch(value)) {
+                    return appLocalizations.invalidEmailFormat;
+                  }
+                  return null;
+                },
+              ),
+            ),
+            // @ symbol
+            Padding(
+              padding: const EdgeInsets.only(top: 10, left: 8, right: 8),
+              child: Text(
+                '@',
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            // Suffix dropdown
+            Expanded(
+              flex: 2,
+              child: DropdownButtonFormField<String>(
+                value: _selectedEmailSuffix,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: colorScheme.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 12),
+                  isDense: true,
+                ),
+                items: emailSuffixes.map((suffix) {
+                  return DropdownMenuItem(
+                    value: suffix,
+                    child: Text(
+                      suffix,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() => _selectedEmailSuffix = value);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return appLocalizations.pleaseSelectSuffix;
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ],
+        ),
+        // Full email preview
+        if (_emailPrefixController.text.isNotEmpty &&
+            _selectedEmailSuffix != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 4),
+            child: Text(
+              appLocalizations.fullEmailPreview(_fullEmail),
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.primary.withValues(alpha: 0.8),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Email code field with inline send button
+  /// Matching frontend pattern: flex gap-2, input flex-1 + Button variant=outline
+  Widget _buildEmailCodeField(
+      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          appLocalizations.emailVerificationCode,
+          style: textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _emailCodeController,
+                keyboardType: TextInputType.number,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+                decoration: InputDecoration(
+                  hintText: appLocalizations.pleaseEnterEmailVerificationCode,
+                  hintStyle: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  ),
+                  filled: true,
+                  fillColor: colorScheme.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: colorScheme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: colorScheme.error),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
+                  isDense: true,
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return appLocalizations.pleaseEnterEmailVerificationCode;
+                  }
+                  if (value.length != 6) {
+                    return appLocalizations.verificationCode6Digits;
+                  }
+                  return null;
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Send code button (matching: Button variant=outline)
+            SizedBox(
+              height: 44,
+              child: OutlinedButton(
+                onPressed:
+                    (_countdown > 0 || _isSendingEmailCode) ? null : _sendEmailCode,
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: colorScheme.primary),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: _isSendingEmailCode
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colorScheme.primary,
+                        ),
+                      )
+                    : Text(
+                        _countdown > 0
+                            ? '${_countdown}s'
+                            : appLocalizations.sendVerificationCode,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

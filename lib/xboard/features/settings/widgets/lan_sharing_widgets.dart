@@ -18,31 +18,20 @@ class AllowLanCard extends ConsumerWidget {
       patchClashConfigProvider.select((state) => state.allowLan),
     );
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-        ),
+    return SwitchListTile(
+      secondary: Icon(
+        Icons.wifi,
+        color: theme.colorScheme.primary,
       ),
-      child: SwitchListTile(
-        secondary: Icon(
-          Icons.wifi,
-          color: theme.colorScheme.primary,
-        ),
-        title: Text(appLocalizations.xboardAllowLan),
-        subtitle: Text(appLocalizations.xboardLanSharingDesc),
-        value: allowLan,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        onChanged: (value) {
-          ref.read(patchClashConfigProvider.notifier).updateState(
-                (state) => state.copyWith(allowLan: value),
-              );
-        },
-      ),
+      title: Text(appLocalizations.xboardAllowLan),
+      subtitle: Text(appLocalizations.xboardLanSharingDesc),
+      value: allowLan,
+      contentPadding: EdgeInsets.zero,
+      onChanged: (value) {
+        ref.read(patchClashConfigProvider.notifier).updateState(
+              (state) => state.copyWith(allowLan: value),
+            );
+      },
     );
   }
 }
@@ -61,32 +50,21 @@ class LanPortCard extends ConsumerWidget {
       patchClashConfigProvider.select((state) => state.mixedPort),
     );
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-        ),
+    return ListTile(
+      enabled: allowLan,
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(
+        Icons.settings_ethernet,
+        color: allowLan
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurfaceVariant,
       ),
-      child: ListTile(
-        enabled: allowLan,
-        leading: Icon(
-          Icons.settings_ethernet,
-          color: allowLan
-              ? theme.colorScheme.primary
-              : theme.colorScheme.onSurfaceVariant,
-        ),
-        title: Text(appLocalizations.xboardProxyPort),
-        subtitle: Text('$mixedPort'),
-        trailing: const Icon(Icons.edit),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        onTap: allowLan
-            ? () => _showPortDialog(context, ref, mixedPort)
-            : null,
-      ),
+      title: Text(appLocalizations.xboardProxyPort),
+      subtitle: Text('$mixedPort'),
+      trailing: const Icon(Icons.edit),
+      onTap: allowLan
+          ? () => _showPortDialog(context, ref, mixedPort)
+          : null,
     );
   }
 
@@ -181,18 +159,16 @@ class _LanInfoCardState extends ConsumerState<LanInfoCard> {
     final httpProxy = 'http://$ip:$mixedPort';
     final socksProxy = 'socks5://$ip:$mixedPort';
 
-    return Card(
-      elevation: 0,
-      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-      shape: RoundedRectangleBorder(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
+        border: Border.all(
           color: theme.colorScheme.primary.withValues(alpha: 0.2),
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(

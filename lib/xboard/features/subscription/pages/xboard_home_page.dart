@@ -14,6 +14,9 @@ import 'package:fl_clash/xboard/features/profile/providers/profile_import_provid
 
 import '../widgets/subscription_usage_card.dart';
 import '../widgets/connection_status_card.dart';
+import '../widgets/quick_actions_card.dart';
+import '../widgets/traffic_history_card.dart';
+import '../widgets/server_status_card.dart';
 class XBoardHomePage extends ConsumerStatefulWidget {
   const XBoardHomePage({super.key});
   @override
@@ -160,16 +163,35 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                             child: const ConnectionStatusCard(),
                           ),
                           SizedBox(height: connectionCardSpacing),
-                          // 使用情况卡片
+                          // 使用情况和快捷操作 - 使用网格布局
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            child: _buildUsageSection(),
+                            child: _buildMainContentSection(constraints),
                           ),
                           SizedBox(height: sectionSpacing),
                           // 代理模式选择
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                             child: _buildProxyModeSection(),
+                          ),
+                          SizedBox(height: sectionSpacing),
+                          // 流量历史（可折叠）
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                            child: const TrafficHistoryCard(
+                              initiallyExpanded: false,
+                            ),
+                          ),
+                          SizedBox(height: sectionSpacing),
+                          // 服务器状态（可折叠）
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                            child: const ServerStatusCard(
+                              // No server data available from API yet
+                              servers: null,
+                              loading: false,
+                              initiallyExpanded: false,
+                            ),
                           ),
                           // 添加弹性空间，确保内容不会太紧凑
                           if (availableHeight > 600) const Spacer(),
@@ -187,6 +209,51 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       ),
     );
   }
+  /// 主要内容区域 - 响应式网格布局
+  /// 桌面: 2列 (使用情况 + 快捷操作)
+  /// 移动: 单列 (堆叠)
+  Widget _buildMainContentSection(BoxConstraints constraints) {
+    // 判断是否使用网格布局（宽度大于 800px 时）
+    final useGridLayout = constraints.maxWidth > 800;
+
+    return Consumer(
+      builder: (context, ref, child) {
+        final userInfo = ref.userInfo;
+        final subscriptionInfo = ref.subscriptionInfo;
+        final currentProfile = ref.watch(currentProfileProvider);
+
+        final usageCard = SubscriptionUsageCard(
+          subscriptionInfo: subscriptionInfo,
+          userInfo: userInfo,
+          profileSubscriptionInfo: currentProfile?.subscriptionInfo,
+        );
+
+        const quickActionsCard = QuickActionsCard();
+
+        if (useGridLayout) {
+          // 桌面: 网格布局
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: usageCard),
+              const SizedBox(width: 16),
+              Expanded(child: quickActionsCard),
+            ],
+          );
+        } else {
+          // 移动: 单列堆叠
+          return Column(
+            children: [
+              usageCard,
+              const SizedBox(height: 16),
+              quickActionsCard,
+            ],
+          );
+        }
+      },
+    );
+  }
+
   Widget _buildUsageSection() {
     return Consumer(
       builder: (context, ref, child) {

@@ -49,59 +49,73 @@ class _TicketListPageState extends ConsumerState<TicketListPage>
   }
 
   Widget _buildBody(ThemeData theme, TicketState state) {
+    final colorScheme = theme.colorScheme;
+
     if (state.isLoading && state.tickets.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
     if (state.errorMessage != null && state.tickets.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: theme.colorScheme.error,
+      return ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        children: [
+          SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+          Center(
+            child: Column(
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: colorScheme.error,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '加载失败',
+                  style: theme.textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '请检查网络连接后重试',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () =>
+                      ref.read(ticketProvider.notifier).refresh(),
+                  child: const Text('重试'),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              '加载失败',
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => ref.read(ticketProvider.notifier).refresh(),
-              child: const Text('重试'),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
     if (state.tickets.isEmpty) {
       return ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
-          SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.2),
           Center(
             child: Column(
               children: [
                 Icon(
                   Icons.inbox_outlined,
                   size: 64,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                  color: colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   '暂无工单',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
+                  style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   '有问题？创建一个工单联系客服',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -117,11 +131,16 @@ class _TicketListPageState extends ConsumerState<TicketListPage>
       );
     }
 
+    final ticketCount = state.tickets.length;
+
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: state.tickets.length,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: ticketCount * 2 - 1,
       itemBuilder: (context, index) {
-        final ticket = state.tickets[index];
+        if (index.isOdd) {
+          return const SizedBox(height: 12);
+        }
+        final ticket = state.tickets[index ~/ 2];
         return TicketCard(
           ticket: ticket,
           onTap: () => context.push('/support/detail', extra: ticket.id),

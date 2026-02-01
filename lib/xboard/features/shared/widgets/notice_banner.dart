@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:fl_clash/xboard/features/notice/notice.dart';
 import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/xboard/domain/domain.dart';
 import '../styles/markdown_styles.dart';
 import '../styles/html_styles.dart';
 
@@ -35,68 +36,96 @@ class NoticeBanner extends ConsumerStatefulWidget {
 }
 class _NoticeBannerState extends ConsumerState<NoticeBanner>
     with TickerProviderStateMixin {
-  late AnimationController _slideController;
-  late Animation<Offset> _slideAnimation;
+  late PageController _pageController;
   Timer? _autoScrollTimer;
   int _currentIndex = 0;
   bool _hasCheckedDialogNotices = false;
+  bool _isDismissed = false;
+  bool _isPaused = false;
 
   @override
   void initState() {
     super.initState();
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeInOut,
-    ));
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    _pageController = PageController();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(noticeProvider.notifier).fetchNotices();
+      await _checkDismissalStatus();
     });
   }
+
   @override
   void dispose() {
     _autoScrollTimer?.cancel();
-    _slideController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
-  void _startAutoScroll(List<String> notices) {
-    if (notices.isEmpty) return;
-    _autoScrollTimer?.cancel();
-    if (notices.length == 1) {
-      _slideController.forward();
-      return;
+
+  /// Check if banner was dismissed within the last hour
+  Future<void> _checkDismissalStatus() async {
+    final storageService = ref.read(storageServiceProvider);
+    final result = await storageService.getDismissalTimestamp();
+
+    if (result.isSuccess) {
+      final timestamp = result.dataOrNull;
+      if (timestamp != null) {
+        final dismissedTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+        final now = DateTime.now();
+        final difference = now.difference(dismissedTime);
+
+        if (difference.inMinutes < 60) {
+          setState(() {
+            _isDismissed = true;
+          });
+        }
+      }
     }
-    _slideController.forward();
-    _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (mounted) {
-        _slideToNext(notices.length);
+  }
+
+  void _startAutoScroll(int noticeCount) {
+    if (noticeCount <= 1 || _isPaused) return;
+
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (mounted && !_isPaused) {
+        final nextPage = (_currentIndex + 1) % noticeCount;
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        );
       }
     });
   }
-  void _slideToNext(int totalCount) {
-    _slideController.reverse().then((_) {
-      if (mounted) {
-        setState(() {
-          _currentIndex = (_currentIndex + 1) % totalCount;
-        });
-        _slideController.forward();
-      }
+
+  void _handleDismiss() async {
+    final storageService = ref.read(storageServiceProvider);
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    await storageService.saveDismissalTimestamp(timestamp);
+
+    setState(() {
+      _isDismissed = true;
     });
+    _autoScrollTimer?.cancel();
   }
   @override
   Widget build(BuildContext context) {
     final noticeState = ref.watch(noticeProvider);
-    if (noticeState.isLoading || noticeState.visibleNotices.isEmpty) {
+
+    // Don't show if dismissed or no notices
+    if (_isDismissed || noticeState.isLoading) {
       return const SizedBox.shrink();
     }
 
-    // 检查是否有需要弹窗的公告
+    // Filter notices with '顶部' tag
+    final topNotices = noticeState.visibleNotices
+        .where((notice) => notice.tags.contains('顶部'))
+        .toList();
+
+    if (topNotices.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Check for dialog notices
     if (!_hasCheckedDialogNotices) {
       _hasCheckedDialogNotices = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -104,68 +133,191 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
       });
     }
 
-    final notices = noticeState.visibleNotices
-        .map((notice) => notice.title)
-        .toList();
+    // Start auto-scroll
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startAutoScroll(notices);
+      _startAutoScroll(topNotices.length);
     });
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return Container(
-      height: 40,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Theme.of(context).colorScheme.surfaceContainerHighest
-            : Theme.of(context).colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Icon(
-              Icons.campaign_rounded,
-              size: 18,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isPaused = true),
+      onExit: (_) {
+        setState(() => _isPaused = false);
+        _startAutoScroll(topNotices.length);
+      },
+      child: Container(
+        height: 44,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              colorScheme.primary,
+              colorScheme.primary.withValues(alpha: 0.85),
+            ],
           ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => _showNoticeDialog(),
-              child: ClipRect(
-                  child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Container(
-                    height: 40,
-                    alignment: Alignment.centerLeft,
-                    child: notices.isEmpty
-                        ? const SizedBox.shrink()
-                        : MarkdownBody(
-                            data: notices[_currentIndex % notices.length],
-                            styleSheet: MarkdownStyleSheet(
-                              p: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontWeight: FontWeight.w500,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              textAlign: WrapAlignment.start,
-                            ),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.primary.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Icon
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 12),
+              child: Icon(
+                Icons.campaign_rounded,
+                size: 18,
+                color: colorScheme.onPrimary,
+              ),
+            ),
+
+            // Previous button
+            if (topNotices.length > 1)
+              _buildNavButton(
+                icon: Icons.chevron_left_rounded,
+                onTap: () {
+                  final prevPage = (_currentIndex - 1 + topNotices.length) % topNotices.length;
+                  _pageController.animateToPage(
+                    prevPage,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              ),
+
+            // Notice content
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _showNoticeDialog(topNotices),
+                child: SizedBox(
+                  height: 44,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                    },
+                    itemCount: topNotices.length,
+                    itemBuilder: (context, index) {
+                      final notice = topNotices[index];
+                      final content = _truncateContent(notice.content, 100);
+                      return Center(
+                        child: Text(
+                          '${notice.title}${content.isNotEmpty ? ' · $content' : ''}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.w500,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12), // 右侧间距
-        ],
+
+            // Next button
+            if (topNotices.length > 1)
+              _buildNavButton(
+                icon: Icons.chevron_right_rounded,
+                onTap: () {
+                  final nextPage = (_currentIndex + 1) % topNotices.length;
+                  _pageController.animateToPage(
+                    nextPage,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              ),
+
+            // Counter
+            if (topNotices.length > 1)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  '${_currentIndex + 1}/${topNotices.length}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+
+            // Close button
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _handleDismiss,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 18,
+                      color: colorScheme.onPrimary.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildNavButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            icon,
+            size: 18,
+            color: colorScheme.onPrimary.withValues(alpha: 0.9),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _truncateContent(String content, int maxLength) {
+    // Remove HTML tags and excessive newlines
+    String cleaned = content
+        .replaceAll(RegExp(r'<[^>]+>'), '')
+        .replaceAll(RegExp(r'\n{2,}'), ' ')
+        .replaceAll('\n', ' ')
+        .trim();
+
+    if (cleaned.length <= maxLength) {
+      return cleaned;
+    }
+
+    return '${cleaned.substring(0, maxLength)}...';
   }
 
   /// 检查并显示需要弹窗的公告
@@ -219,24 +371,23 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
     );
   }
 
-  void _showNoticeDialog() {
-    final noticeState = ref.read(noticeProvider);
-    if (noticeState.visibleNotices.isEmpty) return;
-    
-    // 在打开对话框前移除焦点
+  void _showNoticeDialog(List<DomainNotice> notices) {
+    if (notices.isEmpty) return;
+
+    // Remove focus before opening dialog
     FocusScope.of(context).unfocus();
-    
+
     showDialog(
       context: context,
       builder: (context) => NoticeDetailDialog(
-        notices: noticeState.visibleNotices,
+        notices: notices,
         initialIndex: _currentIndex,
         onPageChanged: (index) {
-          // 更新当前索引以便外部知道
+          // Update current index
         },
       ),
     ).then((_) {
-      // 对话框关闭后也确保移除焦点
+      // Remove focus after closing dialog
       if (mounted) {
         FocusScope.of(context).unfocus();
       }

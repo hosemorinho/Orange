@@ -439,11 +439,69 @@ class V2BoardApiService {
   }
 
   // ================================================================
+  // Invite（邀请）
+  // ================================================================
+
+  /// 获取邀请码列表和统计信息
+  /// Returns: {"codes": [...], "stat": [reg_users, settled, pending, rate, available]}
+  Future<Map<String, dynamic>> getInviteCodes() async {
+    _logger.info('[API] getInviteCodes');
+    return await _authGet('/api/v1/user/invite/fetch');
+  }
+
+  /// 创建新的邀请码
+  Future<Map<String, dynamic>> createInviteCode() async {
+    _logger.info('[API] createInviteCode');
+    return await _authGet('/api/v1/user/invite/save');
+  }
+
+  /// 获取邀请详情（佣金统计）
+  Future<Map<String, dynamic>> getInviteDetails(String code) async {
+    _logger.info('[API] getInviteDetails: code=$code');
+    return await _authGet('/api/v1/user/invite/details', queryParameters: {
+      'code': code,
+    });
+  }
+
+  /// 获取佣金配置（提现方式）
+  Future<Map<String, dynamic>> getCommissionConfig() async {
+    _logger.info('[API] getCommissionConfig');
+    return await _authGet('/api/v1/user/comm/config');
+  }
+
+  /// 转账佣金到余额
+  Future<Map<String, dynamic>> transferCommission(double amount) async {
+    _logger.info('[API] transferCommission: amount=$amount');
+    return await _authPost('/api/v1/user/transfer', data: {
+      'transfer_amount': amount,
+    });
+  }
+
+  // ================================================================
   // Subscription（客户端订阅）
   // ================================================================
 
   /// 构建订阅 URL
   String buildSubscribeUrl(String token) {
     return '$baseUrl/api/v1/client/subscribe?token=$token';
+  }
+
+  // ================================================================
+  // Traffic（流量日志）
+  // ================================================================
+
+  /// 获取流量使用记录
+  ///
+  /// [offset] 偏移量
+  /// [limit] 每页数量
+  Future<Map<String, dynamic>> getTrafficLogs({
+    int offset = 0,
+    int limit = 30,
+  }) async {
+    _logger.info('[API] getTrafficLogs: offset=$offset, limit=$limit');
+    return await _authGet('/api/v1/user/getStat/getTrafficLog', queryParameters: {
+      'offset': offset,
+      'limit': limit,
+    });
   }
 }

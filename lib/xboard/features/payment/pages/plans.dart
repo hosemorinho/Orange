@@ -4,7 +4,7 @@ import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'plan_purchase_page.dart';
-import '../widgets/plan_description_widget.dart';
+import '../widgets/plan_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -69,139 +69,19 @@ class _PlansViewState extends ConsumerState<PlansView> {
       _selectedPlan = null;
     });
   }
-  String _formatPrice(double? price) {
-    if (price == null) return '-';
-    return '¥${price.toStringAsFixed(2)}';
-  }
-  String _formatTraffic(double transferEnable) {
-    if (transferEnable >= 1024) {
-      return '${(transferEnable / 1024).toStringAsFixed(1)}TB';
-    }
-    return '${transferEnable.toStringAsFixed(0)}GB';
-  }
-  String _getLowestPrice(DomainPlan plan) {
-    List<double> prices = [];
-    if (plan.monthlyPrice != null) prices.add(plan.monthlyPrice!);
-    if (plan.quarterlyPrice != null) prices.add(plan.quarterlyPrice!);
-    if (plan.halfYearlyPrice != null) prices.add(plan.halfYearlyPrice!);
-    if (plan.yearlyPrice != null) prices.add(plan.yearlyPrice!);
-    if (plan.twoYearPrice != null) prices.add(plan.twoYearPrice!);
-    if (plan.threeYearPrice != null) prices.add(plan.threeYearPrice!);
-    if (plan.onetimePrice != null) prices.add(plan.onetimePrice!);
-    if (prices.isEmpty) return '-';
-    final lowestPrice = prices.reduce((a, b) => a < b ? a : b);
-    return _formatPrice(lowestPrice);
-  }
-  String _getSpeedLimitText(DomainPlan plan) {
-    if (plan.speedLimit == null) {
-      return AppLocalizations.of(context).xboardUnlimited; // 不限速
-    }
-    return '${plan.speedLimit} Mbps';
-  }
-  Widget _buildPlanCard(DomainPlan plan) {
-    final theme = Theme.of(context);
+  /// Determine if a plan should be highlighted (e.g., most popular)
+  bool _shouldHighlightPlan(DomainPlan plan, List<DomainPlan> allPlans) {
+    // Highlight the middle-priced plan or the one with best value
+    // You can customize this logic based on your business needs
+    if (allPlans.length < 2) return false;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: IntrinsicHeight(
-        child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    plan.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                if (plan.hasPrice)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          theme.colorScheme.primary,
-                          theme.colorScheme.primary.withValues(alpha: 0.7),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      _getLowestPrice(plan),
-                      style: TextStyle(
-                        color: theme.colorScheme.onPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Icon(Icons.data_usage, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                const SizedBox(width: 4),
-                Text(
-                  '${AppLocalizations.of(context).xboardTraffic}: ${_formatTraffic(plan.transferQuota.toDouble())}',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
-                const SizedBox(width: 16),
-                Icon(Icons.speed, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                const SizedBox(width: 4),
-                Text(
-                  '${AppLocalizations.of(context).xboardSpeedLimit}: ${_getSpeedLimitText(plan)}',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
-              ],
-            ),
-            if (plan.description != null) ...[
-              const SizedBox(height: 10),
-              // 描述区域自适应高度，不再限制
-              PlanDescriptionWidget(content: plan.description!),
-            ],
-            const SizedBox(height: 16),
-            if (plan.hasPrice)
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () => _navigateToPurchase(plan),
-                  icon: const Icon(Icons.shopping_cart_outlined, size: 20),
-                  label: Text(appLocalizations.xboardBuyNow),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        ),
-      ),
-    );
+    // Get plans with prices
+    final plansWithPrices = allPlans.where((p) => p.hasPrice).toList();
+    if (plansWithPrices.length < 2) return false;
+
+    // Find middle plan by index
+    final middleIndex = (plansWithPrices.length / 2).floor();
+    return plansWithPrices[middleIndex].id == plan.id;
   }
   void _navigateToPurchase(DomainPlan plan) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -303,15 +183,24 @@ class _PlansViewState extends ConsumerState<PlansView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.inbox_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      Icons.workspace_premium_outlined,
+                      size: 80,
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                     Text(
-                      '暂无套餐信息',
+                      '暂无可用套餐',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '请稍后再试或联系客服',
+                      style: TextStyle(
+                        fontSize: 14,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
@@ -324,17 +213,26 @@ class _PlansViewState extends ConsumerState<PlansView> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final width = constraints.maxWidth;
+                  // Responsive grid: 1 column on mobile, 2 on tablet, 3 on desktop
                   final crossAxisCount = width < 600 ? 1 : (width < 900 ? 2 : 3);
-                  const spacing = 12.0;
+                  const spacing = 16.0;
                   final totalSpacing = spacing * (crossAxisCount - 1);
                   final cardWidth = (width - totalSpacing) / crossAxisCount;
+
                   return Wrap(
                     spacing: spacing,
                     runSpacing: spacing,
-                    children: plans.map((plan) => SizedBox(
-                      width: cardWidth,
-                      child: _buildPlanCard(plan),
-                    )).toList(),
+                    children: plans.map((plan) {
+                      final isHighlighted = _shouldHighlightPlan(plan, plans);
+                      return SizedBox(
+                        width: cardWidth,
+                        child: PlanCard(
+                          plan: plan,
+                          isHighlighted: isHighlighted,
+                          onPurchase: () => _navigateToPurchase(plan),
+                        ),
+                      );
+                    }).toList(),
                   );
                 },
               ),

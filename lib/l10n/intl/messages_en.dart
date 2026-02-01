@@ -540,6 +540,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "Logged out successfully",
     ),
     "loginNow": MessageLookupByLibrary.simpleMessage("Login Now"),
+    "noAccount":
+        MessageLookupByLibrary.simpleMessage("Don\'t have an account?"),
     "logout": MessageLookupByLibrary.simpleMessage("Logout"),
     "logoutConfirmMsg": MessageLookupByLibrary.simpleMessage(
       "Are you sure to logout? You need to login again.",
@@ -1728,6 +1730,42 @@ class MessageLookup extends MessageLookupByLibrary {
       "Waiting for payment completion",
     ),
     "xboardYearlyPayment": MessageLookupByLibrary.simpleMessage("Yearly"),
+    "xboardQuickActions": MessageLookupByLibrary.simpleMessage(
+      "Quick Actions",
+    ),
+    "xboardPurchaseSubscription": MessageLookupByLibrary.simpleMessage(
+      "Purchase Plan",
+    ),
+    "xboardBrowsePlans": MessageLookupByLibrary.simpleMessage(
+      "Browse available plans",
+    ),
+    "xboardMyOrders": MessageLookupByLibrary.simpleMessage("My Orders"),
+    "xboardViewOrders": MessageLookupByLibrary.simpleMessage(
+      "View order history",
+    ),
+    "xboardSupportTickets": MessageLookupByLibrary.simpleMessage(
+      "Support Tickets",
+    ),
+    "xboardGetSupport": MessageLookupByLibrary.simpleMessage(
+      "Get help from support",
+    ),
+    "xboardInviteFriends": MessageLookupByLibrary.simpleMessage(
+      "Invite Friends",
+    ),
+    "xboardEarnCommission": MessageLookupByLibrary.simpleMessage(
+      "Earn commission by inviting",
+    ),
+    "xboardComingSoon": MessageLookupByLibrary.simpleMessage("Coming soon"),
+    "xboardServerStatus": MessageLookupByLibrary.simpleMessage("Server Status"),
+    "xboardServersOnline": MessageLookupByLibrary.simpleMessage("servers online"),
+    "xboardServersOffline": MessageLookupByLibrary.simpleMessage("servers offline"),
+    "xboardOnline": MessageLookupByLibrary.simpleMessage("online"),
+    "xboardOffline": MessageLookupByLibrary.simpleMessage("offline"),
+    "xboardServerName": MessageLookupByLibrary.simpleMessage("Server Name"),
+    "xboardServerHost": MessageLookupByLibrary.simpleMessage("Server Host"),
+    "xboardServerOnline": MessageLookupByLibrary.simpleMessage("Available"),
+    "xboardServerOffline": MessageLookupByLibrary.simpleMessage("Unavailable"),
+    "xboardNoServerData": MessageLookupByLibrary.simpleMessage("No server data available"),
     "years": MessageLookupByLibrary.simpleMessage("Years"),
     "zh_CN": MessageLookupByLibrary.simpleMessage("Simplified Chinese"),
   };

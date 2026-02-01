@@ -3,10 +3,12 @@ import 'package:fl_clash/xboard/features/subscription/pages/subscription_page.da
 import 'package:fl_clash/xboard/features/payment/pages/plans.dart';
 import 'package:fl_clash/xboard/features/payment/pages/plan_purchase_page.dart';
 import 'package:fl_clash/xboard/features/payment/pages/payment_gateway_page.dart';
+import 'package:fl_clash/xboard/features/order/pages/orders_page.dart';
 import 'package:fl_clash/xboard/features/ticket/ticket.dart';
 import 'package:fl_clash/xboard/features/settings/settings.dart';
 import 'package:fl_clash/xboard/features/auth/pages/login_page.dart';
 import 'package:fl_clash/xboard/features/initialization/pages/loading_page.dart';
+import 'package:fl_clash/xboard/features/invite/invite.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -111,6 +113,24 @@ final List<RouteBase> routes = [
       name: 'subscription',
       pageBuilder: (context, state) => const MaterialPage(
         child: SubscriptionPage(),
+      ),
+    ),
+
+    // 订单列表页面
+    GoRoute(
+      path: '/orders',
+      name: 'orders',
+      pageBuilder: (context, state) => const MaterialPage(
+        child: OrdersPage(),
+      ),
+    ),
+
+    // 邀请页面
+    GoRoute(
+      path: '/invite',
+      name: 'invite',
+      pageBuilder: (context, state) => const MaterialPage(
+        child: InvitePage(),
       ),
     ),
 

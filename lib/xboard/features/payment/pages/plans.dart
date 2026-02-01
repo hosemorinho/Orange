@@ -101,13 +101,30 @@ class _PlansViewState extends ConsumerState<PlansView> {
   Widget _buildPlanCard(DomainPlan plan) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 768;
-    return Card(
-      margin: isDesktop 
-        ? EdgeInsets.zero 
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: isDesktop
+        ? EdgeInsets.zero
         : const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: IntrinsicHeight(
         child: Padding(
-        padding: EdgeInsets.all(isDesktop ? 12 : 16),
+        padding: EdgeInsets.all(isDesktop ? 20 : 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -126,22 +143,32 @@ class _PlansViewState extends ConsumerState<PlansView> {
                 ),
                 if (plan.hasPrice)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                         colors: [
-                          Theme.of(context).colorScheme.primary,
-                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                          const Color(0xff0369A1), // Primary from design system
+                          const Color(0xff0EA5E9), // Secondary from design system
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xff0369A1).withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Text(
                       _getLowestPrice(plan),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimary,
-                        fontSize: 14,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
@@ -174,17 +201,18 @@ class _PlansViewState extends ConsumerState<PlansView> {
             if (plan.hasPrice)
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
+                child: FilledButton.icon(
                   onPressed: () => _navigateToPurchase(plan),
-                  icon: const Icon(Icons.shopping_cart),
+                  icon: const Icon(Icons.shopping_cart_outlined, size: 20),
                   label: Text(appLocalizations.xboardBuyNow),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: EdgeInsets.symmetric(vertical: isDesktop ? 8 : 12),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xff0369A1), // Primary from design system
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: isDesktop ? 14 : 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 0,
                   ),
                 ),
               ),

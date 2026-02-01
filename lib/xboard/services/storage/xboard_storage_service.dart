@@ -26,6 +26,7 @@ class XBoardStorageService {
   static const String _savedEmailKey = 'xboard_saved_email';
   static const String _savedPasswordKey = 'xboard_saved_password';
   static const String _rememberPasswordKey = 'xboard_remember_password';
+  static const String _noticeDialogReadPrefix = 'xboard_notice_dialog_read_'; // 前缀 + noticeId
 
 
   Future<Result<bool>> saveUserEmail(String email) async {
@@ -192,6 +193,37 @@ class XBoardStorageService {
     
     final allSuccess = results.every((r) => r.dataOrNull == true);
     return Result.success(allSuccess);
+  }
+
+  // ===== 公告弹窗已读时间戳 =====
+
+  /// 保存公告弹窗已读时间戳
+  Future<Result<bool>> saveNoticeDialogReadTime(int noticeId) async {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return await _storage.setInt('$_noticeDialogReadPrefix$noticeId', timestamp);
+  }
+
+  /// 获取公告弹窗已读时间戳
+  Future<Result<int?>> getNoticeDialogReadTime(int noticeId) async {
+    return await _storage.getInt('$_noticeDialogReadPrefix$noticeId');
+  }
+
+  /// 判断公告弹窗是否需要显示（24小时内不再显示）
+  Future<bool> shouldShowNoticeDialog(int noticeId) async {
+    final result = await getNoticeDialogReadTime(noticeId);
+    final timestamp = result.dataOrNull;
+
+    if (timestamp == null) {
+      // 从未显示过，需要显示
+      return true;
+    }
+
+    final readTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final now = DateTime.now();
+    final difference = now.difference(readTime);
+
+    // 如果超过24小时，需要显示
+    return difference.inHours >= 24;
   }
 }
 

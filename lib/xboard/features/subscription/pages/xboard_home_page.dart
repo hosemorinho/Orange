@@ -114,35 +114,26 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         double sectionSpacing;
         double verticalPadding;
         double horizontalPadding;
-        
+
         if (availableHeight < 500) {
           // 小屏幕：紧凑布局
-          sectionSpacing = 8.0;
-          verticalPadding = 8.0;
-          horizontalPadding = 12.0;
-        } else if (availableHeight < 650) {
-          // 中等屏幕：适中布局
-          sectionSpacing = 10.0;
-          verticalPadding = 10.0;
-          horizontalPadding = 16.0;
-        } else {
-          // 大屏幕：标准布局
-          sectionSpacing = 14.0;
+          sectionSpacing = 12.0;
           verticalPadding = 12.0;
           horizontalPadding = 16.0;
+        } else if (availableHeight < 650) {
+          // 中等屏幕：适中布局
+          sectionSpacing = 16.0;
+          verticalPadding = 16.0;
+          horizontalPadding = 20.0;
+        } else {
+          // 大屏幕：标准布局
+          sectionSpacing = 20.0;
+          verticalPadding = 20.0;
+          horizontalPadding = 24.0;
         }
         
         return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                Theme.of(context).colorScheme.surface,
-              ],
-            ),
-          ),
+          color: Theme.of(context).colorScheme.surface,
           child: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -157,24 +148,30 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const NoticeBanner(),
+                          SizedBox(height: sectionSpacing * 0.5),
+                          // 连接按钮区域 - Hero element
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                            child: _buildConnectionSection(),
+                          ),
+                          SizedBox(height: sectionSpacing),
+                          // 使用情况卡片
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                             child: _buildUsageSection(),
                           ),
                           SizedBox(height: sectionSpacing),
+                          // 节点选择器
+                          const NodeSelectorBar(),
+                          SizedBox(height: sectionSpacing),
+                          // 代理模式选择
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                             child: _buildProxyModeSection(),
                           ),
-                          SizedBox(height: sectionSpacing),
-                          const NodeSelectorBar(),
-                          SizedBox(height: sectionSpacing),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            child: _buildConnectionSection(),
-                          ),
                           // 添加弹性空间，确保内容不会太紧凑
                           if (availableHeight > 600) const Spacer(),
+                          SizedBox(height: sectionSpacing),
                         ],
                       ),
                     ),

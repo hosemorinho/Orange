@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fl_clash/xboard/features/notice/notice.dart';
+import 'package:fl_clash/xboard/services/services.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import '../styles/markdown_styles.dart';
 import '../styles/html_styles.dart';
 
@@ -37,6 +39,8 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
   late Animation<Offset> _slideAnimation;
   Timer? _autoScrollTimer;
   int _currentIndex = 0;
+  bool _hasCheckedDialogNotices = false;
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +95,15 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
     if (noticeState.isLoading || noticeState.visibleNotices.isEmpty) {
       return const SizedBox.shrink();
     }
+
+    // 检查是否有需要弹窗的公告
+    if (!_hasCheckedDialogNotices) {
+      _hasCheckedDialogNotices = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkAndShowDialogNotices(noticeState.visibleNotices);
+      });
+    }
+
     final notices = noticeState.visibleNotices
         .map((notice) => notice.title)
         .toList();
@@ -161,6 +174,58 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
       ),
     );
   }
+
+  /// 检查并显示需要弹窗的公告
+  Future<void> _checkAndShowDialogNotices(List<dynamic> notices) async {
+    if (!mounted) return;
+
+    // 找到所有标签包含"弹窗"的公告
+    final dialogNotices = notices.where((notice) {
+      return notice.tags.any((tag) =>
+        tag.toString().toLowerCase() == '弹窗' ||
+        tag.toString().toLowerCase() == 'popup' ||
+        tag.toString().toLowerCase() == 'dialog'
+      );
+    }).toList();
+
+    if (dialogNotices.isEmpty) return;
+
+    // 获取存储服务
+    final storageService = ref.read(storageServiceProvider);
+
+    // 找到需要显示的公告（24小时内未显示过的）
+    for (final notice in dialogNotices) {
+      final shouldShow = await storageService.shouldShowNoticeDialog(notice.id);
+
+      if (shouldShow && mounted) {
+        // 显示弹窗
+        await _showNoticePopupDialog(notice, storageService);
+        // 只显示一个弹窗，然后退出
+        break;
+      }
+    }
+  }
+
+  /// 显示公告弹窗对话框
+  Future<void> _showNoticePopupDialog(dynamic notice, XBoardStorageService storageService) async {
+    if (!mounted) return;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false, // 不允许点击外部关闭
+      builder: (context) => NoticePopupDialog(
+        notice: notice,
+        onConfirm: () async {
+          // 保存已读时间戳
+          await storageService.saveNoticeDialogReadTime(notice.id);
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        },
+      ),
+    );
+  }
+
   void _showNoticeDialog() {
     final noticeState = ref.read(noticeProvider);
     if (noticeState.visibleNotices.isEmpty) return;
@@ -699,6 +764,204 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
     } catch (e) {
       // 处理无效URL或其他错误
       if (mounted) {
+        XBoardNotification.showError('链接格式错误: $href');
+      }
+    }
+  }
+}
+
+/// 公告弹窗对话框（用于标签包含"弹窗"的公告）
+class NoticePopupDialog extends StatelessWidget {
+  final dynamic notice;
+  final VoidCallback onConfirm;
+
+  const NoticePopupDialog({
+    super.key,
+    required this.notice,
+    required this.onConfirm,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return PopScope(
+      canPop: false, // 禁止返回键关闭
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Theme.of(context).colorScheme.surfaceContainerHighest
+                : Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: isDark
+                  ? Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)
+                  : Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+              width: isDark ? 1.5 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.6)
+                    : Colors.black.withValues(alpha: 0.15),
+                blurRadius: isDark ? 40 : 30,
+                spreadRadius: isDark ? 3 : 0,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 头部：图标和标题
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Theme.of(context).colorScheme.surfaceContainer
+                      : Theme.of(context).colorScheme.surface,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(28),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xff0369A1),
+                            Color(0xff0EA5E9),
+                          ],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xff0369A1).withValues(alpha: 0.3),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.campaign_rounded,
+                        size: 32,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      notice.title ?? '重要通知',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+
+              // 内容区域
+              Container(
+                constraints: const BoxConstraints(maxHeight: 400),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  physics: const BouncingScrollPhysics(),
+                  child: _buildNoticeContent(context, notice),
+                ),
+              ),
+
+              // 底部按钮
+              Container(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton(
+                    onPressed: onConfirm,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xff0369A1),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context).xboardNoticeDialogGotIt,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoticeContent(BuildContext context, dynamic notice) {
+    final content = notice.content ?? '暂无内容';
+
+    // 自动检测内容类型
+    final isHtml = _isHtmlContent(content);
+
+    if (isHtml) {
+      return NoticeHtmlStyles.buildNoticeHtml(
+        context: context,
+        htmlContent: content,
+        onTapUrl: (url) => _handleLinkTap(context, url),
+      );
+    } else {
+      return MarkdownBody(
+        data: content,
+        styleSheet: NoticeMarkdownStyles.getNoticeContentStyle(context),
+        onTapLink: (text, href, title) => _handleLinkTap(context, href),
+      );
+    }
+  }
+
+  bool _isHtmlContent(String content) {
+    final htmlTagPattern = RegExp(
+      r'<(p|div|span|h[1-6]|ul|ol|li|br|hr|strong|em|a|img|table|tr|td|th|blockquote|pre|code)[>\s]',
+      caseSensitive: false,
+    );
+    return htmlTagPattern.hasMatch(content.trim());
+  }
+
+  void _handleLinkTap(BuildContext context, String? href) async {
+    if (href == null || href.isEmpty) return;
+
+    try {
+      final uri = Uri.parse(href);
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        if (context.mounted) {
+          XBoardNotification.showError('无法打开链接: $href');
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
         XBoardNotification.showError('链接格式错误: $href');
       }
     }

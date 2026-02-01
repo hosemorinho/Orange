@@ -674,6 +674,9 @@
       }
     }
   },
+  "xboardTapToConnect": "Tap to connect",
+  "xboardUnlimitedTime": "Unlimited",
+  "xboardNoticeDialogGotIt": "Got it",
   "subscriptionNotLoggedIn": "Not logged in",
   "subscriptionNotLoggedInDetail": "Please login first",
   "subscriptionNoSubscription": "No subscription",

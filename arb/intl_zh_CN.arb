@@ -679,6 +679,9 @@
       }
     }
   },
+  "xboardTapToConnect": "轻触即可连接",
+  "xboardUnlimitedTime": "不限时",
+  "xboardNoticeDialogGotIt": "知道了",
   "subscriptionNotLoggedIn": "未登录",
   "subscriptionNotLoggedInDetail": "请先登录账户",
   "subscriptionNoSubscription": "无订阅套餐",

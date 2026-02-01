@@ -153,26 +153,40 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
   Widget _buildInlineButton(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // 使用 Material 3 的语义化颜色
-    // 运行时：使用 tertiaryContainer（通常是绿色系容器）
-    // 停止时：使用 primaryContainer（主题色容器）
-    final backgroundColor = isStart ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
-    final foregroundColor = isStart ? colorScheme.onTertiaryContainer : colorScheme.onPrimaryContainer;
+    // 使用更强烈的主题色区分运行状态
+    // 运行时：使用 tertiary（通常是绿色/成功色）
+    // 停止时：使用 primary（主题色）
+    final backgroundColor = isStart ? colorScheme.tertiary : colorScheme.primary;
+    final foregroundColor = isStart ? colorScheme.onTertiary : colorScheme.onPrimary;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.zero,
       child: AnimatedBuilder(
         animation: _controller.view,
         builder: (_, child) {
           return Container(
             decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  backgroundColor,
+                  backgroundColor.withValues(alpha: 0.85),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: backgroundColor.withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  color: backgroundColor.withValues(alpha: 0.4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: backgroundColor.withValues(alpha: 0.2),
+                  blurRadius: 40,
+                  offset: const Offset(0, 16),
+                  spreadRadius: -8,
                 ),
               ],
             ),
@@ -182,48 +196,94 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
                 onTap: () {
                   handleSwitchStart();
                 },
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(24),
+                splashColor: foregroundColor.withValues(alpha: 0.1),
+                highlightColor: foregroundColor.withValues(alpha: 0.05),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 32),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      AnimatedIcon(
-                        icon: AnimatedIcons.play_pause,
-                        progress: _animation,
-                        size: 28,
-                        color: foregroundColor,
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            isStart
-                              ? AppLocalizations.of(context).xboardStopProxy
-                              : AppLocalizations.of(context).xboardStartProxy,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: foregroundColor,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: foregroundColor.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: AnimatedIcon(
+                            icon: AnimatedIcons.play_pause,
+                            progress: _animation,
+                            size: 32,
+                            color: foregroundColor,
                           ),
-                          if (isStart) ...[
-                            const SizedBox(height: 3),
-                            Consumer(
-                              builder: (_, ref, __) {
-                                final runTime = ref.watch(runTimeProvider);
-                                final text = utils.getTimeText(runTime);
-                                return Text(
-                                  AppLocalizations.of(context).xboardRunningTime(text),
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: foregroundColor.withValues(alpha: 0.8),
-                                    fontSize: 12,
-                                  ),
-                                );
-                              },
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isStart
+                                ? AppLocalizations.of(context).xboardStopProxy
+                                : AppLocalizations.of(context).xboardStartProxy,
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: foregroundColor,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
                             ),
+                            if (isStart) ...[
+                              const SizedBox(height: 6),
+                              Consumer(
+                                builder: (_, ref, __) {
+                                  final runTime = ref.watch(runTimeProvider);
+                                  final text = utils.getTimeText(runTime);
+                                  return Row(
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          color: foregroundColor.withValues(alpha: 0.9),
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: foregroundColor.withValues(alpha: 0.5),
+                                              blurRadius: 8,
+                                              spreadRadius: 2,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        AppLocalizations.of(context).xboardRunningTime(text),
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: foregroundColor.withValues(alpha: 0.9),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ] else ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                AppLocalizations.of(context).xboardTapToConnect,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: foregroundColor.withValues(alpha: 0.8),
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ],
                   ),

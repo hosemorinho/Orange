@@ -43,30 +43,51 @@ class SubscriptionUsageCard extends ConsumerWidget {
   Widget _buildEmptyCard(ThemeData theme, BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          Icon(
-            Icons.cloud_off,
-            size: 40,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.cloud_off_outlined,
+              size: 32,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context).xboardNoSubscriptionInfo,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             AppLocalizations.of(context).xboardLoginToViewSubscription,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              color: theme.colorScheme.onSurfaceVariant,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -79,43 +100,46 @@ class SubscriptionUsageCard extends ConsumerWidget {
     String statusDetail;
     switch (statusResult.type) {
       case SubscriptionStatusType.noSubscription:
-        statusIcon = Icons.card_giftcard;
-        statusColor = Colors.blue.shade600;
+        statusIcon = Icons.card_giftcard_outlined;
+        statusColor = const Color(0xff0EA5E9); // Secondary blue from design system
         statusText = AppLocalizations.of(context).xboardNoAvailableSubscription;
         statusDetail = AppLocalizations.of(context).xboardPurchaseSubscriptionToUse;
         break;
       case SubscriptionStatusType.expired:
-        statusIcon = Icons.schedule;
-        statusColor = Colors.red.shade600;
+        statusIcon = Icons.schedule_outlined;
+        statusColor = const Color(0xffEF4444); // Error red
         statusText = AppLocalizations.of(context).xboardSubscriptionExpired;
         statusDetail = statusResult.getDetailMessage(context) ?? AppLocalizations.of(context).xboardRenewToContinue;
         break;
       case SubscriptionStatusType.exhausted:
-        statusIcon = Icons.data_usage;
-        statusColor = Colors.orange.shade600;
+        statusIcon = Icons.data_usage_outlined;
+        statusColor = const Color(0xffF59E0B); // Warning orange
         statusText = AppLocalizations.of(context).xboardTrafficExhausted;
         statusDetail = statusResult.getDetailMessage(context) ?? AppLocalizations.of(context).xboardBuyMoreTrafficOrUpgrade;
         break;
       default:
-        statusIcon = Icons.info;
+        statusIcon = Icons.info_outlined;
         statusColor = theme.colorScheme.primary;
         statusText = statusResult.getMessage(context);
         statusDetail = statusResult.getDetailMessage(context) ?? '';
     }
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            statusColor.withValues(alpha: 0.03),
-            statusColor.withValues(alpha: 0.01),
-          ],
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: statusColor.withValues(alpha: 0.2),
+          width: 1.5,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: statusColor.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           Row(
@@ -299,18 +323,21 @@ class SubscriptionUsageCard extends ConsumerWidget {
     final remainingDays = _calculateRemainingDays();
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.03),
-            theme.colorScheme.secondary.withValues(alpha: 0.02),
-          ],
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -356,21 +383,23 @@ class SubscriptionUsageCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Container(
-            height: 6,
+            height: 8,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(3),
-              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(4),
+              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.7),
             ),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                _getProgressColor(progress, theme),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  _getProgressColor(progress, theme),
+                ),
+                minHeight: 8,
               ),
-              minHeight: 6,
-              borderRadius: BorderRadius.circular(3),
             ),
           ),
           const SizedBox(height: 16),
@@ -396,8 +425,12 @@ class SubscriptionUsageCard extends ConsumerWidget {
                 child: _buildStatItem(
                   icon: Icons.schedule,
                   label: AppLocalizations.of(context).xboardValidityPeriod,
-                  value: '$remainingDays',
-                  subtitle: AppLocalizations.of(context).xboardDays,
+                  value: remainingDays == null
+                    ? AppLocalizations.of(context).xboardUnlimitedTime
+                    : '$remainingDays',
+                  subtitle: remainingDays == null
+                    ? ''
+                    : AppLocalizations.of(context).xboardDays,
                   theme: theme,
                 ),
               ),
@@ -473,14 +506,15 @@ class SubscriptionUsageCard extends ConsumerWidget {
       return '${size.toStringAsFixed(2)} ${units[unitIndex]}';
     }
   }
-  int _calculateRemainingDays() {
+  int? _calculateRemainingDays() {
     DateTime? expiredAt;
     if (profileSubscriptionInfo?.expire != null && profileSubscriptionInfo!.expire != 0) {
       expiredAt = DateTime.fromMillisecondsSinceEpoch(profileSubscriptionInfo!.expire * 1000);
     } else if (subscriptionInfo?.expiredAt != null) {
       expiredAt = subscriptionInfo!.expiredAt;
     }
-    if (expiredAt == null) return 0;
+    // 如果 expiredAt 为 null，返回 null 表示不限时
+    if (expiredAt == null) return null;
     final now = DateTime.now();
     final difference = expiredAt.difference(now);
     return difference.inDays.clamp(0, double.infinity).toInt();

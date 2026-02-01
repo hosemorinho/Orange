@@ -31,15 +31,3 @@ Future<DomainOrder?> getOrder(Ref ref, String tradeNo) async {
   }
   return null;
 }
-
-/// 获取订单支付方式
-@riverpod
-Future<List<DomainPaymentMethod>> getOrderPaymentMethods(Ref ref) async {
-  final api = await ref.watch(xboardSdkProvider.future);
-  final json = await api.getPaymentMethod();
-  final dataList = json['data'] as List<dynamic>? ?? [];
-  return dataList
-      .whereType<Map<String, dynamic>>()
-      .map(mapPaymentMethod)
-      .toList();
-}

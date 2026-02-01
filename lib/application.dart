@@ -53,13 +53,32 @@ class ApplicationState extends ConsumerState<Application> {
   void initState() {
     super.initState();
     _router = _createRouter();
-    ref.listenManual(xboardUserProvider, (_, __) {
-      _router.refresh();
-    });
+
+    // 监听用户状态变化，刷新路由
+    ref.listenManual(
+      xboardUserProvider.select((state) => state.isInitialized),
+      (previous, next) {
+        debugPrint('[Application] isInitialized 变化: $previous -> $next');
+        if (next) {
+          _router.refresh();
+        }
+      },
+      fireImmediately: false,
+    );
+
+    ref.listenManual(
+      xboardUserProvider.select((state) => state.isAuthenticated),
+      (previous, next) {
+        debugPrint('[Application] isAuthenticated 变化: $previous -> $next');
+        _router.refresh();
+      },
+      fireImmediately: false,
+    );
+
     _autoUpdateGroupTask();
     _autoUpdateProfilesTask();
     globalState.appController = AppController(context, ref);
-    
+
     // ✅ 后台预热：统一初始化服务（不阻塞 UI）
     // 这样快速认证和登录页都能使用已初始化的 SDK
     Future.microtask(() async {
@@ -96,24 +115,25 @@ class ApplicationState extends ConsumerState<Application> {
       try {
         debugPrint('[Application] 开始快速认证检查...');
 
-        // 等待初始化完成（最多 15 秒），失败时立即继续
-        final initState = ref.read(initializationProvider);
-        if (!initState.isReady && !initState.isFailed) {
-          debugPrint('[Application] 等待初始化完成...');
-          final deadline = DateTime.now().add(const Duration(seconds: 15));
-          while (DateTime.now().isBefore(deadline)) {
-            final current = ref.read(initializationProvider);
-            if (current.isReady || current.isFailed) break;
-            await Future.delayed(const Duration(milliseconds: 500));
-          }
-
-          final current = ref.read(initializationProvider);
-          if (current.isFailed) {
-            debugPrint('[Application] 初始化失败，继续执行 quickAuth');
-          } else if (!current.isReady) {
-            debugPrint('[Application] 初始化超时，继续执行 quickAuth');
-          }
-        }
+        // 并行等待初始化，但不阻塞认证流程
+        // 使用 Future.any 确保任一条件满足就继续
+        await Future.any([
+          // 等待初始化完成或失败
+          Future(() async {
+            while (true) {
+              await Future.delayed(const Duration(milliseconds: 100));
+              final current = ref.read(initializationProvider);
+              if (current.isReady || current.isFailed) {
+                debugPrint('[Application] 初始化状态: ${current.status}');
+                break;
+              }
+            }
+          }),
+          // 5秒超时兜底，确保不会永久阻塞
+          Future.delayed(const Duration(seconds: 5), () {
+            debugPrint('[Application] 初始化等待超时（5秒），继续执行 quickAuth');
+          }),
+        ]);
 
         // 无论初始化成功与否，都执行 quickAuth
         // quickAuth 内部 finally 保证 isInitialized = true

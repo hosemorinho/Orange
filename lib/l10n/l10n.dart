@@ -5344,6 +5344,36 @@ class AppLocalizations {
     );
   }
 
+  /// `Tap to connect`
+  String get xboardTapToConnect {
+    return Intl.message(
+      'Tap to connect',
+      name: 'xboardTapToConnect',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unlimited`
+  String get xboardUnlimitedTime {
+    return Intl.message(
+      'Unlimited',
+      name: 'xboardUnlimitedTime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Got it`
+  String get xboardNoticeDialogGotIt {
+    return Intl.message(
+      'Got it',
+      name: 'xboardNoticeDialogGotIt',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Not logged in`
   String get subscriptionNotLoggedIn {
     return Intl.message(

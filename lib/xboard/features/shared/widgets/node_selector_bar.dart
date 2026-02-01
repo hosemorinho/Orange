@@ -140,10 +140,7 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => CommonScaffold(
-                          title: AppLocalizations.of(context).xboardProxy,
-                          body: const ProxiesView(),
-                        ),
+                        builder: (context) => const FlatNodeListView(),
                       ),
                     );
                   },
@@ -241,10 +238,7 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => CommonScaffold(
-                      title: AppLocalizations.of(context).xboardProxy,
-                      body: const ProxiesView(),
-                    ),
+                    builder: (context) => const FlatNodeListView(),
                   ),
                 );
               },

@@ -25,6 +25,7 @@ class PeriodSelector extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -35,7 +36,7 @@ class PeriodSelector extends StatelessWidget {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -52,7 +53,7 @@ class PeriodSelector extends StatelessWidget {
     final baseWidth = 800.0; // 统一基准宽度
     final scaleFactor = (screenWidth / baseWidth).clamp(0.8, 1.5);
     final horizontalPadding = (3 * scaleFactor).clamp(2.0, 6.0);
-    
+
     return Row(
       children: periods.map((period) {
         final isSelected = selectedPeriod == period['period'];
@@ -77,16 +78,16 @@ class PeriodSelector extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final baseWidth = 800.0; // 统一基准宽度
     final scaleFactor = (screenWidth / baseWidth).clamp(0.8, 1.5);
-    
+
     // 根据屏幕宽度动态调整列数
     final crossAxisCount = screenWidth > 600 ? 3 : 2;
-    
+
     // 根据屏幕大小动态调整间距
     final spacing = (6 * scaleFactor).clamp(4.0, 12.0);
-    
+
     // 根据屏幕大小动态调整宽高比
     final aspectRatio = (3.0 * scaleFactor).clamp(2.5, 3.5);
-    
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -132,6 +133,7 @@ class _PeriodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final periodPrice = period['price']?.toDouble() ?? 0.0;
     final displayPrice = isSelected && couponType != null
         ? PriceCalculator.calculateFinalPrice(
@@ -141,8 +143,8 @@ class _PeriodCard extends StatelessWidget {
           )
         : periodPrice;
 
-    final hasDiscount = isSelected && 
-        couponType != null && 
+    final hasDiscount = isSelected &&
+        couponType != null &&
         displayPrice < periodPrice;
 
     // 根据屏幕大小动态调整尺寸
@@ -164,15 +166,15 @@ class _PeriodCard extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: isSelected
               ? LinearGradient(
-                  colors: [Colors.blue.shade400, Colors.blue.shade600],
+                  colors: [colorScheme.primary.withValues(alpha: 0.7), colorScheme.primary],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
               : null,
-          color: isSelected ? null : Colors.grey.shade50,
+          color: isSelected ? null : colorScheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(
-            color: isSelected ? Colors.blue.shade600 : Colors.grey.shade300,
+            color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -186,7 +188,7 @@ class _PeriodCard extends StatelessWidget {
               children: [
                 Icon(
                   isSelected ? Icons.check_circle : Icons.circle_outlined,
-                  color: isSelected ? Colors.white : Colors.grey.shade400,
+                  color: isSelected ? colorScheme.onPrimary : colorScheme.outline,
                   size: iconSize,
                 ),
                 SizedBox(width: horizontalSpacing),
@@ -196,7 +198,7 @@ class _PeriodCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: labelFontSize,
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : Colors.grey.shade800,
+                      color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -218,8 +220,8 @@ class _PeriodCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: originalPriceFontSize,
                       decoration: TextDecoration.lineThrough,
-                      decorationColor: Colors.white70,
-                      color: Colors.white70,
+                      decorationColor: colorScheme.onPrimary.withValues(alpha: 0.7),
+                      color: colorScheme.onPrimary.withValues(alpha: 0.7),
                     ),
                   ),
                   SizedBox(width: priceSpacing),
@@ -228,7 +230,7 @@ class _PeriodCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: priceFontSize,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                     ),
                   ),
                 ],
@@ -239,7 +241,7 @@ class _PeriodCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: priceFontSize,
                   fontWeight: FontWeight.bold,
-                  color: isSelected ? Colors.white : Colors.blue.shade700,
+                  color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -249,4 +251,3 @@ class _PeriodCard extends StatelessWidget {
     );
   }
 }
-

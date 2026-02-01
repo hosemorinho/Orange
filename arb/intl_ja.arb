@@ -644,6 +644,9 @@
   "xboardProxy": "プロキシ",
   "xboardSwitch": "切り替え",
   "xboardSetup": "設定",
+  "xboardConnected": "接続済み",
+  "xboardDisconnected": "切断済み",
+  "xboardSwitchNode": "ノード切り替え",
   "xboardNoAvailablePlan": "利用可能なプランがありません",
   "xboardSubscriptionHasExpired": "サブスクリプションが期限切れです",
   "xboardTrafficUsedUp": "トラフィックを使い切りました",
@@ -815,5 +818,25 @@
         "type": "String"
       }
     }
-  }
+  },
+  "xboardSearchNode": "ノードを検索",
+  "xboardSettings": "設定",
+  "xboardNetworkSettings": "ネットワーク設定",
+  "xboardBypassDomain": "バイパスドメイン/IP",
+  "xboardBypassDomainDesc": "直接接続するドメインとIPを追加",
+  "xboardBypassDomainCount": "{count} 件のルールが設定済み",
+  "@xboardBypassDomainCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xboardLanSharing": "LANプロキシ共有",
+  "xboardLanSharingDesc": "LANデバイスがこのプロキシを使用することを許可",
+  "xboardProxyInfo": "プロキシ情報",
+  "xboardProxyCommands": "プロキシコマンド設定",
+  "xboardCopied": "クリップボードにコピーしました",
+  "xboardProxyPort": "プロキシポート",
+  "xboardAllowLan": "LANに共有"
 }

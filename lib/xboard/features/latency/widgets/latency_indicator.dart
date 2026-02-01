@@ -111,9 +111,9 @@ class LatencyIndicator extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
           decoration: BoxDecoration(
-            color: color?.withValues(alpha: 0.1) ?? Colors.grey.withValues(alpha: 0.1),
+            color: color?.withValues(alpha: 0.1) ?? Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: color?.withValues(alpha: 0.3) ?? Colors.grey.withValues(alpha: 0.3)),
+            border: Border.all(color: color?.withValues(alpha: 0.3) ?? Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
           ),
           child: Text(
             delayValue! < 0 ? '超时' : '$delayValue',

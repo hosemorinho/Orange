@@ -24,6 +24,7 @@ class CouponInputSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -31,14 +32,14 @@ class CouponInputSection extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Row(
             children: [
-              Icon(Icons.local_offer, color: Colors.orange.shade600, size: 20),
+              Icon(Icons.local_offer, color: colorScheme.secondary, size: 20),
               const SizedBox(width: 6),
               Text(
                 AppLocalizations.of(context).xboardCouponOptional,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade700,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
               if (isValid == true && discountAmount != null) ...[
@@ -80,23 +81,24 @@ class _DiscountBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.green.shade400, Colors.green.shade600],
+          colors: [colorScheme.tertiary.withValues(alpha: 0.7), colorScheme.tertiary],
         ),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.check_circle, color: Colors.white, size: 14),
+          Icon(Icons.check_circle, color: colorScheme.onTertiary, size: 14),
           const SizedBox(width: 4),
           Text(
-            '-¥${discountAmount.toStringAsFixed(2)}',
-            style: const TextStyle(
-              color: Colors.white,
+            '-\u00A5${discountAmount.toStringAsFixed(2)}',
+            style: TextStyle(
+              color: colorScheme.onTertiary,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
@@ -118,22 +120,35 @@ class _CouponTextField extends StatelessWidget {
     this.isValid,
   });
 
+  Color _getBorderColor(ColorScheme colorScheme) {
+    if (isValid == false) return colorScheme.error.withValues(alpha: 0.3);
+    if (isValid == true) return colorScheme.tertiary.withValues(alpha: 0.7);
+    return colorScheme.outlineVariant;
+  }
+
+  Color _getIconColor(ColorScheme colorScheme) {
+    if (isValid == false) return colorScheme.error.withValues(alpha: 0.7);
+    if (isValid == true) return colorScheme.tertiary.withValues(alpha: 0.7);
+    return colorScheme.outline;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _getBorderColor(),
+          color: _getBorderColor(colorScheme),
           width: 1.5,
         ),
       ),
       child: TextField(
         controller: controller,
         style: TextStyle(
-          color: Colors.grey.shade900,
+          color: colorScheme.onSurface,
           fontSize: 15,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.5,
@@ -142,19 +157,19 @@ class _CouponTextField extends StatelessWidget {
           border: InputBorder.none,
           hintText: AppLocalizations.of(context).xboardEnterCouponCode,
           hintStyle: TextStyle(
-            color: Colors.grey.shade400,
+            color: colorScheme.outline,
             fontSize: 14,
             fontWeight: FontWeight.normal,
           ),
           prefixIcon: Icon(
             Icons.confirmation_number_outlined,
-            color: _getIconColor(),
+            color: _getIconColor(colorScheme),
             size: 20,
           ),
           suffixIcon: isValid != null
               ? Icon(
                   isValid! ? Icons.check_circle : Icons.cancel,
-                  color: isValid! ? Colors.green.shade600 : Colors.red.shade600,
+                  color: isValid! ? colorScheme.tertiary : colorScheme.error,
                   size: 20,
                 )
               : null,
@@ -166,18 +181,6 @@ class _CouponTextField extends StatelessWidget {
         onChanged: (_) => onChanged(),
       ),
     );
-  }
-
-  Color _getBorderColor() {
-    if (isValid == false) return Colors.red.shade300;
-    if (isValid == true) return Colors.green.shade400;
-    return Colors.grey.shade300;
-  }
-
-  Color _getIconColor() {
-    if (isValid == false) return Colors.red.shade400;
-    if (isValid == true) return Colors.green.shade400;
-    return Colors.grey.shade400;
   }
 }
 
@@ -192,11 +195,12 @@ class _ValidateButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
       height: 48,
       child: ElevatedButton(
-        onPressed: isValidating 
-            ? null 
+        onPressed: isValidating
+            ? null
             : () {
                 // 收起键盘
                 FocusScope.of(context).unfocus();
@@ -204,8 +208,8 @@ class _ValidateButton extends StatelessWidget {
                 onPressed();
               },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orange.shade600,
-          foregroundColor: Colors.white,
+          backgroundColor: colorScheme.secondary,
+          foregroundColor: colorScheme.onSecondary,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -213,12 +217,12 @@ class _ValidateButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
         ),
         child: isValidating
-            ? const SizedBox(
+            ? SizedBox(
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onSecondary),
                 ),
               )
             : Text(
@@ -240,21 +244,22 @@ class _ErrorMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: Colors.red.shade600, size: 16),
+          Icon(Icons.error_outline, color: colorScheme.error, size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
               style: TextStyle(
-                color: Colors.red.shade700,
+                color: colorScheme.error,
                 fontSize: 13,
               ),
             ),
@@ -264,4 +269,3 @@ class _ErrorMessage extends StatelessWidget {
     );
   }
 }
-

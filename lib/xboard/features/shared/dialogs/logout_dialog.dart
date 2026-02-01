@@ -23,7 +23,7 @@ class LogoutDialog extends ConsumerWidget {
             await _performLogout(context, ref);
           },
           style: TextButton.styleFrom(
-            foregroundColor: Colors.red,
+            foregroundColor: Theme.of(context).colorScheme.error,
           ),
           child: Text(appLocalizations.logout),
         ),

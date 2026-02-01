@@ -16,8 +16,8 @@ class UpdateDialog extends ConsumerWidget {
         children: [
           Icon(
             state.forceUpdate ? Icons.warning : Icons.system_update,
-            color: state.forceUpdate 
-                ? Colors.red 
+            color: state.forceUpdate
+                ? Theme.of(context).colorScheme.error
                 : Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(width: 8),
@@ -27,7 +27,7 @@ class UpdateDialog extends ConsumerWidget {
                   ? appLocalizations.updateCheckForceUpdate(state.latestVersion ?? '')
                   : appLocalizations.updateCheckNewVersionFound(state.latestVersion ?? ''),
               style: TextStyle(
-                color: state.forceUpdate ? Colors.red : null,
+                color: state.forceUpdate ? Theme.of(context).colorScheme.error : null,
               ),
             ),
           ),
@@ -109,8 +109,8 @@ class UpdateDialog extends ConsumerWidget {
           label: Text(state.forceUpdate ? appLocalizations.updateCheckMustUpdate : appLocalizations.updateCheckUpdateNow),
           style: state.forceUpdate 
               ? ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  foregroundColor: Theme.of(context).colorScheme.onError,
                 )
               : null,
         ),

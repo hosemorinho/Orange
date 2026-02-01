@@ -18,12 +18,13 @@ class PriceSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final displayFinalPrice = finalPrice ?? originalPrice;
     final hasDiscount = discountAmount != null && discountAmount! > 0;
     final hasBalance = userBalance != null && userBalance! > 0;
-    
+
     // 计算余额抵扣
-    final balanceToUse = hasBalance 
+    final balanceToUse = hasBalance
         ? (userBalance! > displayFinalPrice ? displayFinalPrice : userBalance!)
         : 0.0;
     final actualPayAmount = displayFinalPrice - balanceToUse;
@@ -32,12 +33,12 @@ class PriceSummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.indigo.shade50, Colors.blue.shade50],
+          colors: [colorScheme.primaryContainer, colorScheme.primaryContainer],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade200, width: 1),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         children: [
@@ -63,15 +64,15 @@ class PriceSummaryCard extends StatelessWidget {
               label: '优惠后',
               price: displayFinalPrice,
             ),
-            Divider(height: 16, color: Colors.blue.shade200),
+            Divider(height: 16, color: colorScheme.primary.withValues(alpha: 0.3)),
           ],
 
           // 实付金额（带余额抵扣信息）
           _FinalPriceRow(
             price: actualPayAmount,
             balanceDeducted: balanceToUse > 0 ? balanceToUse : null,
-            remainingBalance: hasBalance && userBalance! > displayFinalPrice 
-                ? userBalance! - displayFinalPrice 
+            remainingBalance: hasBalance && userBalance! > displayFinalPrice
+                ? userBalance! - displayFinalPrice
                 : null,
           ),
         ],
@@ -95,13 +96,14 @@ class _PriceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         Text(
           label,
           style: TextStyle(
             fontSize: 12,  // 减小字体
-            color: isDiscount ? Colors.green.shade700 : Colors.grey.shade600,
+            color: isDiscount ? colorScheme.tertiary : colorScheme.onSurfaceVariant,
           ),
         ),
         const Spacer(),
@@ -114,8 +116,8 @@ class _PriceRow extends StatelessWidget {
             decoration: isStrikethrough ? TextDecoration.lineThrough : null,
             fontWeight: isDiscount ? FontWeight.w600 : null,
             color: isDiscount
-                ? Colors.green.shade700
-                : (isStrikethrough ? Colors.grey.shade500 : null),
+                ? colorScheme.tertiary
+                : (isStrikethrough ? colorScheme.outline : null),
           ),
         ),
       ],
@@ -136,6 +138,7 @@ class _FinalPriceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     String? balanceInfo;
     if (balanceDeducted != null) {
       balanceInfo = '已抵扣余额 ${PriceCalculator.formatPrice(balanceDeducted!)}';
@@ -151,7 +154,7 @@ class _FinalPriceRow extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
-            color: Colors.grey.shade800,
+            color: colorScheme.onSurface,
           ),
         ),
         const Spacer(),
@@ -163,7 +166,7 @@ class _FinalPriceRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue.shade700,
+                color: colorScheme.primary,
               ),
             ),
             if (balanceInfo != null) ...[
@@ -172,7 +175,7 @@ class _FinalPriceRow extends StatelessWidget {
                 '($balanceInfo)',
                 style: TextStyle(
                   fontSize: 10,
-                  color: Colors.grey.shade600,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
             ],

@@ -66,6 +66,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m34(time) => "Время работы: ${time}";
 
+  static String m35(count) => "${count} правил настроено";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("О нас"),
@@ -1015,6 +1017,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardConnectGlobalQualityNodes": MessageLookupByLibrary.simpleMessage(
       "Подключитесь к глобальным качественным узлам",
     ),
+    "xboardConnected": MessageLookupByLibrary.simpleMessage("Подключено"),
     "xboardConnectionTimeout": MessageLookupByLibrary.simpleMessage(
       "Таймаут соединения, проверьте сетевое подключение",
     ),
@@ -1054,6 +1057,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Вычитается при оплате",
     ),
     "xboardDiscounted": MessageLookupByLibrary.simpleMessage("Со скидкой"),
+    "xboardDisconnected": MessageLookupByLibrary.simpleMessage("Отключено"),
     "xboardDownloadingConfig": MessageLookupByLibrary.simpleMessage(
       "Загрузка файла конфигурации",
     ),
@@ -1353,7 +1357,38 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. Вернитесь в приложение после оплаты, система автоматически определит",
     ),
+    "xboardAllowLan": MessageLookupByLibrary.simpleMessage(
+      "Поделиться в LAN",
+    ),
+    "xboardBypassDomain": MessageLookupByLibrary.simpleMessage(
+      "Обход домена/IP",
+    ),
+    "xboardBypassDomainCount": m35,
+    "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
+      "Добавить домены и IP для прямого подключения",
+    ),
+    "xboardCopied": MessageLookupByLibrary.simpleMessage(
+      "Скопировано в буфер обмена",
+    ),
+    "xboardLanSharing": MessageLookupByLibrary.simpleMessage(
+      "Общий доступ к прокси LAN",
+    ),
+    "xboardLanSharingDesc": MessageLookupByLibrary.simpleMessage(
+      "Разрешить устройствам LAN использовать этот прокси",
+    ),
+    "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage(
+      "Настройки сети",
+    ),
+    "xboardProxyCommands": MessageLookupByLibrary.simpleMessage(
+      "Команды настройки прокси",
+    ),
+    "xboardProxyInfo": MessageLookupByLibrary.simpleMessage(
+      "Информация о прокси",
+    ),
+    "xboardProxyPort": MessageLookupByLibrary.simpleMessage("Порт прокси"),
     "xboardRunningTime": m34,
+    "xboardSearchNode": MessageLookupByLibrary.simpleMessage("Поиск узлов"),
+    "xboardSettings": MessageLookupByLibrary.simpleMessage("Настройки"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage(
       "Безопасное шифрование",
     ),
@@ -1407,6 +1442,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Статус подписки",
     ),
     "xboardSwitch": MessageLookupByLibrary.simpleMessage("Переключить"),
+    "xboardSwitchNode": MessageLookupByLibrary.simpleMessage("Сменить узел"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("Тестирование"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36-месячный цикл",

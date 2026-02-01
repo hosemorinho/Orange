@@ -650,6 +650,9 @@
   "xboardProxy": "代理",
   "xboardSwitch": "切换",
   "xboardSetup": "设置",
+  "xboardConnected": "已连接",
+  "xboardDisconnected": "已断开",
+  "xboardSwitchNode": "切换节点",
   "xboardNoAvailablePlan": "无可用套餐",
   "xboardSubscriptionHasExpired": "订阅已过期",
   "xboardTrafficUsedUp": "流量已用完",
@@ -1049,5 +1052,25 @@
         "type": "String"
       }
     }
-  }
+  },
+  "xboardSearchNode": "搜索节点",
+  "xboardSettings": "设置",
+  "xboardNetworkSettings": "网络设置",
+  "xboardBypassDomain": "排除域名/IP",
+  "xboardBypassDomainDesc": "添加不走代理的域名和IP段",
+  "xboardBypassDomainCount": "已添加 {count} 项规则",
+  "@xboardBypassDomainCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xboardLanSharing": "局域网代理共享",
+  "xboardLanSharingDesc": "允许局域网设备通过本机代理上网",
+  "xboardProxyInfo": "代理信息",
+  "xboardProxyCommands": "设置代理命令",
+  "xboardCopied": "已复制到剪贴板",
+  "xboardProxyPort": "代理端口",
+  "xboardAllowLan": "共享到局域网"
 }

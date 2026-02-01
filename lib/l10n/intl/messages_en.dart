@@ -97,6 +97,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m34(time) => "Running time: ${time}";
 
+  static String m35(count) => "${count} rules configured";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("About"),
@@ -1250,6 +1252,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardConnectGlobalQualityNodes": MessageLookupByLibrary.simpleMessage(
       "Connect to global quality nodes",
     ),
+    "xboardConnected": MessageLookupByLibrary.simpleMessage("Connected"),
     "xboardConnectionTimeout": MessageLookupByLibrary.simpleMessage(
       "Connection timeout, please check network connection",
     ),
@@ -1283,6 +1286,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Deductible during payment",
     ),
     "xboardDiscounted": MessageLookupByLibrary.simpleMessage("Discounted"),
+    "xboardDisconnected": MessageLookupByLibrary.simpleMessage("Disconnected"),
     "xboardDownloadingConfig": MessageLookupByLibrary.simpleMessage(
       "Downloading configuration file",
     ),
@@ -1570,7 +1574,36 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. Return to app after payment, system will detect automatically",
     ),
+    "xboardAllowLan": MessageLookupByLibrary.simpleMessage("Share to LAN"),
+    "xboardBypassDomain": MessageLookupByLibrary.simpleMessage(
+      "Bypass Domain/IP",
+    ),
+    "xboardBypassDomainCount": m35,
+    "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
+      "Add domains and IPs for direct connection",
+    ),
+    "xboardCopied": MessageLookupByLibrary.simpleMessage(
+      "Copied to clipboard",
+    ),
+    "xboardLanSharing": MessageLookupByLibrary.simpleMessage(
+      "LAN Proxy Sharing",
+    ),
+    "xboardLanSharingDesc": MessageLookupByLibrary.simpleMessage(
+      "Allow LAN devices to use this proxy",
+    ),
+    "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage(
+      "Network Settings",
+    ),
+    "xboardProxyCommands": MessageLookupByLibrary.simpleMessage(
+      "Set Proxy Commands",
+    ),
+    "xboardProxyInfo": MessageLookupByLibrary.simpleMessage(
+      "Proxy Information",
+    ),
+    "xboardProxyPort": MessageLookupByLibrary.simpleMessage("Proxy Port"),
     "xboardRunningTime": m34,
+    "xboardSearchNode": MessageLookupByLibrary.simpleMessage("Search nodes"),
+    "xboardSettings": MessageLookupByLibrary.simpleMessage("Settings"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage(
       "Secure encryption",
     ),
@@ -1621,6 +1654,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Subscription status",
     ),
     "xboardSwitch": MessageLookupByLibrary.simpleMessage("Switch"),
+    "xboardSwitchNode": MessageLookupByLibrary.simpleMessage("Switch Node"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("Testing"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36-month cycle",

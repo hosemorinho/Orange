@@ -35,9 +35,9 @@ class UserMenuWidget extends ConsumerWidget {
           value: 'logout',
           child: Row(
             children: [
-              const Icon(Icons.logout, color: Colors.red),
+              Icon(Icons.logout, color: Theme.of(context).colorScheme.error),
               const SizedBox(width: 8),
-              Text(appLocalizations.logout, style: const TextStyle(color: Colors.red)),
+              Text(appLocalizations.logout, style: TextStyle(color: Theme.of(context).colorScheme.error)),
             ],
           ),
         ),

@@ -313,11 +313,12 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
   }
 
   ({String label, Color color}) _getStatusInfo(TicketStatus status) {
+    final colorScheme = Theme.of(context).colorScheme;
     switch (status) {
       case TicketStatus.pending:
-        return (label: '待处理', color: Colors.green.shade600);
+        return (label: '待处理', color: colorScheme.tertiary);
       case TicketStatus.closed:
-        return (label: '已关闭', color: Colors.grey.shade600);
+        return (label: '已关闭', color: colorScheme.outline);
     }
   }
 

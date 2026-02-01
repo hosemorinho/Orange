@@ -90,12 +90,10 @@ class XBoardOutboundMode extends StatelessWidget {
   }
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final tunSelectedColor = isDark 
-        ? Colors.green.shade800.withValues(alpha: 0.4)
-        : Colors.green.withValues(alpha: 0.2);
-    final tunCheckmarkColor = isDark ? Colors.green.shade300 : Colors.green.shade700;
-    final tunBorderColor = isDark ? Colors.green.shade600 : Colors.green.shade300;
+    final colorScheme = Theme.of(context).colorScheme;
+    final tunSelectedColor = colorScheme.tertiaryContainer;
+    final tunCheckmarkColor = colorScheme.onTertiaryContainer;
+    final tunBorderColor = colorScheme.tertiary.withValues(alpha: 0.5);
     
     return Consumer(
       builder: (context, ref, child) {

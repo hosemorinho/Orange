@@ -183,6 +183,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
   }
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return CommonScaffold(
       title: '支付网关',
       body: _isLoading
@@ -192,7 +193,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error, size: 64, color: Colors.red),
+                      Icon(Icons.error, size: 64, color: colorScheme.error),
                       const SizedBox(height: 16),
                       Text(_errorMessage!),
                       const SizedBox(height: 16),
@@ -239,14 +240,14 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                                 child: Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.shade50,
+                                    color: colorScheme.primaryContainer,
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.blue.shade200),
+                                    border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
                                   ),
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Icon(Icons.info, color: Colors.blue),
+                                      Icon(Icons.info, color: colorScheme.primary),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Column(
@@ -254,25 +255,25 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                                           children: [
                                             Row(
                                               children: [
-                                                const Text(
+                                                Text(
                                                   '支付链接',
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.bold,
-                                                    color: Colors.blue,
+                                                    color: colorScheme.primary,
                                                   ),
                                                 ),
                                                 const Spacer(),
                                                 Icon(
                                                   Icons.copy,
                                                   size: 16,
-                                                  color: Colors.blue.shade600,
+                                                  color: colorScheme.primary,
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
                                                   '点击复制',
                                                   style: TextStyle(
                                                     fontSize: 10,
-                                                    color: Colors.blue.shade600,
+                                                    color: colorScheme.primary,
                                                   ),
                                                 ),
                                               ],
@@ -296,7 +297,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                       const SizedBox(height: 16),
                       if (_autoPollingEnabled)
                         Card(
-                          color: Colors.green.shade50,
+                          color: colorScheme.tertiaryContainer,
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: Row(
@@ -306,7 +307,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.green.shade600),
+                                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.tertiary),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -318,14 +319,14 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                                         '自动检测支付状态',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.green.shade800,
+                                          color: colorScheme.onTertiaryContainer,
                                         ),
                                       ),
                                       Text(
                                         '系统每5秒自动检查一次，支付完成后会自动跳转',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: Colors.green.shade600,
+                                          color: colorScheme.tertiary,
                                         ),
                                       ),
                                     ],
@@ -335,7 +336,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                                   onPressed: _stopAutoPolling,
                                   child: Text(
                                     '停止',
-                                    style: TextStyle(color: Colors.green.shade700),
+                                    style: TextStyle(color: colorScheme.tertiary),
                                   ),
                                 ),
                               ],
@@ -365,20 +366,20 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.amber.shade50,
+                                  color: colorScheme.secondaryContainer,
                                   borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.amber.shade200),
+                                  border: Border.all(color: colorScheme.secondary.withValues(alpha: 0.3)),
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.info_outline, size: 16, color: Colors.amber.shade700),
+                                    Icon(Icons.info_outline, size: 16, color: colorScheme.secondary),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         '提示：如果浏览器未自动打开，可以点击"重新打开"或复制链接手动打开',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: Colors.amber.shade700,
+                                          color: colorScheme.secondary,
                                         ),
                                       ),
                                     ),
@@ -398,8 +399,8 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                               icon: const Icon(Icons.open_in_browser),
                               label: const Text('重新打开'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
                             ),
@@ -411,8 +412,8 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                               icon: const Icon(Icons.copy),
                               label: const Text('复制链接'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.purple,
-                                foregroundColor: Colors.white,
+                                backgroundColor: colorScheme.secondary,
+                                foregroundColor: colorScheme.onSecondary,
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
                             ),
@@ -422,19 +423,19 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                             child: ElevatedButton.icon(
                               onPressed: _isCheckingPayment ? null : _checkPaymentStatus,
                               icon: _isCheckingPayment
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 16,
                                       height: 16,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onSecondary),
                                       ),
                                     )
                                   : const Icon(Icons.refresh),
                               label: Text(_isCheckingPayment ? '检查中...' : '检查状态'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
-                                foregroundColor: Colors.white,
+                                backgroundColor: colorScheme.secondary,
+                                foregroundColor: colorScheme.onSecondary,
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
                             ),
@@ -450,8 +451,8 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                               icon: const Icon(Icons.check_circle),
                               label: const Text('支付完成'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
+                                backgroundColor: colorScheme.tertiary,
+                                foregroundColor: colorScheme.onTertiary,
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
                             ),
@@ -463,8 +464,8 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                               icon: const Icon(Icons.cancel),
                               label: const Text('取消支付'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey,
-                                foregroundColor: Colors.white,
+                                backgroundColor: colorScheme.outline,
+                                foregroundColor: colorScheme.surface,
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
                             ),

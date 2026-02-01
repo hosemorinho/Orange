@@ -15,7 +15,7 @@ class TicketCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final statusInfo = _getStatusInfo(ticket.status, theme);
-    final priorityInfo = _getPriorityInfo(ticket.priority);
+    final priorityInfo = _getPriorityInfo(ticket.priority, theme);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -130,22 +130,24 @@ class TicketCard extends StatelessWidget {
   }
 
   ({String label, Color color}) _getStatusInfo(TicketStatus status, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
     switch (status) {
       case TicketStatus.pending:
-        return (label: '待处理', color: Colors.green.shade600);
+        return (label: '待处理', color: colorScheme.tertiary);
       case TicketStatus.closed:
-        return (label: '已关闭', color: Colors.grey.shade600);
+        return (label: '已关闭', color: colorScheme.outline);
     }
   }
 
-  ({String label, Color color}) _getPriorityInfo(int priority) {
+  ({String label, Color color}) _getPriorityInfo(int priority, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
     switch (priority) {
       case 0:
-        return (label: '低优先级', color: Colors.blue.shade400);
+        return (label: '低优先级', color: colorScheme.primary);
       case 2:
-        return (label: '高优先级', color: Colors.red.shade400);
+        return (label: '高优先级', color: colorScheme.error);
       default:
-        return (label: '中优先级', color: Colors.orange.shade400);
+        return (label: '中优先级', color: colorScheme.secondary);
     }
   }
 

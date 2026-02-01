@@ -416,10 +416,10 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               theme,
               '剩余天数',
               '$daysRemaining 天',
-              valueColor: daysRemaining <= 7
-                  ? Colors.orange.shade600
-                  : daysRemaining <= 0
-                      ? Colors.red.shade600
+              valueColor: daysRemaining <= 0
+                  ? theme.colorScheme.error
+                  : daysRemaining <= 7
+                      ? theme.colorScheme.error.withValues(alpha: 0.7)
                       : null,
             ),
           ],
@@ -458,21 +458,22 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   ({String label, Color color}) _getStatusInfo(DomainSubscription sub, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
     if (sub.isExpired) {
-      return (label: '已过期', color: Colors.red.shade600);
+      return (label: '已过期', color: colorScheme.error);
     }
     if (sub.isTrafficExhausted) {
-      return (label: '流量耗尽', color: Colors.orange.shade600);
+      return (label: '流量耗尽', color: colorScheme.error.withValues(alpha: 0.7));
     }
     if (sub.isExpiringSoon) {
-      return (label: '即将到期', color: Colors.orange.shade600);
+      return (label: '即将到期', color: colorScheme.error.withValues(alpha: 0.7));
     }
-    return (label: '生效中', color: Colors.green.shade600);
+    return (label: '生效中', color: colorScheme.tertiary);
   }
 
   Color _getProgressColor(double progress, ThemeData theme) {
-    if (progress >= 0.9) return Colors.red.shade400;
-    if (progress >= 0.7) return Colors.orange.shade400;
+    if (progress >= 0.9) return theme.colorScheme.error;
+    if (progress >= 0.7) return theme.colorScheme.error.withValues(alpha: 0.7);
     return theme.colorScheme.primary;
   }
 

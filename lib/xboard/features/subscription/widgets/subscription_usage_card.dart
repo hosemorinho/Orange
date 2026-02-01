@@ -94,19 +94,19 @@ class SubscriptionUsageCard extends ConsumerWidget {
     switch (statusResult.type) {
       case SubscriptionStatusType.noSubscription:
         statusIcon = Icons.card_giftcard_outlined;
-        statusColor = const Color(0xff0EA5E9); // Secondary blue from design system
+        statusColor = theme.colorScheme.primary;
         statusText = AppLocalizations.of(context).xboardNoAvailableSubscription;
         statusDetail = AppLocalizations.of(context).xboardPurchaseSubscriptionToUse;
         break;
       case SubscriptionStatusType.expired:
         statusIcon = Icons.schedule_outlined;
-        statusColor = const Color(0xffEF4444); // Error red
+        statusColor = theme.colorScheme.error;
         statusText = AppLocalizations.of(context).xboardSubscriptionExpired;
         statusDetail = statusResult.getDetailMessage(context) ?? AppLocalizations.of(context).xboardRenewToContinue;
         break;
       case SubscriptionStatusType.exhausted:
         statusIcon = Icons.data_usage_outlined;
-        statusColor = const Color(0xffF59E0B); // Warning orange
+        statusColor = theme.colorScheme.secondary;
         statusText = AppLocalizations.of(context).xboardTrafficExhausted;
         statusDetail = statusResult.getDetailMessage(context) ?? AppLocalizations.of(context).xboardBuyMoreTrafficOrUpgrade;
         break;
@@ -234,7 +234,7 @@ class SubscriptionUsageCard extends ConsumerWidget {
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: statusColor,
-                    foregroundColor: Colors.white,
+                    foregroundColor: theme.colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   icon: const Icon(Icons.shopping_bag, size: 18),
@@ -519,9 +519,9 @@ class SubscriptionUsageCard extends ConsumerWidget {
   }
   Color _getProgressColor(double progress, ThemeData theme) {
     if (progress >= 0.9) {
-      return Colors.red.shade400;
+      return theme.colorScheme.error;
     } else if (progress >= 0.7) {
-      return Colors.orange.shade400;
+      return theme.colorScheme.error.withValues(alpha: 0.7);
     } else {
       return theme.colorScheme.primary;
     }

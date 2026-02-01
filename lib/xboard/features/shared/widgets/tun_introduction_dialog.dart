@@ -17,12 +17,12 @@ class TunIntroductionDialog extends StatelessWidget {
       icon: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.green.withValues(alpha: 0.1),
+          color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
           Icons.shield,
-          color: Colors.green.shade600,
+          color: Theme.of(context).colorScheme.tertiary,
           size: 32,
         ),
       ),
@@ -81,14 +81,14 @@ class TunIntroductionDialog extends StatelessWidget {
                       Icon(
                         Icons.lightbulb_outline,
                         size: 20,
-                        color: Colors.amber.shade700,
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         '推荐使用方式',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: Colors.amber.shade700,
+                          color: Theme.of(context).colorScheme.secondary,
                         ),
                       ),
                     ],
@@ -126,8 +126,8 @@ class TunIntroductionDialog extends StatelessWidget {
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
           style: FilledButton.styleFrom(
-            backgroundColor: Colors.green.shade600,
-            foregroundColor: Colors.white,
+            backgroundColor: Theme.of(context).colorScheme.tertiary,
+            foregroundColor: Theme.of(context).colorScheme.onTertiary,
           ),
           child: const Text('开启 TUN'),
         ),
@@ -148,7 +148,7 @@ class TunIntroductionDialog extends StatelessWidget {
           child: Icon(
             icon,
             size: 20,
-            color: Colors.green.shade600,
+            color: Theme.of(context).colorScheme.tertiary,
           ),
         ),
         const SizedBox(width: 12),

@@ -99,14 +99,9 @@ class _PlansViewState extends ConsumerState<PlansView> {
     return '${plan.speedLimit} Mbps';
   }
   Widget _buildPlanCard(DomainPlan plan) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 768;
     final theme = Theme.of(context);
 
     return Container(
-      margin: isDesktop
-        ? EdgeInsets.zero
-        : const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
@@ -117,7 +112,7 @@ class _PlansViewState extends ConsumerState<PlansView> {
       ),
       child: IntrinsicHeight(
         child: Padding(
-        padding: EdgeInsets.all(isDesktop ? 20 : 20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -142,16 +137,16 @@ class _PlansViewState extends ConsumerState<PlansView> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          const Color(0xff0369A1), // Primary from design system
-                          const Color(0xff0EA5E9), // Secondary from design system
+                          theme.colorScheme.primary,
+                          theme.colorScheme.primary.withValues(alpha: 0.7),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       _getLowestPrice(plan),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: theme.colorScheme.onPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
@@ -160,7 +155,7 @@ class _PlansViewState extends ConsumerState<PlansView> {
                   ),
               ],
             ),
-            SizedBox(height: isDesktop ? 8 : 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Icon(Icons.data_usage, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -179,11 +174,11 @@ class _PlansViewState extends ConsumerState<PlansView> {
               ],
             ),
             if (plan.description != null) ...[
-              SizedBox(height: isDesktop ? 8 : 12),
+              const SizedBox(height: 10),
               // 描述区域自适应高度，不再限制
               PlanDescriptionWidget(content: plan.description!),
             ],
-            SizedBox(height: isDesktop ? 12 : 20),
+            const SizedBox(height: 16),
             if (plan.hasPrice)
               SizedBox(
                 width: double.infinity,
@@ -192,9 +187,9 @@ class _PlansViewState extends ConsumerState<PlansView> {
                   icon: const Icon(Icons.shopping_cart_outlined, size: 20),
                   label: Text(appLocalizations.xboardBuyNow),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xff0369A1), // Primary from design system
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: isDesktop ? 14 : 16),
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -324,42 +319,26 @@ class _PlansViewState extends ConsumerState<PlansView> {
                 ),
               );
             }
-            final screenWidth = MediaQuery.of(context).size.width;
-            final isDesktop = screenWidth > 768;
-            if (isDesktop) {
-              // 桌面端：使用 SingleChildScrollView + Wrap 实现自适应高度的网格布局
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    // 计算每行可以放置的卡片数量
-                    final cardWidth = 380.0;
-                    final spacing = 16.0;
-                    final crossAxisCount = (constraints.maxWidth / (cardWidth + spacing)).floor().clamp(1, 4);
-
-                    return Wrap(
-                      spacing: spacing,
-                      runSpacing: spacing,
-                      children: plans.map((plan) {
-                        // 计算每个卡片的实际宽度
-                        final actualCardWidth = (constraints.maxWidth - (spacing * (crossAxisCount - 1))) / crossAxisCount;
-                        return SizedBox(
-                          width: actualCardWidth,
-                          child: _buildPlanCard(plan),
-                        );
-                      }).toList(),
-                    );
-                  },
-                ),
-              );
-            } else {
-              return ListView.builder(
-                itemCount: plans.length,
-                itemBuilder: (context, index) {
-                  return _buildPlanCard(plans[index]);
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  final crossAxisCount = width < 600 ? 1 : (width < 900 ? 2 : 3);
+                  const spacing = 12.0;
+                  final totalSpacing = spacing * (crossAxisCount - 1);
+                  final cardWidth = (width - totalSpacing) / crossAxisCount;
+                  return Wrap(
+                    spacing: spacing,
+                    runSpacing: spacing,
+                    children: plans.map((plan) => SizedBox(
+                      width: cardWidth,
+                      child: _buildPlanCard(plan),
+                    )).toList(),
+                  );
                 },
-              );
-            }
+              ),
+            );
           },
         ),
       ),

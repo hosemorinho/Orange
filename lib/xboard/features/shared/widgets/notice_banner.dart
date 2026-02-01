@@ -802,20 +802,20 @@ class NoticePopupDialog extends StatelessWidget {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Color(0xff0369A1),
-                            Color(0xff0EA5E9),
+                            Theme.of(context).colorScheme.primary,
+                            Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
                           ],
                         ),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.campaign_rounded,
                         size: 32,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -850,8 +850,8 @@ class NoticePopupDialog extends StatelessWidget {
                   child: FilledButton(
                     onPressed: onConfirm,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xff0369A1),
-                      foregroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),

@@ -27,12 +27,12 @@ class XBoardNotification {
           content: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              Icon(Icons.check_circle, color: Theme.of(context).colorScheme.onTertiary, size: 20),
               const SizedBox(width: 8),
               Flexible(child: Text(message)),
             ],
           ),
-          backgroundColor: Colors.green.shade600,
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
           behavior: SnackBarBehavior.floating,
           duration: const Duration(milliseconds: 1500),
           margin: _getSnackBarMargin(context),

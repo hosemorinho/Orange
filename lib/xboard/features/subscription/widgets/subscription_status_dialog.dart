@@ -33,7 +33,7 @@ class SubscriptionStatusDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      icon: _buildIcon(),
+      icon: _buildIcon(context),
       title: Text(
         _getTitle(context),
         style: const TextStyle(
@@ -74,30 +74,31 @@ class SubscriptionStatusDialog extends StatelessWidget {
       ],
     );
   }
-  Widget _buildIcon() {
+  Widget _buildIcon(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     Color iconColor;
     IconData iconData;
     Color backgroundColor;
     switch (statusResult.type) {
       case SubscriptionStatusType.noSubscription:
-        iconColor = Colors.blue.shade600;
+        iconColor = colorScheme.primary;
         iconData = Icons.card_giftcard;
-        backgroundColor = Colors.blue.withValues(alpha: 0.1);
+        backgroundColor = colorScheme.primary.withValues(alpha: 0.1);
         break;
       case SubscriptionStatusType.expired:
-        iconColor = Colors.red.shade600;
+        iconColor = colorScheme.error;
         iconData = Icons.schedule;
-        backgroundColor = Colors.red.withValues(alpha: 0.1);
+        backgroundColor = colorScheme.error.withValues(alpha: 0.1);
         break;
       case SubscriptionStatusType.exhausted:
-        iconColor = Colors.orange.shade600;
+        iconColor = colorScheme.secondary;
         iconData = Icons.data_usage;
-        backgroundColor = Colors.orange.withValues(alpha: 0.1);
+        backgroundColor = colorScheme.secondary.withValues(alpha: 0.1);
         break;
       default:
-        iconColor = Colors.green.shade600;
+        iconColor = colorScheme.tertiary;
         iconData = Icons.check_circle;
-        backgroundColor = Colors.green.withValues(alpha: 0.1);
+        backgroundColor = colorScheme.tertiary.withValues(alpha: 0.1);
     }
     return Container(
       padding: const EdgeInsets.all(12),
@@ -266,8 +267,8 @@ class SubscriptionStatusDialog extends StatelessWidget {
             onPurchase?.call();
           },
           style: FilledButton.styleFrom(
-            backgroundColor: _getPrimaryButtonColor(),
-            foregroundColor: Colors.white,
+            backgroundColor: _getPrimaryButtonColor(Theme.of(context).colorScheme),
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
           ),
           child: Text(_getPrimaryButtonText(context)),
         ),
@@ -275,16 +276,16 @@ class SubscriptionStatusDialog extends StatelessWidget {
     );
     return actions;
   }
-  Color _getPrimaryButtonColor() {
+  Color _getPrimaryButtonColor(ColorScheme colorScheme) {
     switch (statusResult.type) {
       case SubscriptionStatusType.noSubscription:
-        return Colors.blue.shade600;
+        return colorScheme.primary;
       case SubscriptionStatusType.expired:
-        return Colors.red.shade600;
+        return colorScheme.error;
       case SubscriptionStatusType.exhausted:
-        return Colors.orange.shade600;
+        return colorScheme.secondary;
       default:
-        return Colors.green.shade600;
+        return colorScheme.tertiary;
     }
   }
   String _getPrimaryButtonText(BuildContext context) {

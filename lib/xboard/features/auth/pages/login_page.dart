@@ -202,15 +202,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                     colors: [
-                                      const Color(0xff0369A1),
-                                      const Color(0xff0EA5E9),
+                                      colorScheme.primary,
+                                      colorScheme.primary.withValues(alpha: 0.7),
                                     ],
                                   ),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.vpn_lock_outlined,
                                   size: 56,
-                                  color: Colors.white,
+                                  color: colorScheme.onPrimary,
                                 ),
                               ),
                               const SizedBox(height: 24),
@@ -310,20 +310,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           child: FilledButton(
                             onPressed: !userState.isLoading ? _login : null,
                             style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xff0369A1),
-                              foregroundColor: Colors.white,
+                              backgroundColor: colorScheme.primary,
+                              foregroundColor: colorScheme.onPrimary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               elevation: 0,
                             ),
                             child: userState.isLoading
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Colors.white,
+                                      color: colorScheme.onPrimary,
                                     ),
                                   )
                                 : Text(
@@ -367,25 +367,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     
     /// 构建初始化状态指示器
     Widget _buildInitializationIndicator(InitializationState initState) {
+      final colorScheme = Theme.of(context).colorScheme;
       Color statusColor;
       IconData statusIcon;
-      
+
       switch (initState.status) {
         case InitializationStatus.checkingDomain:
         case InitializationStatus.initializingSDK:
-          statusColor = Colors.orange;
+          statusColor = colorScheme.secondary;
           statusIcon = Icons.sync;
           break;
         case InitializationStatus.ready:
-          statusColor = Colors.green;
+          statusColor = colorScheme.tertiary;
           statusIcon = Icons.check_circle;
           break;
         case InitializationStatus.failed:
-          statusColor = Colors.red;
+          statusColor = colorScheme.error;
           statusIcon = Icons.error;
           break;
         case InitializationStatus.idle:
-          statusColor = Colors.grey;
+          statusColor = colorScheme.outline;
           statusIcon = Icons.dns;
           break;
       }

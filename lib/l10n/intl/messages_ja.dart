@@ -62,6 +62,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m34(time) => "実行時間: ${time}";
 
+  static String m35(count) => "${count} 件のルールを設定済み";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("約"),
@@ -758,6 +760,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardConnectGlobalQualityNodes": MessageLookupByLibrary.simpleMessage(
       "グローバル品質ノードに接続",
     ),
+    "xboardConnected": MessageLookupByLibrary.simpleMessage("接続済み"),
     "xboardConnectionTimeout": MessageLookupByLibrary.simpleMessage(
       "接続タイムアウト、ネットワーク接続を確認してください",
     ),
@@ -783,6 +786,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "支払い時に控除可能",
     ),
     "xboardDiscounted": MessageLookupByLibrary.simpleMessage("割引済み"),
+    "xboardDisconnected": MessageLookupByLibrary.simpleMessage("切断済み"),
     "xboardDownloadingConfig": MessageLookupByLibrary.simpleMessage(
       "設定ファイルをダウンロード中",
     ),
@@ -1015,7 +1019,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. 支払い後にアプリに戻ると、システムが自動検出します",
     ),
+    "xboardAllowLan": MessageLookupByLibrary.simpleMessage("LANに共有"),
+    "xboardBypassDomain": MessageLookupByLibrary.simpleMessage(
+      "除外ドメイン/IP",
+    ),
+    "xboardBypassDomainCount": m35,
+    "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
+      "プロキシを経由しないドメインとIPを追加",
+    ),
+    "xboardCopied": MessageLookupByLibrary.simpleMessage(
+      "クリップボードにコピーしました",
+    ),
+    "xboardLanSharing": MessageLookupByLibrary.simpleMessage("LANプロキシ共有"),
+    "xboardLanSharingDesc": MessageLookupByLibrary.simpleMessage(
+      "LANデバイスがこのプロキシを使用することを許可",
+    ),
+    "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage(
+      "ネットワーク設定",
+    ),
+    "xboardProxyCommands": MessageLookupByLibrary.simpleMessage(
+      "プロキシコマンドを設定",
+    ),
+    "xboardProxyInfo": MessageLookupByLibrary.simpleMessage("プロキシ情報"),
+    "xboardProxyPort": MessageLookupByLibrary.simpleMessage("プロキシポート"),
     "xboardRunningTime": m34,
+    "xboardSearchNode": MessageLookupByLibrary.simpleMessage("ノードを検索"),
+    "xboardSettings": MessageLookupByLibrary.simpleMessage("設定"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage("セキュア暗号化"),
     "xboardSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage(
       "支払い期間を選択",
@@ -1057,6 +1086,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "サブスクリプションステータス",
     ),
     "xboardSwitch": MessageLookupByLibrary.simpleMessage("切り替え"),
+    "xboardSwitchNode": MessageLookupByLibrary.simpleMessage("ノード切り替え"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("テスト中"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36ヶ月サイクル",

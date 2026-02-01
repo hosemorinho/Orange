@@ -35,7 +35,7 @@ class ProfileImportProgressCard extends ConsumerWidget {
   Widget _buildHeader(BuildContext context, ImportState state, ProfileImportNotifier notifier) {
     return Row(
       children: [
-        _buildStatusIcon(state),
+        _buildStatusIcon(context, state),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -60,7 +60,7 @@ class ProfileImportProgressCard extends ConsumerWidget {
       ],
     );
   }
-  Widget _buildStatusIcon(ImportState state) {
+  Widget _buildStatusIcon(BuildContext context, ImportState state) {
     switch (state.status) {
       case ImportStatus.idle:
       case ImportStatus.cleaning:
@@ -73,9 +73,9 @@ class ProfileImportProgressCard extends ConsumerWidget {
           child: CircularProgressIndicator(strokeWidth: 2),
         );
       case ImportStatus.success:
-        return const Icon(Icons.check_circle, color: Colors.green, size: 20);
+        return Icon(Icons.check_circle, color: Theme.of(context).colorScheme.tertiary, size: 20);
       case ImportStatus.failed:
-        return const Icon(Icons.error, color: Colors.red, size: 20);
+        return Icon(Icons.error, color: Theme.of(context).colorScheme.error, size: 20);
     }
   }
   String _getHeaderText(ImportState state) {
@@ -100,7 +100,7 @@ class ProfileImportProgressCard extends ConsumerWidget {
         if (state.isImporting) ...[
           LinearProgressIndicator(
             value: state.progress,
-            backgroundColor: Colors.grey[300],
+            backgroundColor: Theme.of(context).colorScheme.outlineVariant,
           ),
           const SizedBox(height: 8),
         ],
@@ -118,18 +118,18 @@ class ProfileImportProgressCard extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red[50],
+                color: Theme.of(context).colorScheme.errorContainer,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red[200]!),
+                border: Border.all(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning, color: Colors.red[600], size: 20),
+                  Icon(Icons.warning, color: Theme.of(context).colorScheme.error, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       state.errorTypeMessage!,
-                      style: TextStyle(color: Colors.red[800]),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
                     ),
                   ),
                 ],
@@ -161,18 +161,18 @@ class ProfileImportProgressCard extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.green[50],
+              color: Theme.of(context).colorScheme.tertiaryContainer,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.green[200]!),
+              border: Border.all(color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.green[600], size: 20),
+                Icon(Icons.check_circle, color: Theme.of(context).colorScheme.tertiary, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     '配置已成功导入并添加到配置列表',
-                    style: TextStyle(color: Colors.green[800]),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onTertiaryContainer),
                   ),
                 ),
               ],
@@ -195,9 +195,9 @@ class ProfileImportProgressCard extends ConsumerWidget {
   Color? _getMessageColor(BuildContext context, ImportState state) {
     switch (state.status) {
       case ImportStatus.failed:
-        return Colors.red[700];
+        return Theme.of(context).colorScheme.error;
       case ImportStatus.success:
-        return Colors.green[700];
+        return Theme.of(context).colorScheme.tertiary;
       default:
         return Theme.of(context).textTheme.bodyMedium?.color;
     }

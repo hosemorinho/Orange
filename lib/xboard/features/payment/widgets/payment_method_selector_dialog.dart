@@ -43,6 +43,7 @@ class _PaymentMethodSelectorDialogState extends State<PaymentMethodSelectorDialo
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return AlertDialog(
       title: Text(
         AppLocalizations.of(context).xboardSelectPaymentMethod,
@@ -60,7 +61,7 @@ class _PaymentMethodSelectorDialogState extends State<PaymentMethodSelectorDialo
           itemBuilder: (context, index) {
             final method = widget.paymentMethods[index];
             final isSelected = _selectedMethod?.id == method.id;
-            
+
             return ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               leading: method.iconUrl != null && method.iconUrl!.isNotEmpty
@@ -77,7 +78,7 @@ class _PaymentMethodSelectorDialogState extends State<PaymentMethodSelectorDialo
                 method.name,
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? Theme.of(context).primaryColor : null,
+                  color: isSelected ? colorScheme.primary : null,
                 ),
               ),
               subtitle: method.feePercentage > 0
@@ -85,7 +86,7 @@ class _PaymentMethodSelectorDialogState extends State<PaymentMethodSelectorDialo
                       '${AppLocalizations.of(context).xboardHandlingFee}: ${method.feePercentage.toStringAsFixed(1)}%',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     )
                   : null,
@@ -117,8 +118,8 @@ class _PaymentMethodSelectorDialogState extends State<PaymentMethodSelectorDialo
               ? null
               : () => Navigator.of(context).pop(_selectedMethod),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).primaryColor,
-            foregroundColor: Colors.white,
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
           ),
           child: Text(AppLocalizations.of(context).confirm),
         ),

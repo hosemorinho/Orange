@@ -209,20 +209,20 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
         return AppLocalizations.of(context).xboardCongratulationsSubscriptionActivated;
     }
   }
-  Color _getStepColor(PaymentStep step) {
+  Color _getStepColor(PaymentStep step, ColorScheme colorScheme) {
     switch (step) {
       case PaymentStep.cancelingOrders:
-        return Colors.grey;
+        return colorScheme.outline;
       case PaymentStep.createOrder:
-        return Colors.orange;
+        return colorScheme.secondary;
       case PaymentStep.loadingPayment:
-        return Colors.blue;
+        return colorScheme.primary;
       case PaymentStep.verifyPayment:
-        return Colors.green;
+        return colorScheme.tertiary;
       case PaymentStep.waitingPayment:
-        return Colors.purple;
+        return colorScheme.secondary;
       case PaymentStep.paymentSuccess:
-        return Colors.green;
+        return colorScheme.tertiary;
     }
   }
   IconData _getStepIcon(PaymentStep step) {
@@ -243,8 +243,10 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
   }
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final stepColor = _getStepColor(_currentStep, colorScheme);
     return Material(
-      color: Colors.black.withOpacity(0.5),
+      color: colorScheme.scrim.withValues(alpha: 0.5),
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: Center(
@@ -265,17 +267,17 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: _getStepColor(_currentStep).withOpacity(0.1),
+                          color: stepColor.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: _getStepColor(_currentStep),
+                            color: stepColor,
                             width: 2,
                           ),
                         ),
                         child: Icon(
                           _getStepIcon(_currentStep),
                           size: 40,
-                          color: _getStepColor(_currentStep),
+                          color: stepColor,
                         ),
                       ),
                     );
@@ -287,7 +289,7 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: colorScheme.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -296,7 +298,7 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
                   _getStepDescription(_currentStep),
                   style: TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
@@ -306,7 +308,7 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
                   Icon(
                     Icons.check_circle,
                     size: 48,
-                    color: Colors.green,
+                    color: colorScheme.tertiary,
                   )
                 else
                   SizedBox(
@@ -315,7 +317,7 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        _getStepColor(_currentStep),
+                        stepColor,
                       ),
                     ),
                   ),
@@ -327,8 +329,8 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
                   ElevatedButton(
                     onPressed: widget.onPaymentSuccess,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
+                      backgroundColor: colorScheme.tertiary,
+                      foregroundColor: colorScheme.onTertiary,
                     ),
                     child: Text(AppLocalizations.of(context).xboardConfirm),
                   ),

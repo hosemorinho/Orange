@@ -1,12 +1,11 @@
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
-import 'package:fl_clash/views/proxies/proxies.dart';
-import 'package:fl_clash/widgets/widgets.dart';
+import 'package:fl_clash/xboard/features/subscription/widgets/flat_node_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.dart';
 import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart';
+import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 class NodeSelectorBar extends ConsumerStatefulWidget {
   const NodeSelectorBar({super.key});
@@ -56,71 +55,18 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
     if (groups.isEmpty) {
       return _buildEmptyState(context);
     }
-    Group? currentGroup;
-    Proxy? currentProxy;
-    if (mode == Mode.global) {
-      currentGroup = groups.firstWhere(
-        (group) => group.name == GroupName.GLOBAL.name,
-        orElse: () => groups.first,
-      );
-    } else if (mode == Mode.rule) {
-      for (final group in groups) {
-        if (group.hidden == true) continue;
-        if (group.name == GroupName.GLOBAL.name) continue;
-        final selectedProxyName = selectedMap[group.name];
-        if (selectedProxyName != null && selectedProxyName.isNotEmpty) {
-          final referencedGroup = groups.firstWhere(
-            (g) => g.name == selectedProxyName,
-            orElse: () => group, // 如果没找到引用的组，就使用当前组
-          );
-          if (referencedGroup.name == selectedProxyName && referencedGroup.type == GroupType.URLTest) {
-            currentGroup = referencedGroup;
-            break;
-          } else {
-            currentGroup = group;
-            break;
-          }
-        }
-      }
-      if (currentGroup == null) {
-        currentGroup = groups.firstWhere(
-          (group) => group.hidden != true && group.name != GroupName.GLOBAL.name,
-          orElse: () => groups.first,
-        );
-        if (currentGroup.now != null && currentGroup.now!.isNotEmpty) {
-          final nowValue = currentGroup.now!;
-          final referencedGroup = groups.firstWhere(
-            (g) => g.name == nowValue,
-            orElse: () => currentGroup!,
-          );
-          if (referencedGroup.name == nowValue && referencedGroup.type == GroupType.URLTest) {
-            currentGroup = referencedGroup;
-          }
-        }
-      }
-    }
-    if (currentGroup == null || currentGroup.all.isEmpty) {
+    final (:group, :proxy) = resolveCurrentNode(
+      groups: groups,
+      selectedMap: selectedMap,
+      mode: mode,
+    );
+    if (group == null || proxy == null) {
       return _buildEmptyState(context);
     }
-    final selectedProxyName = selectedMap[currentGroup.name] ?? "";
-    String realNodeName;
-    if (currentGroup.type == GroupType.URLTest) {
-      realNodeName = currentGroup.now ?? "";
-    } else {
-      realNodeName = currentGroup.getCurrentSelectedName(selectedProxyName);
-    }
-    if (realNodeName.isNotEmpty) {
-      currentProxy = currentGroup.all.firstWhere(
-        (proxy) => proxy.name == realNodeName,
-        orElse: () => currentGroup!.all.first,
-      );
-    } else {
-      currentProxy = currentGroup.all.first;
-    }
-    _checkNodeChange(currentProxy);
+    _checkNodeChange(proxy);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: _buildProxyDisplay(context, currentGroup, currentProxy),
+      child: _buildProxyDisplay(context, group, proxy),
     );
   }
   Widget _buildProxyDisplay(BuildContext context, Group group, Proxy proxy) {
@@ -140,10 +86,7 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => CommonScaffold(
-                  title: AppLocalizations.of(context).xboardProxy,
-                  body: const ProxiesView(),
-                ),
+                builder: (context) => const FlatNodeListView(),
               ),
             );
           },
@@ -160,15 +103,15 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xff0369A1).withValues(alpha: 0.15),
-                        const Color(0xff0EA5E9).withValues(alpha: 0.1),
+                        theme.colorScheme.primary.withValues(alpha: 0.15),
+                        theme.colorScheme.primary.withValues(alpha: 0.1),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.dns_outlined,
-                    color: const Color(0xff0369A1),
+                    color: theme.colorScheme.primary,
                     size: 22,
                   ),
                 ),
@@ -205,8 +148,8 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
                     );
                   },
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xff0369A1),
-                    foregroundColor: Colors.white,
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
                     minimumSize: const Size(64, 36),
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     shape: RoundedRectangleBorder(
@@ -306,8 +249,8 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
                 );
               },
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xff0369A1),
-                foregroundColor: Colors.white,
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
                 minimumSize: const Size(64, 36),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 shape: RoundedRectangleBorder(

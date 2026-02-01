@@ -28,10 +28,11 @@ class PlanHeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.blue.shade600,
+        color: colorScheme.primary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -40,12 +41,12 @@ class PlanHeaderCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: colorScheme.onPrimary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.workspace_premium,
-              color: Colors.white,
+              color: colorScheme.onPrimary,
               size: 28,
             ),
           ),
@@ -58,10 +59,10 @@ class PlanHeaderCard extends StatelessWidget {
                 // 第一行：套餐名字（稍大，居中）
                 Text(
                   plan.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -71,11 +72,13 @@ class PlanHeaderCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildCompactInfo(
+                      context,
                       Icons.cloud_download_outlined,
                       _getTrafficDisplay(context),
                     ),
                     const SizedBox(width: 10),
                     _buildCompactInfo(
+                      context,
                       Icons.speed,
                       _getSpeedLimitDisplay(context),
                     ),
@@ -89,24 +92,25 @@ class PlanHeaderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactInfo(IconData icon, String text) {
+  Widget _buildCompactInfo(BuildContext context, IconData icon, String text) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        color: colorScheme.onPrimary.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white, size: 14),
+          Icon(icon, color: colorScheme.onPrimary, size: 14),
           const SizedBox(width: 5),
           Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Colors.white,
+              color: colorScheme.onPrimary,
             ),
           ),
         ],
@@ -114,4 +118,3 @@ class PlanHeaderCard extends StatelessWidget {
     );
   }
 }
-

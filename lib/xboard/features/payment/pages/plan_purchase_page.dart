@@ -462,11 +462,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
               child: Consumer(
                 builder: (context, ref, child) {
                   final paymentState = ref.watch(userUIStateProvider);
+                  final buttonColorScheme = Theme.of(context).colorScheme;
                   return ElevatedButton(
                       onPressed: paymentState.isLoading ? null : _proceedToPurchase,
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade600,
-                      foregroundColor: Colors.white,
+                        backgroundColor: buttonColorScheme.primary,
+                      foregroundColor: buttonColorScheme.onPrimary,
                         elevation: 0,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -476,12 +477,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                         ? Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const SizedBox(
+                              SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(buttonColorScheme.onPrimary),
                                 ),
                               ),
                                 const SizedBox(width: 12),

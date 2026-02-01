@@ -90,6 +90,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m34(time) => "运行时间: ${time}";
 
+  static String m35(count) => "已添加 ${count} 项规则";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("关于"),
@@ -866,6 +868,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardConnectGlobalQualityNodes": MessageLookupByLibrary.simpleMessage(
       "连接全球优质节点",
     ),
+    "xboardConnected": MessageLookupByLibrary.simpleMessage("已连接"),
     "xboardConnectionTimeout": MessageLookupByLibrary.simpleMessage(
       "连接超时，请检查网络连接",
     ),
@@ -889,6 +892,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "支付时可抵扣",
     ),
     "xboardDiscounted": MessageLookupByLibrary.simpleMessage("已优惠"),
+    "xboardDisconnected": MessageLookupByLibrary.simpleMessage("已断开"),
     "xboardDownloadingConfig": MessageLookupByLibrary.simpleMessage("下载配置文件"),
     "xboardEmail": MessageLookupByLibrary.simpleMessage("邮箱"),
     "xboardEnableTun": MessageLookupByLibrary.simpleMessage("开启 TUN"),
@@ -1090,7 +1094,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. 支付完成后返回应用，系统将自动检测",
     ),
+    "xboardAllowLan": MessageLookupByLibrary.simpleMessage("共享到局域网"),
+    "xboardBypassDomain": MessageLookupByLibrary.simpleMessage("排除域名/IP"),
+    "xboardBypassDomainCount": m35,
+    "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
+      "添加不走代理的域名和IP段",
+    ),
+    "xboardCopied": MessageLookupByLibrary.simpleMessage("已复制到剪贴板"),
+    "xboardLanSharing": MessageLookupByLibrary.simpleMessage("局域网代理共享"),
+    "xboardLanSharingDesc": MessageLookupByLibrary.simpleMessage(
+      "允许局域网设备通过本机代理上网",
+    ),
+    "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage("网络设置"),
+    "xboardProxyCommands": MessageLookupByLibrary.simpleMessage("设置代理命令"),
+    "xboardProxyInfo": MessageLookupByLibrary.simpleMessage("代理信息"),
+    "xboardProxyPort": MessageLookupByLibrary.simpleMessage("代理端口"),
     "xboardRunningTime": m34,
+    "xboardSearchNode": MessageLookupByLibrary.simpleMessage("搜索节点"),
+    "xboardSettings": MessageLookupByLibrary.simpleMessage("设置"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage("安全加密"),
     "xboardSelectPaymentMethod": MessageLookupByLibrary.simpleMessage("选择支付方式"),
     "xboardSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage("选择购买周期"),
@@ -1119,6 +1140,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardSubscriptionPurchase": MessageLookupByLibrary.simpleMessage("订阅购买"),
     "xboardSubscriptionStatus": MessageLookupByLibrary.simpleMessage("订阅状态"),
     "xboardSwitch": MessageLookupByLibrary.simpleMessage("切换"),
+    "xboardSwitchNode": MessageLookupByLibrary.simpleMessage("切换节点"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("测试中"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage("36个月周期"),
     "xboardThreeMonthCycle": MessageLookupByLibrary.simpleMessage("3个月周期"),

@@ -644,6 +644,9 @@
   "xboardProxy": "Прокси",
   "xboardSwitch": "Переключить",
   "xboardSetup": "Настройка",
+  "xboardConnected": "Подключено",
+  "xboardDisconnected": "Отключено",
+  "xboardSwitchNode": "Сменить узел",
   "xboardNoAvailablePlan": "Нет доступных планов",
   "xboardSubscriptionHasExpired": "Подписка истекла",
   "xboardTrafficUsedUp": "Трафик исчерпан",
@@ -815,5 +818,25 @@
         "type": "String"
       }
     }
-  }
+  },
+  "xboardSearchNode": "Поиск узлов",
+  "xboardSettings": "Настройки",
+  "xboardNetworkSettings": "Настройки сети",
+  "xboardBypassDomain": "Обход домена/IP",
+  "xboardBypassDomainDesc": "Добавить домены и IP для прямого подключения",
+  "xboardBypassDomainCount": "{count} правил настроено",
+  "@xboardBypassDomainCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xboardLanSharing": "Общий доступ к LAN прокси",
+  "xboardLanSharingDesc": "Разрешить устройствам LAN использовать этот прокси",
+  "xboardProxyInfo": "Информация о прокси",
+  "xboardProxyCommands": "Команды настройки прокси",
+  "xboardCopied": "Скопировано в буфер обмена",
+  "xboardProxyPort": "Порт прокси",
+  "xboardAllowLan": "Поделиться в LAN"
 }

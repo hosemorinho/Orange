@@ -4,6 +4,7 @@ import 'package:fl_clash/xboard/features/payment/pages/plans.dart';
 import 'package:fl_clash/xboard/features/payment/pages/plan_purchase_page.dart';
 import 'package:fl_clash/xboard/features/payment/pages/payment_gateway_page.dart';
 import 'package:fl_clash/xboard/features/ticket/ticket.dart';
+import 'package:fl_clash/xboard/features/settings/settings.dart';
 import 'package:fl_clash/xboard/features/auth/pages/login_page.dart';
 import 'package:fl_clash/xboard/features/initialization/pages/loading_page.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
@@ -57,6 +58,19 @@ final List<RouteBase> routes = [
               name: 'support',
               pageBuilder: (context, state) => const NoTransitionPage(
                 child: TicketListPage(),
+              ),
+            ),
+          ],
+        ),
+
+        // 设置页面分支
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/settings',
+              name: 'settings',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: XBoardSettingsPage(),
               ),
             ),
           ],

@@ -645,6 +645,9 @@
   "xboardProxy": "Proxy",
   "xboardSwitch": "Switch",
   "xboardSetup": "Setup",
+  "xboardConnected": "Connected",
+  "xboardDisconnected": "Disconnected",
+  "xboardSwitchNode": "Switch Node",
   "xboardNoAvailablePlan": "No available plan",
   "xboardSubscriptionHasExpired": "Subscription has expired",
   "xboardTrafficUsedUp": "Traffic used up",
@@ -1081,5 +1084,25 @@
         "type": "String"
       }
     }
-  }
+  },
+  "xboardSearchNode": "Search nodes",
+  "xboardSettings": "Settings",
+  "xboardNetworkSettings": "Network Settings",
+  "xboardBypassDomain": "Bypass Domain/IP",
+  "xboardBypassDomainDesc": "Add domains and IPs for direct connection",
+  "xboardBypassDomainCount": "{count} rules configured",
+  "@xboardBypassDomainCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "xboardLanSharing": "LAN Proxy Sharing",
+  "xboardLanSharingDesc": "Allow LAN devices to use this proxy",
+  "xboardProxyInfo": "Proxy Information",
+  "xboardProxyCommands": "Set Proxy Commands",
+  "xboardCopied": "Copied to clipboard",
+  "xboardProxyPort": "Proxy Port",
+  "xboardAllowLan": "Share to LAN"
 }

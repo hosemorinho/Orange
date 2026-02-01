@@ -13,7 +13,7 @@ import 'package:fl_clash/xboard/features/subscription/services/subscription_stat
 import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
 
 import '../widgets/subscription_usage_card.dart';
-import '../widgets/xboard_connect_button.dart';
+import '../widgets/connection_status_card.dart';
 class XBoardHomePage extends ConsumerStatefulWidget {
   const XBoardHomePage({super.key});
   @override
@@ -149,10 +149,10 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                         children: [
                           const NoticeBanner(),
                           SizedBox(height: sectionSpacing * 0.5),
-                          // 连接按钮区域 - Hero element
+                          // 连接状态卡片（合并按钮 + 节点 + 模式标签）
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            child: _buildConnectionSection(),
+                            child: const ConnectionStatusCard(),
                           ),
                           SizedBox(height: sectionSpacing),
                           // 使用情况卡片
@@ -160,9 +160,6 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                             child: _buildUsageSection(),
                           ),
-                          SizedBox(height: sectionSpacing),
-                          // 节点选择器
-                          const NodeSelectorBar(),
                           SizedBox(height: sectionSpacing),
                           // 代理模式选择
                           Padding(
@@ -196,13 +193,6 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
           userInfo: userInfo,
           profileSubscriptionInfo: currentProfile?.subscriptionInfo,
         );
-      },
-    );
-  }
-  Widget _buildConnectionSection() {
-    return Consumer(
-      builder: (context, ref, child) {
-        return const XBoardConnectButton(isFloating: false);
       },
     );
   }

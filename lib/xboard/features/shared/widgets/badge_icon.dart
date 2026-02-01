@@ -37,7 +37,7 @@ class BadgeIcon extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: badgeColor ?? Colors.red,
+              color: badgeColor ?? Theme.of(context).colorScheme.error,
               shape: BoxShape.circle,
             ),
             constraints: BoxConstraints(
@@ -48,7 +48,7 @@ class BadgeIcon extends StatelessWidget {
                 ? Text(
                     count > 99 ? '99+' : count.toString(),
                     style: TextStyle(
-                      color: textColor ?? Colors.white,
+                      color: textColor ?? Theme.of(context).colorScheme.onError,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),

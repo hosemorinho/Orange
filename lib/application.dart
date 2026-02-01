@@ -76,15 +76,17 @@ class ApplicationState extends ConsumerState<Application> {
       if (currentContext != null) {
         globalState.appController = AppController(currentContext, ref);
       }
+
+      // 快速认证独立运行，不被 Clash 核心初始化阻塞
+      _performQuickAuthWithDomainService();
+
+      // Clash 核心初始化（可能耗时较长，不阻塞认证流程）
       await globalState.appController.init();
       app?.initShortcuts();
-      
-      // ✅ 等待初始化完成后再执行快速认证
-      _performQuickAuthWithDomainService();
-      
+
       // 启动后检查更新
       _checkForUpdates();
-      
+
     });
   }
 
@@ -94,18 +96,22 @@ class ApplicationState extends ConsumerState<Application> {
       try {
         debugPrint('[Application] 开始快速认证检查...');
 
-        // 等待初始化完成（最多 15 秒）
+        // 等待初始化完成（最多 15 秒），失败时立即继续
         final initState = ref.read(initializationProvider);
-        if (!initState.isReady) {
+        if (!initState.isReady && !initState.isFailed) {
           debugPrint('[Application] 等待初始化完成...');
           final deadline = DateTime.now().add(const Duration(seconds: 15));
-          while (!ref.read(initializationProvider).isReady &&
-                 DateTime.now().isBefore(deadline)) {
+          while (DateTime.now().isBefore(deadline)) {
+            final current = ref.read(initializationProvider);
+            if (current.isReady || current.isFailed) break;
             await Future.delayed(const Duration(milliseconds: 500));
           }
 
-          if (!ref.read(initializationProvider).isReady) {
-            debugPrint('[Application] 初始化超时，但仍执行 quickAuth 以设置 isInitialized');
+          final current = ref.read(initializationProvider);
+          if (current.isFailed) {
+            debugPrint('[Application] 初始化失败，继续执行 quickAuth');
+          } else if (!current.isReady) {
+            debugPrint('[Application] 初始化超时，继续执行 quickAuth');
           }
         }
 

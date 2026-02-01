@@ -167,15 +167,8 @@ class _PlansViewState extends ConsumerState<PlansView> {
             ),
             if (plan.description != null) ...[
               SizedBox(height: isDesktop ? 8 : 12),
-              // 限制描述高度，避免卡片过高导致按钮被遮盖
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: isDesktop ? 100 : double.infinity,
-                ),
-                child: SingleChildScrollView(
-                  child: PlanDescriptionWidget(content: plan.description!),
-                ),
-              ),
+              // 描述区域自适应高度，不再限制
+              PlanDescriptionWidget(content: plan.description!),
             ],
             SizedBox(height: isDesktop ? 12 : 20),
             if (plan.hasPrice)
@@ -320,19 +313,30 @@ class _PlansViewState extends ConsumerState<PlansView> {
             final screenWidth = MediaQuery.of(context).size.width;
             final isDesktop = screenWidth > 768;
             if (isDesktop) {
-              return GridView.builder(
+              // 桌面端：使用 SingleChildScrollView + Wrap 实现自适应高度的网格布局
+              return SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 400,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  // 增加高度以容纳更多内容，避免按钮被遮盖
-                  mainAxisExtent: 320,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // 计算每行可以放置的卡片数量
+                    final cardWidth = 380.0;
+                    final spacing = 16.0;
+                    final crossAxisCount = (constraints.maxWidth / (cardWidth + spacing)).floor().clamp(1, 4);
+
+                    return Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children: plans.map((plan) {
+                        // 计算每个卡片的实际宽度
+                        final actualCardWidth = (constraints.maxWidth - (spacing * (crossAxisCount - 1))) / crossAxisCount;
+                        return SizedBox(
+                          width: actualCardWidth,
+                          child: _buildPlanCard(plan),
+                        );
+                      }).toList(),
+                    );
+                  },
                 ),
-                itemCount: plans.length,
-                itemBuilder: (context, index) {
-                  return _buildPlanCard(plans[index]);
-                },
               );
             } else {
               return ListView.builder(

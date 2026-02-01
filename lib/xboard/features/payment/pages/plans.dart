@@ -167,7 +167,15 @@ class _PlansViewState extends ConsumerState<PlansView> {
             ),
             if (plan.description != null) ...[
               SizedBox(height: isDesktop ? 8 : 12),
-              PlanDescriptionWidget(content: plan.description!),
+              // 限制描述高度，避免卡片过高导致按钮被遮盖
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: isDesktop ? 100 : double.infinity,
+                ),
+                child: SingleChildScrollView(
+                  child: PlanDescriptionWidget(content: plan.description!),
+                ),
+              ),
             ],
             SizedBox(height: isDesktop ? 12 : 20),
             if (plan.hasPrice)
@@ -318,7 +326,8 @@ class _PlansViewState extends ConsumerState<PlansView> {
                   maxCrossAxisExtent: 400,
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  mainAxisExtent: 220,
+                  // 增加高度以容纳更多内容，避免按钮被遮盖
+                  mainAxisExtent: 320,
                 ),
                 itemCount: plans.length,
                 itemBuilder: (context, index) {

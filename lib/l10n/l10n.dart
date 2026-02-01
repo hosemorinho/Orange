@@ -5136,20 +5136,32 @@ class AppLocalizations {
 
   /// `Connected`
   String get xboardConnected {
-    return Intl.message('Connected',
-        name: 'xboardConnected', desc: '', args: []);
+    return Intl.message(
+      'Connected',
+      name: 'xboardConnected',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Disconnected`
   String get xboardDisconnected {
-    return Intl.message('Disconnected',
-        name: 'xboardDisconnected', desc: '', args: []);
+    return Intl.message(
+      'Disconnected',
+      name: 'xboardDisconnected',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Switch Node`
   String get xboardSwitchNode {
-    return Intl.message('Switch Node',
-        name: 'xboardSwitchNode', desc: '', args: []);
+    return Intl.message(
+      'Switch Node',
+      name: 'xboardSwitchNode',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `No available plan`
@@ -7121,36 +7133,50 @@ class AppLocalizations {
       args: [email],
     );
   }
-}
 
   /// `Search nodes`
   String get xboardSearchNode {
-    return Intl.message('Search nodes',
-        name: 'xboardSearchNode', desc: '', args: []);
+    return Intl.message(
+      'Search nodes',
+      name: 'xboardSearchNode',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Settings`
   String get xboardSettings {
-    return Intl.message('Settings',
-        name: 'xboardSettings', desc: '', args: []);
+    return Intl.message('Settings', name: 'xboardSettings', desc: '', args: []);
   }
 
   /// `Network Settings`
   String get xboardNetworkSettings {
-    return Intl.message('Network Settings',
-        name: 'xboardNetworkSettings', desc: '', args: []);
+    return Intl.message(
+      'Network Settings',
+      name: 'xboardNetworkSettings',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Bypass Domain/IP`
   String get xboardBypassDomain {
-    return Intl.message('Bypass Domain/IP',
-        name: 'xboardBypassDomain', desc: '', args: []);
+    return Intl.message(
+      'Bypass Domain/IP',
+      name: 'xboardBypassDomain',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Add domains and IPs for direct connection`
   String get xboardBypassDomainDesc {
-    return Intl.message('Add domains and IPs for direct connection',
-        name: 'xboardBypassDomainDesc', desc: '', args: []);
+    return Intl.message(
+      'Add domains and IPs for direct connection',
+      name: 'xboardBypassDomainDesc',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `{count} rules configured`
@@ -7165,44 +7191,72 @@ class AppLocalizations {
 
   /// `LAN Proxy Sharing`
   String get xboardLanSharing {
-    return Intl.message('LAN Proxy Sharing',
-        name: 'xboardLanSharing', desc: '', args: []);
+    return Intl.message(
+      'LAN Proxy Sharing',
+      name: 'xboardLanSharing',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Allow LAN devices to use this proxy`
   String get xboardLanSharingDesc {
-    return Intl.message('Allow LAN devices to use this proxy',
-        name: 'xboardLanSharingDesc', desc: '', args: []);
+    return Intl.message(
+      'Allow LAN devices to use this proxy',
+      name: 'xboardLanSharingDesc',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Proxy Information`
   String get xboardProxyInfo {
-    return Intl.message('Proxy Information',
-        name: 'xboardProxyInfo', desc: '', args: []);
+    return Intl.message(
+      'Proxy Information',
+      name: 'xboardProxyInfo',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Set Proxy Commands`
   String get xboardProxyCommands {
-    return Intl.message('Set Proxy Commands',
-        name: 'xboardProxyCommands', desc: '', args: []);
+    return Intl.message(
+      'Set Proxy Commands',
+      name: 'xboardProxyCommands',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Copied to clipboard`
   String get xboardCopied {
-    return Intl.message('Copied to clipboard',
-        name: 'xboardCopied', desc: '', args: []);
+    return Intl.message(
+      'Copied to clipboard',
+      name: 'xboardCopied',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Proxy Port`
   String get xboardProxyPort {
-    return Intl.message('Proxy Port',
-        name: 'xboardProxyPort', desc: '', args: []);
+    return Intl.message(
+      'Proxy Port',
+      name: 'xboardProxyPort',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Share to LAN`
   String get xboardAllowLan {
-    return Intl.message('Share to LAN',
-        name: 'xboardAllowLan', desc: '', args: []);
+    return Intl.message(
+      'Share to LAN',
+      name: 'xboardAllowLan',
+      desc: '',
+      args: [],
+    );
   }
 }
 

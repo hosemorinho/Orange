@@ -350,27 +350,6 @@ class V2BoardApiService {
   }
 
   // ================================================================
-  // Invite（邀请）
-  // ================================================================
-
-  /// 获取邀请信息（codes + stat）
-  Future<Map<String, dynamic>> fetchInvite() async {
-    _logger.info('[API] fetchInvite');
-    return await _authGet('/api/v1/user/invite/fetch');
-  }
-
-  /// 生成邀请码
-  Future<Map<String, dynamic>> saveInvite() async {
-    _logger.info('[API] saveInvite');
-    return await _authGet('/api/v1/user/invite/save');
-  }
-
-  /// 获取邀请详情（佣金明细）
-  Future<Map<String, dynamic>> fetchInviteDetails() async {
-    return await _authGet('/api/v1/user/invite/details');
-  }
-
-  // ================================================================
   // Tickets（工单）
   // ================================================================
 

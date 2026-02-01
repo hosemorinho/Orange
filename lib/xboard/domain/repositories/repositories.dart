@@ -9,6 +9,5 @@ export 'plan_repository.dart';
 export 'subscription_repository.dart';
 export 'order_repository.dart';
 export 'payment_repository.dart';
-export 'invite_repository.dart';
 export 'notice_repository.dart';
 export 'ticket_repository.dart';

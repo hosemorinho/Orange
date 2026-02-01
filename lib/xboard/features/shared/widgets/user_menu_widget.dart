@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/xboard/features/invite/dialogs/theme_dialog.dart';
-import 'package:fl_clash/xboard/features/invite/dialogs/logout_dialog.dart';
+import 'package:fl_clash/xboard/features/shared/dialogs/theme_dialog.dart';
+import 'package:fl_clash/xboard/features/shared/dialogs/logout_dialog.dart';
 
 class UserMenuWidget extends ConsumerWidget {
   const UserMenuWidget({super.key});

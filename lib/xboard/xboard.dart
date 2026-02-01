@@ -22,7 +22,6 @@ export 'adapter/state/order_state.dart';
 export 'adapter/state/plan_state.dart';
 export 'adapter/state/notice_state.dart';
 export 'adapter/state/ticket_state.dart';
-export 'adapter/state/invite_state.dart';
 export 'adapter/state/payment_state.dart';
 export 'adapter/state/config_state.dart';
 
@@ -37,7 +36,6 @@ export 'services/services.dart';
 export 'features/auth/auth.dart';
 export 'features/subscription/subscription.dart';
 export 'features/payment/payment.dart';
-export 'features/invite/invite.dart';
 export 'features/profile/profile.dart';
 
 // ========== 系统功能模块 ==========

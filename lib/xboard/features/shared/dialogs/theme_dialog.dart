@@ -9,7 +9,7 @@ class ThemeDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentThemeMode = ref.read(themeSettingProvider.select((state) => state.themeMode));
-    
+
     return AlertDialog(
       title: Text(appLocalizations.selectTheme),
       content: Column(

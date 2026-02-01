@@ -1,6 +1,5 @@
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
-import 'package:fl_clash/xboard/features/invite/widgets/user_menu_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -123,11 +122,6 @@ class DesktopNavigationRail extends ConsumerWidget {
           icon: const Icon(Icons.support_agent_outlined),
           selectedIcon: const Icon(Icons.support_agent),
           label: const Text('工单'),
-        ),
-        NavigationRailDestination(
-          icon: const Icon(Icons.people_outline),
-          selectedIcon: const Icon(Icons.people),
-          label: Text(appLocalizations.invite),
         ),
       ],
       onDestinationSelected: onDestinationSelected,

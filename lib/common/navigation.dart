@@ -3,7 +3,6 @@ import 'package:fl_clash/models/models.dart';
 // import 'package:fl_clash/views/views.dart';
 import 'package:fl_clash/xboard/features/payment/pages/plans.dart';
 import 'package:fl_clash/xboard/features/subscription/pages/xboard_home_page.dart';
-import 'package:fl_clash/xboard/features/invite/pages/invite_page.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,16 +44,6 @@ class Navigation {
           ),
         ),
         modes: [NavigationItemMode.desktop],
-      ),
-      const NavigationItem(
-        icon: Icon(Icons.people),
-        label: PageLabel.invite,
-        view: InvitePage(
-          key: GlobalObjectKey(
-            PageLabel.invite,
-          ),
-        ),
-        modes: [NavigationItemMode.desktop, NavigationItemMode.mobile], // 桌面端和手机端都显示
       ),
       // TODO: 个人中心页面占位 - 待开发
       // const NavigationItem(

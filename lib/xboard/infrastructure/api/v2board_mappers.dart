@@ -165,10 +165,12 @@ DomainTicket mapTicket(Map<String, dynamic> json) {
     status: TicketStatus.fromCode(json['status'] as int? ?? 0),
     messages: messagesList.map((m) {
       if (m is Map<String, dynamic>) {
+        // V2Board API 返回 is_me 为 bool 类型
+        final isMe = m['is_me'];
         return TicketMessage(
           id: m['id'] as int? ?? 0,
           content: m['message'] as String? ?? '',
-          isFromUser: (m['is_me'] as int? ?? 0) == 1,
+          isFromUser: isMe is bool ? isMe : (isMe as int? ?? 0) == 1,
           createdAt: _parseTimestamp(m['created_at']) ?? DateTime.now(),
         );
       }
@@ -180,62 +182,6 @@ DomainTicket mapTicket(Map<String, dynamic> json) {
     }).toList(),
     createdAt: _parseTimestamp(json['created_at']) ?? DateTime.now(),
     updatedAt: _parseTimestamp(json['updated_at']),
-  );
-}
-
-// ================================================================
-// Invite
-// ================================================================
-
-/// V2Board /api/v1/user/invite/fetch → DomainInvite
-///
-/// V2Board 返回 {"data": {"codes": [...], "stat": [...]}}
-DomainInvite mapInvite(Map<String, dynamic> json) {
-  // codes 数组
-  final codesList = json['codes'] as List<dynamic>? ?? [];
-  final codes = codesList.map((c) {
-    if (c is Map<String, dynamic>) {
-      return DomainInviteCode(
-        code: c['code'] as String? ?? '',
-        status: c['status'] as int? ?? 0,
-        createdAt: _parseTimestamp(c['created_at']),
-      );
-    }
-    return DomainInviteCode(code: c.toString());
-  }).toList();
-
-  // stat 数组（佣金明细）
-  final statList = json['stat'] as List<dynamic>? ?? [];
-  int invitedCount = statList.length;
-  double totalCommission = 0;
-  double pendingCommission = 0;
-  for (final s in statList) {
-    if (s is Map<String, dynamic>) {
-      final amount = (s['commission_balance'] as num?)?.toDouble() ?? 0;
-      final status = s['commission_status'] as int? ?? 0;
-      totalCommission += amount;
-      if (status == 0) pendingCommission += amount;
-    }
-  }
-
-  return DomainInvite(
-    codes: codes,
-    stats: InviteStats(
-      invitedCount: invitedCount,
-      totalCommission: totalCommission / 100.0,
-      pendingCommission: pendingCommission / 100.0,
-      availableCommission: (totalCommission - pendingCommission) / 100.0,
-    ),
-  );
-}
-
-/// V2Board 佣金明细 → DomainCommission
-DomainCommission mapCommission(Map<String, dynamic> json) {
-  return DomainCommission(
-    id: json['id'] as int? ?? 0,
-    tradeNo: json['trade_no'] as String? ?? '',
-    amount: _centsToYuan(json['commission_balance']) ?? 0.0,
-    createdAt: _parseTimestamp(json['created_at']) ?? DateTime.now(),
   );
 }
 

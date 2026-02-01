@@ -3474,9 +3474,14 @@ class AppLocalizations {
     return Intl.message('None', name: 'xboardNone', desc: '', args: []);
   }
 
-  /// `Plans`
+  /// `Plan Information`
   String get xboardPlanInfo {
-    return Intl.message('Plans', name: 'xboardPlanInfo', desc: '', args: []);
+    return Intl.message(
+      'Plan Information',
+      name: 'xboardPlanInfo',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Subscription purchase`
@@ -4154,10 +4159,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Handling fee`
+  /// `Handling Fee`
   String get xboardHandlingFee {
     return Intl.message(
-      'Handling fee',
+      'Handling Fee',
       name: 'xboardHandlingFee',
       desc: '',
       args: [],
@@ -4269,10 +4274,10 @@ class AppLocalizations {
     return Intl.message('Verify', name: 'xboardVerify', desc: '', args: []);
   }
 
-  /// `Purchase subscription`
+  /// `Purchase Plan`
   String get xboardPurchaseSubscription {
     return Intl.message(
-      'Purchase subscription',
+      'Purchase Plan',
       name: 'xboardPurchaseSubscription',
       desc: '',
       args: [],
@@ -6081,8 +6086,12 @@ class AppLocalizations {
 
   /// `Don't have an account?`
   String get noAccount {
-    return Intl.message('Don\'t have an account?',
-        name: 'noAccount', desc: '', args: []);
+    return Intl.message(
+      'Don\'t have an account?',
+      name: 'noAccount',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Invite`
@@ -7235,14 +7244,9 @@ class AppLocalizations {
     );
   }
 
-  /// `Copied to clipboard`
+  /// `Copied`
   String get xboardCopied {
-    return Intl.message(
-      'Copied to clipboard',
-      name: 'xboardCopied',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Copied', name: 'xboardCopied', desc: '', args: []);
   }
 
   /// `Proxy Port`
@@ -7265,21 +7269,136 @@ class AppLocalizations {
     );
   }
 
-  /// `Quick Actions`
-  String get xboardQuickActions {
+  /// `Account Settings`
+  String get xboardAccountSettings {
     return Intl.message(
-      'Quick Actions',
-      name: 'xboardQuickActions',
+      'Account Settings',
+      name: 'xboardAccountSettings',
       desc: '',
       args: [],
     );
   }
 
-  /// `Purchase Plan`
-  String get xboardPurchaseSubscription {
+  /// `Account Information`
+  String get xboardAccountInfo {
     return Intl.message(
-      'Purchase Plan',
-      name: 'xboardPurchaseSubscription',
+      'Account Information',
+      name: 'xboardAccountInfo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Member since`
+  String get xboardMemberSince {
+    return Intl.message(
+      'Member since',
+      name: 'xboardMemberSince',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Commission Balance`
+  String get xboardCommissionBalance {
+    return Intl.message(
+      'Commission Balance',
+      name: 'xboardCommissionBalance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Commission Rate`
+  String get xboardCommissionRate {
+    return Intl.message(
+      'Commission Rate',
+      name: 'xboardCommissionRate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Notifications`
+  String get xboardNotifications {
+    return Intl.message(
+      'Notifications',
+      name: 'xboardNotifications',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remind when plan expires`
+  String get xboardRemindExpire {
+    return Intl.message(
+      'Remind when plan expires',
+      name: 'xboardRemindExpire',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remind when traffic is low`
+  String get xboardRemindTraffic {
+    return Intl.message(
+      'Remind when traffic is low',
+      name: 'xboardRemindTraffic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Security`
+  String get xboardSecurity {
+    return Intl.message('Security', name: 'xboardSecurity', desc: '', args: []);
+  }
+
+  /// `Change Password`
+  String get xboardChangePassword {
+    return Intl.message(
+      'Change Password',
+      name: 'xboardChangePassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset Subscription`
+  String get xboardResetSubscription {
+    return Intl.message(
+      'Reset Subscription',
+      name: 'xboardResetSubscription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This will generate a new subscription URL and invalidate the old one`
+  String get xboardResetSubscriptionDesc {
+    return Intl.message(
+      'This will generate a new subscription URL and invalidate the old one',
+      name: 'xboardResetSubscriptionDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Preferences`
+  String get xboardPreferences {
+    return Intl.message(
+      'Preferences',
+      name: 'xboardPreferences',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quick Actions`
+  String get xboardQuickActions {
+    return Intl.message(
+      'Quick Actions',
+      name: 'xboardQuickActions',
       desc: '',
       args: [],
     );
@@ -7365,6 +7484,301 @@ class AppLocalizations {
     );
   }
 
+  /// `Order History`
+  String get xboardOrderHistory {
+    return Intl.message(
+      'Order History',
+      name: 'xboardOrderHistory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `View and manage your order history`
+  String get xboardOrderHistoryDesc {
+    return Intl.message(
+      'View and manage your order history',
+      name: 'xboardOrderHistoryDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All`
+  String get xboardAllOrders {
+    return Intl.message('All', name: 'xboardAllOrders', desc: '', args: []);
+  }
+
+  /// `Pending`
+  String get xboardPendingOrders {
+    return Intl.message(
+      'Pending',
+      name: 'xboardPendingOrders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Processing`
+  String get xboardProcessingOrders {
+    return Intl.message(
+      'Processing',
+      name: 'xboardProcessingOrders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Completed`
+  String get xboardCompletedOrders {
+    return Intl.message(
+      'Completed',
+      name: 'xboardCompletedOrders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancelled`
+  String get xboardCancelledOrders {
+    return Intl.message(
+      'Cancelled',
+      name: 'xboardCancelledOrders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No orders yet`
+  String get xboardNoOrders {
+    return Intl.message(
+      'No orders yet',
+      name: 'xboardNoOrders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your order history will appear here`
+  String get xboardNoOrdersDesc {
+    return Intl.message(
+      'Your order history will appear here',
+      name: 'xboardNoOrdersDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Order Details`
+  String get xboardOrderDetails {
+    return Intl.message(
+      'Order Details',
+      name: 'xboardOrderDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Order Information`
+  String get xboardOrderInfo {
+    return Intl.message(
+      'Order Information',
+      name: 'xboardOrderInfo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Trade No`
+  String get xboardTradeNo {
+    return Intl.message('Trade No', name: 'xboardTradeNo', desc: '', args: []);
+  }
+
+  /// `Period`
+  String get xboardPeriod {
+    return Intl.message('Period', name: 'xboardPeriod', desc: '', args: []);
+  }
+
+  /// `Total Amount`
+  String get xboardTotalAmount {
+    return Intl.message(
+      'Total Amount',
+      name: 'xboardTotalAmount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Balance Payment`
+  String get xboardBalanceAmount {
+    return Intl.message(
+      'Balance Payment',
+      name: 'xboardBalanceAmount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Refund Amount`
+  String get xboardRefundAmount {
+    return Intl.message(
+      'Refund Amount',
+      name: 'xboardRefundAmount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Discount Amount`
+  String get xboardDiscountAmount {
+    return Intl.message(
+      'Discount Amount',
+      name: 'xboardDiscountAmount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Surplus Amount`
+  String get xboardSurplusAmount {
+    return Intl.message(
+      'Surplus Amount',
+      name: 'xboardSurplusAmount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Created At`
+  String get xboardCreatedAt {
+    return Intl.message(
+      'Created At',
+      name: 'xboardCreatedAt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Detail`
+  String get xboardDetail {
+    return Intl.message('Detail', name: 'xboardDetail', desc: '', args: []);
+  }
+
+  /// `Pay`
+  String get xboardPay {
+    return Intl.message('Pay', name: 'xboardPay', desc: '', args: []);
+  }
+
+  /// `Cancel Order`
+  String get xboardCancelOrder {
+    return Intl.message(
+      'Cancel Order',
+      name: 'xboardCancelOrder',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Are you sure you want to cancel this order?`
+  String get xboardCancelOrderConfirm {
+    return Intl.message(
+      'Are you sure you want to cancel this order?',
+      name: 'xboardCancelOrderConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Order cancelled successfully`
+  String get xboardOrderCancelled {
+    return Intl.message(
+      'Order cancelled successfully',
+      name: 'xboardOrderCancelled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel failed`
+  String get xboardCancelFailed {
+    return Intl.message(
+      'Cancel failed',
+      name: 'xboardCancelFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Go to Pay`
+  String get xboardGoToPay {
+    return Intl.message('Go to Pay', name: 'xboardGoToPay', desc: '', args: []);
+  }
+
+  /// `Load failed`
+  String get xboardLoadFailed {
+    return Intl.message(
+      'Load failed',
+      name: 'xboardLoadFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Plan Summary`
+  String get xboardPlanSummary {
+    return Intl.message(
+      'Plan Summary',
+      name: 'xboardPlanSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Payment Details`
+  String get xboardPaymentDetails {
+    return Intl.message(
+      'Payment Details',
+      name: 'xboardPaymentDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Continue to Payment`
+  String get xboardContinueToPayment {
+    return Intl.message(
+      'Continue to Payment',
+      name: 'xboardContinueToPayment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Order Summary`
+  String get xboardOrderSummary {
+    return Intl.message(
+      'Order Summary',
+      name: 'xboardOrderSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Subtotal`
+  String get xboardSubtotal {
+    return Intl.message('Subtotal', name: 'xboardSubtotal', desc: '', args: []);
+  }
+
+  /// `Discount`
+  String get xboardDiscount {
+    return Intl.message('Discount', name: 'xboardDiscount', desc: '', args: []);
+  }
+
+  /// `Total`
+  String get xboardTotal {
+    return Intl.message('Total', name: 'xboardTotal', desc: '', args: []);
+  }
+
   /// `Server Status`
   String get xboardServerStatus {
     return Intl.message(
@@ -7397,22 +7811,12 @@ class AppLocalizations {
 
   /// `online`
   String get xboardOnline {
-    return Intl.message(
-      'online',
-      name: 'xboardOnline',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('online', name: 'xboardOnline', desc: '', args: []);
   }
 
   /// `offline`
   String get xboardOffline {
-    return Intl.message(
-      'offline',
-      name: 'xboardOffline',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('offline', name: 'xboardOffline', desc: '', args: []);
   }
 
   /// `Server Name`
@@ -7423,6 +7827,226 @@ class AppLocalizations {
       desc: '',
       args: [],
     );
+  }
+
+  /// `Invite`
+  String get xboardInvite {
+    return Intl.message('Invite', name: 'xboardInvite', desc: '', args: []);
+  }
+
+  /// `Invite Friends & Earn Commission`
+  String get xboardInviteTitle {
+    return Intl.message(
+      'Invite Friends & Earn Commission',
+      name: 'xboardInviteTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Share your invite code and earn commission from referrals`
+  String get xboardInviteSubtitle {
+    return Intl.message(
+      'Share your invite code and earn commission from referrals',
+      name: 'xboardInviteSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Registered Users`
+  String get xboardRegisteredUsers {
+    return Intl.message(
+      'Registered Users',
+      name: 'xboardRegisteredUsers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Settled Commission`
+  String get xboardSettledCommission {
+    return Intl.message(
+      'Settled Commission',
+      name: 'xboardSettledCommission',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pending Commission`
+  String get xboardPendingCommission {
+    return Intl.message(
+      'Pending Commission',
+      name: 'xboardPendingCommission',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System Rate`
+  String get xboardSystemCommissionRate {
+    return Intl.message(
+      'System Rate',
+      name: 'xboardSystemCommissionRate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Custom Rate`
+  String get xboardCustomCommissionRate {
+    return Intl.message(
+      'Custom Rate',
+      name: 'xboardCustomCommissionRate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `User-specific`
+  String get xboardUserSpecificRate {
+    return Intl.message(
+      'User-specific',
+      name: 'xboardUserSpecificRate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Available Commission`
+  String get xboardAvailableCommission {
+    return Intl.message(
+      'Available Commission',
+      name: 'xboardAvailableCommission',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invite Codes`
+  String get xboardInviteCodes {
+    return Intl.message(
+      'Invite Codes',
+      name: 'xboardInviteCodes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create Code`
+  String get xboardCreateInviteCode {
+    return Intl.message(
+      'Create Code',
+      name: 'xboardCreateInviteCode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Creating...`
+  String get xboardCreating {
+    return Intl.message(
+      'Creating...',
+      name: 'xboardCreating',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy Code`
+  String get xboardCopyCode {
+    return Intl.message(
+      'Copy Code',
+      name: 'xboardCopyCode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Code copied to clipboard`
+  String get xboardCodeCopied {
+    return Intl.message(
+      'Code copied to clipboard',
+      name: 'xboardCodeCopied',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Link copied to clipboard`
+  String get xboardLinkCopied {
+    return Intl.message(
+      'Link copied to clipboard',
+      name: 'xboardLinkCopied',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No invite codes yet`
+  String get xboardNoInviteCodes {
+    return Intl.message(
+      'No invite codes yet',
+      name: 'xboardNoInviteCodes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create your first invite code to start earning commission`
+  String get xboardNoInviteCodesDesc {
+    return Intl.message(
+      'Create your first invite code to start earning commission',
+      name: 'xboardNoInviteCodesDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Maximum 5 invite codes allowed`
+  String get xboardMaxInviteCodesReached {
+    return Intl.message(
+      'Maximum 5 invite codes allowed',
+      name: 'xboardMaxInviteCodesReached',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invite code created successfully`
+  String get xboardInviteCodeCreated {
+    return Intl.message(
+      'Invite code created successfully',
+      name: 'xboardInviteCodeCreated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Withdrawal and transfer features coming soon`
+  String get xboardWithdrawTransferComingSoon {
+    return Intl.message(
+      'Withdrawal and transfer features coming soon',
+      name: 'xboardWithdrawTransferComingSoon',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to load data`
+  String get xboardLoadError {
+    return Intl.message(
+      'Failed to load data',
+      name: 'xboardLoadError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error`
+  String get xboardError {
+    return Intl.message('Error', name: 'xboardError', desc: '', args: []);
   }
 
   /// `Server Host`
@@ -7460,6 +8084,91 @@ class AppLocalizations {
     return Intl.message(
       'No server data available',
       name: 'xboardNoServerData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Traffic History`
+  String get xboardTrafficHistory {
+    return Intl.message(
+      'Traffic History',
+      name: 'xboardTrafficHistory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Traffic Usage History`
+  String get xboardTrafficHistoryTitle {
+    return Intl.message(
+      'Traffic Usage History',
+      name: 'xboardTrafficHistoryTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `View Chart`
+  String get xboardViewChart {
+    return Intl.message(
+      'View Chart',
+      name: 'xboardViewChart',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `View List`
+  String get xboardViewList {
+    return Intl.message(
+      'View List',
+      name: 'xboardViewList',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily Traffic`
+  String get xboardDailyTraffic {
+    return Intl.message(
+      'Daily Traffic',
+      name: 'xboardDailyTraffic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total`
+  String get xboardTrafficTotal {
+    return Intl.message(
+      'Total',
+      name: 'xboardTrafficTotal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No traffic data available`
+  String get xboardTrafficNoData {
+    return Intl.message(
+      'No traffic data available',
+      name: 'xboardTrafficNoData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today`
+  String get xboardToday {
+    return Intl.message('Today', name: 'xboardToday', desc: '', args: []);
+  }
+
+  /// `Yesterday`
+  String get xboardYesterday {
+    return Intl.message(
+      'Yesterday',
+      name: 'xboardYesterday',
       desc: '',
       args: [],
     );

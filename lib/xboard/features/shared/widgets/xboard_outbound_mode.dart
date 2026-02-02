@@ -18,9 +18,9 @@ class XBoardOutboundMode extends StatelessWidget {
     _logger.debug('[XBoardOutboundMode] 切换模式到: $modeOption');
     globalState.appController.changeMode(modeOption);
     if (modeOption == Mode.global) {
-      _logger.debug('[XBoardOutboundMode] 切换到全局模式，执行自动节点选择');
+      _logger.debug('[XBoardOutboundMode] 切换到全局模式，检查节点选择');
       Future.delayed(const Duration(milliseconds: 100), () {
-        _selectValidProxyForGlobalMode(ref);
+        _ensureValidProxyForGlobalMode(ref);
       });
     }
   }
@@ -50,8 +50,8 @@ class XBoardOutboundMode extends StatelessWidget {
           );
     }
   }
-  void _selectValidProxyForGlobalMode(WidgetRef ref) {
-    _logger.debug('[XBoardOutboundMode] 开始选择有效代理节点');
+  void _ensureValidProxyForGlobalMode(WidgetRef ref) {
+    _logger.debug('[XBoardOutboundMode] 检查全局模式下的节点选择');
     final groups = ref.read(groupsProvider);
     if (groups.isEmpty) {
       _logger.debug('[XBoardOutboundMode] 没有可用的代理组');
@@ -66,9 +66,29 @@ class XBoardOutboundMode extends StatelessWidget {
       _logger.debug('[XBoardOutboundMode] 全局组没有可用节点');
       return;
     }
+
+    // 检查当前是否已有选择
+    final selectedMap = ref.read(selectedMapProvider);
+    final currentSelected = selectedMap[globalGroup.name];
+
+    // 如果已有选择且该节点仍然存在，则保持不变
+    if (currentSelected != null && currentSelected.isNotEmpty) {
+      final selectedProxy = globalGroup.all.firstWhere(
+        (proxy) => proxy.name == currentSelected,
+        orElse: () => globalGroup.all.first,
+      );
+      if (selectedProxy.name == currentSelected &&
+          selectedProxy.name.toUpperCase() != 'DIRECT' &&
+          selectedProxy.name.toUpperCase() != 'REJECT') {
+        _logger.debug('[XBoardOutboundMode] 保持已选择的节点: $currentSelected');
+        return;
+      }
+    }
+
+    // 如果没有选择或选择无效，则自动选择第一个有效节点
+    _logger.debug('[XBoardOutboundMode] 当前无有效选择，自动选择节点');
     Proxy? validProxy;
     for (final proxy in globalGroup.all) {
-      _logger.debug('[XBoardOutboundMode] 检查节点: ${proxy.name}');
       if (proxy.name.toUpperCase() != 'DIRECT' &&
           proxy.name.toLowerCase() != 'direct' &&
           proxy.name.toUpperCase() != 'REJECT') {

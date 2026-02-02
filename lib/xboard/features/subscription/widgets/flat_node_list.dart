@@ -124,6 +124,8 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
       for (final proxy in group.all) {
         if (groupNames.contains(proxy.name)) continue;
         if (seen.contains(proxy.name)) continue;
+        // 过滤掉 DIRECT 和 REJECT 特殊节点
+        if (proxy.name == 'DIRECT' || proxy.name == 'REJECT') continue;
         seen.add(proxy.name);
 
         final selected = selectedMap[group.name] == proxy.name;

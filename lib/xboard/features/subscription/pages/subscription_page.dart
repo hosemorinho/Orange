@@ -4,7 +4,7 @@ import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 
 class SubscriptionPage extends ConsumerStatefulWidget {
   const SubscriptionPage({super.key});
@@ -25,7 +25,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final userAuthState = ref.watch(xboardUserProvider);
     final subscription = ref.watch(subscriptionInfoProvider);
     final user = ref.watch(userInfoProvider);
@@ -80,7 +80,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   Widget _buildNoSubscription(ThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -123,7 +123,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   Widget _buildPlanInfoCard(ThemeData theme, DomainSubscription sub, DomainUser? user) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final statusInfo = _getStatusInfo(sub, theme);
 
     return Container(
@@ -235,7 +235,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   Widget _buildTrafficCard(ThemeData theme, DomainSubscription sub) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final progress = sub.transferLimit > 0
         ? (sub.totalUsedBytes / sub.transferLimit).clamp(0.0, 1.0)
         : 0.0;
@@ -386,7 +386,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   Widget _buildTimeInfoCard(ThemeData theme, DomainSubscription sub) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final daysRemaining = sub.daysRemaining;
 
     return Container(
@@ -464,7 +464,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   ({String label, Color color}) _getStatusInfo(DomainSubscription sub, ThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final colorScheme = theme.colorScheme;
     if (sub.isExpired) {
       return (label: l10n.xboardExpired, color: colorScheme.error);

@@ -9383,6 +9383,146 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Current Password`
+  String get xboardOldPassword {
+    return Intl.message(
+      'Current Password',
+      name: 'xboardOldPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New Password`
+  String get xboardNewPassword {
+    return Intl.message(
+      'New Password',
+      name: 'xboardNewPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Password changed successfully`
+  String get xboardPasswordChangedSuccess {
+    return Intl.message(
+      'Password changed successfully',
+      name: 'xboardPasswordChangedSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to change password`
+  String get xboardPasswordChangeError {
+    return Intl.message(
+      'Failed to change password',
+      name: 'xboardPasswordChangeError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset Subscription`
+  String get xboardResetConfirmTitle {
+    return Intl.message(
+      'Reset Subscription',
+      name: 'xboardResetConfirmTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This will generate a new subscription URL. The old URL will become invalid and you will need to re-import the subscription. Are you sure?`
+  String get xboardResetConfirmDesc {
+    return Intl.message(
+      'This will generate a new subscription URL. The old URL will become invalid and you will need to re-import the subscription. Are you sure?',
+      name: 'xboardResetConfirmDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Subscription reset successfully. Please re-import.`
+  String get xboardResetSubscriptionSuccess {
+    return Intl.message(
+      'Subscription reset successfully. Please re-import.',
+      name: 'xboardResetSubscriptionSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to reset subscription`
+  String get xboardResetSubscriptionError {
+    return Intl.message(
+      'Failed to reset subscription',
+      name: 'xboardResetSubscriptionError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Notification settings updated`
+  String get xboardNotificationUpdateSuccess {
+    return Intl.message(
+      'Notification settings updated',
+      name: 'xboardNotificationUpdateSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to update notification settings`
+  String get xboardNotificationUpdateError {
+    return Intl.message(
+      'Failed to update notification settings',
+      name: 'xboardNotificationUpdateError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm`
+  String get xboardConfirm {
+    return Intl.message(
+      'Confirm',
+      name: 'xboardConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resetting...`
+  String get xboardResetting {
+    return Intl.message(
+      'Resetting...',
+      name: 'xboardResetting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Changing...`
+  String get xboardChanging {
+    return Intl.message(
+      'Changing...',
+      name: 'xboardChanging',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Password must be at least 8 characters`
+  String get xboardPasswordMinLength {
+    return Intl.message(
+      'Password must be at least 8 characters',
+      name: 'xboardPasswordMinLength',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

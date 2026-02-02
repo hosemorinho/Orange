@@ -1346,5 +1346,19 @@
   "xboardReopenPaymentNote": "如需重新打开，可点击下方\"重新打开\"按钮",
   "xboardBrowserNotOpenedNote": "提示：如果浏览器未自动打开，可以点击\"重新打开\"或复制链接手动打开",
   "xboardClearOldOrders": "清理旧订单",
-  "xboardUnlimitedDevices": "不限设备数量"
+  "xboardUnlimitedDevices": "不限设备数量",
+  "xboardOldPassword": "当前密码",
+  "xboardNewPassword": "新密码",
+  "xboardPasswordChangedSuccess": "密码修改成功",
+  "xboardPasswordChangeError": "密码修改失败",
+  "xboardResetConfirmTitle": "重置订阅",
+  "xboardResetConfirmDesc": "将生成新的订阅链接，旧链接将失效，您需要重新导入订阅。确定继续吗？",
+  "xboardResetSubscriptionSuccess": "订阅重置成功，请重新导入订阅",
+  "xboardResetSubscriptionError": "重置订阅失败",
+  "xboardNotificationUpdateSuccess": "通知设置已更新",
+  "xboardNotificationUpdateError": "更新通知设置失败",
+  "xboardConfirm": "确认",
+  "xboardResetting": "重置中...",
+  "xboardChanging": "修改中...",
+  "xboardPasswordMinLength": "密码至少需要8个字符"
 }

@@ -1537,6 +1537,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardYearlyPayment": MessageLookupByLibrary.simpleMessage("年付"),
     "xboardYearsAgo": MessageLookupByLibrary.simpleMessage("年前"),
     "xboardYesterday": MessageLookupByLibrary.simpleMessage("昨天"),
+    "xboardOldPassword": MessageLookupByLibrary.simpleMessage("当前密码"),
+    "xboardNewPassword": MessageLookupByLibrary.simpleMessage("新密码"),
+    "xboardPasswordChangedSuccess":
+        MessageLookupByLibrary.simpleMessage("密码修改成功"),
+    "xboardPasswordChangeError":
+        MessageLookupByLibrary.simpleMessage("密码修改失败"),
+    "xboardResetConfirmTitle":
+        MessageLookupByLibrary.simpleMessage("重置订阅"),
+    "xboardResetConfirmDesc": MessageLookupByLibrary.simpleMessage(
+      "将生成新的订阅链接，旧链接将失效，您需要重新导入订阅。确定继续吗？",
+    ),
+    "xboardResetSubscriptionSuccess":
+        MessageLookupByLibrary.simpleMessage("订阅重置成功，请重新导入订阅"),
+    "xboardResetSubscriptionError":
+        MessageLookupByLibrary.simpleMessage("重置订阅失败"),
+    "xboardNotificationUpdateSuccess":
+        MessageLookupByLibrary.simpleMessage("通知设置已更新"),
+    "xboardNotificationUpdateError":
+        MessageLookupByLibrary.simpleMessage("更新通知设置失败"),
+    "xboardConfirm": MessageLookupByLibrary.simpleMessage("确认"),
+    "xboardResetting": MessageLookupByLibrary.simpleMessage("重置中..."),
+    "xboardChanging": MessageLookupByLibrary.simpleMessage("修改中..."),
+    "xboardPasswordMinLength":
+        MessageLookupByLibrary.simpleMessage("密码至少需要8个字符"),
     "years": MessageLookupByLibrary.simpleMessage("年"),
     "zh_CN": MessageLookupByLibrary.simpleMessage("中文简体"),
   };

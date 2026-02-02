@@ -16,7 +16,6 @@ import '../widgets/subscription_usage_card.dart';
 import '../widgets/connection_status_card.dart';
 import '../widgets/quick_actions_card.dart';
 import '../widgets/traffic_history_card.dart';
-import '../widgets/server_status_card.dart';
 class XBoardHomePage extends ConsumerStatefulWidget {
   const XBoardHomePage({super.key});
   @override
@@ -179,17 +178,6 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                             child: const TrafficHistoryCard(
-                              initiallyExpanded: false,
-                            ),
-                          ),
-                          SizedBox(height: sectionSpacing),
-                          // 服务器状态（可折叠）
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            child: const ServerStatusCard(
-                              // No server data available from API yet
-                              servers: null,
-                              loading: false,
                               initiallyExpanded: false,
                             ),
                           ),

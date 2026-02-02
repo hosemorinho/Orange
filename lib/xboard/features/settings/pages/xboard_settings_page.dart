@@ -1,7 +1,10 @@
+import 'package:fl_clash/common/common.dart' show appLocalizations;
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/xb_dashboard_card.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/shared/dialogs/dialogs.dart';
+import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
+import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:fl_clash/models/config.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
@@ -161,7 +164,11 @@ class XBoardSettingsPage extends ConsumerWidget {
                         trailing: Switch(
                           value: userInfo.remindExpire,
                           onChanged: (value) {
-                            // TODO: Implement update user preferences
+                            _updateNotificationSetting(
+                              ref,
+                              remindExpire: value,
+                              remindTraffic: userInfo.remindTraffic,
+                            );
                           },
                         ),
                       ),
@@ -172,7 +179,11 @@ class XBoardSettingsPage extends ConsumerWidget {
                         trailing: Switch(
                           value: userInfo.remindTraffic,
                           onChanged: (value) {
-                            // TODO: Implement update user preferences
+                            _updateNotificationSetting(
+                              ref,
+                              remindExpire: userInfo.remindExpire,
+                              remindTraffic: value,
+                            );
                           },
                         ),
                       ),
@@ -189,7 +200,10 @@ class XBoardSettingsPage extends ConsumerWidget {
                         subtitle: appLocalizations.password,
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
-                          // TODO: Navigate to change password page
+                          showDialog(
+                            context: context,
+                            builder: (context) => const ChangePasswordDialog(),
+                          );
                         },
                       ),
                       _SettingDivider(),
@@ -199,7 +213,11 @@ class XBoardSettingsPage extends ConsumerWidget {
                         subtitle: appLocalizations.xboardResetSubscriptionDesc,
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
-                          // TODO: Implement reset subscription
+                          showDialog(
+                            context: context,
+                            builder: (context) =>
+                                const ResetSubscriptionDialog(),
+                          );
                         },
                       ),
                     ],
@@ -283,6 +301,31 @@ class XBoardSettingsPage extends ConsumerWidget {
   String _formatDate(DateTime? date) {
     if (date == null) return '-';
     return DateFormat.yMMMd().format(date);
+  }
+
+  Future<void> _updateNotificationSetting(
+    WidgetRef ref, {
+    required bool remindExpire,
+    required bool remindTraffic,
+  }) async {
+    try {
+      final api = await ref.read(xboardSdkProvider.future);
+      await api.updateUser({
+        'remind_expire': remindExpire ? 1 : 0,
+        'remind_traffic': remindTraffic ? 1 : 0,
+      });
+
+      // Refresh user info to reflect changes
+      await ref.read(xboardUserProvider.notifier).refreshUserInfo();
+
+      XBoardNotification.showSuccess(
+        appLocalizations.xboardNotificationUpdateSuccess,
+      );
+    } catch (e) {
+      XBoardNotification.showError(
+        '${appLocalizations.xboardNotificationUpdateError}: $e',
+      );
+    }
   }
 }
 

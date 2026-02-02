@@ -2261,6 +2261,35 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardYearlyPayment": MessageLookupByLibrary.simpleMessage("Yearly"),
     "xboardYearsAgo": MessageLookupByLibrary.simpleMessage("years ago"),
     "xboardYesterday": MessageLookupByLibrary.simpleMessage("Yesterday"),
+    "xboardOldPassword":
+        MessageLookupByLibrary.simpleMessage("Current Password"),
+    "xboardNewPassword":
+        MessageLookupByLibrary.simpleMessage("New Password"),
+    "xboardPasswordChangedSuccess":
+        MessageLookupByLibrary.simpleMessage("Password changed successfully"),
+    "xboardPasswordChangeError":
+        MessageLookupByLibrary.simpleMessage("Failed to change password"),
+    "xboardResetConfirmTitle":
+        MessageLookupByLibrary.simpleMessage("Reset Subscription"),
+    "xboardResetConfirmDesc": MessageLookupByLibrary.simpleMessage(
+      "This will generate a new subscription URL. The old URL will become invalid and you will need to re-import the subscription. Are you sure?",
+    ),
+    "xboardResetSubscriptionSuccess": MessageLookupByLibrary.simpleMessage(
+      "Subscription reset successfully. Please re-import.",
+    ),
+    "xboardResetSubscriptionError":
+        MessageLookupByLibrary.simpleMessage("Failed to reset subscription"),
+    "xboardNotificationUpdateSuccess":
+        MessageLookupByLibrary.simpleMessage("Notification settings updated"),
+    "xboardNotificationUpdateError": MessageLookupByLibrary.simpleMessage(
+      "Failed to update notification settings",
+    ),
+    "xboardConfirm": MessageLookupByLibrary.simpleMessage("Confirm"),
+    "xboardResetting": MessageLookupByLibrary.simpleMessage("Resetting..."),
+    "xboardChanging": MessageLookupByLibrary.simpleMessage("Changing..."),
+    "xboardPasswordMinLength": MessageLookupByLibrary.simpleMessage(
+      "Password must be at least 8 characters",
+    ),
     "years": MessageLookupByLibrary.simpleMessage("Years"),
     "zh_CN": MessageLookupByLibrary.simpleMessage("Simplified Chinese"),
   };

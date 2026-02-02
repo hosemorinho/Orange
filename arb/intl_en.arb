@@ -1345,5 +1345,19 @@
   "xboardReopenPaymentNote": "To reopen, click the \"Reopen\" button below",
   "xboardBrowserNotOpenedNote": "Tip: If browser doesn't open automatically, click \"Reopen\" or copy link manually",
   "xboardClearOldOrders": "Clear old orders",
-  "xboardUnlimitedDevices": "Unlimited devices"
+  "xboardUnlimitedDevices": "Unlimited devices",
+  "xboardOldPassword": "Current Password",
+  "xboardNewPassword": "New Password",
+  "xboardPasswordChangedSuccess": "Password changed successfully",
+  "xboardPasswordChangeError": "Failed to change password",
+  "xboardResetConfirmTitle": "Reset Subscription",
+  "xboardResetConfirmDesc": "This will generate a new subscription URL. The old URL will become invalid and you will need to re-import the subscription. Are you sure?",
+  "xboardResetSubscriptionSuccess": "Subscription reset successfully. Please re-import.",
+  "xboardResetSubscriptionError": "Failed to reset subscription",
+  "xboardNotificationUpdateSuccess": "Notification settings updated",
+  "xboardNotificationUpdateError": "Failed to update notification settings",
+  "xboardConfirm": "Confirm",
+  "xboardResetting": "Resetting...",
+  "xboardChanging": "Changing...",
+  "xboardPasswordMinLength": "Password must be at least 8 characters"
 }

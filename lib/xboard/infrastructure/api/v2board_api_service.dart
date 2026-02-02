@@ -499,7 +499,7 @@ class V2BoardApiService {
     int limit = 30,
   }) async {
     _logger.info('[API] getTrafficLogs: offset=$offset, limit=$limit');
-    return await _authGet('/api/v1/user/getStat/getTrafficLog', queryParameters: {
+    return await _authGet('/api/v1/user/stat/getTrafficLog', queryParameters: {
       'offset': offset,
       'limit': limit,
     });

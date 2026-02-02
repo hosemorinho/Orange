@@ -114,7 +114,7 @@ class DesktopNavigationRail extends ConsumerWidget {
         NavigationRailDestination(
           icon: const Icon(Icons.support_agent_outlined),
           selectedIcon: const Icon(Icons.support_agent),
-          label: const Text('工单'),
+          label: Text(appLocalizations.xboardTickets),
         ),
         NavigationRailDestination(
           icon: const Icon(Icons.settings_outlined),

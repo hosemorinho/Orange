@@ -159,7 +159,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
               child: OrderCard(
                 order: order,
                 onTap: () => _showOrderDetail(order),
-                onPay: () => _navigateToCheckout(order.tradeNo),
+                onPay: () => _navigateToCheckout(order),
                 onCancel: () => _cancelOrder(order.tradeNo),
               ),
             );
@@ -265,9 +265,8 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
     );
   }
 
-  void _navigateToCheckout(String tradeNo) {
-    // TODO: Navigate to checkout page with trade_no
-    context.push('/checkout?trade_no=$tradeNo');
+  void _navigateToCheckout(DomainOrder order) {
+    _showOrderDetail(order);
   }
 
   Future<void> _cancelOrder(String tradeNo) async {

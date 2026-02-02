@@ -48,14 +48,7 @@ class QuickActionsCard extends ConsumerWidget {
             iconBackground: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
             title: appLocalizations.xboardMyOrders,
             subtitle: appLocalizations.xboardViewOrders,
-            onTap: () {
-              final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
-              if (isDesktop) {
-                context.go('/orders');
-              } else {
-                context.push('/orders');
-              }
-            },
+            onTap: () => context.push('/orders'),
           ),
           const SizedBox(height: 12),
           _QuickActionButton(
@@ -68,9 +61,9 @@ class QuickActionsCard extends ConsumerWidget {
             onTap: () {
               final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
               if (isDesktop) {
-                context.go('/tickets');
+                context.go('/support');
               } else {
-                context.push('/tickets');
+                context.push('/support');
               }
             },
           ),
@@ -81,14 +74,7 @@ class QuickActionsCard extends ConsumerWidget {
             iconBackground: Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
             title: appLocalizations.xboardInviteFriends,
             subtitle: appLocalizations.xboardEarnCommission,
-            onTap: () {
-              final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
-              if (isDesktop) {
-                context.go('/invite');
-              } else {
-                context.push('/invite');
-              }
-            },
+            onTap: () => context.push('/invite'),
           ),
         ],
       ),

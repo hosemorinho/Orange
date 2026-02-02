@@ -299,7 +299,7 @@ class ApplicationState extends ConsumerState<Application> {
                 colorScheme: _getAppColorScheme(
                   brightness: Brightness.light,
                   primaryColor: themeProps.primaryColor,
-                ),
+                ).toNeutralSurface(),
               ),
               darkTheme: ThemeData(
                 useMaterial3: true,
@@ -307,7 +307,7 @@ class ApplicationState extends ConsumerState<Application> {
                 colorScheme: _getAppColorScheme(
                   brightness: Brightness.dark,
                   primaryColor: themeProps.primaryColor,
-                ).toPureBlack(themeProps.pureBlack),
+                ).toNeutralSurface().toPureBlack(themeProps.pureBlack),
               ),
             );
           },

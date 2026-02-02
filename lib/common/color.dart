@@ -115,6 +115,31 @@ extension ColorExtension on Color {
 }
 
 extension ColorSchemeExtension on ColorScheme {
+  /// 将 surface 系列颜色替换为中性灰，去除种子色的色调污染
+  ColorScheme toNeutralSurface() {
+    final neutral = ColorScheme.fromSeed(
+      seedColor: Colors.grey,
+      brightness: brightness,
+    );
+    return copyWith(
+      surface: neutral.surface,
+      surfaceDim: neutral.surfaceDim,
+      surfaceBright: neutral.surfaceBright,
+      surfaceContainerLowest: neutral.surfaceContainerLowest,
+      surfaceContainerLow: neutral.surfaceContainerLow,
+      surfaceContainer: neutral.surfaceContainer,
+      surfaceContainerHigh: neutral.surfaceContainerHigh,
+      surfaceContainerHighest: neutral.surfaceContainerHighest,
+      onSurface: neutral.onSurface,
+      onSurfaceVariant: neutral.onSurfaceVariant,
+      outline: neutral.outline,
+      outlineVariant: neutral.outlineVariant,
+      inverseSurface: neutral.inverseSurface,
+      onInverseSurface: neutral.onInverseSurface,
+      surfaceTint: Colors.transparent,
+    );
+  }
+
   ColorScheme toPureBlack(bool isPrueBlack) => isPrueBlack
       ? copyWith(
           surface: Colors.black,

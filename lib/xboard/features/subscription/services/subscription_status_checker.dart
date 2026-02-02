@@ -127,11 +127,9 @@ class SubscriptionStatusChecker {
       if (currentPlan != null) {
         _logger.info('[套餐续费] 找到当前套餐，跳转到购买页面: ${currentPlan.name}');
         if (isDesktop) {
-          // 桌面端：通过URL参数传递套餐ID，Plans页面内部会显示购买界面
-          context.go('/plans?planId=$currentPlanId');
+          context.go('/plans');
         } else {
-          // 移动端：直接导航到购买详情页
-          context.push('/plans/$currentPlanId');
+          context.push('/plans/purchase', extra: currentPlan);
         }
         return;
       } else {

@@ -285,10 +285,8 @@ class SubscriptionUsageCard extends ConsumerWidget {
       
       if (currentPlan != null) {
         if (isDesktop) {
-          // 桌面端：通过URL参数传递套餐ID，Plans页面内部会显示购买界面
-          context.go('/plans?planId=$currentPlanId');
+          context.go('/plans');
         } else {
-          // 移动端：直接跳转到全屏购买页面
           context.push('/plans/purchase', extra: currentPlan);
         }
         return;

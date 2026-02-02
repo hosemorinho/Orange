@@ -20,9 +20,6 @@ Future<List<DomainOrder>> getOrders(Ref ref) async {
       .toList();
 }
 
-/// Provider alias for backward compatibility
-final getOrdersProvider = getOrdersProvider;
-
 /// 获取单个订单
 @riverpod
 Future<DomainOrder?> getOrder(Ref ref, String tradeNo) async {

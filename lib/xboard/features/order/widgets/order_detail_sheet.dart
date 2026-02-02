@@ -24,7 +24,7 @@ class OrderDetailSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final mediaQuery = MediaQuery.of(context);
-    final l10n = context.l10n;
+    final l10n = context.appLocalizations;
 
     return Container(
       constraints: BoxConstraints(

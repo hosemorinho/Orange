@@ -62,7 +62,7 @@ class _InvitePageState extends ConsumerState<InvitePage> {
     final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     final inviteDataAsync = ref.watch(inviteDataProviderProvider);
-    final userAsync = ref.watch(xboardUserProviderProvider);
+    final user = ref.watch(userInfoProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -82,7 +82,7 @@ class _InvitePageState extends ConsumerState<InvitePage> {
       body: inviteDataAsync.when(
         data: (inviteData) {
           // Get custom commission rate from user info (if available)
-          final customRate = userAsync.valueOrNull?.commissionRate;
+          final customRate = user?.commissionRate;
 
           return RefreshIndicator(
             onRefresh: () async {

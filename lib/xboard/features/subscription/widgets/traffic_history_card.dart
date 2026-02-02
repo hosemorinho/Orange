@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/xb_dashboard_card.dart';
 import 'package:fl_clash/xboard/adapter/state/traffic_provider.dart';
+import 'package:fl_clash/xboard/domain/models/traffic_record.dart';
 import 'package:fl_clash/xboard/features/subscription/widgets/traffic_list.dart';
 import 'package:fl_clash/xboard/features/subscription/widgets/traffic_chart_simple.dart';
 

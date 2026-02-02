@@ -76,9 +76,10 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
       final providers = ref.read(providersProvider);
       if (providers.isEmpty) {
         // 如果没有 providers，刷新当前 profile
-        await globalState.appController.updateProfile(
-          showMessage: true,
-        );
+        final currentProfile = ref.read(currentProfileProvider);
+        if (currentProfile != null) {
+          await globalState.appController.updateProfile(currentProfile);
+        }
         return;
       }
 

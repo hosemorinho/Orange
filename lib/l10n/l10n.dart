@@ -3914,10 +3914,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Traffic exhausted`
+  /// `Traffic Exhausted`
   String get xboardTrafficExhausted {
     return Intl.message(
-      'Traffic exhausted',
+      'Traffic Exhausted',
       name: 'xboardTrafficExhausted',
       desc: '',
       args: [],
@@ -4354,20 +4354,20 @@ class AppLocalizations {
     );
   }
 
-  /// `Waiting for payment`
+  /// `Waiting for payment...`
   String get xboardWaitingForPayment {
     return Intl.message(
-      'Waiting for payment',
+      'Waiting for payment...',
       name: 'xboardWaitingForPayment',
       desc: '',
       args: [],
     );
   }
 
-  /// `Order status: Pending payment`
+  /// `Order Status: Pending Payment`
   String get xboardOrderStatusPending {
     return Intl.message(
-      'Order status: Pending payment',
+      'Order Status: Pending Payment',
       name: 'xboardOrderStatusPending',
       desc: '',
       args: [],
@@ -4819,10 +4819,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Payment failed`
+  /// `Payment Failed`
   String get xboardPaymentFailed {
     return Intl.message(
-      'Payment failed',
+      'Payment Failed',
       name: 'xboardPaymentFailed',
       desc: '',
       args: [],
@@ -4934,10 +4934,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Preparing import`
+  /// `Preparing to import configuration`
   String get xboardPreparingImport {
     return Intl.message(
-      'Preparing import',
+      'Preparing to import configuration',
       name: 'xboardPreparingImport',
       desc: '',
       args: [],
@@ -4984,20 +4984,20 @@ class AppLocalizations {
     );
   }
 
-  /// `Import successful`
+  /// `Configuration imported successfully`
   String get xboardImportSuccess {
     return Intl.message(
-      'Import successful',
+      'Configuration imported successfully',
       name: 'xboardImportSuccess',
       desc: '',
       args: [],
     );
   }
 
-  /// `Import failed`
+  /// `Configuration import failed`
   String get xboardImportFailed {
     return Intl.message(
-      'Import failed',
+      'Configuration import failed',
       name: 'xboardImportFailed',
       desc: '',
       args: [],
@@ -7714,10 +7714,10 @@ class AppLocalizations {
     return Intl.message('Go to Pay', name: 'xboardGoToPay', desc: '', args: []);
   }
 
-  /// `Load failed`
+  /// `Load Failed`
   String get xboardLoadFailed {
     return Intl.message(
-      'Load failed',
+      'Load Failed',
       name: 'xboardLoadFailed',
       desc: '',
       args: [],
@@ -8199,6 +8199,561 @@ class AppLocalizations {
     return Intl.message(
       'Reset traffic',
       name: 'xboardResetTraffic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please login first`
+  String get xboardPleaseLogin {
+    return Intl.message(
+      'Please login first',
+      name: 'xboardPleaseLogin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tickets`
+  String get xboardTickets {
+    return Intl.message('Tickets', name: 'xboardTickets', desc: '', args: []);
+  }
+
+  /// `Create Ticket`
+  String get xboardCreateTicket {
+    return Intl.message(
+      'Create Ticket',
+      name: 'xboardCreateTicket',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ticket Details`
+  String get xboardTicketDetail {
+    return Intl.message(
+      'Ticket Details',
+      name: 'xboardTicketDetail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Are you sure you want to close this ticket? You won't be able to reply after closing.`
+  String get xboardCloseTicketConfirm {
+    return Intl.message(
+      'Are you sure you want to close this ticket? You won\'t be able to reply after closing.',
+      name: 'xboardCloseTicketConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Subject`
+  String get xboardTicketSubject {
+    return Intl.message(
+      'Subject',
+      name: 'xboardTicketSubject',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Message`
+  String get xboardTicketMessage {
+    return Intl.message(
+      'Message',
+      name: 'xboardTicketMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Priority`
+  String get xboardPriority {
+    return Intl.message('Priority', name: 'xboardPriority', desc: '', args: []);
+  }
+
+  /// `Low`
+  String get xboardLowPriority {
+    return Intl.message('Low', name: 'xboardLowPriority', desc: '', args: []);
+  }
+
+  /// `Medium`
+  String get xboardMediumPriority {
+    return Intl.message(
+      'Medium',
+      name: 'xboardMediumPriority',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High`
+  String get xboardHighPriority {
+    return Intl.message('High', name: 'xboardHighPriority', desc: '', args: []);
+  }
+
+  /// `Just now`
+  String get xboardJustNow {
+    return Intl.message('Just now', name: 'xboardJustNow', desc: '', args: []);
+  }
+
+  /// `minutes ago`
+  String get xboardMinutesAgo {
+    return Intl.message(
+      'minutes ago',
+      name: 'xboardMinutesAgo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `hours ago`
+  String get xboardHoursAgo {
+    return Intl.message(
+      'hours ago',
+      name: 'xboardHoursAgo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `days ago`
+  String get xboardDaysAgo {
+    return Intl.message('days ago', name: 'xboardDaysAgo', desc: '', args: []);
+  }
+
+  /// `weeks ago`
+  String get xboardWeeksAgo {
+    return Intl.message(
+      'weeks ago',
+      name: 'xboardWeeksAgo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `months ago`
+  String get xboardMonthsAgo {
+    return Intl.message(
+      'months ago',
+      name: 'xboardMonthsAgo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `years ago`
+  String get xboardYearsAgo {
+    return Intl.message(
+      'years ago',
+      name: 'xboardYearsAgo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cannot open payment link`
+  String get xboardCannotOpenPaymentLink {
+    return Intl.message(
+      'Cannot open payment link',
+      name: 'xboardCannotOpenPaymentLink',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Payment link copied to clipboard`
+  String get xboardPaymentLinkCopiedToClipboard {
+    return Intl.message(
+      'Payment link copied to clipboard',
+      name: 'xboardPaymentLinkCopiedToClipboard',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please try again later or contact support`
+  String get xboardPleaseTryLaterOrContactSupport {
+    return Intl.message(
+      'Please try again later or contact support',
+      name: 'xboardPleaseTryLaterOrContactSupport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Payment failed: {message}`
+  String xboardPaymentFailedMessage(Object message) {
+    return Intl.message(
+      'Payment failed: $message',
+      name: 'xboardPaymentFailedMessage',
+      desc: '',
+      args: [message],
+    );
+  }
+
+  /// `Balance payment failed`
+  String get xboardBalancePaymentFailed {
+    return Intl.message(
+      'Balance payment failed',
+      name: 'xboardBalancePaymentFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No available plans`
+  String get xboardNoAvailablePlans {
+    return Intl.message(
+      'No available plans',
+      name: 'xboardNoAvailablePlans',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recommended`
+  String get xboardRecommended {
+    return Intl.message(
+      'Recommended',
+      name: 'xboardRecommended',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Lowest Price`
+  String get xboardLowestPrice {
+    return Intl.message(
+      'Lowest Price',
+      name: 'xboardLowestPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Monthly Price`
+  String get xboardMonthlyPrice {
+    return Intl.message(
+      'Monthly Price',
+      name: 'xboardMonthlyPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Subscription Details`
+  String get xboardSubscriptionDetails {
+    return Intl.message(
+      'Subscription Details',
+      name: 'xboardSubscriptionDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Traffic Usage`
+  String get xboardTrafficUsage {
+    return Intl.message(
+      'Traffic Usage',
+      name: 'xboardTrafficUsage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remaining`
+  String get xboardRemaining {
+    return Intl.message(
+      'Remaining',
+      name: 'xboardRemaining',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Expiration Time`
+  String get xboardExpirationTime {
+    return Intl.message(
+      'Expiration Time',
+      name: 'xboardExpirationTime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Never Expire`
+  String get xboardNeverExpire {
+    return Intl.message(
+      'Never Expire',
+      name: 'xboardNeverExpire',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Expired`
+  String get xboardExpired {
+    return Intl.message('Expired', name: 'xboardExpired', desc: '', args: []);
+  }
+
+  /// `Expiring Soon`
+  String get xboardExpiringSoon {
+    return Intl.message(
+      'Expiring Soon',
+      name: 'xboardExpiringSoon',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Active`
+  String get xboardActive {
+    return Intl.message('Active', name: 'xboardActive', desc: '', args: []);
+  }
+
+  /// `Inactive`
+  String get xboardInactive {
+    return Intl.message('Inactive', name: 'xboardInactive', desc: '', args: []);
+  }
+
+  /// `Importing configuration`
+  String get xboardImportingConfiguration {
+    return Intl.message(
+      'Importing configuration',
+      name: 'xboardImportingConfiguration',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Downloading profile`
+  String get xboardDownloadingProfile {
+    return Intl.message(
+      'Downloading profile',
+      name: 'xboardDownloadingProfile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Validating profile`
+  String get xboardValidatingProfile {
+    return Intl.message(
+      'Validating profile',
+      name: 'xboardValidatingProfile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replacing profile`
+  String get xboardReplacingProfile {
+    return Intl.message(
+      'Replacing profile',
+      name: 'xboardReplacingProfile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Adding profile`
+  String get xboardAddingProfile {
+    return Intl.message(
+      'Adding profile',
+      name: 'xboardAddingProfile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Initializing`
+  String get xboardInitializing {
+    return Intl.message(
+      'Initializing',
+      name: 'xboardInitializing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Initialization Failed`
+  String get xboardInitializationFailed {
+    return Intl.message(
+      'Initialization Failed',
+      name: 'xboardInitializationFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No Title`
+  String get xboardNoTitle {
+    return Intl.message('No Title', name: 'xboardNoTitle', desc: '', args: []);
+  }
+
+  /// `Close`
+  String get xboardClose {
+    return Intl.message('Close', name: 'xboardClose', desc: '', args: []);
+  }
+
+  /// `Close Ticket`
+  String get xboardCloseTicket {
+    return Intl.message(
+      'Close Ticket',
+      name: 'xboardCloseTicket',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reply`
+  String get xboardReply {
+    return Intl.message('Reply', name: 'xboardReply', desc: '', args: []);
+  }
+
+  /// `Send`
+  String get xboardSend {
+    return Intl.message('Send', name: 'xboardSend', desc: '', args: []);
+  }
+
+  /// `Please enter a message`
+  String get xboardEnterMessage {
+    return Intl.message(
+      'Please enter a message',
+      name: 'xboardEnterMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please enter a subject`
+  String get xboardEnterSubject {
+    return Intl.message(
+      'Please enter a subject',
+      name: 'xboardEnterSubject',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select priority`
+  String get xboardSelectPriority {
+    return Intl.message(
+      'Select priority',
+      name: 'xboardSelectPriority',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ticket closed`
+  String get xboardTicketClosed {
+    return Intl.message(
+      'Ticket closed',
+      name: 'xboardTicketClosed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ticket Status`
+  String get xboardTicketStatus {
+    return Intl.message(
+      'Ticket Status',
+      name: 'xboardTicketStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open`
+  String get xboardOpen {
+    return Intl.message('Open', name: 'xboardOpen', desc: '', args: []);
+  }
+
+  /// `Closed`
+  String get xboardClosed {
+    return Intl.message('Closed', name: 'xboardClosed', desc: '', args: []);
+  }
+
+  /// `Pending`
+  String get xboardPending {
+    return Intl.message('Pending', name: 'xboardPending', desc: '', args: []);
+  }
+
+  /// `Replied`
+  String get xboardReplied {
+    return Intl.message('Replied', name: 'xboardReplied', desc: '', args: []);
+  }
+
+  /// `No tickets`
+  String get xboardNoTickets {
+    return Intl.message(
+      'No tickets',
+      name: 'xboardNoTickets',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create your first ticket to get support`
+  String get xboardNoTicketsDesc {
+    return Intl.message(
+      'Create your first ticket to get support',
+      name: 'xboardNoTicketsDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create your first ticket`
+  String get xboardCreateYourFirstTicket {
+    return Intl.message(
+      'Create your first ticket',
+      name: 'xboardCreateYourFirstTicket',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ticket created successfully`
+  String get xboardTicketCreated {
+    return Intl.message(
+      'Ticket created successfully',
+      name: 'xboardTicketCreated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to create ticket`
+  String get xboardTicketCreateFailed {
+    return Intl.message(
+      'Failed to create ticket',
+      name: 'xboardTicketCreateFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reply sent successfully`
+  String get xboardReplySent {
+    return Intl.message(
+      'Reply sent successfully',
+      name: 'xboardReplySent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to send reply`
+  String get xboardReplyFailed {
+    return Intl.message(
+      'Failed to send reply',
+      name: 'xboardReplyFailed',
       desc: '',
       args: [],
     );

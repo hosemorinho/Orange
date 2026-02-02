@@ -253,6 +253,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "cannotOpenBrowser": MessageLookupByLibrary.simpleMessage(
       "Cannot open browser, please visit web manually",
     ),
+    "cannotSelectSpecialProxy": MessageLookupByLibrary.simpleMessage(
+      "Cannot select DIRECT or REJECT special proxy",
+    ),
     "checkError": MessageLookupByLibrary.simpleMessage("Check error"),
     "checkNetwork": MessageLookupByLibrary.simpleMessage(
       "Please check network and retry",
@@ -1985,6 +1988,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardRefreshSubscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "Refresh subscription info",
     ),
+    "xboardRefreshSubscriptionSuccess": MessageLookupByLibrary.simpleMessage(
+      "Subscription refreshed successfully",
+    ),
     "xboardRefundAmount": MessageLookupByLibrary.simpleMessage("Refund Amount"),
     "xboardRegister": MessageLookupByLibrary.simpleMessage("Register"),
     "xboardRegisterFailed": MessageLookupByLibrary.simpleMessage(
@@ -2166,6 +2172,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTaskCancelled": MessageLookupByLibrary.simpleMessage(
       "Task cancelled",
     ),
+    "xboardTestAllNodes": MessageLookupByLibrary.simpleMessage(
+      "Test all nodes",
+    ),
+    "xboardTestComplete": MessageLookupByLibrary.simpleMessage("Test complete"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("Testing"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36-month cycle",

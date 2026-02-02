@@ -8859,6 +8859,46 @@ class AppLocalizations {
     );
   }
 
+  /// `Subscription refreshed successfully`
+  String get xboardRefreshSubscriptionSuccess {
+    return Intl.message(
+      'Subscription refreshed successfully',
+      name: 'xboardRefreshSubscriptionSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test all nodes`
+  String get xboardTestAllNodes {
+    return Intl.message(
+      'Test all nodes',
+      name: 'xboardTestAllNodes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test complete`
+  String get xboardTestComplete {
+    return Intl.message(
+      'Test complete',
+      name: 'xboardTestComplete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cannot select DIRECT or REJECT special proxy`
+  String get cannotSelectSpecialProxy {
+    return Intl.message(
+      'Cannot select DIRECT or REJECT special proxy',
+      name: 'cannotSelectSpecialProxy',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Status check failed`
   String get xboardStatusCheckFailed {
     return Intl.message(

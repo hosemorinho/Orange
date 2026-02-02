@@ -191,6 +191,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "cannotOpenBrowser": MessageLookupByLibrary.simpleMessage(
       "无法打开浏览器，请手动访问网页版",
     ),
+    "cannotSelectSpecialProxy": MessageLookupByLibrary.simpleMessage(
+      "无法选择 DIRECT 或 REJECT 特殊节点",
+    ),
     "checkError": MessageLookupByLibrary.simpleMessage("检测失败"),
     "checkNetwork": MessageLookupByLibrary.simpleMessage("请检查网络连接后重试"),
     "checkUpdate": MessageLookupByLibrary.simpleMessage("检查更新"),
@@ -1371,6 +1374,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardRefreshSubscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "刷新订阅信息",
     ),
+    "xboardRefreshSubscriptionSuccess": MessageLookupByLibrary.simpleMessage(
+      "订阅刷新成功",
+    ),
     "xboardRefundAmount": MessageLookupByLibrary.simpleMessage("退款金额"),
     "xboardRegister": MessageLookupByLibrary.simpleMessage("注册"),
     "xboardRegisterFailed": MessageLookupByLibrary.simpleMessage("注册失败"),
@@ -1480,6 +1486,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardSystemCommissionRate": MessageLookupByLibrary.simpleMessage("系统比例"),
     "xboardTapToConnect": MessageLookupByLibrary.simpleMessage("轻触即可连接"),
     "xboardTaskCancelled": MessageLookupByLibrary.simpleMessage("任务已取消"),
+    "xboardTestAllNodes": MessageLookupByLibrary.simpleMessage("测速全部节点"),
+    "xboardTestComplete": MessageLookupByLibrary.simpleMessage("测速完成"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("测试中"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage("36个月周期"),
     "xboardThreeMonthCycle": MessageLookupByLibrary.simpleMessage("3个月周期"),

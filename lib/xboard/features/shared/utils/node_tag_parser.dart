@@ -49,7 +49,8 @@ List<String> extractNodeTags(String nodeName) {
   var cleanName = nodeName.replaceAll(bracketRegex, '');
 
   for (final keyword in keywords) {
-    final regex = RegExp(r'\b' + keyword + r'\b', caseSensitive: false);
+    // 使用字符串插值构建正则表达式
+    final regex = RegExp('\\b$keyword\\b', caseSensitive: false);
     if (regex.hasMatch(cleanName) && !tags.contains(keyword)) {
       tags.add(keyword);
     }

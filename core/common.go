@@ -184,6 +184,9 @@ func updateConfig(params *UpdateParams) {
 	if params.MixedPort != nil {
 		general.MixedPort = *params.MixedPort
 	}
+	if params.AllowLan != nil {
+		general.AllowLan = *params.AllowLan
+	}
 	if params.Sniffing != nil {
 		general.Sniffing = *params.Sniffing
 		tunnel.SetSniffing(general.Sniffing)

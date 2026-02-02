@@ -250,10 +250,13 @@ class AppController {
 
   Future<void> updateClashConfig() async {
     final commonScaffoldState = globalState.homeScaffoldKey.currentState;
-    if (commonScaffoldState?.mounted != true) return;
-    await commonScaffoldState?.loadingRun(() async {
+    if (commonScaffoldState?.mounted == true) {
+      await commonScaffoldState?.loadingRun(() async {
+        await _updateClashConfig();
+      });
+    } else {
       await _updateClashConfig();
-    });
+    }
   }
 
   Future<void> _updateClashConfig() async {
@@ -292,10 +295,13 @@ class AppController {
 
   Future<void> setupClashConfig() async {
     final commonScaffoldState = globalState.homeScaffoldKey.currentState;
-    if (commonScaffoldState?.mounted != true) return;
-    await commonScaffoldState?.loadingRun(() async {
+    if (commonScaffoldState?.mounted == true) {
+      await commonScaffoldState?.loadingRun(() async {
+        await _setupClashConfig();
+      });
+    } else {
       await _setupClashConfig();
-    });
+    }
   }
 
   _setupClashConfig() async {
@@ -333,10 +339,13 @@ class AppController {
       await _applyProfile();
     } else {
       final commonScaffoldState = globalState.homeScaffoldKey.currentState;
-      if (commonScaffoldState?.mounted != true) return;
-      await commonScaffoldState?.loadingRun(() async {
+      if (commonScaffoldState?.mounted == true) {
+        await commonScaffoldState?.loadingRun(() async {
+          await _applyProfile();
+        });
+      } else {
         await _applyProfile();
-      });
+      }
     }
     addCheckIpNumDebounce();
   }

@@ -1212,5 +1212,138 @@
   "xboardTicketCreated": "Ticket created successfully",
   "xboardTicketCreateFailed": "Failed to create ticket",
   "xboardReplySent": "Reply sent successfully",
-  "xboardReplyFailed": "Failed to send reply"
+  "xboardReplyFailed": "Failed to send reply",
+  "xboardPurchasePlanPrompt": "Please purchase a plan first",
+  "xboardBrowsePlansButton": "Browse Plans",
+  "xboardTimeInfo": "Time Information",
+  "xboardRemainingDaysLabel": "Days Remaining",
+  "xboardRemainingDaysCount": "{days} days",
+  "@xboardRemainingDaysCount": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "xboardPlanWithId": "Plan #{planId}",
+  "@xboardPlanWithId": {
+    "placeholders": {
+      "planId": {
+        "type": "int"
+      }
+    }
+  },
+  "xboardDeviceLimitCount": "{limit} devices",
+  "@xboardDeviceLimitCount": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "xboardUploadTrafficLabel": "Upload: {traffic}",
+  "@xboardUploadTrafficLabel": {
+    "placeholders": {
+      "traffic": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardDownloadTrafficLabel": "Download: {traffic}",
+  "@xboardDownloadTrafficLabel": {
+    "placeholders": {
+      "traffic": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardRefreshSubscriptionInfo": "Refresh subscription info",
+  "xboardStatusCheckFailed": "Status check failed",
+  "xboardDownloadTimeout": "Download timeout",
+  "xboardHttpRequestFailed": "HTTP request failed",
+  "xboardAllDownloadTasksFailed": "All download tasks failed",
+  "xboardProxyConnectionLabel": "Proxy ({url})",
+  "@xboardProxyConnectionLabel": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardDirectConnectionLabel": "Direct",
+  "xboardTaskCancelled": "Task cancelled",
+  "xboardCancelImport": "Cancel import",
+  "xboardConfigImportSuccess": "Configuration imported successfully",
+  "xboardConfigImportFailed": "Configuration import failed",
+  "xboardConfigImportedSuccessDetail": "Configuration has been successfully imported and added to the configuration list",
+  "xboardPreparingImportStatus": "Preparing import",
+  "xboardStartImportingSubscription": "Starting subscription import",
+  "xboardImportCancelled": "Import cancelled",
+  "xboardImportInProgress": "Import in progress, please wait",
+  "xboardReplaceOldConfig": "Replacing old subscription configuration",
+  "xboardRetryAttemptFailed": "Attempt {attempt} failed, waiting to retry...",
+  "@xboardRetryAttemptFailed": {
+    "placeholders": {
+      "attempt": {
+        "type": "int"
+      }
+    }
+  },
+  "xboardMultipleRetriesFailed": "Still failed after multiple retries",
+  "xboardDownloadTimeoutError": "Download timeout",
+  "xboardNetworkConnectionError": "Network connection failed",
+  "xboardHttpRequestError": "HTTP request failed",
+  "xboardConfigFormatInvalid": "Configuration file format error",
+  "xboardConfigDownloadError": "Failed to download configuration",
+  "xboardNetworkConnectionFailedCheckSettings": "Network connection failed, please check network settings and retry",
+  "xboardConfigDownloadFailedBadRequest": "Configuration download failed: HTTP request header format error, please try again later",
+  "xboardConfigDownloadFailedInvalidRequest": "Configuration download failed: Invalid request format, please try again later",
+  "xboardConfigDownloadFailedCheckLink": "Configuration download failed, please check if the subscription link is correct",
+  "xboardConfigValidationFailed": "Configuration format validation failed, please contact service provider to check configuration format",
+  "xboardConfigSaveFailedCheckStorage": "Failed to save configuration, please check storage space",
+  "xboardImportFailedAppConfigError": "Import failed: Application configuration error, please try again later or restart the app",
+  "xboardImportFailedRetryOrSupport": "Import failed, please try again later or contact support",
+  "xboardSkip": "Skip",
+  "xboardFirstStartupNote": "First startup may take some time\nPlease be patient...",
+  "xboardInitializationTimeout": "Initialization timeout",
+  "xboardDomainUnavailable": "Domain unavailable",
+  "xboardDomainNotReady": "Domain status not ready",
+  "xboardInitializationComplete": "Initialization complete",
+  "xboardFallbackModeUsed": "Initialized using fallback mode",
+  "xboardUsingFallbackMode": "Using fallback mode",
+  "xboardCannotLaunchBrowser": "Cannot launch external browser",
+  "xboardAutoOpeningPayment": "Auto-opening payment page, please return to app after payment",
+  "xboardPaymentPageOpenedInBrowserNote": "Payment page opened in browser, please return to app after payment",
+  "xboardOpenPaymentLinkError": "Failed to open payment link: {error}",
+  "@xboardOpenPaymentLinkError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardCopyFailedError": "Copy failed: {error}",
+  "@xboardCopyFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardOrderInfoNotFound": "Order information not found",
+  "xboardCheckPaymentStatusError": "Failed to check payment status: {error}",
+  "@xboardCheckPaymentStatusError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardOperationStep1": "1. Payment page has been opened automatically",
+  "xboardOperationStep2": "2. Please complete payment in your browser",
+  "xboardOperationStep3": "3. Return to app after payment, system will detect automatically",
+  "xboardReopenPaymentNote": "To reopen, click the \"Reopen\" button below",
+  "xboardBrowserNotOpenedNote": "Tip: If browser doesn't open automatically, click \"Reopen\" or copy link manually",
+  "xboardClearOldOrders": "Clear old orders",
+  "xboardUnlimitedDevices": "Unlimited devices"
 }

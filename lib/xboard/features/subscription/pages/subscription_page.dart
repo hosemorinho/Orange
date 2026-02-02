@@ -4,6 +4,7 @@ import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SubscriptionPage extends ConsumerStatefulWidget {
   const SubscriptionPage({super.key});
@@ -24,13 +25,14 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final userAuthState = ref.watch(xboardUserProvider);
     final subscription = ref.watch(subscriptionInfoProvider);
     final user = ref.watch(userInfoProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('订阅详情'),
+        title: Text(l10n.xboardSubscriptionDetails),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -78,6 +80,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   Widget _buildNoSubscription(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -89,14 +92,14 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            '暂无订阅信息',
+            l10n.xboardNoSubscriptionInfo,
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            '请先购买套餐',
+            l10n.xboardPurchasePlanPrompt,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
             ),
@@ -112,7 +115,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               }
             },
             icon: const Icon(Icons.shopping_bag_outlined),
-            label: const Text('浏览套餐'),
+            label: Text(l10n.xboardBrowsePlansButton),
           ),
         ],
       ),
@@ -120,6 +123,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   Widget _buildPlanInfoCard(ThemeData theme, DomainSubscription sub, DomainUser? user) {
+    final l10n = AppLocalizations.of(context)!;
     final statusInfo = _getStatusInfo(sub, theme);
 
     return Container(
@@ -158,7 +162,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      sub.planName ?? '套餐 #${sub.planId}',
+                      sub.planName ?? l10n.xboardPlanWithId(sub.planId),
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -198,7 +202,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                   const SizedBox(width: 8),
                 ],
                 if (sub.deviceLimit != null)
-                  _buildInfoChip(theme, Icons.devices, '${sub.deviceLimit} 设备'),
+                  _buildInfoChip(theme, Icons.devices, l10n.xboardDeviceLimitCount(sub.deviceLimit!)),
               ],
             ),
           ],
@@ -231,6 +235,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   Widget _buildTrafficCard(ThemeData theme, DomainSubscription sub) {
+    final l10n = AppLocalizations.of(context)!;
     final progress = sub.transferLimit > 0
         ? (sub.totalUsedBytes / sub.transferLimit).clamp(0.0, 1.0)
         : 0.0;
@@ -250,7 +255,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               Icon(Icons.data_usage, size: 20, color: theme.colorScheme.primary),
               const SizedBox(width: 8),
               Text(
-                '流量使用',
+                l10n.xboardTrafficUsage,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -281,7 +286,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               Expanded(
                 child: _buildTrafficItem(
                   theme,
-                  '已用',
+                  l10n.xboardUsed,
                   sub.formattedUsedTraffic,
                   Icons.cloud_upload_outlined,
                 ),
@@ -294,7 +299,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               Expanded(
                 child: _buildTrafficItem(
                   theme,
-                  '剩余',
+                  l10n.xboardRemaining,
                   sub.formattedRemainingTraffic,
                   Icons.cloud_download_outlined,
                 ),
@@ -307,7 +312,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               Expanded(
                 child: _buildTrafficItem(
                   theme,
-                  '总计',
+                  l10n.xboardTotal,
                   sub.formattedTotalTraffic,
                   Icons.cloud_outlined,
                 ),
@@ -329,7 +334,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                       Icon(Icons.arrow_upward, size: 14, color: theme.colorScheme.primary),
                       const SizedBox(width: 4),
                       Text(
-                        '上传: ${sub.formattedUploadedTraffic}',
+                        l10n.xboardUploadTrafficLabel(sub.formattedUploadedTraffic),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
@@ -343,7 +348,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                       Icon(Icons.arrow_downward, size: 14, color: theme.colorScheme.secondary),
                       const SizedBox(width: 4),
                       Text(
-                        '下载: ${sub.formattedDownloadedTraffic}',
+                        l10n.xboardDownloadTrafficLabel(sub.formattedDownloadedTraffic),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
@@ -381,6 +386,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   Widget _buildTimeInfoCard(ThemeData theme, DomainSubscription sub) {
+    final l10n = AppLocalizations.of(context)!;
     final daysRemaining = sub.daysRemaining;
 
     return Container(
@@ -397,7 +403,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
               Icon(Icons.schedule, size: 20, color: theme.colorScheme.primary),
               const SizedBox(width: 8),
               Text(
-                '时间信息',
+                l10n.xboardTimeInfo,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -407,15 +413,15 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
           const SizedBox(height: 16),
           _buildTimeRow(
             theme,
-            '到期时间',
-            sub.expiredAt != null ? _formatDateTime(sub.expiredAt!) : '永不过期',
+            l10n.xboardExpiryTime,
+            sub.expiredAt != null ? _formatDateTime(sub.expiredAt!) : l10n.xboardNeverExpire,
           ),
           if (daysRemaining != null) ...[
             const SizedBox(height: 8),
             _buildTimeRow(
               theme,
-              '剩余天数',
-              '$daysRemaining 天',
+              l10n.xboardRemainingDaysLabel,
+              l10n.xboardRemainingDaysCount(daysRemaining),
               valueColor: daysRemaining <= 0
                   ? theme.colorScheme.error
                   : daysRemaining <= 7
@@ -427,7 +433,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
             const SizedBox(height: 8),
             _buildTimeRow(
               theme,
-              '流量重置',
+              l10n.xboardResetTraffic,
               _formatDateTime(sub.nextResetAt!),
             ),
           ],
@@ -458,17 +464,18 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   }
 
   ({String label, Color color}) _getStatusInfo(DomainSubscription sub, ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = theme.colorScheme;
     if (sub.isExpired) {
-      return (label: '已过期', color: colorScheme.error);
+      return (label: l10n.xboardExpired, color: colorScheme.error);
     }
     if (sub.isTrafficExhausted) {
-      return (label: '流量耗尽', color: colorScheme.error.withValues(alpha: 0.7));
+      return (label: l10n.xboardTrafficExhausted, color: colorScheme.error.withValues(alpha: 0.7));
     }
     if (sub.isExpiringSoon) {
-      return (label: '即将到期', color: colorScheme.error.withValues(alpha: 0.7));
+      return (label: l10n.xboardExpiringSoon, color: colorScheme.error.withValues(alpha: 0.7));
     }
-    return (label: '生效中', color: colorScheme.tertiary);
+    return (label: l10n.xboardActive, color: colorScheme.tertiary);
   }
 
   Color _getProgressColor(double progress, ThemeData theme) {

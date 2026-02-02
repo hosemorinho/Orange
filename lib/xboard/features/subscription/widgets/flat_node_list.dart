@@ -24,8 +24,9 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
     final theme = Theme.of(context);
     final groups = ref.watch(groupsProvider);
     final selectedMap = ref.watch(selectedMapProvider);
+    final mode = ref.watch(patchClashConfigProvider.select((state) => state.mode));
 
-    final nodes = _flattenNodes(groups, selectedMap);
+    final nodes = _flattenNodes(groups, selectedMap, mode);
     final filtered = _searchQuery.isEmpty
         ? nodes
         : nodes.where((n) {
@@ -103,6 +104,7 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
   List<_FlatNode> _flattenNodes(
     List<Group> groups,
     Map<String, String> selectedMap,
+    Mode mode,
   ) {
     final Set<String> seen = {};
     final List<_FlatNode> nodes = [];
@@ -110,7 +112,13 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
 
     for (final group in groups) {
       if (group.type != GroupType.Selector) continue;
-      if (group.name == GroupName.GLOBAL.name) continue;
+      // 全局模式下只显示 GLOBAL 组的节点
+      // 规则模式下跳过 GLOBAL 组
+      if (mode == Mode.global) {
+        if (group.name != GroupName.GLOBAL.name) continue;
+      } else {
+        if (group.name == GroupName.GLOBAL.name) continue;
+      }
       if (group.hidden == true) continue;
 
       for (final proxy in group.all) {

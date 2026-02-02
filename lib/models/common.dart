@@ -374,28 +374,20 @@ extension ColorSchemesExt on ColorSchemes {
     Brightness brightness,
     DynamicSchemeVariant schemeVariant,
   ) {
+    // 始终使用配置的主题色，不受原生调色盘影响
+    final seedColor = Color(configuredPrimaryColor);
+
     if (brightness == Brightness.dark) {
-      return darkColorScheme != null
-          ? ColorScheme.fromSeed(
-              seedColor: darkColorScheme!.primary,
-              brightness: Brightness.dark,
-              dynamicSchemeVariant: schemeVariant,
-            )
-          : ColorScheme.fromSeed(
-              seedColor: Color(configuredPrimaryColor),
-              brightness: Brightness.dark,
-              dynamicSchemeVariant: schemeVariant,
-            );
+      return ColorScheme.fromSeed(
+        seedColor: seedColor,
+        brightness: Brightness.dark,
+        dynamicSchemeVariant: schemeVariant,
+      );
     }
-    return lightColorScheme != null
-        ? ColorScheme.fromSeed(
-            seedColor: lightColorScheme!.primary,
-            dynamicSchemeVariant: schemeVariant,
-          )
-        : ColorScheme.fromSeed(
-            seedColor: Color(configuredPrimaryColor),
-            dynamicSchemeVariant: schemeVariant,
-          );
+    return ColorScheme.fromSeed(
+      seedColor: seedColor,
+      dynamicSchemeVariant: schemeVariant,
+    );
   }
 }
 

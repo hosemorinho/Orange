@@ -674,15 +674,19 @@ class AppController {
     }
     toProfiles();
     final commonScaffoldState = globalState.homeScaffoldKey.currentState;
-    if (commonScaffoldState?.mounted != true) return;
-    final profile = await commonScaffoldState?.loadingRun<Profile>(
-      () async {
-        return await Profile.normal(
-          url: url,
-        ).update();
-      },
-      title: "${appLocalizations.add}${appLocalizations.profile}",
-    );
+    Profile? profile;
+    if (commonScaffoldState?.mounted == true) {
+      profile = await commonScaffoldState?.loadingRun<Profile>(
+        () async {
+          return await Profile.normal(
+            url: url,
+          ).update();
+        },
+        title: "${appLocalizations.add}${appLocalizations.profile}",
+      );
+    } else {
+      profile = await Profile.normal(url: url).update();
+    }
     if (profile != null) {
       await addProfile(profile);
     }
@@ -698,14 +702,18 @@ class AppController {
     globalState.navigatorKey.currentState?.popUntil((route) => route.isFirst);
     toProfiles();
     final commonScaffoldState = globalState.homeScaffoldKey.currentState;
-    if (commonScaffoldState?.mounted != true) return;
-    final profile = await commonScaffoldState?.loadingRun<Profile?>(
-      () async {
-        await Future.delayed(const Duration(milliseconds: 300));
-        return await Profile.normal(label: platformFile?.name).saveFile(bytes);
-      },
-      title: "${appLocalizations.add}${appLocalizations.profile}",
-    );
+    Profile? profile;
+    if (commonScaffoldState?.mounted == true) {
+      profile = await commonScaffoldState?.loadingRun<Profile?>(
+        () async {
+          await Future.delayed(const Duration(milliseconds: 300));
+          return await Profile.normal(label: platformFile?.name).saveFile(bytes);
+        },
+        title: "${appLocalizations.add}${appLocalizations.profile}",
+      );
+    } else {
+      profile = await Profile.normal(label: platformFile?.name).saveFile(bytes);
+    }
     if (profile != null) {
       await addProfile(profile);
     }

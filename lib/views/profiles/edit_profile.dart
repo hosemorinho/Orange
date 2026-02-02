@@ -83,16 +83,22 @@ class _EditProfileViewState extends State<EditProfileView> {
     } else if (!hasUpdate) {
       appController.setProfileAndAutoApply(profile);
     } else {
-      globalState.homeScaffoldKey.currentState?.loadingRun(
-        () async {
-          await Future.delayed(
-            commonDuration,
-          );
-          if (hasUpdate) {
-            await appController.updateProfile(profile);
-          }
-        },
-      );
+      final commonScaffoldState = globalState.homeScaffoldKey.currentState;
+      if (commonScaffoldState?.mounted == true) {
+        commonScaffoldState?.loadingRun(
+          () async {
+            await Future.delayed(commonDuration);
+            if (hasUpdate) {
+              await appController.updateProfile(profile);
+            }
+          },
+        );
+      } else {
+        await Future.delayed(commonDuration);
+        if (hasUpdate) {
+          await appController.updateProfile(profile);
+        }
+      }
     }
     if (mounted) {
       Navigator.of(context).pop();
@@ -173,8 +179,9 @@ class _EditProfileViewState extends State<EditProfileView> {
         return false;
       },
     );
+    final modalContext = globalState.homeScaffoldKey.currentContext ?? context;
     final data = await BaseNavigator.modal<String>(
-      globalState.homeScaffoldKey.currentContext!,
+      modalContext,
       editorPage,
     );
     if (data == null) {

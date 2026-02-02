@@ -822,5 +822,9 @@
   "xboardAllowLan": "Поделиться в LAN",
   "xboardHalfYearPayment": "Полугодовая",
   "xboardOnetimePayment": "Одноразовая",
-  "xboardResetTraffic": "Сброс трафика"
+  "xboardResetTraffic": "Сброс трафика",
+  "cannotSelectSpecialProxy": "Невозможно выбрать специальный прокси DIRECT или REJECT",
+  "xboardRefreshSubscriptionSuccess": "Подписка успешно обновлена",
+  "xboardTestAllNodes": "Тестировать все узлы",
+  "xboardTestComplete": "Тест завершен"
 }

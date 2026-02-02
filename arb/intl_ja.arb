@@ -822,5 +822,9 @@
   "xboardAllowLan": "LANに共有",
   "xboardHalfYearPayment": "半年払い",
   "xboardOnetimePayment": "一回限り",
-  "xboardResetTraffic": "トラフィックをリセット"
+  "xboardResetTraffic": "トラフィックをリセット",
+  "cannotSelectSpecialProxy": "DIRECT または REJECT 特殊プロキシを選択できません",
+  "xboardRefreshSubscriptionSuccess": "サブスクリプションが正常に更新されました",
+  "xboardTestAllNodes": "すべてのノードをテスト",
+  "xboardTestComplete": "テスト完了"
 }

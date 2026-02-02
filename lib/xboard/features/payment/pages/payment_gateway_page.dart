@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/infrastructure/api/api.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 class PaymentGatewayPage extends ConsumerStatefulWidget {
   final String paymentUrl;
   final String tradeNo;
@@ -51,7 +52,8 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
     try {
       final uri = Uri.parse(widget.paymentUrl);
       if (!await canLaunchUrl(uri)) {
-        throw Exception('无法打开支付链接: ${widget.paymentUrl}');
+        if (!mounted) return;
+        throw Exception('${AppLocalizations.of(context).xboardCannotOpenPaymentLink}: ${widget.paymentUrl}');
       }
       final launched = await launchUrl(
         uri,
@@ -76,7 +78,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
     try {
       await Clipboard.setData(ClipboardData(text: widget.paymentUrl));
       if (mounted) {
-        XBoardNotification.showSuccess('支付链接已复制到剪贴板');
+        XBoardNotification.showSuccess(AppLocalizations.of(context).xboardPaymentLinkCopiedToClipboard);
       }
     } catch (e) {
       if (mounted) {
@@ -141,7 +143,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
           // status: 0=pending, 1=processing, 2=canceled, 3=completed
           if (foundOrder.status == OrderStatus.completed) {
             _stopAutoPolling();
-            XBoardNotification.showSuccess('支付成功！');
+            XBoardNotification.showSuccess(AppLocalizations.of(context).xboardPaymentSuccess);
             Future.delayed(const Duration(seconds: 1), () {
               if (mounted) {
                 Navigator.of(context).popUntil((route) => route.isFirst);
@@ -150,11 +152,13 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
           } else if (foundOrder.status == OrderStatus.canceled) {
             _stopAutoPolling();
             if (!silent) {
-              XBoardNotification.showInfo('支付已取消');
+              XBoardNotification.showInfo(AppLocalizations.of(context).xboardPaymentCancelled);
             }
           } else if (foundOrder.status == OrderStatus.pending || foundOrder.status == OrderStatus.processing) {
             if (!silent) {
-              XBoardNotification.showInfo(_autoPollingEnabled ? '正在等待支付...' : '订单状态：待支付');
+              XBoardNotification.showInfo(_autoPollingEnabled
+                ? AppLocalizations.of(context).xboardWaitingForPayment
+                : AppLocalizations.of(context).xboardOrderStatusPending);
             }
           }
         } else {
@@ -175,7 +179,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
     }
   }
   void _completePayment() {
-    XBoardNotification.showSuccess('支付完成！');
+    XBoardNotification.showSuccess(AppLocalizations.of(context).xboardPaymentCompleted);
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
   void _cancelPayment() {
@@ -185,7 +189,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return CommonScaffold(
-      title: '支付网关',
+      title: AppLocalizations.of(context).xboardPaymentGateway,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
@@ -215,9 +219,9 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                '支付信息',
-                                style: TextStyle(
+                              Text(
+                                AppLocalizations.of(context).xboardPaymentInfo,
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -225,7 +229,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                               const SizedBox(height: 16),
                               Row(
                                 children: [
-                                  const Text('订单号: '),
+                                  Text('${AppLocalizations.of(context).xboardOrderNumber}: '),
                                   Expanded(
                                     child: Text(
                                       widget.tradeNo,
@@ -256,7 +260,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                                             Row(
                                               children: [
                                                 Text(
-                                                  '支付链接',
+                                                  AppLocalizations.of(context).xboardPaymentLink,
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     color: colorScheme.primary,
@@ -449,7 +453,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                             child: ElevatedButton.icon(
                               onPressed: _completePayment,
                               icon: const Icon(Icons.check_circle),
-                              label: const Text('支付完成'),
+                              label: Text(AppLocalizations.of(context).xboardPaymentComplete),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.tertiary,
                                 foregroundColor: colorScheme.onTertiary,

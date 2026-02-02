@@ -3,6 +3,7 @@ import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 
 class CreateTicketPage extends ConsumerStatefulWidget {
   const CreateTicketPage({super.key});
@@ -34,11 +35,11 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
         );
 
     if (success) {
-      XBoardNotification.showSuccess('工单已创建');
+      XBoardNotification.showSuccess(AppLocalizations.of(context).xboardTicketCreated);
       if (mounted) context.pop();
     } else {
       final error = ref.read(ticketProvider).errorMessage;
-      XBoardNotification.showError(error ?? '创建失败');
+      XBoardNotification.showError(error ?? AppLocalizations.of(context).xboardTicketCreateFailed);
     }
   }
 
@@ -50,7 +51,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('新建工单'),
+        title: Text(AppLocalizations.of(context).xboardCreateTicket),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -88,7 +89,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '主题',
+          AppLocalizations.of(context).xboardTicketSubject,
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -97,7 +98,8 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
         TextFormField(
           controller: _subjectController,
           decoration: InputDecoration(
-            hintText: '简要描述您的问题',
+            // TODO: Add xboardTicketSubjectHint key to ARB files
+            hintText: '简要描述您的问题',  // EN: "Briefly describe your issue"
             filled: true,
             fillColor: colorScheme.surface,
             contentPadding: const EdgeInsets.symmetric(
@@ -139,7 +141,8 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return '请输入主题';
+              // TODO: Add xboardPleaseEnterSubject key to ARB files
+              return '请输入主题';  // EN: "Please enter subject"
             }
             return null;
           },
@@ -149,11 +152,12 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
   }
 
   Widget _buildPrioritySelector(ThemeData theme, ColorScheme colorScheme) {
+    final localizations = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '优先级',
+          localizations.xboardPriority,
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -164,7 +168,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
             _buildPriorityOption(
               colorScheme: colorScheme,
               value: 0,
-              label: '低',
+              label: localizations.xboardLowPriority,
               icon: Icons.arrow_downward,
               color: colorScheme.primary,
             ),
@@ -172,7 +176,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
             _buildPriorityOption(
               colorScheme: colorScheme,
               value: 1,
-              label: '中',
+              label: localizations.xboardMediumPriority,
               icon: Icons.remove,
               color: colorScheme.secondary,
             ),
@@ -180,7 +184,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
             _buildPriorityOption(
               colorScheme: colorScheme,
               value: 2,
-              label: '高',
+              label: localizations.xboardHighPriority,
               icon: Icons.arrow_upward,
               color: colorScheme.error,
             ),
@@ -242,7 +246,8 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '详细描述',
+          // TODO: Add xboardDetailedDescription key to ARB files
+          '详细描述',  // EN: "Detailed Description"
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -252,7 +257,8 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
           controller: _messageController,
           maxLines: 8,
           decoration: InputDecoration(
-            hintText: '请详细描述您遇到的问题...',
+            // TODO: Add xboardDescribeIssueHint key to ARB files
+            hintText: '请详细描述您遇到的问题...',  // EN: "Please describe your issue in detail..."
             filled: true,
             fillColor: colorScheme.surface,
             contentPadding: const EdgeInsets.symmetric(
@@ -294,7 +300,8 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return '请输入详细描述';
+              // TODO: Add xboardPleaseEnterDescription key to ARB files
+              return '请输入详细描述';  // EN: "Please enter detailed description"
             }
             return null;
           },
@@ -319,7 +326,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('取消'),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
         ),
         const SizedBox(width: 12),
@@ -341,7 +348,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
                       color: colorScheme.onPrimary,
                     ),
                   )
-                : const Text('提交工单'),
+                : Text(AppLocalizations.of(context).xboardCreateTicket),
           ),
         ),
       ],

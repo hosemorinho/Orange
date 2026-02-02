@@ -1,5 +1,6 @@
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:flutter/material.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 
 class TicketCard extends StatelessWidget {
   final DomainTicket ticket;
@@ -15,8 +16,8 @@ class TicketCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final statusInfo = _getStatusInfo(ticket.status, theme);
-    final priorityInfo = _getPriorityInfo(ticket.priority, theme);
+    final statusInfo = _getStatusInfo(ticket.status, context);
+    final priorityInfo = _getPriorityInfo(ticket.priority, context);
 
     return GestureDetector(
       onTap: onTap,
@@ -106,7 +107,7 @@ class TicketCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  _formatTime(ticket.updatedAt ?? ticket.createdAt),
+                  _formatTime(ticket.updatedAt ?? ticket.createdAt, context),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -140,36 +141,38 @@ class TicketCard extends StatelessWidget {
     );
   }
 
-  ({String label, Color color}) _getStatusInfo(TicketStatus status, ThemeData theme) {
-    final colorScheme = theme.colorScheme;
+  ({String label, Color color}) _getStatusInfo(TicketStatus status, BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     switch (status) {
       case TicketStatus.pending:
-        return (label: '待处理', color: colorScheme.tertiary);
+        return (label: AppLocalizations.of(context).xboardPending, color: colorScheme.tertiary);
       case TicketStatus.closed:
-        return (label: '已关闭', color: colorScheme.outline);
+        return (label: AppLocalizations.of(context).xboardClosed, color: colorScheme.outline);
     }
   }
 
-  ({String label, Color color}) _getPriorityInfo(int priority, ThemeData theme) {
-    final colorScheme = theme.colorScheme;
+  ({String label, Color color}) _getPriorityInfo(int priority, BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final localizations = AppLocalizations.of(context);
     switch (priority) {
       case 0:
-        return (label: '低优先级', color: colorScheme.primary);
+        return (label: '${localizations.xboardLowPriority}优先级', color: colorScheme.primary);
       case 2:
-        return (label: '高优先级', color: colorScheme.error);
+        return (label: '${localizations.xboardHighPriority}优先级', color: colorScheme.error);
       default:
-        return (label: '中优先级', color: colorScheme.secondary);
+        return (label: '${localizations.xboardMediumPriority}优先级', color: colorScheme.secondary);
     }
   }
 
-  String _formatTime(DateTime dateTime) {
+  String _formatTime(DateTime dateTime, BuildContext context) {
     final now = DateTime.now();
     final diff = now.difference(dateTime);
+    final localizations = AppLocalizations.of(context);
 
-    if (diff.inMinutes < 1) return '刚刚';
-    if (diff.inHours < 1) return '${diff.inMinutes} 分钟前';
-    if (diff.inDays < 1) return '${diff.inHours} 小时前';
-    if (diff.inDays < 30) return '${diff.inDays} 天前';
+    if (diff.inMinutes < 1) return localizations.xboardJustNow;
+    if (diff.inHours < 1) return '${diff.inMinutes} ${localizations.xboardMinutesAgo}';
+    if (diff.inDays < 1) return '${diff.inHours} ${localizations.xboardHoursAgo}';
+    if (diff.inDays < 30) return '${diff.inDays} ${localizations.xboardDaysAgo}';
 
     return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
   }

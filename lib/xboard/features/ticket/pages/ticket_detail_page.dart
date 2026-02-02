@@ -4,6 +4,7 @@ import 'package:fl_clash/xboard/features/ticket/widgets/ticket_message_bubble.da
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 
 class TicketDetailPage extends ConsumerStatefulWidget {
   final int ticketId;
@@ -59,23 +60,24 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
       _scrollToBottom();
     } else {
       final error = ref.read(ticketProvider).errorMessage;
-      XBoardNotification.showError(error ?? '发送失败');
+      XBoardNotification.showError(error ?? AppLocalizations.of(context).xboardReplyFailed);
     }
   }
 
   Future<void> _closeTicket() async {
     final confirmed = await XBoardNotification.showConfirm(
-      '确定要关闭此工单吗？关闭后将无法继续回复。',
-      title: '关闭工单',
+      AppLocalizations.of(context).xboardCloseTicketConfirm,
+      title: AppLocalizations.of(context).xboardCloseTicket,
     );
 
     if (confirmed) {
       final success = await ref.read(ticketProvider.notifier).closeTicket(widget.ticketId);
       if (success) {
-        XBoardNotification.showSuccess('工单已关闭');
+        XBoardNotification.showSuccess(AppLocalizations.of(context).xboardTicketClosed);
       } else {
         final error = ref.read(ticketProvider).errorMessage;
-        XBoardNotification.showError(error ?? '关闭失败');
+        // TODO: Add xboardCloseFailed key to ARB files
+        XBoardNotification.showError(error ?? '关闭失败');  // EN: "Close failed"
       }
     }
   }
@@ -94,14 +96,14 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          ticket?.subject ?? '工单详情',
+          ticket?.subject ?? AppLocalizations.of(context).xboardTicketDetail,
           style: const TextStyle(fontSize: 16),
         ),
         actions: [
           if (ticket != null && ticket.status != TicketStatus.closed)
             IconButton(
               icon: const Icon(Icons.close),
-              tooltip: '关闭工单',
+              tooltip: AppLocalizations.of(context).xboardCloseTicket,
               onPressed: _closeTicket,
             ),
         ],
@@ -137,13 +139,13 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            state.errorMessage ?? '加载失败',
+            state.errorMessage ?? AppLocalizations.of(context).xboardLoadFailed,
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
           TextButton(
             onPressed: () => ref.read(ticketProvider.notifier).loadTicketDetail(widget.ticketId),
-            child: const Text('重试'),
+            child: Text(AppLocalizations.of(context).xboardRetry),
           ),
         ],
       ),
@@ -181,7 +183,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
           ),
           const SizedBox(width: 8),
           Text(
-            '优先级: ${ticket.priorityLabel}',
+            '${AppLocalizations.of(context).xboardPriority}: ${ticket.priorityLabel}',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
@@ -202,7 +204,8 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
     if (ticket.messages.isEmpty) {
       return Center(
         child: Text(
-          '暂无消息',
+          // TODO: Add xboardNoMessages key to ARB files or reuse onlineSupportNoMessages
+          '暂无消息',  // EN: "No messages"
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
           ),
@@ -282,7 +285,8 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '等待管理员回复后才能继续发送消息',
+              // TODO: Add xboardWaitingForAdminReply key to ARB files
+              '等待管理员回复后才能继续发送消息',  // EN: "Waiting for admin reply before sending more messages"
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -315,7 +319,8 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
             child: TextField(
               controller: _messageController,
               decoration: InputDecoration(
-                hintText: '输入回复内容...',
+                // TODO: Add xboardEnterReplyContent key to ARB files or reuse onlineSupportInputHint
+                hintText: '输入回复内容...',  // EN: "Enter reply content..."
                 hintStyle: TextStyle(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
@@ -364,7 +369,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
                     Icons.send,
                     color: theme.colorScheme.primary,
                   ),
-            tooltip: '发送',
+            tooltip: AppLocalizations.of(context).xboardSend,
           ),
         ],
       ),
@@ -375,9 +380,9 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
     final colorScheme = Theme.of(context).colorScheme;
     switch (status) {
       case TicketStatus.pending:
-        return (label: '待处理', color: colorScheme.tertiary);
+        return (label: AppLocalizations.of(context).xboardPending, color: colorScheme.tertiary);
       case TicketStatus.closed:
-        return (label: '已关闭', color: colorScheme.outline);
+        return (label: AppLocalizations.of(context).xboardClosed, color: colorScheme.outline);
     }
   }
 
@@ -387,10 +392,10 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
 
   String _formatDate(DateTime dateTime) {
     final now = DateTime.now();
-    if (_isSameDay(dateTime, now)) return '今天';
+    if (_isSameDay(dateTime, now)) return AppLocalizations.of(context).xboardToday;
 
     final yesterday = now.subtract(const Duration(days: 1));
-    if (_isSameDay(dateTime, yesterday)) return '昨天';
+    if (_isSameDay(dateTime, yesterday)) return AppLocalizations.of(context).xboardYesterday;
 
     return '${dateTime.month}月${dateTime.day}日';
   }

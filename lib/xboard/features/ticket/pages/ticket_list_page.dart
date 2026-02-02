@@ -3,6 +3,7 @@ import 'package:fl_clash/xboard/features/ticket/widgets/ticket_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 
 class TicketListPage extends ConsumerStatefulWidget {
   const TicketListPage({super.key});
@@ -32,11 +33,11 @@ class _TicketListPageState extends ConsumerState<TicketListPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('工单'),
+        title: Text(AppLocalizations.of(context).xboardTickets),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: '新建工单',
+            tooltip: AppLocalizations.of(context).xboardCreateTicket,
             onPressed: () => context.push('/support/create'),
           ),
         ],
@@ -70,12 +71,12 @@ class _TicketListPageState extends ConsumerState<TicketListPage>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '加载失败',
+                  AppLocalizations.of(context).xboardLoadFailed,
                   style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '请检查网络连接后重试',
+                  AppLocalizations.of(context).checkNetwork,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -84,7 +85,7 @@ class _TicketListPageState extends ConsumerState<TicketListPage>
                 TextButton(
                   onPressed: () =>
                       ref.read(ticketProvider.notifier).refresh(),
-                  child: const Text('重试'),
+                  child: Text(AppLocalizations.of(context).xboardRetry),
                 ),
               ],
             ),
@@ -108,12 +109,12 @@ class _TicketListPageState extends ConsumerState<TicketListPage>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '暂无工单',
+                  AppLocalizations.of(context).xboardNoTickets,
                   style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '有问题？创建一个工单联系客服',
+                  AppLocalizations.of(context).xboardNoTicketsDesc,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -122,7 +123,7 @@ class _TicketListPageState extends ConsumerState<TicketListPage>
                 FilledButton.icon(
                   onPressed: () => context.push('/support/create'),
                   icon: const Icon(Icons.add),
-                  label: const Text('新建工单'),
+                  label: Text(AppLocalizations.of(context).xboardCreateTicket),
                 ),
               ],
             ),

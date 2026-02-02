@@ -135,8 +135,10 @@ class XBoardPaymentNotifier extends Notifier<void> {
   }) async {
     final userAuthState = ref.read(xboardUserAuthProvider);
     if (!userAuthState.isAuthenticated) {
+      // TODO: Provider error messages should be handled in UI layer with i18n
+      // This error is displayed through UIState and should use AppLocalizations in the UI
       ref.read(userUIStateProvider.notifier).state = const UIState(
-        errorMessage: '请先登录',
+        errorMessage: '请先登录',  // EN: "Please login first"
       );
       return null;
     }
@@ -174,9 +176,10 @@ class XBoardPaymentNotifier extends Notifier<void> {
         await Future.delayed(const Duration(seconds: 1)); // 添加延迟，确保订单在服务器端完全就绪
         return tradeNo;
       } else {
+        // TODO: Provider error messages should be handled in UI layer with i18n
         ref.read(userUIStateProvider.notifier).state = const UIState(
           isLoading: false,
-          errorMessage: '创建订单失败',
+          errorMessage: '创建订单失败',  // EN: "Order creation failed"
         );
         return null;
       }
@@ -199,8 +202,10 @@ class XBoardPaymentNotifier extends Notifier<void> {
   }) async {
     final userAuthState = ref.read(xboardUserAuthProvider);
     if (!userAuthState.isAuthenticated) {
+      // TODO: Provider error messages should be handled in UI layer with i18n
+      // This error is displayed through UIState and should use AppLocalizations in the UI
       ref.read(userUIStateProvider.notifier).state = const UIState(
-        errorMessage: '请先登录',
+        errorMessage: '请先登录',  // EN: "Please login first"
       );
       return null;
     }
@@ -252,8 +257,10 @@ class XBoardPaymentNotifier extends Notifier<void> {
   Future<int> cancelPendingOrders() async {
     final userAuthState = ref.read(xboardUserAuthProvider);
     if (!userAuthState.isAuthenticated) {
+      // TODO: Provider error messages should be handled in UI layer with i18n
+      // This error is displayed through UIState and should use AppLocalizations in the UI
       ref.read(userUIStateProvider.notifier).state = const UIState(
-        errorMessage: '请先登录',
+        errorMessage: '请先登录',  // EN: "Please login first"
       );
       return 0;
     }

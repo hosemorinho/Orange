@@ -155,7 +155,7 @@ class _PlansViewState extends ConsumerState<PlansView> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      '加载失败',
+                      AppLocalizations.of(context).xboardLoadFailed,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -189,7 +189,7 @@ class _PlansViewState extends ConsumerState<PlansView> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      '暂无可用套餐',
+                      AppLocalizations.of(context).xboardNoAvailablePlans,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
@@ -198,7 +198,7 @@ class _PlansViewState extends ConsumerState<PlansView> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '请稍后再试或联系客服',
+                      AppLocalizations.of(context).xboardPleaseTryLaterOrContactSupport,
                       style: TextStyle(
                         fontSize: 14,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,

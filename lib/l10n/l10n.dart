@@ -8758,6 +8758,631 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Please purchase a plan first`
+  String get xboardPurchasePlanPrompt {
+    return Intl.message(
+      'Please purchase a plan first',
+      name: 'xboardPurchasePlanPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Browse Plans`
+  String get xboardBrowsePlansButton {
+    return Intl.message(
+      'Browse Plans',
+      name: 'xboardBrowsePlansButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Time Information`
+  String get xboardTimeInfo {
+    return Intl.message(
+      'Time Information',
+      name: 'xboardTimeInfo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Days Remaining`
+  String get xboardRemainingDaysLabel {
+    return Intl.message(
+      'Days Remaining',
+      name: 'xboardRemainingDaysLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{days} days`
+  String xboardRemainingDaysCount(int days) {
+    return Intl.message(
+      '$days days',
+      name: 'xboardRemainingDaysCount',
+      desc: '',
+      args: [days],
+    );
+  }
+
+  /// `Plan #{planId}`
+  String xboardPlanWithId(int planId) {
+    return Intl.message(
+      'Plan #$planId',
+      name: 'xboardPlanWithId',
+      desc: '',
+      args: [planId],
+    );
+  }
+
+  /// `{limit} devices`
+  String xboardDeviceLimitCount(int limit) {
+    return Intl.message(
+      '$limit devices',
+      name: 'xboardDeviceLimitCount',
+      desc: '',
+      args: [limit],
+    );
+  }
+
+  /// `Upload: {traffic}`
+  String xboardUploadTrafficLabel(String traffic) {
+    return Intl.message(
+      'Upload: $traffic',
+      name: 'xboardUploadTrafficLabel',
+      desc: '',
+      args: [traffic],
+    );
+  }
+
+  /// `Download: {traffic}`
+  String xboardDownloadTrafficLabel(String traffic) {
+    return Intl.message(
+      'Download: $traffic',
+      name: 'xboardDownloadTrafficLabel',
+      desc: '',
+      args: [traffic],
+    );
+  }
+
+  /// `Refresh subscription info`
+  String get xboardRefreshSubscriptionInfo {
+    return Intl.message(
+      'Refresh subscription info',
+      name: 'xboardRefreshSubscriptionInfo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Status check failed`
+  String get xboardStatusCheckFailed {
+    return Intl.message(
+      'Status check failed',
+      name: 'xboardStatusCheckFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Download timeout`
+  String get xboardDownloadTimeout {
+    return Intl.message(
+      'Download timeout',
+      name: 'xboardDownloadTimeout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `HTTP request failed`
+  String get xboardHttpRequestFailed {
+    return Intl.message(
+      'HTTP request failed',
+      name: 'xboardHttpRequestFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All download tasks failed`
+  String get xboardAllDownloadTasksFailed {
+    return Intl.message(
+      'All download tasks failed',
+      name: 'xboardAllDownloadTasksFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Proxy ({url})`
+  String xboardProxyConnectionLabel(String url) {
+    return Intl.message(
+      'Proxy ($url)',
+      name: 'xboardProxyConnectionLabel',
+      desc: '',
+      args: [url],
+    );
+  }
+
+  /// `Direct`
+  String get xboardDirectConnectionLabel {
+    return Intl.message(
+      'Direct',
+      name: 'xboardDirectConnectionLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Task cancelled`
+  String get xboardTaskCancelled {
+    return Intl.message(
+      'Task cancelled',
+      name: 'xboardTaskCancelled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel import`
+  String get xboardCancelImport {
+    return Intl.message(
+      'Cancel import',
+      name: 'xboardCancelImport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration imported successfully`
+  String get xboardConfigImportSuccess {
+    return Intl.message(
+      'Configuration imported successfully',
+      name: 'xboardConfigImportSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration import failed`
+  String get xboardConfigImportFailed {
+    return Intl.message(
+      'Configuration import failed',
+      name: 'xboardConfigImportFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration has been successfully imported and added to the configuration list`
+  String get xboardConfigImportedSuccessDetail {
+    return Intl.message(
+      'Configuration has been successfully imported and added to the configuration list',
+      name: 'xboardConfigImportedSuccessDetail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Preparing import`
+  String get xboardPreparingImportStatus {
+    return Intl.message(
+      'Preparing import',
+      name: 'xboardPreparingImportStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Starting subscription import`
+  String get xboardStartImportingSubscription {
+    return Intl.message(
+      'Starting subscription import',
+      name: 'xboardStartImportingSubscription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import cancelled`
+  String get xboardImportCancelled {
+    return Intl.message(
+      'Import cancelled',
+      name: 'xboardImportCancelled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import in progress, please wait`
+  String get xboardImportInProgress {
+    return Intl.message(
+      'Import in progress, please wait',
+      name: 'xboardImportInProgress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replacing old subscription configuration`
+  String get xboardReplaceOldConfig {
+    return Intl.message(
+      'Replacing old subscription configuration',
+      name: 'xboardReplaceOldConfig',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Attempt {attempt} failed, waiting to retry...`
+  String xboardRetryAttemptFailed(int attempt) {
+    return Intl.message(
+      'Attempt $attempt failed, waiting to retry...',
+      name: 'xboardRetryAttemptFailed',
+      desc: '',
+      args: [attempt],
+    );
+  }
+
+  /// `Still failed after multiple retries`
+  String get xboardMultipleRetriesFailed {
+    return Intl.message(
+      'Still failed after multiple retries',
+      name: 'xboardMultipleRetriesFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Download timeout`
+  String get xboardDownloadTimeoutError {
+    return Intl.message(
+      'Download timeout',
+      name: 'xboardDownloadTimeoutError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network connection failed`
+  String get xboardNetworkConnectionError {
+    return Intl.message(
+      'Network connection failed',
+      name: 'xboardNetworkConnectionError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `HTTP request failed`
+  String get xboardHttpRequestError {
+    return Intl.message(
+      'HTTP request failed',
+      name: 'xboardHttpRequestError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration file format error`
+  String get xboardConfigFormatInvalid {
+    return Intl.message(
+      'Configuration file format error',
+      name: 'xboardConfigFormatInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to download configuration`
+  String get xboardConfigDownloadError {
+    return Intl.message(
+      'Failed to download configuration',
+      name: 'xboardConfigDownloadError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network connection failed, please check network settings and retry`
+  String get xboardNetworkConnectionFailedCheckSettings {
+    return Intl.message(
+      'Network connection failed, please check network settings and retry',
+      name: 'xboardNetworkConnectionFailedCheckSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration download failed: HTTP request header format error, please try again later`
+  String get xboardConfigDownloadFailedBadRequest {
+    return Intl.message(
+      'Configuration download failed: HTTP request header format error, please try again later',
+      name: 'xboardConfigDownloadFailedBadRequest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration download failed: Invalid request format, please try again later`
+  String get xboardConfigDownloadFailedInvalidRequest {
+    return Intl.message(
+      'Configuration download failed: Invalid request format, please try again later',
+      name: 'xboardConfigDownloadFailedInvalidRequest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration download failed, please check if the subscription link is correct`
+  String get xboardConfigDownloadFailedCheckLink {
+    return Intl.message(
+      'Configuration download failed, please check if the subscription link is correct',
+      name: 'xboardConfigDownloadFailedCheckLink',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration format validation failed, please contact service provider to check configuration format`
+  String get xboardConfigValidationFailed {
+    return Intl.message(
+      'Configuration format validation failed, please contact service provider to check configuration format',
+      name: 'xboardConfigValidationFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to save configuration, please check storage space`
+  String get xboardConfigSaveFailedCheckStorage {
+    return Intl.message(
+      'Failed to save configuration, please check storage space',
+      name: 'xboardConfigSaveFailedCheckStorage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import failed: Application configuration error, please try again later or restart the app`
+  String get xboardImportFailedAppConfigError {
+    return Intl.message(
+      'Import failed: Application configuration error, please try again later or restart the app',
+      name: 'xboardImportFailedAppConfigError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import failed, please try again later or contact support`
+  String get xboardImportFailedRetryOrSupport {
+    return Intl.message(
+      'Import failed, please try again later or contact support',
+      name: 'xboardImportFailedRetryOrSupport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Skip`
+  String get xboardSkip {
+    return Intl.message('Skip', name: 'xboardSkip', desc: '', args: []);
+  }
+
+  /// `First startup may take some time\nPlease be patient...`
+  String get xboardFirstStartupNote {
+    return Intl.message(
+      'First startup may take some time\nPlease be patient...',
+      name: 'xboardFirstStartupNote',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Initialization timeout`
+  String get xboardInitializationTimeout {
+    return Intl.message(
+      'Initialization timeout',
+      name: 'xboardInitializationTimeout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Domain unavailable`
+  String get xboardDomainUnavailable {
+    return Intl.message(
+      'Domain unavailable',
+      name: 'xboardDomainUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Domain status not ready`
+  String get xboardDomainNotReady {
+    return Intl.message(
+      'Domain status not ready',
+      name: 'xboardDomainNotReady',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Initialization complete`
+  String get xboardInitializationComplete {
+    return Intl.message(
+      'Initialization complete',
+      name: 'xboardInitializationComplete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Initialized using fallback mode`
+  String get xboardFallbackModeUsed {
+    return Intl.message(
+      'Initialized using fallback mode',
+      name: 'xboardFallbackModeUsed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Using fallback mode`
+  String get xboardUsingFallbackMode {
+    return Intl.message(
+      'Using fallback mode',
+      name: 'xboardUsingFallbackMode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cannot launch external browser`
+  String get xboardCannotLaunchBrowser {
+    return Intl.message(
+      'Cannot launch external browser',
+      name: 'xboardCannotLaunchBrowser',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Auto-opening payment page, please return to app after payment`
+  String get xboardAutoOpeningPayment {
+    return Intl.message(
+      'Auto-opening payment page, please return to app after payment',
+      name: 'xboardAutoOpeningPayment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Payment page opened in browser, please return to app after payment`
+  String get xboardPaymentPageOpenedInBrowserNote {
+    return Intl.message(
+      'Payment page opened in browser, please return to app after payment',
+      name: 'xboardPaymentPageOpenedInBrowserNote',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to open payment link: {error}`
+  String xboardOpenPaymentLinkError(String error) {
+    return Intl.message(
+      'Failed to open payment link: $error',
+      name: 'xboardOpenPaymentLinkError',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Copy failed: {error}`
+  String xboardCopyFailedError(String error) {
+    return Intl.message(
+      'Copy failed: $error',
+      name: 'xboardCopyFailedError',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Order information not found`
+  String get xboardOrderInfoNotFound {
+    return Intl.message(
+      'Order information not found',
+      name: 'xboardOrderInfoNotFound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to check payment status: {error}`
+  String xboardCheckPaymentStatusError(String error) {
+    return Intl.message(
+      'Failed to check payment status: $error',
+      name: 'xboardCheckPaymentStatusError',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `1. Payment page has been opened automatically`
+  String get xboardOperationStep1 {
+    return Intl.message(
+      '1. Payment page has been opened automatically',
+      name: 'xboardOperationStep1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `2. Please complete payment in your browser`
+  String get xboardOperationStep2 {
+    return Intl.message(
+      '2. Please complete payment in your browser',
+      name: 'xboardOperationStep2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `3. Return to app after payment, system will detect automatically`
+  String get xboardOperationStep3 {
+    return Intl.message(
+      '3. Return to app after payment, system will detect automatically',
+      name: 'xboardOperationStep3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `To reopen, click the "Reopen" button below`
+  String get xboardReopenPaymentNote {
+    return Intl.message(
+      'To reopen, click the "Reopen" button below',
+      name: 'xboardReopenPaymentNote',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tip: If browser doesn't open automatically, click "Reopen" or copy link manually`
+  String get xboardBrowserNotOpenedNote {
+    return Intl.message(
+      'Tip: If browser doesn\'t open automatically, click "Reopen" or copy link manually',
+      name: 'xboardBrowserNotOpenedNote',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear old orders`
+  String get xboardClearOldOrders {
+    return Intl.message(
+      'Clear old orders',
+      name: 'xboardClearOldOrders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unlimited devices`
+  String get xboardUnlimitedDevices {
+    return Intl.message(
+      'Unlimited devices',
+      name: 'xboardUnlimitedDevices',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

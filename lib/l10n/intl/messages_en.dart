@@ -99,9 +99,30 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m35(count) => "${count} rules configured";
 
-  static String m36(message) => "Payment failed: ${message}";
+  static String m36(error) => "Failed to check payment status: ${error}";
 
-  static String m37(time) => "Running time: ${time}";
+  static String m37(error) => "Copy failed: ${error}";
+
+  static String m38(limit) => "${limit} devices";
+
+  static String m39(traffic) => "Download: ${traffic}";
+
+  static String m40(error) => "Failed to open payment link: ${error}";
+
+  static String m41(message) => "Payment failed: ${message}";
+
+  static String m42(planId) => "Plan #${planId}";
+
+  static String m43(url) => "Proxy (${url})";
+
+  static String m44(days) => "${days} days";
+
+  static String m45(attempt) =>
+      "Attempt ${attempt} failed, waiting to retry...";
+
+  static String m46(time) => "Running time: ${time}";
+
+  static String m47(traffic) => "Upload: ${traffic}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1214,6 +1235,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardAfterPurchasingPlan": MessageLookupByLibrary.simpleMessage(
       "After purchasing a plan, you will enjoy:",
     ),
+    "xboardAllDownloadTasksFailed": MessageLookupByLibrary.simpleMessage(
+      "All download tasks failed",
+    ),
     "xboardAllOrders": MessageLookupByLibrary.simpleMessage("All"),
     "xboardAllowLan": MessageLookupByLibrary.simpleMessage("Share to LAN"),
     "xboardApiUrlNotConfigured": MessageLookupByLibrary.simpleMessage(
@@ -1224,6 +1248,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardAutoDetectPaymentStatus": MessageLookupByLibrary.simpleMessage(
       "Auto-detect payment status",
+    ),
+    "xboardAutoOpeningPayment": MessageLookupByLibrary.simpleMessage(
+      "Auto-opening payment page, please return to app after payment",
     ),
     "xboardAutoOpeningPaymentPage": MessageLookupByLibrary.simpleMessage(
       "Auto-opening payment page, please return to app after payment",
@@ -1242,6 +1269,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardBrowsePlans": MessageLookupByLibrary.simpleMessage(
       "Browse available plans",
     ),
+    "xboardBrowsePlansButton": MessageLookupByLibrary.simpleMessage(
+      "Browse Plans",
+    ),
+    "xboardBrowserNotOpenedNote": MessageLookupByLibrary.simpleMessage(
+      "Tip: If browser doesn\'t open automatically, click \"Reopen\" or copy link manually",
+    ),
     "xboardBrowserNotOpenedTip": MessageLookupByLibrary.simpleMessage(
       "If browser doesn\'t open automatically, click \\\"Reopen\\\" or copy link manually",
     ),
@@ -1259,6 +1292,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardCancel": MessageLookupByLibrary.simpleMessage("Cancel"),
     "xboardCancelFailed": MessageLookupByLibrary.simpleMessage("Cancel failed"),
+    "xboardCancelImport": MessageLookupByLibrary.simpleMessage("Cancel import"),
     "xboardCancelOrder": MessageLookupByLibrary.simpleMessage("Cancel Order"),
     "xboardCancelOrderConfirm": MessageLookupByLibrary.simpleMessage(
       "Are you sure you want to cancel this order?",
@@ -1267,6 +1301,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Cancel payment",
     ),
     "xboardCancelledOrders": MessageLookupByLibrary.simpleMessage("Cancelled"),
+    "xboardCannotLaunchBrowser": MessageLookupByLibrary.simpleMessage(
+      "Cannot launch external browser",
+    ),
     "xboardCannotOpenPaymentLink": MessageLookupByLibrary.simpleMessage(
       "Cannot open payment link",
     ),
@@ -1276,12 +1313,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCheckPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to check payment status",
     ),
+    "xboardCheckPaymentStatusError": m36,
     "xboardCheckStatus": MessageLookupByLibrary.simpleMessage("Check status"),
     "xboardChecking": MessageLookupByLibrary.simpleMessage("Checking"),
     "xboardCleaningOldConfig": MessageLookupByLibrary.simpleMessage(
       "Cleaning old configuration",
     ),
     "xboardClearError": MessageLookupByLibrary.simpleMessage("Clear error"),
+    "xboardClearOldOrders": MessageLookupByLibrary.simpleMessage(
+      "Clear old orders",
+    ),
     "xboardClickToCopy": MessageLookupByLibrary.simpleMessage("Click to copy"),
     "xboardClickToSetupNodes": MessageLookupByLibrary.simpleMessage(
       "Click to setup nodes",
@@ -1306,14 +1347,45 @@ class MessageLookup extends MessageLookupByLibrary {
       "2. Please complete payment in your browser",
     ),
     "xboardCompletedOrders": MessageLookupByLibrary.simpleMessage("Completed"),
+    "xboardConfigDownloadError": MessageLookupByLibrary.simpleMessage(
+      "Failed to download configuration",
+    ),
     "xboardConfigDownloadFailed": MessageLookupByLibrary.simpleMessage(
       "Configuration download failed, please check subscription link",
     ),
+    "xboardConfigDownloadFailedBadRequest": MessageLookupByLibrary.simpleMessage(
+      "Configuration download failed: HTTP request header format error, please try again later",
+    ),
+    "xboardConfigDownloadFailedCheckLink": MessageLookupByLibrary.simpleMessage(
+      "Configuration download failed, please check if the subscription link is correct",
+    ),
+    "xboardConfigDownloadFailedInvalidRequest":
+        MessageLookupByLibrary.simpleMessage(
+          "Configuration download failed: Invalid request format, please try again later",
+        ),
     "xboardConfigFormatError": MessageLookupByLibrary.simpleMessage(
       "Configuration format error, please contact service provider",
     ),
+    "xboardConfigFormatInvalid": MessageLookupByLibrary.simpleMessage(
+      "Configuration file format error",
+    ),
+    "xboardConfigImportFailed": MessageLookupByLibrary.simpleMessage(
+      "Configuration import failed",
+    ),
+    "xboardConfigImportSuccess": MessageLookupByLibrary.simpleMessage(
+      "Configuration imported successfully",
+    ),
+    "xboardConfigImportedSuccessDetail": MessageLookupByLibrary.simpleMessage(
+      "Configuration has been successfully imported and added to the configuration list",
+    ),
     "xboardConfigSaveFailed": MessageLookupByLibrary.simpleMessage(
       "Configuration save failed, please check storage space",
+    ),
+    "xboardConfigSaveFailedCheckStorage": MessageLookupByLibrary.simpleMessage(
+      "Failed to save configuration, please check storage space",
+    ),
+    "xboardConfigValidationFailed": MessageLookupByLibrary.simpleMessage(
+      "Configuration format validation failed, please contact service provider to check configuration format",
     ),
     "xboardConfigurationError": MessageLookupByLibrary.simpleMessage(
       "Configuration error",
@@ -1343,6 +1415,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCopied": MessageLookupByLibrary.simpleMessage("Copied"),
     "xboardCopyCode": MessageLookupByLibrary.simpleMessage("Copy Code"),
     "xboardCopyFailed": MessageLookupByLibrary.simpleMessage("Copy failed"),
+    "xboardCopyFailedError": m37,
     "xboardCopyLink": MessageLookupByLibrary.simpleMessage("Copy Link"),
     "xboardCopyPaymentLink": MessageLookupByLibrary.simpleMessage("Copy Link"),
     "xboardCopySubscriptionLinkAbove": MessageLookupByLibrary.simpleMessage(
@@ -1386,12 +1459,29 @@ class MessageLookup extends MessageLookupByLibrary {
       "Deductible during payment",
     ),
     "xboardDetail": MessageLookupByLibrary.simpleMessage("Detail"),
+    "xboardDeviceLimitCount": m38,
+    "xboardDirectConnectionLabel": MessageLookupByLibrary.simpleMessage(
+      "Direct",
+    ),
     "xboardDisconnected": MessageLookupByLibrary.simpleMessage("Disconnected"),
     "xboardDiscount": MessageLookupByLibrary.simpleMessage("Discount"),
     "xboardDiscountAmount": MessageLookupByLibrary.simpleMessage(
       "Discount Amount",
     ),
     "xboardDiscounted": MessageLookupByLibrary.simpleMessage("Discounted"),
+    "xboardDomainNotReady": MessageLookupByLibrary.simpleMessage(
+      "Domain status not ready",
+    ),
+    "xboardDomainUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Domain unavailable",
+    ),
+    "xboardDownloadTimeout": MessageLookupByLibrary.simpleMessage(
+      "Download timeout",
+    ),
+    "xboardDownloadTimeoutError": MessageLookupByLibrary.simpleMessage(
+      "Download timeout",
+    ),
+    "xboardDownloadTrafficLabel": m39,
     "xboardDownloadingConfig": MessageLookupByLibrary.simpleMessage(
       "Downloading configuration file",
     ),
@@ -1436,6 +1526,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Failed to open payment page",
     ),
     "xboardFair": MessageLookupByLibrary.simpleMessage("Fair"),
+    "xboardFallbackModeUsed": MessageLookupByLibrary.simpleMessage(
+      "Initialized using fallback mode",
+    ),
+    "xboardFirstStartupNote": MessageLookupByLibrary.simpleMessage(
+      "First startup may take some time\nPlease be patient...",
+    ),
     "xboardForceUpdate": MessageLookupByLibrary.simpleMessage("Force update"),
     "xboardForgotPassword": MessageLookupByLibrary.simpleMessage(
       "Forgot Password",
@@ -1462,8 +1558,26 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardHome": MessageLookupByLibrary.simpleMessage("Home"),
     "xboardHoursAgo": MessageLookupByLibrary.simpleMessage("hours ago"),
+    "xboardHttpRequestError": MessageLookupByLibrary.simpleMessage(
+      "HTTP request failed",
+    ),
+    "xboardHttpRequestFailed": MessageLookupByLibrary.simpleMessage(
+      "HTTP request failed",
+    ),
+    "xboardImportCancelled": MessageLookupByLibrary.simpleMessage(
+      "Import cancelled",
+    ),
     "xboardImportFailed": MessageLookupByLibrary.simpleMessage(
       "Configuration import failed",
+    ),
+    "xboardImportFailedAppConfigError": MessageLookupByLibrary.simpleMessage(
+      "Import failed: Application configuration error, please try again later or restart the app",
+    ),
+    "xboardImportFailedRetryOrSupport": MessageLookupByLibrary.simpleMessage(
+      "Import failed, please try again later or contact support",
+    ),
+    "xboardImportInProgress": MessageLookupByLibrary.simpleMessage(
+      "Import in progress, please wait",
     ),
     "xboardImportSuccess": MessageLookupByLibrary.simpleMessage(
       "Configuration imported successfully",
@@ -1472,8 +1586,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Importing configuration",
     ),
     "xboardInactive": MessageLookupByLibrary.simpleMessage("Inactive"),
+    "xboardInitializationComplete": MessageLookupByLibrary.simpleMessage(
+      "Initialization complete",
+    ),
     "xboardInitializationFailed": MessageLookupByLibrary.simpleMessage(
       "Initialization Failed",
+    ),
+    "xboardInitializationTimeout": MessageLookupByLibrary.simpleMessage(
+      "Initialization timeout",
     ),
     "xboardInitializing": MessageLookupByLibrary.simpleMessage("Initializing"),
     "xboardInsufficientBalance": MessageLookupByLibrary.simpleMessage(
@@ -1568,11 +1688,21 @@ class MessageLookup extends MessageLookupByLibrary {
       "Monthly renewal",
     ),
     "xboardMonthsAgo": MessageLookupByLibrary.simpleMessage("months ago"),
+    "xboardMultipleRetriesFailed": MessageLookupByLibrary.simpleMessage(
+      "Still failed after multiple retries",
+    ),
     "xboardMustUpdate": MessageLookupByLibrary.simpleMessage("Must update"),
     "xboardMyOrders": MessageLookupByLibrary.simpleMessage("My Orders"),
+    "xboardNetworkConnectionError": MessageLookupByLibrary.simpleMessage(
+      "Network connection failed",
+    ),
     "xboardNetworkConnectionFailed": MessageLookupByLibrary.simpleMessage(
       "Network connection failed, please check network settings",
     ),
+    "xboardNetworkConnectionFailedCheckSettings":
+        MessageLookupByLibrary.simpleMessage(
+          "Network connection failed, please check network settings and retry",
+        ),
     "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage(
       "Network Settings",
     ),
@@ -1635,11 +1765,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOpenPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to open payment page",
     ),
+    "xboardOpenPaymentLinkError": m40,
     "xboardOpenPaymentLinkFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to open payment link",
     ),
     "xboardOperationFailed": MessageLookupByLibrary.simpleMessage(
       "Operation failed",
+    ),
+    "xboardOperationStep1": MessageLookupByLibrary.simpleMessage(
+      "1. Payment page has been opened automatically",
+    ),
+    "xboardOperationStep2": MessageLookupByLibrary.simpleMessage(
+      "2. Please complete payment in your browser",
+    ),
+    "xboardOperationStep3": MessageLookupByLibrary.simpleMessage(
+      "3. Return to app after payment, system will detect automatically",
     ),
     "xboardOperationTips": MessageLookupByLibrary.simpleMessage(
       "Operation tips",
@@ -1657,6 +1797,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardOrderInfo": MessageLookupByLibrary.simpleMessage(
       "Order Information",
+    ),
+    "xboardOrderInfoNotFound": MessageLookupByLibrary.simpleMessage(
+      "Order information not found",
     ),
     "xboardOrderNotFound": MessageLookupByLibrary.simpleMessage(
       "Order not found",
@@ -1683,7 +1826,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Payment Failed",
     ),
-    "xboardPaymentFailedMessage": m36,
+    "xboardPaymentFailedMessage": m41,
     "xboardPaymentGateway": MessageLookupByLibrary.simpleMessage(
       "Payment gateway",
     ),
@@ -1723,6 +1866,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentPageOpenedInBrowser": MessageLookupByLibrary.simpleMessage(
       "Payment page opened in browser, please return to app after payment",
     ),
+    "xboardPaymentPageOpenedInBrowserNote":
+        MessageLookupByLibrary.simpleMessage(
+          "Payment page opened in browser, please return to app after payment",
+        ),
     "xboardPaymentSuccess": MessageLookupByLibrary.simpleMessage(
       "Payment successful",
     ),
@@ -1740,6 +1887,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Plan not found",
     ),
     "xboardPlanSummary": MessageLookupByLibrary.simpleMessage("Plan Summary"),
+    "xboardPlanWithId": m42,
     "xboardPlans": MessageLookupByLibrary.simpleMessage("Plans"),
     "xboardPleaseLogin": MessageLookupByLibrary.simpleMessage(
       "Please login first",
@@ -1755,6 +1903,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPreferences": MessageLookupByLibrary.simpleMessage("Preferences"),
     "xboardPreparingImport": MessageLookupByLibrary.simpleMessage(
       "Preparing to import configuration",
+    ),
+    "xboardPreparingImportStatus": MessageLookupByLibrary.simpleMessage(
+      "Preparing import",
     ),
     "xboardPreparingPaymentPage": MessageLookupByLibrary.simpleMessage(
       "Preparing payment page, redirecting soon",
@@ -1776,6 +1927,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardProxyCommands": MessageLookupByLibrary.simpleMessage(
       "Set Proxy Commands",
     ),
+    "xboardProxyConnectionLabel": m43,
     "xboardProxyInfo": MessageLookupByLibrary.simpleMessage(
       "Proxy Information",
     ),
@@ -1791,6 +1943,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardProxyPort": MessageLookupByLibrary.simpleMessage("Proxy Port"),
     "xboardPurchasePlan": MessageLookupByLibrary.simpleMessage("Purchase plan"),
+    "xboardPurchasePlanPrompt": MessageLookupByLibrary.simpleMessage(
+      "Please purchase a plan first",
+    ),
     "xboardPurchaseSubscription": MessageLookupByLibrary.simpleMessage(
       "Purchase Plan",
     ),
@@ -1807,6 +1962,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardRefreshStatus": MessageLookupByLibrary.simpleMessage(
       "Refresh status",
     ),
+    "xboardRefreshSubscriptionInfo": MessageLookupByLibrary.simpleMessage(
+      "Refresh subscription info",
+    ),
     "xboardRefundAmount": MessageLookupByLibrary.simpleMessage("Refund Amount"),
     "xboardRegister": MessageLookupByLibrary.simpleMessage("Register"),
     "xboardRegisterFailed": MessageLookupByLibrary.simpleMessage(
@@ -1821,6 +1979,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReload": MessageLookupByLibrary.simpleMessage("Reload"),
     "xboardRelogin": MessageLookupByLibrary.simpleMessage("Login Again"),
     "xboardRemaining": MessageLookupByLibrary.simpleMessage("Remaining"),
+    "xboardRemainingDaysCount": m44,
+    "xboardRemainingDaysLabel": MessageLookupByLibrary.simpleMessage(
+      "Days Remaining",
+    ),
     "xboardRememberPassword": MessageLookupByLibrary.simpleMessage(
       "Remember Password",
     ),
@@ -1838,8 +2000,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReopenPayment": MessageLookupByLibrary.simpleMessage(
       "Reopen Payment",
     ),
+    "xboardReopenPaymentNote": MessageLookupByLibrary.simpleMessage(
+      "To reopen, click the \"Reopen\" button below",
+    ),
     "xboardReopenPaymentPageTip": MessageLookupByLibrary.simpleMessage(
       "To reopen, click the \\\"Reopen\\\" button below",
+    ),
+    "xboardReplaceOldConfig": MessageLookupByLibrary.simpleMessage(
+      "Replacing old subscription configuration",
     ),
     "xboardReplacingProfile": MessageLookupByLibrary.simpleMessage(
       "Replacing profile",
@@ -1860,12 +2028,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardResetTraffic": MessageLookupByLibrary.simpleMessage("Reset traffic"),
     "xboardRetry": MessageLookupByLibrary.simpleMessage("Retry"),
+    "xboardRetryAttemptFailed": m45,
     "xboardRetryGet": MessageLookupByLibrary.simpleMessage("Retry"),
     "xboardReturn": MessageLookupByLibrary.simpleMessage("Return"),
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. Return to app after payment, system will detect automatically",
     ),
-    "xboardRunningTime": m37,
+    "xboardRunningTime": m46,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("Search nodes"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage(
       "Secure encryption",
@@ -1907,8 +2076,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardSixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "6-month cycle",
     ),
+    "xboardSkip": MessageLookupByLibrary.simpleMessage("Skip"),
     "xboardSpeedLimit": MessageLookupByLibrary.simpleMessage("Speed"),
+    "xboardStartImportingSubscription": MessageLookupByLibrary.simpleMessage(
+      "Starting subscription import",
+    ),
     "xboardStartProxy": MessageLookupByLibrary.simpleMessage("Start Proxy"),
+    "xboardStatusCheckFailed": MessageLookupByLibrary.simpleMessage(
+      "Status check failed",
+    ),
     "xboardStop": MessageLookupByLibrary.simpleMessage("Stop"),
     "xboardStopProxy": MessageLookupByLibrary.simpleMessage("Stop Proxy"),
     "xboardSubscription": MessageLookupByLibrary.simpleMessage("Subscription"),
@@ -1954,6 +2130,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTapToConnect": MessageLookupByLibrary.simpleMessage(
       "Tap to connect",
     ),
+    "xboardTaskCancelled": MessageLookupByLibrary.simpleMessage(
+      "Task cancelled",
+    ),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("Testing"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36-month cycle",
@@ -1978,6 +2157,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTicketStatus": MessageLookupByLibrary.simpleMessage("Ticket Status"),
     "xboardTicketSubject": MessageLookupByLibrary.simpleMessage("Subject"),
     "xboardTickets": MessageLookupByLibrary.simpleMessage("Tickets"),
+    "xboardTimeInfo": MessageLookupByLibrary.simpleMessage("Time Information"),
     "xboardTimeout": MessageLookupByLibrary.simpleMessage("Timeout"),
     "xboardToday": MessageLookupByLibrary.simpleMessage("Today"),
     "xboardTokenExpiredContent": MessageLookupByLibrary.simpleMessage(
@@ -2023,6 +2203,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardUnknownUser": MessageLookupByLibrary.simpleMessage("Unknown User"),
     "xboardUnlimited": MessageLookupByLibrary.simpleMessage("Unlimited"),
+    "xboardUnlimitedDevices": MessageLookupByLibrary.simpleMessage(
+      "Unlimited devices",
+    ),
     "xboardUnlimitedTime": MessageLookupByLibrary.simpleMessage("Unlimited"),
     "xboardUnselected": MessageLookupByLibrary.simpleMessage("Unselected"),
     "xboardUnsupportedCouponType": MessageLookupByLibrary.simpleMessage(
@@ -2036,6 +2219,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardUpdateSubscriptionRegularly": MessageLookupByLibrary.simpleMessage(
       "Update subscription regularly to get latest nodes",
     ),
+    "xboardUploadTrafficLabel": m47,
     "xboardUsageInstructions": MessageLookupByLibrary.simpleMessage(
       "Usage instructions",
     ),
@@ -2043,6 +2227,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardUsedTraffic": MessageLookupByLibrary.simpleMessage("Used"),
     "xboardUserSpecificRate": MessageLookupByLibrary.simpleMessage(
       "User-specific",
+    ),
+    "xboardUsingFallbackMode": MessageLookupByLibrary.simpleMessage(
+      "Using fallback mode",
     ),
     "xboardValidatingConfigFormat": MessageLookupByLibrary.simpleMessage(
       "Validating configuration format",

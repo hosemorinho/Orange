@@ -64,7 +64,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m35(count) => "${count} 件のルールが設定済み";
 
-  static String m37(time) => "実行時間: ${time}";
+  static String m46(time) => "実行時間: ${time}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1050,7 +1050,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. 支払い後にアプリに戻ると、システムが自動検出します",
     ),
-    "xboardRunningTime": m37,
+    "xboardRunningTime": m46,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("ノードを検索"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage("セキュア暗号化"),
     "xboardSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage(

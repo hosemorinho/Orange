@@ -68,7 +68,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m35(count) => "${count} правил настроено";
 
-  static String m37(time) => "Время работы: ${time}";
+  static String m46(time) => "Время работы: ${time}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1404,7 +1404,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. Вернитесь в приложение после оплаты, система автоматически определит",
     ),
-    "xboardRunningTime": m37,
+    "xboardRunningTime": m46,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("Поиск узлов"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage(
       "Безопасное шифрование",

@@ -144,6 +144,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "システムアプリの除外を解除",
     ),
     "cancelSelectAll": MessageLookupByLibrary.simpleMessage("全選択解除"),
+    "cannotSelectSpecialProxy": MessageLookupByLibrary.simpleMessage(
+      "DIRECT または REJECT 特殊プロキシを選択できません",
+    ),
     "checkError": MessageLookupByLibrary.simpleMessage("確認エラー"),
     "checkUpdate": MessageLookupByLibrary.simpleMessage("更新を確認"),
     "checkUpdateError": MessageLookupByLibrary.simpleMessage("アプリは最新版です"),
@@ -1026,6 +1029,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardQuarterlyPayment": MessageLookupByLibrary.simpleMessage("四半期払い"),
     "xboardRefresh": MessageLookupByLibrary.simpleMessage("更新"),
     "xboardRefreshStatus": MessageLookupByLibrary.simpleMessage("ステータスを更新"),
+    "xboardRefreshSubscriptionSuccess": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションが正常に更新されました",
+    ),
     "xboardRegister": MessageLookupByLibrary.simpleMessage("登録"),
     "xboardRegisterFailed": MessageLookupByLibrary.simpleMessage("登録失敗"),
     "xboardRegisterSuccess": MessageLookupByLibrary.simpleMessage(
@@ -1095,6 +1101,8 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardSwitch": MessageLookupByLibrary.simpleMessage("切り替え"),
     "xboardSwitchNode": MessageLookupByLibrary.simpleMessage("ノード切り替え"),
+    "xboardTestAllNodes": MessageLookupByLibrary.simpleMessage("すべてのノードをテスト"),
+    "xboardTestComplete": MessageLookupByLibrary.simpleMessage("テスト完了"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("テスト中"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36ヶ月サイクル",

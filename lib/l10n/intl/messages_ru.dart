@@ -190,6 +190,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "cancelSelectAll": MessageLookupByLibrary.simpleMessage(
       "Отменить выбор всего",
     ),
+    "cannotSelectSpecialProxy": MessageLookupByLibrary.simpleMessage(
+      "Невозможно выбрать специальный прокси DIRECT или REJECT",
+    ),
     "checkError": MessageLookupByLibrary.simpleMessage("Ошибка проверки"),
     "checkUpdate": MessageLookupByLibrary.simpleMessage("Проверить обновления"),
     "checkUpdateError": MessageLookupByLibrary.simpleMessage(
@@ -1374,6 +1377,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardRefreshStatus": MessageLookupByLibrary.simpleMessage(
       "Обновить статус",
     ),
+    "xboardRefreshSubscriptionSuccess": MessageLookupByLibrary.simpleMessage(
+      "Подписка успешно обновлена",
+    ),
     "xboardRegister": MessageLookupByLibrary.simpleMessage("Регистрация"),
     "xboardRegisterFailed": MessageLookupByLibrary.simpleMessage(
       "Ошибка регистрации",
@@ -1461,6 +1467,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardSwitch": MessageLookupByLibrary.simpleMessage("Переключить"),
     "xboardSwitchNode": MessageLookupByLibrary.simpleMessage("Сменить узел"),
+    "xboardTestAllNodes": MessageLookupByLibrary.simpleMessage(
+      "Тестировать все узлы",
+    ),
+    "xboardTestComplete": MessageLookupByLibrary.simpleMessage("Тест завершен"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("Тестирование"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36-месячный цикл",

@@ -7,6 +7,7 @@ import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.d
 import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart';
 import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/enum/enum.dart';
 class NodeSelectorBar extends ConsumerStatefulWidget {
   const NodeSelectorBar({super.key});
   @override
@@ -66,10 +67,10 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
     _checkNodeChange(proxy);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: _buildProxyDisplay(context, group, proxy),
+      child: _buildProxyDisplay(context, group, proxy, mode),
     );
   }
-  Widget _buildProxyDisplay(BuildContext context, Group group, Proxy proxy) {
+  Widget _buildProxyDisplay(BuildContext context, Group group, Proxy proxy, Mode mode) {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(

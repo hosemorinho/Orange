@@ -59,7 +59,7 @@ class _TrafficHistoryCardState extends ConsumerState<TrafficHistoryCard> {
     final trafficState = ref.watch(trafficLogsProvider);
     final aggregatedData = trafficState.records.isNotEmpty
         ? ref.read(trafficLogsProvider.notifier).aggregateByDate()
-        : <dynamic>[];
+        : <AggregatedTraffic>[];
 
     return XBDashboardCard(
       padding: EdgeInsets.zero,

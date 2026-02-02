@@ -9484,16 +9484,6 @@ class AppLocalizations {
     );
   }
 
-  /// `Confirm`
-  String get xboardConfirm {
-    return Intl.message(
-      'Confirm',
-      name: 'xboardConfirm',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Resetting...`
   String get xboardResetting {
     return Intl.message(

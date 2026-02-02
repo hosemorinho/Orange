@@ -911,6 +911,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "无法打开支付链接",
     ),
     "xboardChangePassword": MessageLookupByLibrary.simpleMessage("修改密码"),
+    "xboardChanging": MessageLookupByLibrary.simpleMessage("修改中..."),
     "xboardCheckPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "检查支付状态失败",
     ),
@@ -1185,6 +1186,7 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage("网络连接失败，请检查网络设置后重试"),
     "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage("网络设置"),
     "xboardNeverExpire": MessageLookupByLibrary.simpleMessage("永不过期"),
+    "xboardNewPassword": MessageLookupByLibrary.simpleMessage("新密码"),
     "xboardNewVersionFound": MessageLookupByLibrary.simpleMessage("发现新版本"),
     "xboardNext": MessageLookupByLibrary.simpleMessage("下一条"),
     "xboardNoAvailableNodes": MessageLookupByLibrary.simpleMessage("无可用节点"),
@@ -1214,8 +1216,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNone": MessageLookupByLibrary.simpleMessage("无"),
     "xboardNotLoggedIn": MessageLookupByLibrary.simpleMessage("未登录"),
     "xboardNoticeDialogGotIt": MessageLookupByLibrary.simpleMessage("知道了"),
+    "xboardNotificationUpdateError": MessageLookupByLibrary.simpleMessage(
+      "更新通知设置失败",
+    ),
+    "xboardNotificationUpdateSuccess": MessageLookupByLibrary.simpleMessage(
+      "通知设置已更新",
+    ),
     "xboardNotifications": MessageLookupByLibrary.simpleMessage("通知设置"),
     "xboardOffline": MessageLookupByLibrary.simpleMessage("离线"),
+    "xboardOldPassword": MessageLookupByLibrary.simpleMessage("当前密码"),
     "xboardOneTimePayment": MessageLookupByLibrary.simpleMessage("一次性"),
     "xboardOnetimePayment": MessageLookupByLibrary.simpleMessage("一次性"),
     "xboardOnline": MessageLookupByLibrary.simpleMessage("在线"),
@@ -1252,6 +1261,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardOrderSummary": MessageLookupByLibrary.simpleMessage("订单汇总"),
     "xboardPassword": MessageLookupByLibrary.simpleMessage("密码"),
+    "xboardPasswordChangeError": MessageLookupByLibrary.simpleMessage("密码修改失败"),
+    "xboardPasswordChangedSuccess": MessageLookupByLibrary.simpleMessage(
+      "密码修改成功",
+    ),
+    "xboardPasswordMinLength": MessageLookupByLibrary.simpleMessage(
+      "密码至少需要8个字符",
+    ),
     "xboardPay": MessageLookupByLibrary.simpleMessage("支付"),
     "xboardPaymentCancelled": MessageLookupByLibrary.simpleMessage("支付已取消"),
     "xboardPaymentComplete": MessageLookupByLibrary.simpleMessage("支付完成"),
@@ -1386,11 +1402,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReply": MessageLookupByLibrary.simpleMessage("回复"),
     "xboardReplyFailed": MessageLookupByLibrary.simpleMessage("回复发送失败"),
     "xboardReplySent": MessageLookupByLibrary.simpleMessage("回复发送成功"),
+    "xboardResetConfirmDesc": MessageLookupByLibrary.simpleMessage(
+      "将生成新的订阅链接，旧链接将失效，您需要重新导入订阅。确定继续吗？",
+    ),
+    "xboardResetConfirmTitle": MessageLookupByLibrary.simpleMessage("重置订阅"),
     "xboardResetSubscription": MessageLookupByLibrary.simpleMessage("重置订阅"),
     "xboardResetSubscriptionDesc": MessageLookupByLibrary.simpleMessage(
       "将生成新的订阅链接并使旧链接失效",
     ),
+    "xboardResetSubscriptionError": MessageLookupByLibrary.simpleMessage(
+      "重置订阅失败",
+    ),
+    "xboardResetSubscriptionSuccess": MessageLookupByLibrary.simpleMessage(
+      "订阅重置成功，请重新导入订阅",
+    ),
     "xboardResetTraffic": MessageLookupByLibrary.simpleMessage("重置流量"),
+    "xboardResetting": MessageLookupByLibrary.simpleMessage("重置中..."),
     "xboardRetry": MessageLookupByLibrary.simpleMessage("重试"),
     "xboardRetryAttemptFailed": m45,
     "xboardRetryGet": MessageLookupByLibrary.simpleMessage("重新获取"),
@@ -1537,30 +1564,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardYearlyPayment": MessageLookupByLibrary.simpleMessage("年付"),
     "xboardYearsAgo": MessageLookupByLibrary.simpleMessage("年前"),
     "xboardYesterday": MessageLookupByLibrary.simpleMessage("昨天"),
-    "xboardOldPassword": MessageLookupByLibrary.simpleMessage("当前密码"),
-    "xboardNewPassword": MessageLookupByLibrary.simpleMessage("新密码"),
-    "xboardPasswordChangedSuccess":
-        MessageLookupByLibrary.simpleMessage("密码修改成功"),
-    "xboardPasswordChangeError":
-        MessageLookupByLibrary.simpleMessage("密码修改失败"),
-    "xboardResetConfirmTitle":
-        MessageLookupByLibrary.simpleMessage("重置订阅"),
-    "xboardResetConfirmDesc": MessageLookupByLibrary.simpleMessage(
-      "将生成新的订阅链接，旧链接将失效，您需要重新导入订阅。确定继续吗？",
-    ),
-    "xboardResetSubscriptionSuccess":
-        MessageLookupByLibrary.simpleMessage("订阅重置成功，请重新导入订阅"),
-    "xboardResetSubscriptionError":
-        MessageLookupByLibrary.simpleMessage("重置订阅失败"),
-    "xboardNotificationUpdateSuccess":
-        MessageLookupByLibrary.simpleMessage("通知设置已更新"),
-    "xboardNotificationUpdateError":
-        MessageLookupByLibrary.simpleMessage("更新通知设置失败"),
-    "xboardConfirm": MessageLookupByLibrary.simpleMessage("确认"),
-    "xboardResetting": MessageLookupByLibrary.simpleMessage("重置中..."),
-    "xboardChanging": MessageLookupByLibrary.simpleMessage("修改中..."),
-    "xboardPasswordMinLength":
-        MessageLookupByLibrary.simpleMessage("密码至少需要8个字符"),
     "years": MessageLookupByLibrary.simpleMessage("年"),
     "zh_CN": MessageLookupByLibrary.simpleMessage("中文简体"),
   };

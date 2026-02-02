@@ -78,6 +78,18 @@ import 'package:fl_clash/models/models.dart';
       (proxy) => proxy.name == realNodeName,
       orElse: () => currentGroup!.all.first,
     );
+
+    // 如果解析到 DIRECT/REJECT，尝试选择第一个有效节点
+    if (currentProxy.name.toUpperCase() == 'DIRECT' ||
+        currentProxy.name.toUpperCase() == 'REJECT') {
+      final validProxy = currentGroup.all.firstWhere(
+        (proxy) =>
+            proxy.name.toUpperCase() != 'DIRECT' &&
+            proxy.name.toUpperCase() != 'REJECT',
+        orElse: () => currentProxy!,
+      );
+      currentProxy = validProxy;
+    }
   } else {
     currentProxy = currentGroup.all.first;
   }

@@ -1259,6 +1259,10 @@
     }
   },
   "xboardRefreshSubscriptionInfo": "刷新订阅信息",
+  "xboardRefreshSubscriptionSuccess": "订阅刷新成功",
+  "xboardTestAllNodes": "测速全部节点",
+  "xboardTestComplete": "测速完成",
+  "cannotSelectSpecialProxy": "无法选择 DIRECT 或 REJECT 特殊节点",
   "xboardStatusCheckFailed": "状态检查失败",
   "xboardDownloadTimeout": "下载超时",
   "xboardHttpRequestFailed": "HTTP请求失败",

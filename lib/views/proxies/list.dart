@@ -145,7 +145,15 @@ class _ProxiesListViewState extends State<ProxiesListView> {
       if (isExpand) {
         final sortedProxies = globalState.appController.getSortProxies(
           group.all
-              .where((item) => item.name.toLowerCase().contains(query))
+              .where((item) {
+                // 过滤掉 DIRECT 和 REJECT 特殊节点
+                final nameUpper = item.name.toUpperCase();
+                if (nameUpper == 'DIRECT' || nameUpper == 'REJECT') {
+                  return false;
+                }
+                // 应用搜索过滤
+                return item.name.toLowerCase().contains(query);
+              })
               .toList(),
           group.testUrl,
         );

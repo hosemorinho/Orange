@@ -9,6 +9,7 @@ import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'tun_introduction_dialog.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 
 // 初始化文件级日志器
 final _logger = FileLogger('xboard_outbound_mode.dart');
@@ -16,7 +17,15 @@ class XBoardOutboundMode extends StatelessWidget {
   const XBoardOutboundMode({super.key});
   void _handleModeChange(WidgetRef ref, Mode modeOption) {
     _logger.debug('[XBoardOutboundMode] 切换模式到: $modeOption');
+
+    // 在模式切换前，同步节点选择
+    final currentMode = ref.read(patchClashConfigProvider.select((state) => state.mode));
+    if (currentMode != modeOption) {
+      _syncNodeSelectionOnModeChange(ref, from: currentMode, to: modeOption);
+    }
+
     globalState.appController.changeMode(modeOption);
+
     if (modeOption == Mode.global) {
       _logger.debug('[XBoardOutboundMode] 切换到全局模式，检查节点选择');
       Future.delayed(const Duration(milliseconds: 100), () {
@@ -50,6 +59,77 @@ class XBoardOutboundMode extends StatelessWidget {
           );
     }
   }
+  void _syncNodeSelectionOnModeChange(
+    WidgetRef ref, {
+    required Mode from,
+    required Mode to,
+  }) {
+    final groups = ref.read(groupsProvider);
+    final selectedMap = ref.read(selectedMapProvider);
+
+    if (groups.isEmpty) return;
+
+    // 规则模式 → 全局模式：同步当前规则节点到 GLOBAL 组
+    if (from == Mode.rule && to == Mode.global) {
+      _logger.debug('[XBoardOutboundMode] 从规则模式切换到全局模式，同步节点');
+
+      // 使用 node_resolver 解析当前规则模式的活动节点
+      final resolved = resolveCurrentNode(
+        groups: groups,
+        selectedMap: selectedMap,
+        mode: Mode.rule,
+      );
+
+      if (resolved.proxy != null &&
+          resolved.proxy!.name.toUpperCase() != 'DIRECT' &&
+          resolved.proxy!.name.toUpperCase() != 'REJECT') {
+        _logger.debug('[XBoardOutboundMode] 同步节点 ${resolved.proxy!.name} 到 GLOBAL 组');
+        globalState.appController.updateCurrentSelectedMap(
+          GroupName.GLOBAL.name,
+          resolved.proxy!.name,
+        );
+      }
+    }
+
+    // 全局模式 → 规则模式：同步 GLOBAL 节点到主要代理组
+    else if (from == Mode.global && to == Mode.rule) {
+      _logger.debug('[XBoardOutboundMode] 从全局模式切换到规则模式，同步节点');
+
+      final globalGroup = groups.firstWhere(
+        (g) => g.name == GroupName.GLOBAL.name,
+        orElse: () => groups.first,
+      );
+
+      final globalSelected = selectedMap[globalGroup.name];
+      if (globalSelected != null &&
+          globalSelected.isNotEmpty &&
+          globalSelected.toUpperCase() != 'DIRECT' &&
+          globalSelected.toUpperCase() != 'REJECT') {
+        // 找到第一个可选择的规则组（非 GLOBAL、非隐藏）
+        final ruleGroup = groups.firstWhere(
+          (g) =>
+              g.name != GroupName.GLOBAL.name &&
+              g.hidden != true &&
+              g.type == GroupType.Selector,
+          orElse: () => globalGroup,
+        );
+
+        if (ruleGroup.name != globalGroup.name) {
+          // 检查该节点是否在目标组中存在
+          final nodeExists = ruleGroup.all.any((p) => p.name == globalSelected);
+          if (nodeExists) {
+            _logger
+                .debug('[XBoardOutboundMode] 同步节点 $globalSelected 到 ${ruleGroup.name} 组');
+            globalState.appController.updateCurrentSelectedMap(
+              ruleGroup.name,
+              globalSelected,
+            );
+          }
+        }
+      }
+    }
+  }
+
   void _ensureValidProxyForGlobalMode(WidgetRef ref) {
     _logger.debug('[XBoardOutboundMode] 检查全局模式下的节点选择');
     final groups = ref.read(groupsProvider);

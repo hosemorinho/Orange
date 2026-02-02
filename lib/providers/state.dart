@@ -335,6 +335,12 @@ ProxyGroupSelectorState proxyGroupSelectorState(Ref ref, String groupName) {
   final query =
       ref.watch(proxiesQueryProvider.select((state) => state.toLowerCase()));
   final proxies = group?.all.where((item) {
+        // 过滤掉 DIRECT 和 REJECT 特殊节点
+        final nameUpper = item.name.toUpperCase();
+        if (nameUpper == 'DIRECT' || nameUpper == 'REJECT') {
+          return false;
+        }
+        // 应用搜索过滤
         return item.name.toLowerCase().contains(query);
       }).toList() ??
       [];

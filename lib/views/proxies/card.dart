@@ -107,6 +107,16 @@ class ProxyCard extends StatelessWidget {
         true => currentProxyName == proxy.name ? "" : proxy.name,
         false => proxy.name,
       };
+
+      // 阻止选择 DIRECT/REJECT 特殊节点
+      if (nextProxyName.toUpperCase() == 'DIRECT' ||
+          nextProxyName.toUpperCase() == 'REJECT') {
+        globalState.showNotifier(
+          appLocalizations.cannotSelectSpecialProxy,
+        );
+        return;
+      }
+
       final appController = globalState.appController;
       appController.updateCurrentSelectedMap(
         groupName,

@@ -116,6 +116,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m47(traffic) => "上传: ${traffic}";
 
+  static String m48(error) => "操作失败: ${error}";
+
+  static String m49(error) => "打开支付页面失败: ${error}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("关于"),
@@ -864,6 +868,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardAutoCheckEvery5Seconds": MessageLookupByLibrary.simpleMessage(
       "系统每5秒自动检查一次，支付完成后会自动跳转",
     ),
+    "xboardAutoCheckPaymentDesc": MessageLookupByLibrary.simpleMessage(
+      "系统每5秒自动检查一次，支付完成后会自动跳转",
+    ),
     "xboardAutoDetectPaymentStatus": MessageLookupByLibrary.simpleMessage(
       "自动检测支付状态",
     ),
@@ -910,6 +917,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCannotLaunchBrowser": MessageLookupByLibrary.simpleMessage(
       "无法启动外部浏览器",
     ),
+    "xboardCannotOpenPaymentUrl": MessageLookupByLibrary.simpleMessage(
+      "无法打开支付链接",
+    ),
     "xboardCannotOpenPaymentLink": MessageLookupByLibrary.simpleMessage(
       "无法打开支付链接",
     ),
@@ -920,8 +930,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardCheckPaymentStatusError": m36,
     "xboardCheckStatus": MessageLookupByLibrary.simpleMessage("检查状态"),
-    "xboardChecking": MessageLookupByLibrary.simpleMessage("检查中"),
+    "xboardChecking": MessageLookupByLibrary.simpleMessage("检查中..."),
     "xboardCleaningOldConfig": MessageLookupByLibrary.simpleMessage("清理旧配置"),
+    "xboardCleaningPendingOrders": MessageLookupByLibrary.simpleMessage(
+      "正在清理之前的待支付订单...",
+    ),
     "xboardClearError": MessageLookupByLibrary.simpleMessage("清除错误"),
     "xboardClearOldOrders": MessageLookupByLibrary.simpleMessage("清理旧订单"),
     "xboardClickToCopy": MessageLookupByLibrary.simpleMessage("点击复制"),
@@ -1073,6 +1086,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardGetSupport": MessageLookupByLibrary.simpleMessage("获取技术支持"),
     "xboardGettingIP": MessageLookupByLibrary.simpleMessage("获取中..."),
     "xboardGlobalNodes": MessageLookupByLibrary.simpleMessage("全球节点"),
+    "xboardGoBack": MessageLookupByLibrary.simpleMessage("返回"),
     "xboardGoToPay": MessageLookupByLibrary.simpleMessage("去支付"),
     "xboardGood": MessageLookupByLibrary.simpleMessage("良好"),
     "xboardGroup": MessageLookupByLibrary.simpleMessage("所属组"),
@@ -1207,6 +1221,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardNoOrders": MessageLookupByLibrary.simpleMessage("暂无订单"),
     "xboardNoOrdersDesc": MessageLookupByLibrary.simpleMessage("您的订单记录将在这里显示"),
+    "xboardNoPaymentMethodsAvailable": MessageLookupByLibrary.simpleMessage(
+      "暂无可用的支付方式，请检查网络或稍后重试",
+    ),
     "xboardNoServerData": MessageLookupByLibrary.simpleMessage("暂无服务器数据"),
     "xboardNoSubscriptionInfo": MessageLookupByLibrary.simpleMessage("暂无订阅信息"),
     "xboardNoSubscriptionPlans": MessageLookupByLibrary.simpleMessage("暂无套餐信息"),
@@ -1238,7 +1255,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOpenPaymentLinkFailed": MessageLookupByLibrary.simpleMessage(
       "打开支付链接失败",
     ),
+    "xboardOpenPaymentPageError": m49,
     "xboardOperationFailed": MessageLookupByLibrary.simpleMessage("操作失败"),
+    "xboardOperationFailedError": m48,
     "xboardOperationStep1": MessageLookupByLibrary.simpleMessage(
       "1. 系统已自动为您打开支付页面",
     ),
@@ -1247,6 +1266,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardOperationStep3": MessageLookupByLibrary.simpleMessage(
       "3. 支付完成后返回应用，系统将自动检测",
+    ),
+    "xboardOperationStep4": MessageLookupByLibrary.simpleMessage(
+      "4. 如需重新打开，可点击下方\"重新打开\"按钮",
     ),
     "xboardOperationTips": MessageLookupByLibrary.simpleMessage("操作提示"),
     "xboardOrderCancelled": MessageLookupByLibrary.simpleMessage("订单已取消"),
@@ -1278,6 +1300,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentCompleted": MessageLookupByLibrary.simpleMessage("支付完成！"),
     "xboardPaymentDetails": MessageLookupByLibrary.simpleMessage("支付详情"),
     "xboardPaymentFailed": MessageLookupByLibrary.simpleMessage("支付失败"),
+    "xboardPaymentFailedBalanceError": MessageLookupByLibrary.simpleMessage(
+      "支付失败: 余额支付未成功",
+    ),
+    "xboardPaymentFailedEmptyResult": MessageLookupByLibrary.simpleMessage(
+      "支付失败: 支付请求返回空结果",
+    ),
+    "xboardPaymentFailedInvalidData": MessageLookupByLibrary.simpleMessage(
+      "支付失败: 未获取到有效的支付数据",
+    ),
     "xboardPaymentFailedMessage": m41,
     "xboardPaymentGateway": MessageLookupByLibrary.simpleMessage("支付网关"),
     "xboardPaymentInfo": MessageLookupByLibrary.simpleMessage("支付信息"),
@@ -1304,6 +1335,9 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage("支付方式已验证，准备跳转到支付页面"),
     "xboardPaymentPageAutoOpened": MessageLookupByLibrary.simpleMessage(
       "1. 系统已自动为您打开支付页面",
+    ),
+    "xboardPaymentPageOpenedCopyDesc": MessageLookupByLibrary.simpleMessage(
+      "支付页面已打开，支付链接已复制到剪贴板。如果没有自动跳转，请手动粘贴到浏览器打开。",
     ),
     "xboardPaymentPageOpenedCompleteAndReturn":
         MessageLookupByLibrary.simpleMessage("支付页面已打开，请完成支付并返回应用"),
@@ -1486,6 +1520,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardSwitchNode": MessageLookupByLibrary.simpleMessage("切换节点"),
     "xboardSystemCommissionRate": MessageLookupByLibrary.simpleMessage("系统比例"),
     "xboardTapToConnect": MessageLookupByLibrary.simpleMessage("轻触即可连接"),
+    "xboardTapToCopy": MessageLookupByLibrary.simpleMessage("点击复制"),
     "xboardTaskCancelled": MessageLookupByLibrary.simpleMessage("任务已取消"),
     "xboardTestAllNodes": MessageLookupByLibrary.simpleMessage("测速全部节点"),
     "xboardTestComplete": MessageLookupByLibrary.simpleMessage("测速完成"),

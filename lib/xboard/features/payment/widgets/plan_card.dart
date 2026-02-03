@@ -135,7 +135,7 @@ class _PlanCardState extends State<PlanCard> {
                     _buildFeatureItem(
                       context,
                       Icons.devices,
-                      '不限设备数量',
+                      AppLocalizations.of(context).xboardUnlimitedDevices,
                     ),
 
                     // Description (if exists)

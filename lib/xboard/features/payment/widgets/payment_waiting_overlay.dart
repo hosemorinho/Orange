@@ -180,7 +180,7 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
   String _getStepTitle(PaymentStep step) {
     switch (step) {
       case PaymentStep.cancelingOrders:
-        return '清理旧订单';
+        return AppLocalizations.of(context).xboardClearOldOrders;
       case PaymentStep.createOrder:
         return AppLocalizations.of(context).xboardCreatingOrder;
       case PaymentStep.loadingPayment:
@@ -196,7 +196,7 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
   String _getStepDescription(PaymentStep step) {
     switch (step) {
       case PaymentStep.cancelingOrders:
-        return '正在清理之前的待支付订单...';
+        return AppLocalizations.of(context).xboardCleaningPendingOrders;
       case PaymentStep.createOrder:
         return AppLocalizations.of(context).xboardCreatingOrderPleaseWait;
       case PaymentStep.loadingPayment:
@@ -204,7 +204,7 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
       case PaymentStep.verifyPayment:
         return AppLocalizations.of(context).xboardPaymentMethodVerifiedPreparing;
       case PaymentStep.waitingPayment:
-        return '支付页面已打开，支付链接已复制到剪贴板。如果没有自动跳转，请手动粘贴到浏览器打开。';
+        return AppLocalizations.of(context).xboardPaymentPageOpenedCopyDesc;
       case PaymentStep.paymentSuccess:
         return AppLocalizations.of(context).xboardCongratulationsSubscriptionActivated;
     }

@@ -227,7 +227,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       }
 
       if (paymentMethods.isEmpty) {
-        throw Exception('暂无可用的支付方式，请检查网络或稍后重试');
+        throw Exception(AppLocalizations.of(context).xboardNoPaymentMethodsAvailable);
       }
 
       DomainPaymentMethod? selectedMethod;
@@ -252,7 +252,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       _logger.error('购买流程出错: $e');
         if (mounted) {
         PaymentWaitingManager.hide();
-        XBoardNotification.showError('操作失败: ${e.toString()}');
+        XBoardNotification.showError(AppLocalizations.of(context).xboardOperationFailedError(e.toString()));
       }
     }
   }
@@ -334,7 +334,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       );
 
     if (paymentResult == null) {
-      throw Exception('支付失败: 支付请求返回空结果');
+      throw Exception(AppLocalizations.of(context).xboardPaymentFailedEmptyResult);
     }
 
     if (!mounted) return;
@@ -352,14 +352,14 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       if (paymentData == true) {
         await _handleBalancePaymentSuccess();
       } else {
-        throw Exception('支付失败: 余额支付未成功 (data=$paymentData)');
+        throw Exception(AppLocalizations.of(context).xboardPaymentFailedBalanceError);
       }
     } else if (paymentData != null && paymentData is String && paymentData.isNotEmpty) {
       // 付费订单，data 是支付URL（String）
       PaymentWaitingManager.updateStep(PaymentStep.waitingPayment);
       await _launchPaymentUrl(paymentData, tradeNo);
     } else {
-      throw Exception('支付失败: 未获取到有效的支付数据 (type=$paymentType, data=$paymentData)');
+      throw Exception(AppLocalizations.of(context).xboardPaymentFailedInvalidData);
     }
   }
 
@@ -397,7 +397,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         final uri = Uri.parse(url);
 
         if (!await canLaunchUrl(uri)) {
-          throw Exception('无法打开支付链接');
+          throw Exception(AppLocalizations.of(context).xboardCannotOpenPaymentUrl);
         }
 
         final launched = await launchUrl(
@@ -406,14 +406,14 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         );
 
         if (!launched) {
-          throw Exception('无法启动外部浏览器');
+          throw Exception(AppLocalizations.of(context).xboardCannotLaunchBrowser);
       }
 
       _logger.debug('[支付] 支付页面已在浏览器中打开: $tradeNo');
     } catch (e) {
       if (mounted) {
         PaymentWaitingManager.hide();
-        XBoardNotification.showError('打开支付页面失败: ${e.toString()}');
+        XBoardNotification.showError(AppLocalizations.of(context).xboardOpenPaymentPageError(e.toString()));
       }
     }
   }

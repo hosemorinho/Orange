@@ -9573,6 +9573,216 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Cleaning up previous pending orders...`
+  String get xboardCleaningPendingOrders {
+    return Intl.message(
+      'Cleaning up previous pending orders...',
+      name: 'xboardCleaningPendingOrders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Payment page opened and link copied to clipboard. If not redirected automatically, please paste the link in your browser.`
+  String get xboardPaymentPageOpenedCopyDesc {
+    return Intl.message(
+      'Payment page opened and link copied to clipboard. If not redirected automatically, please paste the link in your browser.',
+      name: 'xboardPaymentPageOpenedCopyDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No payment methods available, please check your network or try again later`
+  String get xboardNoPaymentMethodsAvailable {
+    return Intl.message(
+      'No payment methods available, please check your network or try again later',
+      name: 'xboardNoPaymentMethodsAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Operation failed: {error}`
+  String xboardOperationFailedError(String error) {
+    return Intl.message(
+      'Operation failed: $error',
+      name: 'xboardOperationFailedError',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Payment failed: empty result returned`
+  String get xboardPaymentFailedEmptyResult {
+    return Intl.message(
+      'Payment failed: empty result returned',
+      name: 'xboardPaymentFailedEmptyResult',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Payment failed: balance payment unsuccessful`
+  String get xboardPaymentFailedBalanceError {
+    return Intl.message(
+      'Payment failed: balance payment unsuccessful',
+      name: 'xboardPaymentFailedBalanceError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Payment failed: invalid payment data received`
+  String get xboardPaymentFailedInvalidData {
+    return Intl.message(
+      'Payment failed: invalid payment data received',
+      name: 'xboardPaymentFailedInvalidData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cannot open payment link`
+  String get xboardCannotOpenPaymentUrl {
+    return Intl.message(
+      'Cannot open payment link',
+      name: 'xboardCannotOpenPaymentUrl',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to open payment page: {error}`
+  String xboardOpenPaymentPageError(String error) {
+    return Intl.message(
+      'Failed to open payment page: $error',
+      name: 'xboardOpenPaymentPageError',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Tap to copy`
+  String get xboardTapToCopy {
+    return Intl.message(
+      'Tap to copy',
+      name: 'xboardTapToCopy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Auto-detecting payment status`
+  String get xboardAutoDetectPaymentStatus {
+    return Intl.message(
+      'Auto-detecting payment status',
+      name: 'xboardAutoDetectPaymentStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System checks every 5 seconds, auto-redirects on payment completion`
+  String get xboardAutoCheckPaymentDesc {
+    return Intl.message(
+      'System checks every 5 seconds, auto-redirects on payment completion',
+      name: 'xboardAutoCheckPaymentDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stop`
+  String get xboardStop {
+    return Intl.message(
+      'Stop',
+      name: 'xboardStop',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Instructions`
+  String get xboardOperationTips {
+    return Intl.message(
+      'Instructions',
+      name: 'xboardOperationTips',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `4. To reopen, click the "Reopen" button below`
+  String get xboardOperationStep4 {
+    return Intl.message(
+      '4. To reopen, click the "Reopen" button below',
+      name: 'xboardOperationStep4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reopen`
+  String get xboardReopenPayment {
+    return Intl.message(
+      'Reopen',
+      name: 'xboardReopenPayment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy Link`
+  String get xboardCopyLink {
+    return Intl.message(
+      'Copy Link',
+      name: 'xboardCopyLink',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Checking...`
+  String get xboardChecking {
+    return Intl.message(
+      'Checking...',
+      name: 'xboardChecking',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check Status`
+  String get xboardCheckStatus {
+    return Intl.message(
+      'Check Status',
+      name: 'xboardCheckStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel Payment`
+  String get xboardCancelPayment {
+    return Intl.message(
+      'Cancel Payment',
+      name: 'xboardCancelPayment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Go Back`
+  String get xboardGoBack {
+    return Intl.message(
+      'Go Back',
+      name: 'xboardGoBack',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

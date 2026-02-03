@@ -829,5 +829,40 @@
   "xboardTestAllNodes": "Тестировать все узлы",
   "xboardTestComplete": "Тест завершен",
   "xboardUpdateNodes": "Обновить узлы",
-  "xboardNodesUpdated": "Узлы успешно обновлены"
+  "xboardNodesUpdated": "Узлы успешно обновлены",
+  "xboardCleaningPendingOrders": "Очистка предыдущих ожидающих заказов...",
+  "xboardPaymentPageOpenedCopyDesc": "Страница оплаты открыта, ссылка скопирована в буфер обмена. Если перенаправление не произошло автоматически, вставьте ссылку в браузер.",
+  "xboardNoPaymentMethodsAvailable": "Нет доступных способов оплаты, проверьте сеть или попробуйте позже",
+  "xboardOperationFailedError": "Операция не удалась: {error}",
+  "@xboardOperationFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardPaymentFailedEmptyResult": "Ошибка оплаты: получен пустой результат",
+  "xboardPaymentFailedBalanceError": "Ошибка оплаты: оплата балансом не удалась",
+  "xboardPaymentFailedInvalidData": "Ошибка оплаты: получены недействительные данные оплаты",
+  "xboardCannotOpenPaymentUrl": "Не удалось открыть ссылку на оплату",
+  "xboardOpenPaymentPageError": "Не удалось открыть страницу оплаты: {error}",
+  "@xboardOpenPaymentPageError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardTapToCopy": "Нажмите для копирования",
+  "xboardAutoDetectPaymentStatus": "Автоматическое определение статуса оплаты",
+  "xboardAutoCheckPaymentDesc": "Система проверяет каждые 5 секунд, автоматически перенаправляет при завершении оплаты",
+  "xboardStop": "Стоп",
+  "xboardOperationTips": "Инструкции",
+  "xboardOperationStep4": "4. Чтобы открыть снова, нажмите кнопку \"Открыть снова\" ниже",
+  "xboardReopenPayment": "Открыть снова",
+  "xboardCopyLink": "Копировать ссылку",
+  "xboardChecking": "Проверка...",
+  "xboardCheckStatus": "Проверить статус",
+  "xboardCancelPayment": "Отменить оплату",
+  "xboardGoBack": "Назад"
 }

@@ -1365,5 +1365,40 @@
   "xboardConfirm": "Confirm",
   "xboardResetting": "Resetting...",
   "xboardChanging": "Changing...",
-  "xboardPasswordMinLength": "Password must be at least 8 characters"
+  "xboardPasswordMinLength": "Password must be at least 8 characters",
+  "xboardCleaningPendingOrders": "Cleaning up previous pending orders...",
+  "xboardPaymentPageOpenedCopyDesc": "Payment page opened and link copied to clipboard. If not redirected automatically, please paste the link in your browser.",
+  "xboardNoPaymentMethodsAvailable": "No payment methods available, please check your network or try again later",
+  "xboardOperationFailedError": "Operation failed: {error}",
+  "@xboardOperationFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardPaymentFailedEmptyResult": "Payment failed: empty result returned",
+  "xboardPaymentFailedBalanceError": "Payment failed: balance payment unsuccessful",
+  "xboardPaymentFailedInvalidData": "Payment failed: invalid payment data received",
+  "xboardCannotOpenPaymentUrl": "Cannot open payment link",
+  "xboardOpenPaymentPageError": "Failed to open payment page: {error}",
+  "@xboardOpenPaymentPageError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardTapToCopy": "Tap to copy",
+  "xboardAutoDetectPaymentStatus": "Auto-detecting payment status",
+  "xboardAutoCheckPaymentDesc": "System checks every 5 seconds, auto-redirects on payment completion",
+  "xboardStop": "Stop",
+  "xboardOperationTips": "Instructions",
+  "xboardOperationStep4": "4. To reopen, click the \"Reopen\" button below",
+  "xboardReopenPayment": "Reopen",
+  "xboardCopyLink": "Copy Link",
+  "xboardChecking": "Checking...",
+  "xboardCheckStatus": "Check Status",
+  "xboardCancelPayment": "Cancel Payment",
+  "xboardGoBack": "Go Back"
 }

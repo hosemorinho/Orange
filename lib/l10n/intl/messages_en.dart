@@ -124,6 +124,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m47(traffic) => "Upload: ${traffic}";
 
+  static String m48(error) => "Operation failed: ${error}";
+
+  static String m49(error) => "Failed to open payment page: ${error}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("About"),
@@ -1249,8 +1253,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardAutoCheckEvery5Seconds": MessageLookupByLibrary.simpleMessage(
       "System checks every 5 seconds, will redirect automatically after payment",
     ),
+    "xboardAutoCheckPaymentDesc": MessageLookupByLibrary.simpleMessage(
+      "System checks every 5 seconds, auto-redirects on payment completion",
+    ),
     "xboardAutoDetectPaymentStatus": MessageLookupByLibrary.simpleMessage(
-      "Auto-detect payment status",
+      "Auto-detecting payment status",
     ),
     "xboardAutoOpeningPayment": MessageLookupByLibrary.simpleMessage(
       "Auto-opening payment page, please return to app after payment",
@@ -1301,11 +1308,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Are you sure you want to cancel this order?",
     ),
     "xboardCancelPayment": MessageLookupByLibrary.simpleMessage(
-      "Cancel payment",
+      "Cancel Payment",
     ),
     "xboardCancelledOrders": MessageLookupByLibrary.simpleMessage("Cancelled"),
     "xboardCannotLaunchBrowser": MessageLookupByLibrary.simpleMessage(
       "Cannot launch external browser",
+    ),
+    "xboardCannotOpenPaymentUrl": MessageLookupByLibrary.simpleMessage(
+      "Cannot open payment link",
     ),
     "xboardCannotOpenPaymentLink": MessageLookupByLibrary.simpleMessage(
       "Cannot open payment link",
@@ -1318,10 +1328,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "Failed to check payment status",
     ),
     "xboardCheckPaymentStatusError": m36,
-    "xboardCheckStatus": MessageLookupByLibrary.simpleMessage("Check status"),
-    "xboardChecking": MessageLookupByLibrary.simpleMessage("Checking"),
+    "xboardCheckStatus": MessageLookupByLibrary.simpleMessage("Check Status"),
+    "xboardChecking": MessageLookupByLibrary.simpleMessage("Checking..."),
     "xboardCleaningOldConfig": MessageLookupByLibrary.simpleMessage(
       "Cleaning old configuration",
+    ),
+    "xboardCleaningPendingOrders": MessageLookupByLibrary.simpleMessage(
+      "Cleaning up previous pending orders...",
     ),
     "xboardClearError": MessageLookupByLibrary.simpleMessage("Clear error"),
     "xboardClearOldOrders": MessageLookupByLibrary.simpleMessage(
@@ -1545,6 +1558,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardGettingIP": MessageLookupByLibrary.simpleMessage("Getting..."),
     "xboardGlobalNodes": MessageLookupByLibrary.simpleMessage("Global nodes"),
+    "xboardGoBack": MessageLookupByLibrary.simpleMessage("Go Back"),
     "xboardGoToPay": MessageLookupByLibrary.simpleMessage("Go to Pay"),
     "xboardGood": MessageLookupByLibrary.simpleMessage("Good"),
     "xboardGroup": MessageLookupByLibrary.simpleMessage("Group"),
@@ -1741,6 +1755,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNoOrdersDesc": MessageLookupByLibrary.simpleMessage(
       "Your order history will appear here",
     ),
+    "xboardNoPaymentMethodsAvailable": MessageLookupByLibrary.simpleMessage(
+      "No payment methods available, please check your network or try again later",
+    ),
     "xboardNoServerData": MessageLookupByLibrary.simpleMessage(
       "No server data available",
     ),
@@ -1786,9 +1803,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOpenPaymentLinkFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to open payment link",
     ),
+    "xboardOpenPaymentPageError": m49,
     "xboardOperationFailed": MessageLookupByLibrary.simpleMessage(
       "Operation failed",
     ),
+    "xboardOperationFailedError": m48,
     "xboardOperationStep1": MessageLookupByLibrary.simpleMessage(
       "1. Payment page has been opened automatically",
     ),
@@ -1798,9 +1817,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOperationStep3": MessageLookupByLibrary.simpleMessage(
       "3. Return to app after payment, system will detect automatically",
     ),
-    "xboardOperationTips": MessageLookupByLibrary.simpleMessage(
-      "Operation tips",
+    "xboardOperationStep4": MessageLookupByLibrary.simpleMessage(
+      "4. To reopen, click the \"Reopen\" button below",
     ),
+    "xboardOperationTips": MessageLookupByLibrary.simpleMessage("Instructions"),
     "xboardOrderCancelled": MessageLookupByLibrary.simpleMessage(
       "Order cancelled successfully",
     ),
@@ -1852,6 +1872,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Payment Failed",
     ),
+    "xboardPaymentFailedBalanceError": MessageLookupByLibrary.simpleMessage(
+      "Payment failed: balance payment unsuccessful",
+    ),
+    "xboardPaymentFailedEmptyResult": MessageLookupByLibrary.simpleMessage(
+      "Payment failed: empty result returned",
+    ),
+    "xboardPaymentFailedInvalidData": MessageLookupByLibrary.simpleMessage(
+      "Payment failed: invalid payment data received",
+    ),
     "xboardPaymentFailedMessage": m41,
     "xboardPaymentGateway": MessageLookupByLibrary.simpleMessage(
       "Payment gateway",
@@ -1884,6 +1913,9 @@ class MessageLookup extends MessageLookupByLibrary {
         ),
     "xboardPaymentPageAutoOpened": MessageLookupByLibrary.simpleMessage(
       "1. Payment page has been opened automatically",
+    ),
+    "xboardPaymentPageOpenedCopyDesc": MessageLookupByLibrary.simpleMessage(
+      "Payment page opened and link copied to clipboard. If not redirected automatically, please paste the link in your browser.",
     ),
     "xboardPaymentPageOpenedCompleteAndReturn":
         MessageLookupByLibrary.simpleMessage(
@@ -2026,9 +2058,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Please renew to continue using",
     ),
     "xboardReopen": MessageLookupByLibrary.simpleMessage("Reopen"),
-    "xboardReopenPayment": MessageLookupByLibrary.simpleMessage(
-      "Reopen Payment",
-    ),
+    "xboardReopenPayment": MessageLookupByLibrary.simpleMessage("Reopen"),
     "xboardReopenPaymentNote": MessageLookupByLibrary.simpleMessage(
       "To reopen, click the \"Reopen\" button below",
     ),
@@ -2172,6 +2202,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTapToConnect": MessageLookupByLibrary.simpleMessage(
       "Tap to connect",
     ),
+    "xboardTapToCopy": MessageLookupByLibrary.simpleMessage("Tap to copy"),
     "xboardTaskCancelled": MessageLookupByLibrary.simpleMessage(
       "Task cancelled",
     ),

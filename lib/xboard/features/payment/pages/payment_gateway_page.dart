@@ -60,17 +60,17 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
         mode: LaunchMode.externalApplication, // 强制在外部浏览器打开
       );
       if (!launched) {
-        throw Exception('无法启动外部浏览器');
+        throw Exception(AppLocalizations.of(context).xboardCannotLaunchBrowser);
       }
       if (mounted) {
         XBoardNotification.showInfo(isAutomatic
-            ? '正在自动打开支付页面，完成支付后请返回应用'
-            : '已在浏览器中打开支付页面，完成支付后请返回应用');
+            ? AppLocalizations.of(context).xboardAutoOpeningPayment
+            : AppLocalizations.of(context).xboardPaymentPageOpenedInBrowserNote);
         _startAutoPolling();
       }
     } catch (e) {
       if (mounted) {
-        XBoardNotification.showError('打开支付链接失败: $e');
+        XBoardNotification.showError(AppLocalizations.of(context).xboardOpenPaymentLinkError(e.toString()));
       }
     }
   }
@@ -82,7 +82,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
       }
     } catch (e) {
       if (mounted) {
-        XBoardNotification.showError('复制失败: $e');
+        XBoardNotification.showError(AppLocalizations.of(context).xboardCopyFailedError(e.toString()));
       }
     }
   }
@@ -163,7 +163,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
           }
         } else {
           if (!silent) {
-            XBoardNotification.showError('未找到订单信息');
+            XBoardNotification.showError(AppLocalizations.of(context).xboardOrderInfoNotFound);
           }
         }
       }
@@ -173,7 +173,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
           _isCheckingPayment = false;
         });
         if (!silent) {
-          XBoardNotification.showError('检查支付状态失败: $e');
+          XBoardNotification.showError(AppLocalizations.of(context).xboardCheckPaymentStatusError(e.toString()));
         }
       }
     }
@@ -203,7 +203,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('返回'),
+                        child: Text(AppLocalizations.of(context).xboardGoBack),
                       ),
                     ],
                   ),
@@ -274,7 +274,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  '点击复制',
+                                                  AppLocalizations.of(context).xboardTapToCopy,
                                                   style: TextStyle(
                                                     fontSize: 10,
                                                     color: colorScheme.primary,
@@ -320,14 +320,14 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '自动检测支付状态',
+                                        AppLocalizations.of(context).xboardAutoDetectPaymentStatus,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: colorScheme.onTertiaryContainer,
                                         ),
                                       ),
                                       Text(
-                                        '系统每5秒自动检查一次，支付完成后会自动跳转',
+                                        AppLocalizations.of(context).xboardAutoCheckPaymentDesc,
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: colorScheme.tertiary,
@@ -339,7 +339,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                                 TextButton(
                                   onPressed: _stopAutoPolling,
                                   child: Text(
-                                    '停止',
+                                    AppLocalizations.of(context).xboardStop,
                                     style: TextStyle(color: colorScheme.tertiary),
                                   ),
                                 ),
@@ -354,18 +354,18 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                '操作提示',
-                                style: TextStyle(
+                              Text(
+                                AppLocalizations.of(context).xboardOperationTips,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              const Text('1. 系统已自动为您打开支付页面'),
-                              const Text('2. 请在浏览器中完成支付操作'),
-                              const Text('3. 支付完成后返回应用，系统将自动检测'),
-                              const Text('4. 如需重新打开，可点击下方"重新打开"按钮'),
+                              Text(AppLocalizations.of(context).xboardOperationStep1),
+                              Text(AppLocalizations.of(context).xboardOperationStep2),
+                              Text(AppLocalizations.of(context).xboardOperationStep3),
+                              Text(AppLocalizations.of(context).xboardOperationStep4),
                               const SizedBox(height: 8),
                               Container(
                                 padding: const EdgeInsets.all(8),
@@ -380,7 +380,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        '提示：如果浏览器未自动打开，可以点击"重新打开"或复制链接手动打开',
+                                        AppLocalizations.of(context).xboardBrowserNotOpenedNote,
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: colorScheme.secondary,
@@ -401,7 +401,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                             child: ElevatedButton.icon(
                               onPressed: () => _launchPaymentUrl(isAutomatic: false),
                               icon: const Icon(Icons.open_in_browser),
-                              label: const Text('重新打开'),
+                              label: Text(AppLocalizations.of(context).xboardReopenPayment),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.primary,
                                 foregroundColor: colorScheme.onPrimary,
@@ -414,7 +414,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                             child: ElevatedButton.icon(
                               onPressed: _copyPaymentUrl,
                               icon: const Icon(Icons.copy),
-                              label: const Text('复制链接'),
+                              label: Text(AppLocalizations.of(context).xboardCopyLink),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.secondary,
                                 foregroundColor: colorScheme.onSecondary,
@@ -436,7 +436,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                                       ),
                                     )
                                   : const Icon(Icons.refresh),
-                              label: Text(_isCheckingPayment ? '检查中...' : '检查状态'),
+                              label: Text(_isCheckingPayment ? AppLocalizations.of(context).xboardChecking : AppLocalizations.of(context).xboardCheckStatus),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.secondary,
                                 foregroundColor: colorScheme.onSecondary,
@@ -466,7 +466,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                             child: ElevatedButton.icon(
                               onPressed: _cancelPayment,
                               icon: const Icon(Icons.cancel),
-                              label: const Text('取消支付'),
+                              label: Text(AppLocalizations.of(context).xboardCancelPayment),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.outline,
                                 foregroundColor: colorScheme.surface,

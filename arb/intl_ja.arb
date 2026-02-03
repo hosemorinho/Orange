@@ -829,5 +829,40 @@
   "xboardTestAllNodes": "すべてのノードをテスト",
   "xboardTestComplete": "テスト完了",
   "xboardUpdateNodes": "ノードを更新",
-  "xboardNodesUpdated": "ノードが正常に更新されました"
+  "xboardNodesUpdated": "ノードが正常に更新されました",
+  "xboardCleaningPendingOrders": "以前の未払い注文をクリーンアップ中...",
+  "xboardPaymentPageOpenedCopyDesc": "支払いページが開き、リンクがクリップボードにコピーされました。自動リダイレクトされない場合は、ブラウザにリンクを貼り付けてください。",
+  "xboardNoPaymentMethodsAvailable": "利用可能な支払い方法がありません。ネットワークを確認するか、後でもう一度お試しください",
+  "xboardOperationFailedError": "操作に失敗しました: {error}",
+  "@xboardOperationFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardPaymentFailedEmptyResult": "支払いに失敗しました: 空の結果が返されました",
+  "xboardPaymentFailedBalanceError": "支払いに失敗しました: 残高支払いが失敗しました",
+  "xboardPaymentFailedInvalidData": "支払いに失敗しました: 無効な支払いデータ",
+  "xboardCannotOpenPaymentUrl": "支払いリンクを開けません",
+  "xboardOpenPaymentPageError": "支払いページを開けませんでした: {error}",
+  "@xboardOpenPaymentPageError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardTapToCopy": "タップしてコピー",
+  "xboardAutoDetectPaymentStatus": "支払い状態を自動検出中",
+  "xboardAutoCheckPaymentDesc": "システムは5秒ごとに自動チェックし、支払い完了時に自動リダイレクトします",
+  "xboardStop": "停止",
+  "xboardOperationTips": "操作ガイド",
+  "xboardOperationStep4": "4. 再度開くには、下の\"再度開く\"ボタンをクリックしてください",
+  "xboardReopenPayment": "再度開く",
+  "xboardCopyLink": "リンクをコピー",
+  "xboardChecking": "確認中...",
+  "xboardCheckStatus": "状態を確認",
+  "xboardCancelPayment": "支払いをキャンセル",
+  "xboardGoBack": "戻る"
 }

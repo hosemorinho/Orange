@@ -39,7 +39,7 @@ jobs:
           cache: true
 
       - name: Get Dependencies
-        run: flutter pub get
+        run: flutter pub upgrade
 
       - name: Generate Localization Files
         run: flutter pub run intl_utils:generate

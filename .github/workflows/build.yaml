@@ -109,7 +109,7 @@ jobs:
       - name: Get Flutter Dependencies
         run: |
           flutter --version
-          flutter pub get
+          flutter pub upgrade
 
       - name: Generate XBoard Config
         shell: bash

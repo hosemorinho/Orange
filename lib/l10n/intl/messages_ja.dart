@@ -921,6 +921,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "サブスクリプションプランがありません",
     ),
     "xboardNodeName": MessageLookupByLibrary.simpleMessage("ノード名"),
+    "xboardNodesUpdated": MessageLookupByLibrary.simpleMessage(
+      "ノードが正常に更新されました",
+    ),
     "xboardNone": MessageLookupByLibrary.simpleMessage("なし"),
     "xboardNotLoggedIn": MessageLookupByLibrary.simpleMessage("未ログイン"),
     "xboardOneTimePayment": MessageLookupByLibrary.simpleMessage("一回払い"),
@@ -1107,10 +1110,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTestAllNodes": MessageLookupByLibrary.simpleMessage("すべてのノードをテスト"),
     "xboardTestComplete": MessageLookupByLibrary.simpleMessage("テスト完了"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("テスト中"),
-    "xboardUpdateNodes":
-        MessageLookupByLibrary.simpleMessage("ノードを更新"),
-    "xboardNodesUpdated": MessageLookupByLibrary.simpleMessage(
-        "ノードが正常に更新されました"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36ヶ月サイクル",
     ),
@@ -1148,6 +1147,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardUpdateContent": MessageLookupByLibrary.simpleMessage("更新内容："),
     "xboardUpdateLater": MessageLookupByLibrary.simpleMessage("後で更新"),
+    "xboardUpdateNodes": MessageLookupByLibrary.simpleMessage("ノードを更新"),
     "xboardUpdateNow": MessageLookupByLibrary.simpleMessage("今すぐ更新"),
     "xboardUpdateSubscriptionRegularly": MessageLookupByLibrary.simpleMessage(
       "定期的にサブスクリプションを更新して最新のノードを取得",

@@ -1234,6 +1234,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Нет планов подписки",
     ),
     "xboardNodeName": MessageLookupByLibrary.simpleMessage("Имя узла"),
+    "xboardNodesUpdated": MessageLookupByLibrary.simpleMessage(
+      "Узлы успешно обновлены",
+    ),
     "xboardNone": MessageLookupByLibrary.simpleMessage("Нет"),
     "xboardNotLoggedIn": MessageLookupByLibrary.simpleMessage("Не авторизован"),
     "xboardOneTimePayment": MessageLookupByLibrary.simpleMessage("Однократно"),
@@ -1475,10 +1478,6 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardTestComplete": MessageLookupByLibrary.simpleMessage("Тест завершен"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("Тестирование"),
-    "xboardUpdateNodes":
-        MessageLookupByLibrary.simpleMessage("Обновить узлы"),
-    "xboardNodesUpdated": MessageLookupByLibrary.simpleMessage(
-        "Узлы успешно обновлены"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36-месячный цикл",
     ),
@@ -1528,6 +1527,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Содержание обновления:",
     ),
     "xboardUpdateLater": MessageLookupByLibrary.simpleMessage("Обновить позже"),
+    "xboardUpdateNodes": MessageLookupByLibrary.simpleMessage("Обновить узлы"),
     "xboardUpdateNow": MessageLookupByLibrary.simpleMessage("Обновить сейчас"),
     "xboardUpdateSubscriptionRegularly": MessageLookupByLibrary.simpleMessage(
       "Регулярно обновляйте подписку для получения последних узлов",

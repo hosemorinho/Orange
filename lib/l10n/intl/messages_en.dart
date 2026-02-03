@@ -1756,6 +1756,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardNoTitle": MessageLookupByLibrary.simpleMessage("No Title"),
     "xboardNodeName": MessageLookupByLibrary.simpleMessage("Node Name"),
+    "xboardNodesUpdated": MessageLookupByLibrary.simpleMessage(
+      "Nodes updated successfully",
+    ),
     "xboardNone": MessageLookupByLibrary.simpleMessage("None"),
     "xboardNotLoggedIn": MessageLookupByLibrary.simpleMessage("Not Logged In"),
     "xboardNoticeDialogGotIt": MessageLookupByLibrary.simpleMessage("Got it"),
@@ -2177,10 +2180,6 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardTestComplete": MessageLookupByLibrary.simpleMessage("Test complete"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("Testing"),
-    "xboardUpdateNodes":
-        MessageLookupByLibrary.simpleMessage("Update nodes"),
-    "xboardNodesUpdated": MessageLookupByLibrary.simpleMessage(
-        "Nodes updated successfully"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36-month cycle",
     ),
@@ -2262,6 +2261,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Update content:",
     ),
     "xboardUpdateLater": MessageLookupByLibrary.simpleMessage("Update Later"),
+    "xboardUpdateNodes": MessageLookupByLibrary.simpleMessage("Update nodes"),
     "xboardUpdateNow": MessageLookupByLibrary.simpleMessage("Update Now"),
     "xboardUpdateSubscriptionRegularly": MessageLookupByLibrary.simpleMessage(
       "Update subscription regularly to get latest nodes",

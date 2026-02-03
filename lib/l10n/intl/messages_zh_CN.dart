@@ -1216,6 +1216,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardNoTitle": MessageLookupByLibrary.simpleMessage("无标题"),
     "xboardNodeName": MessageLookupByLibrary.simpleMessage("节点名称"),
+    "xboardNodesUpdated": MessageLookupByLibrary.simpleMessage("节点更新成功"),
     "xboardNone": MessageLookupByLibrary.simpleMessage("无"),
     "xboardNotLoggedIn": MessageLookupByLibrary.simpleMessage("未登录"),
     "xboardNoticeDialogGotIt": MessageLookupByLibrary.simpleMessage("知道了"),
@@ -1489,10 +1490,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTestAllNodes": MessageLookupByLibrary.simpleMessage("测速全部节点"),
     "xboardTestComplete": MessageLookupByLibrary.simpleMessage("测速完成"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("测试中"),
-    "xboardUpdateNodes":
-        MessageLookupByLibrary.simpleMessage("更新节点"),
-    "xboardNodesUpdated":
-        MessageLookupByLibrary.simpleMessage("节点更新成功"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage("36个月周期"),
     "xboardThreeMonthCycle": MessageLookupByLibrary.simpleMessage("3个月周期"),
     "xboardThreeYearPayment": MessageLookupByLibrary.simpleMessage("三年付"),
@@ -1542,6 +1539,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardUpdateContent": MessageLookupByLibrary.simpleMessage("更新内容："),
     "xboardUpdateLater": MessageLookupByLibrary.simpleMessage("稍后更新"),
+    "xboardUpdateNodes": MessageLookupByLibrary.simpleMessage("更新节点"),
     "xboardUpdateNow": MessageLookupByLibrary.simpleMessage("立即更新"),
     "xboardUpdateSubscriptionRegularly": MessageLookupByLibrary.simpleMessage(
       "定期更新订阅获取最新节点",

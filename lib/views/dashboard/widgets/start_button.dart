@@ -1,5 +1,7 @@
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/providers/database.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:flutter/material.dart';
@@ -14,99 +16,120 @@ class StartButton extends ConsumerStatefulWidget {
 
 class _StartButtonState extends ConsumerState<StartButton>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+  AnimationController? _controller;
   late Animation<double> _animation;
   bool isStart = false;
 
   @override
   void initState() {
     super.initState();
-    isStart = globalState.appState.runTime != null;
+    isStart = ref.read(isStartProvider);
     _controller = AnimationController(
       vsync: this,
       value: isStart ? 1 : 0,
       duration: const Duration(milliseconds: 200),
     );
     _animation = CurvedAnimation(
-      parent: _controller,
+      parent: _controller!,
       curve: Curves.easeOutBack,
     );
-    ref.listenManual(
-      runTimeProvider.select((state) => state != null),
-      (prev, next) {
-        if (next != isStart) {
-          isStart = next;
-          updateController();
-        }
-      },
-      fireImmediately: true,
-    );
+    ref.listenManual(isStartProvider, (prev, next) {
+      if (next != isStart) {
+        isStart = next;
+        updateController();
+      }
+    }, fireImmediately: true);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
+    _controller = null;
     super.dispose();
   }
 
-  handleSwitchStart() {
+  void handleSwitchStart() {
     isStart = !isStart;
     updateController();
-    debouncer.call(
-      FunctionTag.updateStatus,
-      () {
-        globalState.appController.updateStatus(isStart);
-      },
-      duration: commonDuration,
-    );
+    debouncer.call(FunctionTag.updateStatus, () {
+      appController.updateStatus(isStart, isInit: !ref.read(initProvider));
+    }, duration: commonDuration);
   }
 
-  updateController() {
+  void updateController() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (isStart) {
-        _controller.forward();
+      if (isStart && mounted) {
+        _controller?.forward();
       } else {
-        _controller.reverse();
+        _controller?.reverse();
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(startButtonSelectorStateProvider);
-    if (!state.isInit || !state.hasProfile) {
+    final hasProfile = ref.watch(
+      profilesProvider.select((state) => state.isNotEmpty),
+    );
+    if (!hasProfile) {
       return Container();
     }
-
-    final colorScheme = Theme.of(context).colorScheme;
-    // 使用 Material 3 的语义化颜色
-    // 运行时：使用 tertiary（通常是绿色系）
-    // 停止时：使用 primary（主题色）
-    final backgroundColor = isStart ? colorScheme.tertiary : colorScheme.primary;
-    final foregroundColor = isStart ? colorScheme.onTertiary : colorScheme.onPrimary;
-
-    return Center(
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          shape: BoxShape.circle,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: handleSwitchStart,
-            customBorder: const CircleBorder(),
-            child: Center(
-              child: AnimatedIcon(
-                icon: AnimatedIcons.play_pause,
-                progress: _animation,
-                size: 36,
-                color: foregroundColor,
-              ),
+    return Theme(
+      data: Theme.of(context).copyWith(
+        floatingActionButtonTheme: Theme.of(context).floatingActionButtonTheme
+            .copyWith(
+              sizeConstraints: BoxConstraints(minWidth: 56, maxWidth: 200),
             ),
-          ),
+      ),
+      child: AnimatedBuilder(
+        animation: _controller!.view,
+        builder: (_, child) {
+          final textWidth =
+              globalState.measure
+                  .computeTextSize(
+                    Text(
+                      utils.getTimeDifference(DateTime.now()),
+                      style: context.textTheme.titleMedium?.toSoftBold,
+                    ),
+                  )
+                  .width +
+              16;
+          return FloatingActionButton(
+            clipBehavior: Clip.antiAlias,
+            materialTapTargetSize: MaterialTapTargetSize.padded,
+            heroTag: null,
+            onPressed: () {
+              handleSwitchStart();
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 56,
+                  width: 56,
+                  alignment: Alignment.center,
+                  child: AnimatedIcon(
+                    icon: AnimatedIcons.play_pause,
+                    progress: _animation,
+                  ),
+                ),
+                SizedBox(width: textWidth * _animation.value, child: child!),
+              ],
+            ),
+          );
+        },
+        child: Consumer(
+          builder: (_, ref, _) {
+            final runTime = ref.watch(runTimeProvider);
+            final text = utils.getTimeText(runTime);
+            return Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.visible,
+              style: Theme.of(context).textTheme.titleMedium?.toSoftBold
+                  .copyWith(color: context.colorScheme.onPrimaryContainer),
+            );
+          },
         ),
       ),
     );

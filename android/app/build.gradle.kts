@@ -1,10 +1,12 @@
-import java.util.Base64
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 val localPropertiesFile = rootProject.file("local.properties")
@@ -18,42 +20,26 @@ val mStoreFile: File = file("keystore.jks")
 val mStorePassword: String? = localProperties.getProperty("storePassword")
 val mKeyAlias: String? = localProperties.getProperty("keyAlias")
 val mKeyPassword: String? = localProperties.getProperty("keyPassword")
-val isRelease = mStoreFile.exists()
-        && mStorePassword != null
-        && mKeyAlias != null
-        && mKeyPassword != null
+val isRelease =
+    mStoreFile.exists() && mStorePassword != null && mKeyAlias != null && mKeyPassword != null
 
-// 从 --dart-define 读取包名（Flutter 以 base64 编码传入）
-val dartDefines = (project.findProperty("dart-defines") as? String)
-    ?.split(",")
-    ?.mapNotNull { encoded ->
-        try {
-            val decoded = String(Base64.getDecoder().decode(encoded))
-            val parts = decoded.split("=", limit = 2)
-            if (parts.size == 2) parts[0] to parts[1] else null
-        } catch (_: Exception) { null }
-    }?.toMap() ?: emptyMap()
-
-val appPackageName = dartDefines["APP_PACKAGE_NAME"]?.takeIf { it.isNotEmpty() } ?: "com.follow.clash"
 
 android {
     namespace = "com.follow.clash"
-    compileSdk = 35
-    ndkVersion = "28.0.13004108"
+    compileSdk = libs.versions.compileSdk.get().toInt()
+    ndkVersion = libs.versions.ndkVersion.get()
+
+
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
     defaultConfig {
-        applicationId = appPackageName
+        applicationId = "com.follow.clash"
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -69,24 +55,38 @@ android {
         }
     }
 
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     buildTypes {
         debug {
             isMinifyEnabled = false
-            applicationIdSuffix = ".debug"
+            applicationIdSuffix = ".dev"
         }
 
         release {
             isMinifyEnabled = true
-            isDebuggable = false
-
-            // 强制使用 debug 签名，不使用 release 签名
-            signingConfig = signingConfigs.getByName("debug")
+            isShrinkResources = true
+            if (isRelease) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+                applicationIdSuffix = ".dev"
+            }
 
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
@@ -94,11 +94,16 @@ flutter {
     source = "../.."
 }
 
+
 dependencies {
-    implementation(project(":core"))
-    implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("com.android.tools.smali:smali-dexlib2:3.0.9") {
+    implementation(project(":service"))
+    implementation(project(":common"))
+    implementation(libs.core.splashscreen)
+    implementation(libs.gson)
+    implementation(libs.smali.dexlib2) {
         exclude(group = "com.google.guava", module = "guava")
     }
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics.ndk)
+    implementation(libs.firebase.analytics)
 }

@@ -7,10 +7,6 @@
   "profile": "配置",
   "profiles": "配置",
   "tools": "工具",
-  "invite": "邀请",
-  "xboard": "首页",
-  "xboardHome": "首页",
-  "userCenter": "个人中心",
   "logs": "日志",
   "logsDesc": "日志捕获记录",
   "resources": "资源",
@@ -31,9 +27,6 @@
   "more": "更多",
   "other": "其他",
   "about": "关于",
-  "domainStatusChecking": "检查中...",
-  "domainStatusAvailable": "服务可用",
-  "domainStatusUnavailable": "服务不可用",
   "en": "英语",
   "ja": "日语",
   "ru": "俄语",
@@ -136,14 +129,8 @@
   "compatibleDesc": "开启将失去部分应用能力，获得全量的Clash的支持",
   "notSelectedTip": "当前代理组无法选中",
   "tip": "提示",
-  "backupAndRecovery": "备份与恢复",
-  "backupAndRecoveryDesc": "通过WebDAV或者文件同步数据",
   "account": "账号",
   "backup": "备份",
-  "recovery": "恢复",
-  "recoveryProfiles": "仅恢复配置文件",
-  "recoveryAll": "恢复所有数据",
-  "recoverySuccess": "恢复成功",
   "backupSuccess": "备份成功",
   "noInfo": "暂无信息",
   "pleaseBindWebDAV": "请绑定WebDAV",
@@ -188,8 +175,6 @@
   "expirationTime": "到期时间",
   "connections": "连接",
   "connectionsDesc": "查看当前连接数据",
-  "plans": "套餐",
-  "onlineSupport": "在线客服",
   "intranetIP": "内网 IP",
   "view": "查看",
   "cut": "剪切",
@@ -228,9 +213,7 @@
   "local": "本地",
   "remote": "远程",
   "remoteBackupDesc": "备份数据到WebDAV",
-  "remoteRecoveryDesc": "通过WebDAV恢复数据",
   "localBackupDesc": "备份数据到本地",
-  "localRecoveryDesc": "通过文件恢复数据",
   "mode": "模式",
   "time": "时间",
   "source": "来源",
@@ -293,8 +276,8 @@
   "action_mode": "切换模式",
   "action_proxy": "系统代理",
   "action_tun": "虚拟网卡",
-  "disclaimer": "重要提示",
-  "disclaimerDesc": "本软件目前在公测阶段，如果收到更新提醒，请前往更新。旧版本容易导致服务不稳定或无法使用。",
+  "disclaimer": "免责声明",
+  "disclaimerDesc": "本软件仅供学习交流、科研等非商业性质的用途，严禁将本软件用于商业目的。如有任何商业行为，均与本软件无关。",
   "agree": "同意",
   "hotkeyManagement": "快捷键管理",
   "hotkeyManagementDesc": "使用键盘控制应用程序",
@@ -349,6 +332,8 @@
   "none": "无",
   "basicConfig": "基本配置",
   "basicConfigDesc": "全局修改基本配置",
+  "advancedConfig": "进阶配置",
+  "advancedConfigDesc": "提供多样化配置",
   "selectedCountTitle": "已选择 {count} 项",
   "addRule": "添加规则",
   "ruleName": "规则名称",
@@ -389,9 +374,9 @@
   "systemApp": "系统应用",
   "noNetworkApp": "无网络应用",
   "contactMe": "联系我",
-  "recoveryStrategy": "恢复策略",
-  "recoveryStrategy_override": "覆盖",
-  "recoveryStrategy_compatible": "兼容",
+  "restoreStrategy": "恢复策略",
+  "restoreStrategy_override": "覆盖",
+  "restoreStrategy_compatible": "兼容",
   "logsTest": "日志测试",
   "emptyTip": "{label}不能为空",
   "urlTip": "{label}必须为URL",
@@ -417,1045 +402,80 @@
   "importFile": "通过文件导入",
   "importUrl": "通过URL导入",
   "autoSetSystemDns": "自动设置系统DNS",
-  "xboardLogin": "登录",
-  "xboardRegister": "注册",
-  "xboardLogout": "登出",
-  "xboardEmail": "邮箱",
-  "xboardPassword": "密码",
-  "xboardConfirmPassword": "确认密码",
-  "xboardInviteCode": "邀请码",
-  "xboardRememberPassword": "记住密码",
-  "xboardForgotPassword": "忘记密码",
-  "xboardLoginSuccess": "登录成功",
-  "xboardLoginFailed": "登录失败",
-  "xboardRegisterSuccess": "注册成功！正在跳转到登录页面...",
-  "xboardRegisterFailed": "注册失败",
-  "xboardLogoutConfirmTitle": "确认登出",
-  "xboardLogoutConfirmContent": "您确定要登出吗？登出后需要重新输入账号密码。",
-  "xboardLogoutSuccess": "已成功登出",
-  "xboardLogoutFailed": "登出失败",
-  "xboardTokenExpiredTitle": "登录已过期",
-  "xboardTokenExpiredContent": "您的登录状态已过期，请重新登录以继续使用。",
-  "xboardRelogin": "重新登录",
-  "xboardCancel": "取消",
-  "xboardConfirm": "确认",
-  "xboardPlans": "套餐",
-  "xboardSubscription": "订阅",
-  "xboardCurrentNode": "当前节点",
-  "xboardNodeName": "节点名称",
-  "xboardGroup": "所属组",
-  "xboardProfile": "配置文件",
-  "xboardLocalIP": "本机IP",
-  "xboardGettingIP": "获取中...",
-  "xboardUnknownUser": "未知用户",
-  "xboardLoggedIn": "已登录",
-  "xboardNotLoggedIn": "未登录",
-  "xboardUnselected": "未选择",
-  "xboardNone": "无",
-  "xboardPlanInfo": "套餐信息",
-  "xboardSubscriptionPurchase": "订阅购买",
-  "xboardBuyNow": "立即购买",
-  "xboardRetry": "重试",
-  "xboardRefresh": "刷新",
-  "xboardCopyLink": "复制链接",
-  "xboardSubscriptionCopied": "订阅链接已复制到剪贴板",
-  "xboardReload": "重新获取",
-  "xboardProcessing": "处理中...",
-  "xboardSelectPeriod": "请选择购买周期",
-  "xboardOperationFailed": "操作失败",
-  "xboardOpenPaymentFailed": "打开支付页面失败",
-  "xboardPaymentInstructions1": "1. 系统已自动为您打开支付页面",
-  "xboardPaymentInstructions2": "2. 请在浏览器中完成支付操作",
-  "xboardPaymentInstructions3": "3. 支付完成后返回应用，系统将自动检测",
-  "xboardOrderNumber": "订单号",
-  "xboardReopenPayment": "重新打开",
-  "xboardCopyPaymentLink": "复制链接",
-  "xboardPaymentComplete": "支付完成",
-  "xboardCancelPayment": "取消支付",
-  "xboardPaymentSuccess": "支付成功",
-  "xboardPaymentCancelled": "支付已取消",
-  "xboardOrderNotFound": "订单不存在",
-  "xboardCheckPaymentFailed": "检查支付状态失败",
-  "xboardPaymentCompleted": "支付完成！",
-  "xboardBack": "返回",
-  "xboardCopyFailed": "复制失败",
-  "xboardPaymentLinkCopied": "支付链接已复制到剪贴板",
-  "xboardOpenPaymentLinkFailed": "打开支付链接失败",
-  "xboardSendVerificationCode": "发送验证码",
-  "xboardEnableTun": "开启 TUN",
-  "xboardPrevious": "上一条",
-  "xboardNext": "下一条",
-  "xboardLater": "稍后处理",
-  "xboardClearError": "清除错误",
-  "xboardUpdateLater": "稍后更新",
-  "xboardForceUpdate": "强制更新",
-  "xboardNewVersionFound": "发现新版本",
-  "xboardCurrentVersion": "当前版本",
-  "xboardUpdateContent": "更新内容：",
-  "xboardMustUpdate": "必须更新",
-  "xboardUpdateNow": "立即更新",
-  "xboardNoSubscriptionInfo": "暂无订阅信息",
-  "xboardLoginToViewSubscription": "请登录后查看套餐使用情况",
-  "xboardNoAvailableSubscription": "无可用套餐",
-  "xboardPurchaseSubscriptionToUse": "请购买套餐后使用",
-  "xboardSubscriptionExpired": "订阅已过期",
-  "xboardRenewToContinue": "请续费后继续使用",
-  "xboardTrafficExhausted": "流量耗尽",
-  "xboardBuyMoreTrafficOrUpgrade": "请购买更多流量或升级套餐",
-  "xboardExpiryTime": "过期时间",
-  "xboardUsed": "已用",
-  "xboardUsedTraffic": "已用",
-  "xboardValidityPeriod": "有效期",
-  "xboardDays": "天",
-  "xboardMonthlyPayment": "月付",
-  "xboardMonthlyRenewal": "每月续费",
-  "xboardQuarterlyPayment": "季付",
-  "xboardThreeMonthCycle": "3个月周期",
-  "xboardHalfYearlyPayment": "半年付",
-  "xboardSixMonthCycle": "6个月周期",
-  "xboardYearlyPayment": "年付",
-  "xboardTwelveMonthCycle": "12个月周期",
-  "xboardTwoYearPayment": "两年付",
-  "xboardTwentyFourMonthCycle": "24个月周期",
-  "xboardThreeYearPayment": "三年付",
-  "xboardThirtySixMonthCycle": "36个月周期",
-  "xboardOneTimePayment": "一次性",
-  "xboardBuyoutPlan": "买断制",
-  "xboardPleaseSelectPaymentPeriod": "请选择购买周期",
-  "xboardOrderCreationFailed": "创建订单失败",
-  "xboardFailedToOpenPaymentPage": "打开支付页面失败",
-  "xboardSelectPaymentPeriod": "选择购买周期",
-  "xboardSelectPaymentMethod": "选择支付方式",
-  "xboardHandlingFee": "手续费",
-  "xboardCouponNotYetActive": "优惠券尚未生效",
-  "xboardCouponExpired": "优惠券已过期",
-  "xboardUnsupportedCouponType": "不支持的优惠券类型",
-  "xboardInvalidOrExpiredCoupon": "优惠券代码无效或已过期",
-  "xboardValidationFailed": "验证失败",
-  "xboardAccountBalance": "账户余额",
-  "xboardDeductibleDuringPayment": "支付时可抵扣",
-  "xboardCouponOptional": "优惠券（可选）",
-  "xboardDiscounted": "已优惠",
-  "xboardEnterCouponCode": "请输入优惠券代码",
-  "xboardVerify": "核验",
-  "xboardPurchaseSubscription": "购买套餐",
-  "xboardTraffic": "流量",
-  "xboardSpeedLimit": "限速",
-  "xboardUnlimited": "不限速",
-  "xboardConfirmPurchase": "确认购买",
-  "xboardAutoOpeningPaymentPage": "正在自动打开支付页面，完成支付后请返回应用",
-  "xboardPaymentPageOpenedInBrowser": "已在浏览器中打开支付页面，完成支付后请返回应用",
-  "xboardFailedToOpenPaymentLink": "打开支付链接失败",
-  "xboardPaymentSuccessful": "🎉 支付成功！",
-  "xboardWaitingForPayment": "正在等待支付...",
-  "xboardOrderStatusPending": "订单状态：待支付",
-  "xboardFailedToCheckPaymentStatus": "检查支付状态失败",
-  "xboardPaymentGateway": "支付网关",
-  "xboardReturn": "返回",
-  "xboardPaymentInfo": "支付信息",
-  "xboardPaymentLink": "支付链接",
-  "xboardClickToCopy": "点击复制",
-  "xboardAutoDetectPaymentStatus": "自动检测支付状态",
-  "xboardAutoCheckEvery5Seconds": "系统每5秒自动检查一次，支付完成后会自动跳转",
-  "xboardStop": "停止",
-  "xboardOperationTips": "操作提示",
-  "xboardPaymentPageAutoOpened": "1. 系统已自动为您打开支付页面",
-  "xboardCompletePaymentInBrowser": "2. 请在浏览器中完成支付操作",
-  "xboardReturnAfterPaymentAutoDetect": "3. 支付完成后返回应用，系统将自动检测",
-  "xboardReopenPaymentPageTip": "如需重新打开，可点击下方\\\"重新打开\\\"按钮",
-  "xboardBrowserNotOpenedTip": "如果浏览器未自动打开，可以点击\\\"重新打开\\\"或复制链接手动打开",
-  "xboardReopen": "重新打开",
-  "xboardChecking": "检查中",
-  "xboardCheckStatus": "检查状态",
-  "xboardCreatingOrder": "正在创建订单",
-  "xboardLoadingPaymentPage": "正在加载支付页面",
-  "xboardPaymentMethodVerified": "支付方式验证通过",
-  "xboardWaitingPaymentCompletion": "等待支付完成",
-  "xboardCreatingOrderPleaseWait": "我们正在为您创建新订单，请稍候",
-  "xboardPreparingPaymentPage": "正在准备支付页面，即将跳转",
-  "xboardPaymentMethodVerifiedPreparing": "支付方式已验证，准备跳转到支付页面",
-  "xboardPaymentPageOpenedCompleteAndReturn": "支付页面已打开，请完成支付并返回应用",
-  "xboardCongratulationsSubscriptionActivated": "恭喜！您的套餐已成功购买并生效",
-  "xboardHandleLater": "稍后再说",
-  "xboardSubscriptionLinkCopied": "订阅链接已复制到剪贴板",
-  "xboardSubscriptionInfo": "订阅信息",
-  "xboardFailedToGetSubscriptionInfo": "获取订阅信息失败",
-  "xboardRetryGet": "重新获取",
-  "xboardSubscriptionLink": "订阅链接",
-  "xboardUsageInstructions": "使用说明",
-  "xboardCopySubscriptionLinkAbove": "复制上方的订阅链接",
-  "xboardAddLinkToConfig": "在配置文件中添加此订阅链接",
-  "xboardUpdateSubscriptionRegularly": "定期更新订阅获取最新节点",
-  "xboardKeepSubscriptionLinkSafe": "请妥善保管您的订阅链接，不要分享给他人",
-  "xboardLoadingFailed": "加载失败",
-  "xboardNoSubscriptionPlans": "暂无套餐信息",
-  "xboardConnectionTimeout": "连接超时，请检查网络连接",
-  "xboardNoInternetConnection": "无网络连接，请检查网络设置",
-  "xboardServerError": "服务器错误",
-  "xboardInvalidCredentials": "用户名或密码错误",
-  "xboardLoginExpired": "登录已过期，请重新登录",
-  "xboardUnauthorizedAccess": "未授权访问，请先登录",
-  "xboardPlanNotFound": "套餐不存在",
-  "xboardPaymentFailed": "支付失败",
-  "xboardInsufficientBalance": "余额不足",
-  "xboardInvalidResponseFormat": "服务器返回数据格式错误",
-  "xboardMissingRequiredField": "缺少必要字段",
-  "xboardApiUrlNotConfigured": "API地址未配置",
-  "xboardConfigurationError": "配置错误",
-  "xboardTesting": "测试中",
-  "xboardAutoTesting": "自动测试中",
-  "xboardTimeout": "超时",
-  "xboardExcellent": "优秀",
-  "xboardGood": "良好",
-  "xboardFair": "一般",
-  "xboardPoor": "较差",
-  "xboardVeryPoor": "很差",
-  "xboardPreparingImport": "准备导入配置",
-  "xboardCleaningOldConfig": "清理旧配置",
-  "xboardDownloadingConfig": "下载配置文件",
-  "xboardValidatingConfigFormat": "验证配置格式",
-  "xboardAddingToConfigList": "添加到配置列表",
-  "xboardImportSuccess": "配置导入成功",
-  "xboardImportFailed": "配置导入失败",
-  "xboardNetworkConnectionFailed": "网络连接失败，请检查网络设置",
-  "xboardConfigDownloadFailed": "配置文件下载失败，请检查订阅链接",
-  "xboardConfigFormatError": "配置文件格式错误，请联系服务提供商",
-  "xboardConfigSaveFailed": "保存配置失败，请检查存储空间",
-  "xboardUnknownErrorRetry": "未知错误，请重试",
-  "xboardProxyMode": "代理模式",
-  "xboardProxyModeRuleDescription": "根据规则自动选择直连或代理",
-  "xboardProxyModeGlobalDescription": "所有流量都通过代理服务器",
-  "xboardProxyModeDirectDescription": "所有流量都直接连接，不使用代理",
-  "xboardTunEnabled": "TUN已启用",
-  "xboardNoAvailableNodes": "无可用节点",
-  "xboardClickToSetupNodes": "点击设置节点",
-  "xboardProxy": "代理",
-  "xboardSwitch": "切换",
-  "xboardSetup": "设置",
-  "xboardConnected": "已连接",
-  "xboardDisconnected": "已断开",
-  "xboardSwitchNode": "切换节点",
-  "xboardNoAvailablePlan": "无可用套餐",
-  "xboardSubscriptionHasExpired": "订阅已过期",
-  "xboardTrafficUsedUp": "流量已用完",
-  "xboardSubscriptionStatus": "订阅状态",
-  "xboardRefreshStatus": "刷新状态",
-  "xboardPurchasePlan": "购买套餐",
-  "xboardRenewPlan": "续费套餐",
-  "xboardPurchaseTraffic": "购买流量",
-  "xboardConfirmAction": "确定",
-  "xboardAfterPurchasingPlan": "购买套餐后您将享受：",
-  "xboardHighSpeedNetwork": "高速网络",
-  "xboardEnjoyFastNetworkExperience": "享受极速网络体验",
-  "xboardSecureEncryption": "安全加密",
-  "xboardProtectNetworkPrivacy": "保护您的网络隐私",
-  "xboardGlobalNodes": "全球节点",
-  "xboardConnectGlobalQualityNodes": "连接全球优质节点",
-  "xboardProfessionalSupport": "专业客服",
-  "xboard24HourCustomerService": "24小时客服支持",
-  "xboardStartProxy": "启动代理",
-  "xboardStopProxy": "停止代理",
-  "xboardRunningTime": "运行时间: {time}",
-  "@xboardRunningTime": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardTapToConnect": "轻触即可连接",
-  "xboardUnlimitedTime": "不限时",
-  "xboardNoticeDialogGotIt": "知道了",
-  "subscriptionNotLoggedIn": "未登录",
-  "subscriptionNotLoggedInDetail": "请先登录账户",
-  "subscriptionNoSubscription": "无订阅套餐",
-  "subscriptionNoSubscriptionDetail": "当前账户暂无可用的订阅套餐，请购买套餐后使用",
-  "subscriptionExpired": "订阅已过期",
-  "subscriptionExpiredDetail": "套餐已于 {date} 过期，请续费后继续使用",
-  "@subscriptionExpiredDetail": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "subscriptionExpiresToday": "订阅今日过期",
-  "subscriptionExpiresTodayDetail": "套餐将在今日过期，请立即续费以免影响使用",
-  "subscriptionExpiringInDays": "订阅即将过期",
-  "subscriptionExpiringInDaysDetail": "套餐将在 {days} 天后过期，建议及时续费",
-  "@subscriptionExpiringInDaysDetail": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
-  "subscriptionTrafficExhausted": "流量已用完",
-  "subscriptionTrafficExhaustedDetail": "套餐流量已用完，请购买更多流量或升级套餐",
-  "subscriptionValid": "订阅有效",
-  "subscriptionValidDetail": "订阅将在 {days} 天后过期",
-  "@subscriptionValidDetail": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
-  "forgotPassword": "忘记密码",
-  "resetPassword": "重置密码",
-  "setNewPassword": "设置新密码",
-  "enterEmailForReset": "请输入您的邮箱地址，我们会发送验证码到您的邮箱",
-  "verificationCodeSent": "验证码已发送到您的邮箱，请查收",
-  "sendCodeFailed": "发送验证码失败",
-  "verificationCodeSentTo": "验证码已发送到 {email}，请查收并输入验证码和新密码",
-  "@verificationCodeSentTo": {
-    "placeholders": {
-      "email": {
-        "type": "String"
-      }
-    }
-  },
-  "emailAddress": "邮箱地址",
-  "pleaseEnterEmail": "请输入邮箱地址",
-  "pleaseEnterValidEmail": "请输入有效的邮箱地址",
-  "sendVerificationCode": "发送验证码",
-  "verificationCode": "验证码",
-  "pleaseEnterVerificationCode": "请输入邮箱验证码",
-  "pleaseEnterValidVerificationCode": "请输入有效的验证码",
-  "newPassword": "新密码",
-  "pleaseEnterNewPassword": "请输入新密码",
-  "confirmNewPassword": "确认新密码",
-  "pleaseConfirmNewPassword": "请再次输入新密码",
-  "passwordMismatch": "两次输入的密码不一致",
-  "passwordResetSuccessful": "密码重置成功！请使用新密码登录",
-  "passwordResetFailed": "密码重置失败",
-  "resendVerificationCode": "重新发送验证码",
-  "rememberPassword": "记起密码了？",
-  "backToLogin": "返回登录",
-  "passwordMinLength": "密码长度至少6位",
-  "registerSuccessSaveCredentials": "注册成功 - 保存凭据:",
-  "credentialsSaved": "凭据已保存",
-  "registrationFailed": "注册失败: {e}",
-  "@registrationFailed": {
-    "placeholders": {
-      "e": {
-        "type": "String"
-      }
-    }
-  },
-  "pleaseEnterEmailAddress": "请先输入邮箱地址",
-  "pleaseEnterValidEmailAddress": "请输入有效的邮箱地址",
-  "verificationCodeSentCheckEmail": "验证码已发送，请查收邮箱",
-  "sendVerificationCodeFailed": "发送验证码失败: {e}",
-  "@sendVerificationCodeFailed": {
-    "placeholders": {
-      "e": {
-        "type": "String"
-      }
-    }
-  },
-  "inviteCodeRequired": "需要邀请码",
-  "inviteCodeRequiredMessage": "注册需要邀请码，请联系已注册用户获取邀请码后再进行注册。",
-  "iUnderstand": "我知道了",
-  "createAccount": "创建账号",
-  "fillInfoToRegister": "请填写以下信息完成注册",
-  "pleaseEnterYourEmailAddress": "请输入您的邮箱地址",
-  "pleaseEnterAtLeast8CharsPassword": "请输入至少8位密码",
-  "pleaseEnterPassword": "请输入密码",
-  "passwordMin8Chars": "密码至少需要8位字符",
-  "pleaseConfirmPassword": "请确认密码",
-  "pleaseReEnterPassword": "请再次输入密码",
-  "passwordsDoNotMatch": "两次输入的密码不一致",
-  "emailVerificationCode": "邮箱验证码",
-  "pleaseEnterEmailVerificationCode": "请输入邮箱验证码",
-  "verificationCode6Digits": "验证码应为6位数字",
-  "inviteCode": "邀请码",
-  "pleaseEnterInviteCode": "请输入邀请码",
-  "inviteCodeOptional": "邀请码（可选）",
-  "inviteCodeIncorrect": "邀请码可能不正确，请检查后重新输入",
+  "details": "{label}详情",
+  "creationTime": "创建时间",
+  "process": "进程",
+  "host": "主机",
+  "destination": "目标地址",
+  "destinationGeoIP": "目标地理定位",
+  "destinationIPASN": "目标IP ASN",
+  "specialProxy": "特殊代理",
+  "specialRules": "特殊规则",
+  "remoteDestination": "远程目标",
+  "networkType": "网络类型",
+  "proxyChains": "代理链",
+  "log": "日志",
+  "connection": "连接",
+  "request": "请求",
+  "connected": "已连接",
+  "disconnected": "已断开",
+  "connecting": "连接中...",
+  "restartCoreTip": "您确定要重启核心吗？",
+  "forceRestartCoreTip": "您确定要强制重启核心吗？",
+  "dnsHijacking": "DNS劫持",
+  "coreStatus": "核心状态",
+  "dataCollectionTip": "数据收集说明",
+  "dataCollectionContent": "本应用使用 Firebase Crashlytics 收集崩溃信息以改进应用稳定性。\n收集的数据包括设备信息和崩溃详情，不包含个人敏感数据。\n您可以在设置中关闭此功能。",
+  "crashlytics": "崩溃分析",
+  "crashlyticsTip": "开启后，应用崩溃时自动上传不包含敏感信息的崩溃日志",
+  "appendSystemDns": "追加系统DNS",
+  "appendSystemDnsTip": "强制为配置附加系统DNS",
+  "editRule": "编辑规则",
+  "overrideMode": "覆写模式",
+  "standardModeDesc": "标准模式，覆写基本配置，提供简单追加规则能力",
+  "scriptModeDesc": "脚本模式，使用外部扩展脚本，提供一键覆写配置的能力",
+  "addedRules": "附加规则",
+  "controlGlobalAddedRules": "控制全局附加规则",
+  "overrideScript": "覆写脚本",
+  "goToConfigureScript": "前往配置脚本",
+  "editGlobalRules": "编辑全局规则",
+  "externalFetch": "外部获取",
+  "confirmForceCrashCore": "确定要强制崩溃核心？",
+  "confirmClearAllData": "确定要清除所有数据？",
   "loading": "加载中...",
-  "registerAccount": "注册账号",
-  "alreadyHaveAccount": "已有账号？",
-  "loginNow": "立即登录",
-  "noAccount": "还没有账号？",
-  "inviteRules": "邀请规则",
-  "inviteRegisterReward": "邀请好友注册并成功订阅，即可获得佣金奖励",
-  "friendInviteReward": "好友邀请的人成功消费，您也能赚取佣金",
-  "currentCommissionRate": "当前综合佣金返利比例：{rate}%",
-  "@currentCommissionRate": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
-  "commissionSettled": "佣金将在好友订阅成功后结算到账户",
-  "withdrawalAvailable": "可用佣金可申请提现",
-  "myInviteQr": "我的邀请二维码",
-  "saveQr": "保存二维码",
-  "copyInviteLink": "复制邀请链接",
-  "generatingInviteCode": "正在生成邀请码...",
-  "inviteCodeGenFailed": "邀请码生成失败",
-  "checkNetwork": "请检查网络连接后重试",
-  "inviteStats": "邀请统计",
-  "totalInvites": "总邀请数",
-  "commissionRate": "佣金比例",
-  "totalCommission": "累计佣金",
-  "walletDetails": "钱包详情",
-  "transfer": "划转",
-  "availableCommission": "可用佣金",
-  "pendingCommission": "待确认佣金",
-  "walletBalance": "钱包余额",
-  "commissionHistory": "佣金历史",
-  "withdraw": "提现",
-  "noCommissionRecord": "暂无佣金记录",
-  "viewHistory": "查看历史记录",
-  "loadMore": "加载更多",
-  "copiedToClipboard": "已复制到剪贴板",
-  "saveQrCodeFeature": "保存二维码功能开发中，敬请期待",
-  "inviteLinkCopied": "邀请链接已复制，可分享给好友",
-  "withdrawCommission": "提现佣金",
-  "withdrawableAmount": "可提现金额: {amount}",
-  "@withdrawableAmount": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "visitWebVersion": "请前往网页版提交提现申请",
-  "completeWithdrawal": "网页版提供更完整的提现功能和支付方式选择",
-  "goToWeb": "前往网页",
-  "cannotOpenBrowser": "无法打开浏览器，请手动访问网页版",
-  "openWebFailed": "打开网页失败，请手动访问网页版",
-  "cannotGetWebUrl": "无法获取网页地址，请联系客服",
-  "transferToWallet": "划转到钱包",
-  "transferSuccess": "划转成功！",
-  "transferring": "正在划转...",
-  "transferAmount": "划转金额",
-  "enterTransferAmount": "请输入划转金额",
-  "maxTransferable": "最大可划转: ¥{amount}",
-  "@maxTransferable": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "transferNote": "划转到钱包的余额可以抵扣app内消费",
-  "confirmTransfer": "确认划转",
-  "enterTransferAmountError": "请输入划转金额",
-  "invalidTransferAmount": "请输入有效的划转金额",
-  "transferAmountExceeded": "划转金额不能超过 ¥{amount}",
-  "@transferAmountExceeded": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "transferSuccessMsg": "划转成功！已划转 ¥{amount} 到钱包",
-  "@transferSuccessMsg": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "transferFailed": "划转失败：{error}",
-  "@transferFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "totalRecords": "共 {count} 条记录",
-  "@totalRecords": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "pageNumber": "第 {page} 页",
-  "@pageNumber": {
-    "placeholders": {
-      "page": {
-        "type": "int"
-      }
-    }
-  },
-  "orderNumber": "订单: {orderNo}",
-  "@orderNumber": {
-    "placeholders": {
-      "orderNo": {
-        "type": "String"
-      }
-    }
-  },
-  "orderAmount": "订单金额: {amount}",
-  "@orderAmount": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "close": "关闭",
-  "refresh": "刷新",
-  "switchTheme": "切换主题",
-  "logout": "登出",
-  "selectTheme": "选择主题",
-  "confirmLogout": "确认登出",
-  "logoutConfirmMsg": "确定要登出当前账户吗？登出后需要重新登录。",
-  "loggedOutSuccess": "已成功登出",
-  "logoutFailed": "登出失败：{error}",
-  "@logoutFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "complete": "完成",
-  "noInvitationData": "暂无邀请数据",
-  "updateCheckForceUpdate": "强制更新: {version}",
-  "@updateCheckForceUpdate": {
-    "placeholders": {
-      "version": {
-        "type": "String"
-      }
-    }
-  },
-  "updateCheckNewVersionFound": "发现新版本: {version}",
-  "@updateCheckNewVersionFound": {
-    "placeholders": {
-      "version": {
-        "type": "String"
-      }
-    }
-  },
-  "updateCheckCurrentVersion": "当前版本: {version}",
-  "@updateCheckCurrentVersion": {
-    "placeholders": {
-      "version": {
-        "type": "String"
-      }
-    }
-  },
-  "updateCheckReleaseNotes": "更新内容：",
-  "updateCheckUpdateLater": "稍后更新",
-  "updateCheckMustUpdate": "必须更新",
-  "updateCheckUpdateNow": "立即更新",
-  "updateCheckServerUrlNotConfigured": "未配置更新服务器URL，请检查配置",
-  "updateCheckNoServerUrlsConfigured": "未配置任何更新服务器URL，请检查配置",
-  "updateCheckAllServersUnavailable": "所有配置的更新服务器都不可用",
-  "updateCheckServerError": "服务器返回错误状态码 {statusCode}",
-  "@updateCheckServerError": {
-    "placeholders": {
-      "statusCode": {
-        "type": "int"
-      }
-    }
-  },
-  "updateCheckServerTemporarilyUnavailable": "服务器暂时不可用，请稍后重试",
-  "onlineSupportTitle": "在线客服",
-  "onlineSupportConnected": "成功连接客服系统",
-  "onlineSupportConnecting": "连接中...",
-  "onlineSupportDisconnected": "已断开",
-  "onlineSupportConnectionError": "连接错误",
-  "onlineSupportNoMessages": "暂无消息，发送消息开始咨询",
-  "onlineSupportInputHint": "请输入您的问题...",
-  "onlineSupportSendImage": "发送图片",
-  "onlineSupportClearHistory": "清除历史记录",
-  "onlineSupportClearHistoryConfirm": "确定要清除所有聊天历史记录吗？此操作不可恢复。",
-  "onlineSupportCancel": "取消",
-  "onlineSupportConfirm": "确定",
-  "onlineSupportSelectImages": "选择图片",
-  "onlineSupportClickToSelect": "点击选择图片",
-  "onlineSupportSupportedFormats": "支持 JPG, PNG, GIF, WebP, BMP\n最大 10MB",
-  "onlineSupportAddMore": "添加更多",
-  "onlineSupportSend": "发送",
-  "onlineSupportSelectImagesFailed": "选择图片失败: {error}",
-  "@onlineSupportSelectImagesFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "onlineSupportUploadFailed": "上传失败: {error}",
-  "@onlineSupportUploadFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "onlineSupportApiConfigNotFound": "在线客服API配置未找到，请检查配置",
-  "onlineSupportUnsupportedHttpMethod": "不支持的HTTP方法: {method}",
-  "@onlineSupportUnsupportedHttpMethod": {
-    "placeholders": {
-      "method": {
-        "type": "String"
-      }
-    }
-  },
-  "onlineSupportSendMessageFailed": "发送消息失败: 无法获取认证token",
-  "onlineSupportTokenNotFound": "未找到认证token",
-  "onlineSupportGetMessagesFailed": "获取消息失败: {statusCode}",
-  "@onlineSupportGetMessagesFailed": {
-    "placeholders": {
-      "statusCode": {
-        "type": "int"
-      }
-    }
-  },
-  "contactSupport": "联系客服",
-  "configurationError": "应用配置异常，请联系客服",
-  "onlineSupportWebSocketConfigNotFound": "在线客服WebSocket配置未找到，请检查配置",
-  "newMessageFromSupport": "客服新消息",
-  "emailPrefixHint": "邮箱前缀",
-  "pleaseEnterEmailPrefix": "请输入邮箱前缀",
-  "invalidEmailFormat": "邮箱格式不正确",
-  "pleaseSelectEmailSuffix": "请选择邮箱后缀",
-  "pleaseSelectSuffix": "请选择后缀",
-  "fullEmailPreview": "完整邮箱: {email}",
-  "@fullEmailPreview": {
-    "placeholders": {
-      "email": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardSearchNode": "搜索节点",
-  "xboardSettings": "设置",
-  "xboardNetworkSettings": "网络设置",
-  "xboardBypassDomain": "排除域名/IP",
-  "xboardBypassDomainDesc": "添加不走代理的域名和IP段",
-  "xboardBypassDomainCount": "已添加 {count} 项规则",
-  "@xboardBypassDomainCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "xboardLanSharing": "局域网代理共享",
-  "xboardLanSharingDesc": "允许局域网设备通过本机代理上网",
-  "xboardProxyInfo": "代理信息",
-  "xboardProxyCommands": "设置代理命令",
-  "xboardCopied": "已复制",
-  "xboardProxyPort": "代理端口",
-  "xboardAllowLan": "共享到局域网",
-  "xboardAccountSettings": "账户设置",
-  "xboardAccountInfo": "账户信息",
-  "xboardMemberSince": "注册于",
-  "xboardCommissionBalance": "佣金余额",
-  "xboardCommissionRate": "佣金比例",
-  "xboardNotifications": "通知设置",
-  "xboardRemindExpire": "套餐到期提醒",
-  "xboardRemindTraffic": "流量不足提醒",
-  "xboardSecurity": "安全设置",
-  "xboardChangePassword": "修改密码",
-  "xboardResetSubscription": "重置订阅",
-  "xboardResetSubscriptionDesc": "将生成新的订阅链接并使旧链接失效",
-  "xboardPreferences": "偏好设置",
-  "xboardQuickActions": "快捷操作",
-  "xboardBrowsePlans": "浏览可用套餐",
-  "xboardMyOrders": "我的订单",
-  "xboardViewOrders": "查看订单历史",
-  "xboardSupportTickets": "工单支持",
-  "xboardGetSupport": "获取技术支持",
-  "xboardInviteFriends": "邀请好友",
-  "xboardEarnCommission": "邀请返佣奖励",
-  "xboardComingSoon": "即将推出",
-  "xboardOrderHistory": "订单历史",
-  "xboardOrderHistoryDesc": "查看和管理您的订单记录",
-  "xboardAllOrders": "全部",
-  "xboardPendingOrders": "待支付",
-  "xboardProcessingOrders": "开通中",
-  "xboardCompletedOrders": "已完成",
-  "xboardCancelledOrders": "已取消",
-  "xboardNoOrders": "暂无订单",
-  "xboardNoOrdersDesc": "您的订单记录将在这里显示",
-  "xboardOrderDetails": "订单详情",
-  "xboardOrderInfo": "订单信息",
-  "xboardTradeNo": "订单号",
-  "xboardPeriod": "周期",
-  "xboardTotalAmount": "订单金额",
-  "xboardBalanceAmount": "余额支付",
-  "xboardRefundAmount": "退款金额",
-  "xboardDiscountAmount": "折扣金额",
-  "xboardSurplusAmount": "剩余金额",
-  "xboardCreatedAt": "创建时间",
-  "xboardDetail": "详情",
-  "xboardPay": "支付",
-  "xboardCancelOrder": "取消订单",
-  "xboardCancelOrderConfirm": "确定要取消这个订单吗？",
-  "xboardOrderCancelled": "订单已取消",
-  "xboardCancelFailed": "取消失败",
-  "xboardGoToPay": "去支付",
-  "xboardLoadFailed": "加载失败",
-  "xboardPlanSummary": "套餐概览",
-  "xboardPaymentDetails": "支付详情",
-  "xboardContinueToPayment": "继续支付",
-  "xboardOrderSummary": "订单汇总",
-  "xboardSubtotal": "小计",
-  "xboardDiscount": "优惠",
-  "xboardTotal": "总计",
-  "xboardServerStatus": "服务器状态",
-  "xboardServersOnline": "台在线",
-  "xboardServersOffline": "台离线",
-  "xboardOnline": "在线",
-  "xboardOffline": "离线",
-  "xboardServerName": "服务器名称",
-  "xboardInvite": "邀请",
-  "xboardInviteTitle": "邀请好友赚佣金",
-  "xboardInviteSubtitle": "分享你的邀请码，从推荐中赚取佣金",
-  "xboardRegisteredUsers": "注册用户",
-  "xboardSettledCommission": "已结算佣金",
-  "xboardPendingCommission": "待确认佣金",
-  "xboardSystemCommissionRate": "系统比例",
-  "xboardCustomCommissionRate": "专属比例",
-  "xboardUserSpecificRate": "用户专享",
-  "xboardAvailableCommission": "可用佣金",
-  "xboardInviteCodes": "邀请码",
-  "xboardCreateInviteCode": "创建邀请码",
-  "xboardCreating": "创建中...",
-  "xboardCopyCode": "复制码",
-  "xboardCodeCopied": "邀请码已复制到剪贴板",
-  "xboardLinkCopied": "邀请链接已复制到剪贴板",
-  "xboardNoInviteCodes": "暂无邀请码",
-  "xboardNoInviteCodesDesc": "创建你的第一个邀请码以开始赚取佣金",
-  "xboardMaxInviteCodesReached": "最多允许 5 个邀请码",
-  "xboardInviteCodeCreated": "邀请码创建成功",
-  "xboardWithdrawTransferComingSoon": "提现和转账功能即将推出",
-  "xboardLoadError": "加载数据失败",
-  "xboardError": "错误",
-  "xboardServerHost": "服务器地址",
-  "xboardServerOnline": "可用",
-  "xboardServerOffline": "不可用",
-  "xboardNoServerData": "暂无服务器数据",
-  "xboardTrafficHistory": "流量历史",
-  "xboardTrafficHistoryTitle": "流量使用历史",
-  "xboardViewChart": "查看图表",
-  "xboardViewList": "查看列表",
-  "xboardDailyTraffic": "每日流量",
-  "xboardTrafficTotal": "总计",
-  "xboardTrafficNoData": "暂无流量数据",
-  "xboardToday": "今天",
-  "xboardYesterday": "昨天",
-  "xboardHalfYearPayment": "半年付",
-  "xboardOnetimePayment": "一次性",
-  "xboardResetTraffic": "重置流量",
-  "xboardPleaseLogin": "请先登录",
-  "xboardTickets": "工单",
-  "xboardCreateTicket": "新建工单",
-  "xboardTicketDetail": "工单详情",
-  "xboardCloseTicketConfirm": "确定要关闭此工单吗？关闭后将无法继续回复。",
-  "xboardTicketSubject": "主题",
-  "xboardTicketMessage": "消息",
-  "xboardPriority": "优先级",
-  "xboardLowPriority": "低",
-  "xboardMediumPriority": "中",
-  "xboardHighPriority": "高",
-  "xboardJustNow": "刚刚",
-  "xboardMinutesAgo": "分钟前",
-  "xboardHoursAgo": "小时前",
-  "xboardDaysAgo": "天前",
-  "xboardWeeksAgo": "周前",
-  "xboardMonthsAgo": "月前",
-  "xboardYearsAgo": "年前",
-  "xboardCannotOpenPaymentLink": "无法打开支付链接",
-  "xboardPaymentLinkCopiedToClipboard": "支付链接已复制到剪贴板",
-  "xboardPleaseTryLaterOrContactSupport": "请稍后再试或联系客服",
-  "xboardPaymentFailedMessage": "支付失败: {message}",
-  "xboardBalancePaymentFailed": "余额支付未成功",
-  "xboardNoAvailablePlans": "暂无可用套餐",
-  "xboardRecommended": "推荐",
-  "xboardLowestPrice": "最低价格",
-  "xboardMonthlyPrice": "月付价格",
-  "xboardSubscriptionDetails": "订阅详情",
-  "xboardTrafficUsage": "流量使用",
-  "xboardRemaining": "剩余",
-  "xboardExpirationTime": "到期时间",
-  "xboardNeverExpire": "永不过期",
-  "xboardExpired": "已过期",
-  "xboardExpiringSoon": "即将到期",
-  "xboardActive": "生效中",
-  "xboardInactive": "未激活",
-  "xboardImportingConfiguration": "正在导入配置",
-  "xboardDownloadingProfile": "正在下载配置文件",
-  "xboardValidatingProfile": "正在验证配置文件",
-  "xboardReplacingProfile": "正在替换配置文件",
-  "xboardAddingProfile": "正在添加配置文件",
-  "xboardInitializing": "正在初始化",
-  "xboardInitializationFailed": "初始化失败",
-  "xboardNoTitle": "无标题",
-  "xboardClose": "关闭",
-  "xboardCloseTicket": "关闭工单",
-  "xboardReply": "回复",
-  "xboardSend": "发送",
-  "xboardEnterMessage": "请输入消息",
-  "xboardEnterSubject": "请输入主题",
-  "xboardSelectPriority": "选择优先级",
-  "xboardTicketClosed": "工单已关闭",
-  "xboardTicketStatus": "工单状态",
-  "xboardOpen": "打开",
-  "xboardClosed": "已关闭",
-  "xboardPending": "待处理",
-  "xboardReplied": "已回复",
-  "xboardNoTickets": "暂无工单",
-  "xboardNoTicketsDesc": "创建您的第一个工单以获取支持",
-  "xboardCreateYourFirstTicket": "创建您的第一个工单",
-  "xboardTicketCreated": "工单创建成功",
-  "xboardTicketCreateFailed": "工单创建失败",
-  "xboardReplySent": "回复发送成功",
-  "xboardReplyFailed": "回复发送失败",
-  "xboardPurchasePlanPrompt": "请先购买套餐",
-  "xboardBrowsePlansButton": "浏览套餐",
-  "xboardTimeInfo": "时间信息",
-  "xboardRemainingDaysLabel": "剩余天数",
-  "xboardRemainingDaysCount": "{days} 天",
-  "@xboardRemainingDaysCount": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
-  "xboardPlanWithId": "套餐 #{planId}",
-  "@xboardPlanWithId": {
-    "placeholders": {
-      "planId": {
-        "type": "int"
-      }
-    }
-  },
-  "xboardDeviceLimitCount": "{limit} 设备",
-  "@xboardDeviceLimitCount": {
-    "placeholders": {
-      "limit": {
-        "type": "int"
-      }
-    }
-  },
-  "xboardUploadTrafficLabel": "上传: {traffic}",
-  "@xboardUploadTrafficLabel": {
-    "placeholders": {
-      "traffic": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardDownloadTrafficLabel": "下载: {traffic}",
-  "@xboardDownloadTrafficLabel": {
-    "placeholders": {
-      "traffic": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardRefreshSubscriptionInfo": "刷新订阅信息",
-  "xboardRefreshSubscriptionSuccess": "订阅刷新成功",
-  "xboardTestAllNodes": "测速全部节点",
-  "xboardTestComplete": "测速完成",
-  "xboardUpdateNodes": "更新节点",
-  "xboardNodesUpdated": "节点更新成功",
-  "cannotSelectSpecialProxy": "无法选择 DIRECT 或 REJECT 特殊节点",
-  "xboardStatusCheckFailed": "状态检查失败",
-  "xboardDownloadTimeout": "下载超时",
-  "xboardHttpRequestFailed": "HTTP请求失败",
-  "xboardAllDownloadTasksFailed": "所有下载任务都失败了",
-  "xboardProxyConnectionLabel": "代理({url})",
-  "@xboardProxyConnectionLabel": {
-    "placeholders": {
-      "url": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardDirectConnectionLabel": "直连",
-  "xboardTaskCancelled": "任务已取消",
-  "xboardCancelImport": "取消导入",
-  "xboardConfigImportSuccess": "配置导入成功",
-  "xboardConfigImportFailed": "配置导入失败",
-  "xboardConfigImportedSuccessDetail": "配置已成功导入并添加到配置列表",
-  "xboardPreparingImportStatus": "准备导入",
-  "xboardStartImportingSubscription": "开始导入订阅",
-  "xboardImportCancelled": "导入已取消",
-  "xboardImportInProgress": "正在导入中，请稍候",
-  "xboardReplaceOldConfig": "替换旧的订阅配置",
-  "xboardRetryAttemptFailed": "第 {attempt} 次尝试失败，等待重试...",
-  "@xboardRetryAttemptFailed": {
-    "placeholders": {
-      "attempt": {
-        "type": "int"
-      }
-    }
-  },
-  "xboardMultipleRetriesFailed": "多次重试后仍然失败",
-  "xboardDownloadTimeoutError": "下载超时",
-  "xboardNetworkConnectionError": "网络连接失败",
-  "xboardHttpRequestError": "HTTP请求失败",
-  "xboardConfigFormatInvalid": "配置文件格式错误",
-  "xboardConfigDownloadError": "下载配置失败",
-  "xboardNetworkConnectionFailedCheckSettings": "网络连接失败，请检查网络设置后重试",
-  "xboardConfigDownloadFailedBadRequest": "配置文件下载失败：HTTP请求头格式错误，请稍后重试",
-  "xboardConfigDownloadFailedInvalidRequest": "配置文件下载失败：请求格式错误，请稍后重试",
-  "xboardConfigDownloadFailedCheckLink": "配置文件下载失败，请检查订阅链接是否正确",
-  "xboardConfigValidationFailed": "配置文件格式验证失败，请联系服务提供商检查配置格式",
-  "xboardConfigSaveFailedCheckStorage": "保存配置失败，请检查存储空间",
-  "xboardImportFailedAppConfigError": "导入失败：应用配置错误，请稍后重试或重启应用",
-  "xboardImportFailedRetryOrSupport": "导入失败，请稍后重试或联系技术支持",
-  "xboardSkip": "跳过",
-  "xboardFirstStartupNote": "首次启动可能需要一些时间\n请耐心等待...",
-  "xboardInitializationTimeout": "初始化超时",
-  "xboardDomainUnavailable": "域名不可用",
-  "xboardDomainNotReady": "域名状态未就绪",
-  "xboardInitializationComplete": "初始化完成",
-  "xboardFallbackModeUsed": "已使用降级方案初始化",
-  "xboardUsingFallbackMode": "使用降级方案",
-  "xboardCannotLaunchBrowser": "无法启动外部浏览器",
-  "xboardAutoOpeningPayment": "正在自动打开支付页面，完成支付后请返回应用",
-  "xboardPaymentPageOpenedInBrowserNote": "已在浏览器中打开支付页面，完成支付后请返回应用",
-  "xboardOpenPaymentLinkError": "打开支付链接失败: {error}",
-  "@xboardOpenPaymentLinkError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardCopyFailedError": "复制失败: {error}",
-  "@xboardCopyFailedError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardOrderInfoNotFound": "未找到订单信息",
-  "xboardCheckPaymentStatusError": "检查支付状态失败: {error}",
-  "@xboardCheckPaymentStatusError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardOperationStep1": "1. 系统已自动为您打开支付页面",
-  "xboardOperationStep2": "2. 请在浏览器中完成支付操作",
-  "xboardOperationStep3": "3. 支付完成后返回应用，系统将自动检测",
-  "xboardReopenPaymentNote": "如需重新打开，可点击下方\"重新打开\"按钮",
-  "xboardBrowserNotOpenedNote": "提示：如果浏览器未自动打开，可以点击\"重新打开\"或复制链接手动打开",
-  "xboardClearOldOrders": "清理旧订单",
-  "xboardUnlimitedDevices": "不限设备数量",
-  "xboardOldPassword": "当前密码",
-  "xboardNewPassword": "新密码",
-  "xboardPasswordChangedSuccess": "密码修改成功",
-  "xboardPasswordChangeError": "密码修改失败",
-  "xboardResetConfirmTitle": "重置订阅",
-  "xboardResetConfirmDesc": "将生成新的订阅链接，旧链接将失效，您需要重新导入订阅。确定继续吗？",
-  "xboardResetSubscriptionSuccess": "订阅重置成功，请重新导入订阅",
-  "xboardResetSubscriptionError": "重置订阅失败",
-  "xboardNotificationUpdateSuccess": "通知设置已更新",
-  "xboardNotificationUpdateError": "更新通知设置失败",
-  "xboardConfirm": "确认",
-  "xboardResetting": "重置中...",
-  "xboardChanging": "修改中...",
-  "xboardPasswordMinLength": "密码至少需要8个字符",
-  "xboardCleaningPendingOrders": "正在清理之前的待支付订单...",
-  "xboardPaymentPageOpenedCopyDesc": "支付页面已打开，支付链接已复制到剪贴板。如果没有自动跳转，请手动粘贴到浏览器打开。",
-  "xboardNoPaymentMethodsAvailable": "暂无可用的支付方式，请检查网络或稍后重试",
-  "xboardOperationFailedError": "操作失败: {error}",
-  "@xboardOperationFailedError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardPaymentFailedEmptyResult": "支付失败: 支付请求返回空结果",
-  "xboardPaymentFailedBalanceError": "支付失败: 余额支付未成功",
-  "xboardPaymentFailedInvalidData": "支付失败: 未获取到有效的支付数据",
-  "xboardCannotOpenPaymentUrl": "无法打开支付链接",
-  "xboardOpenPaymentPageError": "打开支付页面失败: {error}",
-  "@xboardOpenPaymentPageError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardTapToCopy": "点击复制",
-  "xboardAutoDetectPaymentStatus": "自动检测支付状态",
-  "xboardAutoCheckPaymentDesc": "系统每5秒自动检查一次，支付完成后会自动跳转",
-  "xboardStop": "停止",
-  "xboardOperationTips": "操作提示",
-  "xboardOperationStep4": "4. 如需重新打开，可点击下方\"重新打开\"按钮",
-  "xboardReopenPayment": "重新打开",
-  "xboardCopyLink": "复制链接",
-  "xboardChecking": "检查中...",
-  "xboardCheckStatus": "检查状态",
-  "xboardCancelPayment": "取消支付",
-  "xboardGoBack": "返回",
-  "xboardToday": "今天",
-  "xboardYesterday": "昨天",
-  "xboardTomorrow": "明天",
-  "xboardWeeks": "周",
-  "xboardInitializing": "正在初始化",
-  "xboardInitializationFailed": "初始化失败",
-  "xboardRetry": "重试",
-  "xboardSkip": "跳过",
-  "xboardFirstStartTip": "首次启动可能需要一些时间\n请耐心等待...",
-  "xboardImportStatusIdle": "准备导入",
-  "xboardImportStatusCleaning": "清理旧配置",
-  "xboardImportStatusDownloading": "下载配置文件",
-  "xboardImportStatusValidating": "验证配置格式",
-  "xboardImportStatusAdding": "添加到配置列表",
-  "xboardImportStatusSuccess": "导入成功",
-  "xboardImportStatusFailed": "导入失败",
-  "xboardImportErrorNetwork": "网络连接失败，请检查网络设置",
-  "xboardImportErrorDownload": "配置文件下载失败，请检查订阅链接",
-  "xboardImportErrorValidation": "配置文件格式错误，请联系服务提供商",
-  "xboardImportErrorStorage": "保存配置失败，请检查存储空间",
-  "xboardImportErrorUnknown": "未知错误，请重试",
-  "xboardPlanPeriodOnetime": "一次性",
-  "xboardPlanPeriodMonthly": "月付",
-  "xboardPlanPeriodQuarterly": "季付",
-  "xboardPlanPeriodHalfYearly": "半年付",
-  "xboardPlanPeriodYearly": "年付",
-  "xboardPlanPeriodTwoYear": "两年付",
-  "xboardPlanPeriodThreeYear": "三年付",
-  "xboardPlanPeriodReset": "重置流量",
-  "xboardOrderStatusPending": "待支付",
-  "xboardOrderStatusProcessing": "开通中",
-  "xboardOrderStatusCanceled": "已取消",
-  "xboardOrderStatusCompleted": "已完成",
-  "xboardOrderStatusDiscounted": "已折抵",
-  "xboardCommissionStatusPending": "待确认",
-  "xboardCommissionStatusProcessing": "发放中",
-  "xboardCommissionStatusCompleted": "已发放",
-  "xboardCommissionStatusNone": "无佣金",
-  "xboardPriorityLabel": "优先级",
-  "xboardUnknownPriority": "未知",
-  "xboardTicketStatusPending": "待处理",
-  "xboardTicketStatusClosed": "已关闭",
-  "xboardLatencyTesting": "测试中",
-  "xboardLatencyAutoTesting": "自动测试中",
-  "xboardLatencyTimeout": "超时",
-  "xboardLatencyExcellent": "优秀",
-  "xboardLatencyGood": "良好",
-  "xboardLatencyFair": "一般",
-  "xboardLatencyPoor": "较差",
-  "xboardLatencyVeryPoor": "很差",
-  "xboardLatencyTimeoutDesc": "连接超时，请检查网络",
-  "xboardLatencyExcellentDesc": "网络质量优秀，适合所有应用",
-  "xboardLatencyGoodDesc": "网络质量良好，适合大多数应用",
-  "xboardLatencyFairDesc": "网络质量一般，可用于基本应用",
-  "xboardLatencyPoorDesc": "网络质量较差，可能影响体验",
-  "xboardLatencyVeryPoorDesc": "网络质量很差，建议更换节点"
+  "loadTest": "加载测试",
+  "yearsAgo": "{count} 年前",
+  "monthsAgo": "{count} 个月前",
+  "daysAgo": "{count} 天前",
+  "hoursAgo": "{count} 小时前",
+  "minutesAgo": "{count} 分钟前",
+  "justNow": "刚刚",
+  "noLongerRemind": "不再提示",
+  "accessControlSettings": "访问控制设置",
+  "turnOn": "开启",
+  "turnOff": "关闭",
+  "coreConfigChangeDetected": "检测到核心配置更改",
+  "reload": "重载",
+  "vpnConfigChangeDetected": "检测到VPN相关配置改动",
+  "restart": "重启",
+  "speedStatistics": "网速统计",
+  "resetPageChangesTip": "当前页面存在更改，确定重置吗？",
+  "overwriteTypeCustom": "自定义",
+  "overwriteTypeCustomDesc": "自定义模式，支持完全自定义修改代理组以及规则",
+  "unknownNetworkError": "未知网络错误",
+  "networkRequestException": "网络请求异常，请稍后再试。",
+  "restoreException": "恢复异常",
+  "networkException": "网络异常，请检查连接后重试",
+  "invalidBackupFile": "无效备份文件",
+  "pruneCache": "修剪缓存",
+  "backupAndRestore": "备份与恢复",
+  "backupAndRestoreDesc": "通过WebDAV或者文件同步数据",
+  "restore": "恢复",
+  "restoreSuccess": "恢复成功",
+  "restoreFromWebDAVDesc": "通过WebDAV恢复数据",
+  "restoreFromFileDesc": "通过文件恢复数据",
+  "restoreOnlyConfig": "仅恢复配置文件",
+  "restoreAllData": "恢复所有数据",
+  "addProfile": "添加配置",
+  "delayTest": "延迟测试"
 }

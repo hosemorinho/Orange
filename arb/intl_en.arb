@@ -27,9 +27,6 @@
   "more": "More",
   "other": "Other",
   "about": "About",
-  "domainStatusChecking": "Checking...",
-  "domainStatusAvailable": "Service Available",
-  "domainStatusUnavailable": "Service Unavailable",
   "en": "English",
   "ja": "Japanese",
   "ru": "Russian",
@@ -132,14 +129,8 @@
   "compatibleDesc": "Opening it will lose part of its application ability and gain the support of full amount of Clash.",
   "notSelectedTip": "The current proxy group cannot be selected.",
   "tip": "tip",
-  "backupAndRecovery": "Backup and Recovery",
-  "backupAndRecoveryDesc": "Sync data via WebDAV or file",
   "account": "Account",
   "backup": "Backup",
-  "recovery": "Recovery",
-  "recoveryProfiles": "Only recovery profiles",
-  "recoveryAll": "Recovery all data",
-  "recoverySuccess": "Recovery success",
   "backupSuccess": "Backup success",
   "noInfo": "No info",
   "pleaseBindWebDAV": "Please bind WebDAV",
@@ -184,8 +175,6 @@
   "expirationTime": "Expiration time",
   "connections": "Connections",
   "connectionsDesc": "View current connections data",
-  "plans": "Plans",
-  "onlineSupport": "Support",
   "intranetIP": "Intranet IP",
   "view": "View",
   "cut": "Cut",
@@ -224,9 +213,7 @@
   "local": "Local",
   "remote": "Remote",
   "remoteBackupDesc": "Backup local data to WebDAV",
-  "remoteRecoveryDesc": "Recovery data from WebDAV",
   "localBackupDesc": "Backup local data to local",
-  "localRecoveryDesc": "Recovery data from file",
   "mode": "Mode",
   "time": "Time",
   "source": "Source",
@@ -289,8 +276,8 @@
   "action_mode": "Switch mode",
   "action_proxy": "System proxy",
   "action_tun": "TUN",
-  "disclaimer": "Important Notice",
-  "disclaimerDesc": "This software is currently in public beta. If you receive update reminders, please update promptly. Older versions may cause service instability or inability to use.",
+  "disclaimer": "Disclaimer",
+  "disclaimerDesc": "This software is only used for non-commercial purposes such as learning exchanges and scientific research. It is strictly prohibited to use this software for commercial purposes. Any commercial activity, if any, has nothing to do with this software.",
   "agree": "Agree",
   "hotkeyManagement": "Hotkey Management",
   "hotkeyManagementDesc": "Use keyboard to control applications",
@@ -345,6 +332,8 @@
   "none": "none",
   "basicConfig": "Basic configuration",
   "basicConfigDesc": "Modify the basic configuration globally",
+  "advancedConfig": "Advanced configuration",
+  "advancedConfigDesc": "Provide diverse configuration options",
   "selectedCountTitle": "{count} items have been selected",
   "addRule": "Add rule",
   "ruleName": "Rule name",
@@ -384,9 +373,9 @@
   "systemApp": "System APP",
   "noNetworkApp": "No network APP",
   "contactMe": "Contact me",
-  "recoveryStrategy": "Recovery strategy",
-  "recoveryStrategy_override": "Override",
-  "recoveryStrategy_compatible": "Compatible",
+  "restoreStrategy": "Restore strategy",
+  "restoreStrategy_override": "Override",
+  "restoreStrategy_compatible": "Compatible",
   "logsTest": "Logs test",
   "emptyTip": "{label} cannot be empty",
   "urlTip": "{label} must be a url",
@@ -395,7 +384,7 @@
   "existsTip": "Current {label} already exists",
   "deleteTip": "Are you sure you want to delete the current {label}?",
   "deleteMultipTip": "Are you sure you want to delete the selected {label}?",
-  "nullTip": "No {label} at the moment",
+  "nullTip": "No {label} yet",
   "script": "Script",
   "color": "Color",
   "rename": "Rename",
@@ -412,1049 +401,80 @@
   "importFile": "Import from file",
   "importUrl": "Import from URL",
   "autoSetSystemDns": "Auto set system DNS",
-  "xboardLogin": "Login",
-  "xboardRegister": "Register",
-  "xboardLogout": "Logout",
-  "xboardEmail": "Email",
-  "xboardPassword": "Password",
-  "xboardConfirmPassword": "Confirm Password",
-  "xboardInviteCode": "Invite Code",
-  "xboardRememberPassword": "Remember Password",
-  "xboardForgotPassword": "Forgot Password",
-  "xboardLoginSuccess": "Login successful",
-  "xboardLoginFailed": "Login failed",
-  "xboardRegisterSuccess": "Registration successful! Redirecting to login page...",
-  "xboardRegisterFailed": "Registration failed",
-  "xboardLogoutConfirmTitle": "Confirm Logout",
-  "xboardLogoutConfirmContent": "Are you sure you want to logout? You will need to re-enter your credentials.",
-  "xboardLogoutSuccess": "Successfully logged out",
-  "xboardLogoutFailed": "Logout failed",
-  "xboardTokenExpiredTitle": "Login Expired",
-  "xboardTokenExpiredContent": "Your login session has expired. Please login again to continue.",
-  "xboardRelogin": "Login Again",
-  "xboardCancel": "Cancel",
-  "xboardConfirm": "Confirm",
-  "xboardPlans": "Plans",
-  "xboardSubscription": "Subscription",
-  "xboardCurrentNode": "Current Node",
-  "xboardNodeName": "Node Name",
-  "xboardGroup": "Group",
-  "xboardProfile": "Profile",
-  "xboardLocalIP": "Local IP",
-  "xboardGettingIP": "Getting...",
-  "xboardUnknownUser": "Unknown User",
-  "xboardLoggedIn": "Logged In",
-  "xboardNotLoggedIn": "Not Logged In",
-  "xboardUnselected": "Unselected",
-  "xboardNone": "None",
-  "xboardPlanInfo": "Plan Information",
-  "xboardSubscriptionPurchase": "Subscription purchase",
-  "xboardBuyNow": "Buy Now",
-  "xboardRetry": "Retry",
-  "xboardRefresh": "Refresh",
-  "xboardCopyLink": "Copy Link",
-  "xboardSubscriptionCopied": "Subscription link copied to clipboard",
-  "xboardReload": "Reload",
-  "xboardProcessing": "Processing...",
-  "xboardSelectPeriod": "Please select purchase period",
-  "xboardOperationFailed": "Operation failed",
-  "xboardOpenPaymentFailed": "Failed to open payment page",
-  "xboardPaymentInstructions1": "1. Payment page has been opened automatically",
-  "xboardPaymentInstructions2": "2. Please complete payment in your browser",
-  "xboardPaymentInstructions3": "3. Return to app after payment, system will detect automatically",
-  "xboardOrderNumber": "Order number",
-  "xboardReopenPayment": "Reopen Payment",
-  "xboardCopyPaymentLink": "Copy Link",
-  "xboardPaymentComplete": "Payment Complete",
-  "xboardCancelPayment": "Cancel payment",
-  "xboardPaymentSuccess": "Payment successful",
-  "xboardPaymentCancelled": "Payment cancelled",
-  "xboardOrderNotFound": "Order not found",
-  "xboardCheckPaymentFailed": "Failed to check payment status",
-  "xboardPaymentCompleted": "Payment completed!",
-  "xboardBack": "Back",
-  "xboardCopyFailed": "Copy failed",
-  "xboardPaymentLinkCopied": "Payment link copied to clipboard",
-  "xboardOpenPaymentLinkFailed": "Failed to open payment link",
-  "xboardSendVerificationCode": "Send Verification Code",
-  "xboardEnableTun": "Enable TUN",
-  "xboardPrevious": "Previous",
-  "xboardNext": "Next",
-  "xboardLater": "Later",
-  "xboardClearError": "Clear error",
-  "xboardUpdateLater": "Update Later",
-  "xboardForceUpdate": "Force update",
-  "xboardNewVersionFound": "New version found",
-  "xboardCurrentVersion": "Current version",
-  "xboardUpdateContent": "Update content:",
-  "xboardMustUpdate": "Must update",
-  "xboardUpdateNow": "Update Now",
-  "xboardNoSubscriptionInfo": "No subscription information",
-  "xboardLoginToViewSubscription": "Please login to view subscription usage",
-  "xboardNoAvailableSubscription": "No available subscription",
-  "xboardPurchaseSubscriptionToUse": "Please purchase a subscription to use",
-  "xboardSubscriptionExpired": "Subscription expired",
-  "xboardRenewToContinue": "Please renew to continue using",
-  "xboardTrafficExhausted": "Traffic Exhausted",
-  "xboardBuyMoreTrafficOrUpgrade": "Please buy more traffic or upgrade plan",
-  "xboardExpiryTime": "Expiry time",
-  "xboardUsed": "Used",
-  "xboardUsedTraffic": "Used",
-  "xboardValidityPeriod": "Expires",
-  "xboardDays": "days",
-  "xboardMonthlyPayment": "Monthly",
-  "xboardMonthlyRenewal": "Monthly renewal",
-  "xboardQuarterlyPayment": "Quarterly",
-  "xboardThreeMonthCycle": "3-month cycle",
-  "xboardHalfYearlyPayment": "Half-yearly",
-  "xboardSixMonthCycle": "6-month cycle",
-  "xboardYearlyPayment": "Yearly",
-  "xboardTwelveMonthCycle": "12-month cycle",
-  "xboardTwoYearPayment": "Two-year",
-  "xboardTwentyFourMonthCycle": "24-month cycle",
-  "xboardThreeYearPayment": "Three-year",
-  "xboardThirtySixMonthCycle": "36-month cycle",
-  "xboardOneTimePayment": "One-time",
-  "xboardBuyoutPlan": "Buyout plan",
-  "xboardPleaseSelectPaymentPeriod": "Please select payment period",
-  "xboardOrderCreationFailed": "Order creation failed",
-  "xboardFailedToOpenPaymentPage": "Failed to open payment page",
-  "xboardSelectPaymentPeriod": "Select payment period",
-  "xboardSelectPaymentMethod": "Select payment method",
-  "xboardHandlingFee": "Handling Fee",
-  "xboardCouponNotYetActive": "Coupon not yet active",
-  "xboardCouponExpired": "Coupon expired",
-  "xboardUnsupportedCouponType": "Unsupported coupon type",
-  "xboardInvalidOrExpiredCoupon": "Invalid or expired coupon code",
-  "xboardValidationFailed": "Validation failed",
-  "xboardAccountBalance": "Account balance",
-  "xboardDeductibleDuringPayment": "Deductible during payment",
-  "xboardCouponOptional": "Coupon (optional)",
-  "xboardDiscounted": "Discounted",
-  "xboardEnterCouponCode": "Enter coupon code",
-  "xboardVerify": "Verify",
-  "xboardPurchaseSubscription": "Purchase Plan",
-  "xboardTraffic": "Traffic",
-  "xboardSpeedLimit": "Speed",
-  "xboardUnlimited": "Unlimited",
-  "xboardConfirmPurchase": "Confirm purchase",
-  "xboardAutoOpeningPaymentPage": "Auto-opening payment page, please return to app after payment",
-  "xboardPaymentPageOpenedInBrowser": "Payment page opened in browser, please return to app after payment",
-  "xboardFailedToOpenPaymentLink": "Failed to open payment link",
-  "xboardPaymentSuccessful": "🎉 Payment successful!",
-  "xboardWaitingForPayment": "Waiting for payment...",
-  "xboardOrderStatusPending": "Order Status: Pending Payment",
-  "xboardFailedToCheckPaymentStatus": "Failed to check payment status",
-  "xboardPaymentGateway": "Payment gateway",
-  "xboardReturn": "Return",
-  "xboardPaymentInfo": "Payment information",
-  "xboardPaymentLink": "Payment link",
-  "xboardClickToCopy": "Click to copy",
-  "xboardAutoDetectPaymentStatus": "Auto-detect payment status",
-  "xboardAutoCheckEvery5Seconds": "System checks every 5 seconds, will redirect automatically after payment",
-  "xboardStop": "Stop",
-  "xboardOperationTips": "Operation tips",
-  "xboardPaymentPageAutoOpened": "1. Payment page has been opened automatically",
-  "xboardCompletePaymentInBrowser": "2. Please complete payment in your browser",
-  "xboardReturnAfterPaymentAutoDetect": "3. Return to app after payment, system will detect automatically",
-  "xboardReopenPaymentPageTip": "To reopen, click the \\\"Reopen\\\" button below",
-  "xboardBrowserNotOpenedTip": "If browser doesn't open automatically, click \\\"Reopen\\\" or copy link manually",
-  "xboardReopen": "Reopen",
-  "xboardChecking": "Checking",
-  "xboardCheckStatus": "Check status",
-  "xboardCreatingOrder": "Creating order",
-  "xboardLoadingPaymentPage": "Loading payment page",
-  "xboardPaymentMethodVerified": "Payment method verified",
-  "xboardWaitingPaymentCompletion": "Waiting for payment completion",
-  "xboardCreatingOrderPleaseWait": "We are creating a new order for you, please wait",
-  "xboardPreparingPaymentPage": "Preparing payment page, redirecting soon",
-  "xboardPaymentMethodVerifiedPreparing": "Payment method verified, preparing to redirect to payment page",
-  "xboardPaymentPageOpenedCompleteAndReturn": "Payment page opened, please complete payment and return to app",
-  "xboardCongratulationsSubscriptionActivated": "Congratulations! Your subscription has been successfully purchased and activated",
-  "xboardHandleLater": "Handle later",
-  "xboardSubscriptionLinkCopied": "Subscription link copied to clipboard",
-  "xboardSubscriptionInfo": "Subscription information",
-  "xboardFailedToGetSubscriptionInfo": "Failed to get subscription information",
-  "xboardRetryGet": "Retry",
-  "xboardSubscriptionLink": "Subscription link",
-  "xboardUsageInstructions": "Usage instructions",
-  "xboardCopySubscriptionLinkAbove": "Copy the subscription link above",
-  "xboardAddLinkToConfig": "Add this subscription link to your configuration",
-  "xboardUpdateSubscriptionRegularly": "Update subscription regularly to get latest nodes",
-  "xboardKeepSubscriptionLinkSafe": "Please keep your subscription link safe and don't share with others",
-  "xboardLoadingFailed": "Loading failed",
-  "xboardNoSubscriptionPlans": "No subscription plans",
-  "xboardConnectionTimeout": "Connection timeout, please check network connection",
-  "xboardNoInternetConnection": "No internet connection, please check network settings",
-  "xboardServerError": "Server error",
-  "xboardInvalidCredentials": "Invalid username or password",
-  "xboardLoginExpired": "Login expired, please login again",
-  "xboardUnauthorizedAccess": "Unauthorized access, please login first",
-  "xboardPlanNotFound": "Plan not found",
-  "xboardPaymentFailed": "Payment Failed",
-  "xboardInsufficientBalance": "Insufficient balance",
-  "xboardInvalidResponseFormat": "Invalid response format from server",
-  "xboardMissingRequiredField": "Missing required field",
-  "xboardApiUrlNotConfigured": "API URL not configured",
-  "xboardConfigurationError": "Configuration error",
-  "xboardTesting": "Testing",
-  "xboardAutoTesting": "Auto testing",
-  "xboardTimeout": "Timeout",
-  "xboardExcellent": "Excellent",
-  "xboardGood": "Good",
-  "xboardFair": "Fair",
-  "xboardPoor": "Poor",
-  "xboardVeryPoor": "Very poor",
-  "xboardPreparingImport": "Preparing to import configuration",
-  "xboardCleaningOldConfig": "Cleaning old configuration",
-  "xboardDownloadingConfig": "Downloading configuration file",
-  "xboardValidatingConfigFormat": "Validating configuration format",
-  "xboardAddingToConfigList": "Adding to configuration list",
-  "xboardImportSuccess": "Configuration imported successfully",
-  "xboardImportFailed": "Configuration import failed",
-  "xboardNetworkConnectionFailed": "Network connection failed, please check network settings",
-  "xboardConfigDownloadFailed": "Configuration download failed, please check subscription link",
-  "xboardConfigFormatError": "Configuration format error, please contact service provider",
-  "xboardConfigSaveFailed": "Configuration save failed, please check storage space",
-  "xboardUnknownErrorRetry": "Unknown error, please retry",
-  "xboardProxyMode": "Proxy Mode",
-  "xboardProxyModeRuleDescription": "Automatically select direct or proxy based on rules",
-  "xboardProxyModeGlobalDescription": "All traffic goes through proxy server",
-  "xboardProxyModeDirectDescription": "All traffic connects directly without proxy",
-  "xboardTunEnabled": "TUN enabled",
-  "xboardNoAvailableNodes": "No available nodes",
-  "xboardClickToSetupNodes": "Click to setup nodes",
-  "xboardProxy": "Proxy",
-  "xboardSwitch": "Switch",
-  "xboardSetup": "Setup",
-  "xboardConnected": "Connected",
-  "xboardDisconnected": "Disconnected",
-  "xboardSwitchNode": "Switch Node",
-  "xboardNoAvailablePlan": "No available plan",
-  "xboardSubscriptionHasExpired": "Subscription has expired",
-  "xboardTrafficUsedUp": "Traffic used up",
-  "xboardSubscriptionStatus": "Subscription status",
-  "xboardRefreshStatus": "Refresh status",
-  "xboardPurchasePlan": "Purchase plan",
-  "xboardRenewPlan": "Renew plan",
-  "xboardPurchaseTraffic": "Purchase traffic",
-  "xboardConfirmAction": "Confirm",
-  "xboardAfterPurchasingPlan": "After purchasing a plan, you will enjoy:",
-  "xboardHighSpeedNetwork": "High-speed network",
-  "xboardEnjoyFastNetworkExperience": "Enjoy fast network experience",
-  "xboardSecureEncryption": "Secure encryption",
-  "xboardProtectNetworkPrivacy": "Protect your network privacy",
-  "xboardGlobalNodes": "Global nodes",
-  "xboardConnectGlobalQualityNodes": "Connect to global quality nodes",
-  "xboardProfessionalSupport": "Professional support",
-  "xboard24HourCustomerService": "24-hour customer service support",
-  "xboardStartProxy": "Start Proxy",
-  "xboardStopProxy": "Stop Proxy",
-  "xboardRunningTime": "Running time: {time}",
-  "@xboardRunningTime": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardTapToConnect": "Tap to connect",
-  "xboardUnlimitedTime": "Unlimited",
-  "xboardNoticeDialogGotIt": "Got it",
-  "subscriptionNotLoggedIn": "Not logged in",
-  "subscriptionNotLoggedInDetail": "Please login first",
-  "subscriptionNoSubscription": "No subscription",
-  "subscriptionNoSubscriptionDetail": "No available subscription plan found, please purchase a plan to use",
-  "subscriptionExpired": "Subscription expired",
-  "subscriptionExpiredDetail": "Plan expired on {date}, please renew to continue using",
-  "@subscriptionExpiredDetail": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "subscriptionExpiresToday": "Subscription expires today",
-  "subscriptionExpiresTodayDetail": "Plan will expire today, please renew immediately to avoid service interruption",
-  "subscriptionExpiringInDays": "Subscription expiring soon",
-  "subscriptionExpiringInDaysDetail": "Plan will expire in {days} days, please renew in time",
-  "@subscriptionExpiringInDaysDetail": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
-  "subscriptionTrafficExhausted": "Traffic exhausted",
-  "subscriptionTrafficExhaustedDetail": "Plan traffic has been used up, please purchase more traffic or upgrade plan",
-  "subscriptionValid": "Subscription valid",
-  "subscriptionValidDetail": "Subscription will expire in {days} days",
-  "@subscriptionValidDetail": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
-  "forgotPassword": "Forgot Password",
-  "resetPassword": "Reset Password",
-  "setNewPassword": "Set New Password",
-  "enterEmailForReset": "Please enter your email address and we will send a verification code to your email",
-  "verificationCodeSent": "Verification code has been sent to your email, please check",
-  "sendCodeFailed": "Failed to send verification code",
-  "verificationCodeSentTo": "Verification code has been sent to {email}, please check and enter the verification code and new password",
-  "@verificationCodeSentTo": {
-    "placeholders": {
-      "email": {
-        "type": "String"
-      }
-    }
-  },
-  "emailAddress": "Email Address",
-  "pleaseEnterEmail": "Please enter email address",
-  "pleaseEnterValidEmail": "Please enter a valid email address",
-  "sendVerificationCode": "Send Verification Code",
-  "verificationCode": "Verification Code",
-  "pleaseEnterVerificationCode": "Please enter email verification code",
-  "pleaseEnterValidVerificationCode": "Please enter a valid verification code",
-  "newPassword": "New Password",
-  "pleaseEnterNewPassword": "Please enter new password",
-  "confirmNewPassword": "Confirm New Password",
-  "pleaseConfirmNewPassword": "Please re-enter new password",
-  "passwordMismatch": "Passwords do not match",
-  "passwordResetSuccessful": "Password reset successful! Please login with your new password",
-  "passwordResetFailed": "Password reset failed",
-  "resendVerificationCode": "Resend Verification Code",
-  "rememberPassword": "Remember your password?",
-  "backToLogin": "Back to Login",
-  "passwordMinLength": "Password must be at least 6 characters",
-  "registerSuccessSaveCredentials": "Registration successful - Saving credentials:",
-  "credentialsSaved": "Credentials saved",
-  "registrationFailed": "Registration failed: {e}",
-  "@registrationFailed": {
-    "placeholders": {
-      "e": {
-        "type": "String"
-      }
-    }
-  },
-  "pleaseEnterEmailAddress": "Please enter email address",
-  "pleaseEnterValidEmailAddress": "Please enter a valid email address",
-  "verificationCodeSentCheckEmail": "Verification code sent, please check your email",
-  "sendVerificationCodeFailed": "Failed to send verification code: {e}",
-  "@sendVerificationCodeFailed": {
-    "placeholders": {
-      "e": {
-        "type": "String"
-      }
-    }
-  },
-  "inviteCodeRequired": "Invite Code Required",
-  "inviteCodeRequiredMessage": "Registration requires an invite code. Please contact a registered user to get an invite code before registering.",
-  "iUnderstand": "I Understand",
-  "createAccount": "Create Account",
-  "fillInfoToRegister": "Please fill in the following information to complete registration",
-  "pleaseEnterYourEmailAddress": "Please enter your email address",
-  "pleaseEnterAtLeast8CharsPassword": "Please enter at least 8 characters password",
-  "pleaseEnterPassword": "Please enter password",
-  "passwordMin8Chars": "Password must be at least 8 characters",
-  "pleaseConfirmPassword": "Please confirm password",
-  "pleaseReEnterPassword": "Please re-enter password",
-  "passwordsDoNotMatch": "Passwords do not match",
-  "emailVerificationCode": "Email Verification Code",
-  "pleaseEnterEmailVerificationCode": "Please enter email verification code",
-  "verificationCode6Digits": "Verification code should be 6 digits",
-  "inviteCode": "Invite Code",
-  "pleaseEnterInviteCode": "Please enter invite code",
-  "inviteCodeOptional": "Invite Code (optional)",
-  "inviteCodeIncorrect": "Invite code may be incorrect, please check and re-enter",
+  "details": "{label} details",
+  "creationTime": "Creation time",
+  "process": "Process",
+  "host": "Host",
+  "destination": "Destination",
+  "destinationGeoIP": "Destination GeoIP",
+  "destinationIPASN": "Destination IPASN",
+  "specialProxy": "Special proxy",
+  "specialRules": "special rules",
+  "remoteDestination": "Remote destination",
+  "networkType": "Network type",
+  "proxyChains": "Proxy chains",
+  "log": "Log",
+  "connection": "Connection",
+  "request": "Request",
+  "connected": "Connected",
+  "disconnected": "Disconnected",
+  "connecting": "Connecting...",
+  "restartCoreTip": "Are you sure you want to restart the core?",
+  "forceRestartCoreTip": "Are you sure you want to force restart the core?",
+  "dnsHijacking": "DNS hijacking",
+  "coreStatus": "Core status",
+  "dataCollectionTip": "Data Collection Notice",
+  "dataCollectionContent": "This app uses Firebase Crashlytics to collect crash information to improve app stability.\nThe collected data includes device information and crash details, but does not contain personal sensitive data.\nYou can disable this feature in settings.",
+  "crashlytics": "Crash Analysis",
+  "crashlyticsTip": "When enabled, automatically uploads crash logs without sensitive information when the app crashes",
+  "appendSystemDns": "Append System DNS",
+  "appendSystemDnsTip": "Forcefully append system DNS to the configuration",
+  "editRule": "Edit rule",
+  "overrideMode": "Override mode",
+  "standardModeDesc": "Standard mode, override basic configuration, provide simple rule addition capability",
+  "scriptModeDesc": "Script mode, use external extension scripts, provide one-click override configuration capability",
+  "addedRules": "Added rules",
+  "controlGlobalAddedRules": "Control global added rules",
+  "overrideScript": "Override script",
+  "goToConfigureScript": "Go to configure script",
+  "editGlobalRules": "Edit global rules",
+  "externalFetch": "External fetch",
+  "confirmForceCrashCore": "Are you sure you want to force crash the core?",
+  "confirmClearAllData": "Are you sure you want to clear all data?",
   "loading": "Loading...",
-  "registerAccount": "Register Account",
-  "alreadyHaveAccount": "Already have an account?",
-  "loginNow": "Login Now",
-  "noAccount": "Don't have an account?",
-  "invite": "Invite",
-  "xboard": "Home",
-  "xboardHome": "Home",
-  "userCenter": "User Center",
-  "inviteRules": "Invite Rules",
-  "inviteRegisterReward": "Invite friends to register and subscribe to earn commission",
-  "friendInviteReward": "Earn commission when your invited friends spend",
-  "currentCommissionRate": "Current commission rate: {rate}%",
-  "@currentCommissionRate": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
-  "commissionSettled": "Commission settled after friend subscription",
-  "withdrawalAvailable": "Available commission can be withdrawn",
-  "myInviteQr": "My Invite QR",
-  "saveQr": "Save QR",
-  "copyInviteLink": "Copy Link",
-  "generatingInviteCode": "Generating invite code...",
-  "inviteCodeGenFailed": "Invite code generation failed",
-  "checkNetwork": "Please check network and retry",
-  "inviteStats": "Invite Stats",
-  "totalInvites": "Invites",
-  "commissionRate": "Rate",
-  "totalCommission": "Earnings",
-  "walletDetails": "Wallet Details",
-  "transfer": "Transfer",
-  "availableCommission": "Available",
-  "pendingCommission": "Pending",
-  "walletBalance": "Balance",
-  "commissionHistory": "Commission History",
-  "withdraw": "Withdraw",
-  "noCommissionRecord": "No commission records",
-  "viewHistory": "View History",
-  "loadMore": "Load More",
-  "copiedToClipboard": "Copied to clipboard",
-  "saveQrCodeFeature": "Save QR feature coming soon",
-  "inviteLinkCopied": "Invite link copied, share with friends",
-  "withdrawCommission": "Withdraw Commission",
-  "withdrawableAmount": "Withdrawable amount: {amount}",
-  "@withdrawableAmount": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "visitWebVersion": "Please visit web version to withdraw",
-  "completeWithdrawal": "Web version provides complete withdrawal features",
-  "goToWeb": "Go to Web",
-  "cannotOpenBrowser": "Cannot open browser, please visit web manually",
-  "openWebFailed": "Failed to open web, please visit manually",
-  "cannotGetWebUrl": "Cannot get web URL, please contact support",
-  "transferToWallet": "Transfer to Wallet",
-  "transferSuccess": "Transfer Success!",
-  "transferring": "Transferring...",
-  "transferAmount": "Transfer Amount",
-  "enterTransferAmount": "Enter transfer amount",
-  "maxTransferable": "Max transferable: ¥{amount}",
-  "@maxTransferable": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "transferNote": "Transferred balance can be used for in-app purchases",
-  "confirmTransfer": "Confirm Transfer",
-  "enterTransferAmountError": "Please enter transfer amount",
-  "invalidTransferAmount": "Please enter valid transfer amount",
-  "transferAmountExceeded": "Transfer amount cannot exceed ¥{amount}",
-  "@transferAmountExceeded": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "transferSuccessMsg": "Transfer success! Transferred ¥{amount} to wallet",
-  "@transferSuccessMsg": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "transferFailed": "Transfer failed: {error}",
-  "@transferFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "totalRecords": "Total {count} records",
-  "@totalRecords": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "pageNumber": "Page {page}",
-  "@pageNumber": {
-    "placeholders": {
-      "page": {
-        "type": "int"
-      }
-    }
-  },
-  "orderNumber": "Order: {orderNo}",
-  "@orderNumber": {
-    "placeholders": {
-      "orderNo": {
-        "type": "String"
-      }
-    }
-  },
-  "orderAmount": "Order amount: {amount}",
-  "@orderAmount": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "close": "Close",
-  "refresh": "Refresh",
-  "switchTheme": "Switch Theme",
-  "logout": "Logout",
-  "selectTheme": "Select Theme",
-  "confirmLogout": "Confirm Logout",
-  "logoutConfirmMsg": "Are you sure to logout? You need to login again.",
-  "loggedOutSuccess": "Logged out successfully",
-  "logoutFailed": "Logout failed: {error}",
-  "@logoutFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "complete": "Complete",
-  "noInvitationData": "No invitation data",
-  "updateCheckForceUpdate": "Force update: {version}",
-  "@updateCheckForceUpdate": {
-    "placeholders": {
-      "version": {
-        "type": "String"
-      }
-    }
-  },
-  "updateCheckNewVersionFound": "New version found: {version}",
-  "@updateCheckNewVersionFound": {
-    "placeholders": {
-      "version": {
-        "type": "String"
-      }
-    }
-  },
-  "updateCheckCurrentVersion": "Current version: {version}",
-  "@updateCheckCurrentVersion": {
-    "placeholders": {
-      "version": {
-        "type": "String"
-      }
-    }
-  },
-  "updateCheckReleaseNotes": "Release Notes:",
-  "updateCheckUpdateLater": "Update Later",
-  "updateCheckMustUpdate": "Must Update",
-  "updateCheckUpdateNow": "Update Now",
-  "updateCheckServerUrlNotConfigured": "Update server URL not configured, please check configuration",
-  "updateCheckNoServerUrlsConfigured": "No update server URLs configured, please check configuration",
-  "updateCheckAllServersUnavailable": "All configured update servers are unavailable",
-  "updateCheckServerError": "Server returned error status code {statusCode}",
-  "@updateCheckServerError": {
-    "placeholders": {
-      "statusCode": {
-        "type": "int"
-      }
-    }
-  },
-  "updateCheckServerTemporarilyUnavailable": "Server temporarily unavailable, please try again later",
-  "onlineSupportTitle": "Online Support",
-  "onlineSupportConnected": "Successfully connected to support system",
-  "onlineSupportConnecting": "Connecting...",
-  "onlineSupportDisconnected": "Disconnected",
-  "onlineSupportConnectionError": "Connection error",
-  "onlineSupportNoMessages": "No messages yet, send a message to start consultation",
-  "onlineSupportInputHint": "Please enter your question...",
-  "onlineSupportSendImage": "Send image",
-  "onlineSupportClearHistory": "Clear history",
-  "onlineSupportClearHistoryConfirm": "Are you sure you want to clear all chat history? This action cannot be undone.",
-  "onlineSupportCancel": "Cancel",
-  "onlineSupportConfirm": "Confirm",
-  "onlineSupportSelectImages": "Select Images",
-  "onlineSupportClickToSelect": "Click to select images",
-  "onlineSupportSupportedFormats": "Supports JPG, PNG, GIF, WebP, BMP\nMax 10MB",
-  "onlineSupportAddMore": "Add More",
-  "onlineSupportSend": "Send",
-  "onlineSupportSelectImagesFailed": "Failed to select images: {error}",
-  "@onlineSupportSelectImagesFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "onlineSupportUploadFailed": "Upload failed: {error}",
-  "@onlineSupportUploadFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "onlineSupportApiConfigNotFound": "Online support API configuration not found, please check configuration",
-  "onlineSupportUnsupportedHttpMethod": "Unsupported HTTP method: {method}",
-  "@onlineSupportUnsupportedHttpMethod": {
-    "placeholders": {
-      "method": {
-        "type": "String"
-      }
-    }
-  },
-  "onlineSupportSendMessageFailed": "Failed to send message: Unable to get authentication token",
-  "onlineSupportTokenNotFound": "Authentication token not found",
-  "onlineSupportGetMessagesFailed": "Failed to get messages: {statusCode}",
-  "@onlineSupportGetMessagesFailed": {
-    "placeholders": {
-      "statusCode": {
-        "type": "int"
-      }
-    }
-  },
-  "contactSupport": "Support",
-  "configurationError": "Application configuration error, please contact support",
-  "onlineSupportWebSocketConfigNotFound": "Online support WebSocket configuration not found, please check configuration",
-  "newMessageFromSupport": "New message from support",
-  "emailPrefixHint": "Email prefix",
-  "pleaseEnterEmailPrefix": "Please enter email prefix",
-  "invalidEmailFormat": "Invalid email format",
-  "pleaseSelectEmailSuffix": "Please select email suffix",
-  "pleaseSelectSuffix": "Please select suffix",
-  "fullEmailPreview": "Full email: {email}",
-  "@fullEmailPreview": {
-    "placeholders": {
-      "email": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardSearchNode": "Search nodes",
-  "xboardSettings": "Settings",
-  "xboardNetworkSettings": "Network Settings",
-  "xboardBypassDomain": "Bypass Domain/IP",
-  "xboardBypassDomainDesc": "Add domains and IPs for direct connection",
-  "xboardBypassDomainCount": "{count} rules configured",
-  "@xboardBypassDomainCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "xboardLanSharing": "LAN Proxy Sharing",
-  "xboardLanSharingDesc": "Allow LAN devices to use this proxy",
-  "xboardProxyInfo": "Proxy Information",
-  "xboardProxyCommands": "Set Proxy Commands",
-  "xboardCopied": "Copied",
-  "xboardProxyPort": "Proxy Port",
-  "xboardAllowLan": "Share to LAN",
-  "xboardAccountSettings": "Account Settings",
-  "xboardAccountInfo": "Account Information",
-  "xboardMemberSince": "Member since",
-  "xboardCommissionBalance": "Commission Balance",
-  "xboardCommissionRate": "Commission Rate",
-  "xboardNotifications": "Notifications",
-  "xboardRemindExpire": "Remind when plan expires",
-  "xboardRemindTraffic": "Remind when traffic is low",
-  "xboardSecurity": "Security",
-  "xboardChangePassword": "Change Password",
-  "xboardResetSubscription": "Reset Subscription",
-  "xboardResetSubscriptionDesc": "This will generate a new subscription URL and invalidate the old one",
-  "xboardPreferences": "Preferences",
-  "xboardQuickActions": "Quick Actions",
-  "xboardBrowsePlans": "Browse available plans",
-  "xboardMyOrders": "My Orders",
-  "xboardViewOrders": "View order history",
-  "xboardSupportTickets": "Support Tickets",
-  "xboardGetSupport": "Get help from support",
-  "xboardInviteFriends": "Invite Friends",
-  "xboardEarnCommission": "Earn commission by inviting",
-  "xboardComingSoon": "Coming soon",
-  "xboardOrderHistory": "Order History",
-  "xboardOrderHistoryDesc": "View and manage your order history",
-  "xboardAllOrders": "All",
-  "xboardPendingOrders": "Pending",
-  "xboardProcessingOrders": "Processing",
-  "xboardCompletedOrders": "Completed",
-  "xboardCancelledOrders": "Cancelled",
-  "xboardNoOrders": "No orders yet",
-  "xboardNoOrdersDesc": "Your order history will appear here",
-  "xboardOrderDetails": "Order Details",
-  "xboardOrderInfo": "Order Information",
-  "xboardTradeNo": "Trade No",
-  "xboardPeriod": "Period",
-  "xboardTotalAmount": "Total Amount",
-  "xboardBalanceAmount": "Balance Payment",
-  "xboardRefundAmount": "Refund Amount",
-  "xboardDiscountAmount": "Discount Amount",
-  "xboardSurplusAmount": "Surplus Amount",
-  "xboardCreatedAt": "Created At",
-  "xboardDetail": "Detail",
-  "xboardPay": "Pay",
-  "xboardCancelOrder": "Cancel Order",
-  "xboardCancelOrderConfirm": "Are you sure you want to cancel this order?",
-  "xboardOrderCancelled": "Order cancelled successfully",
-  "xboardCancelFailed": "Cancel failed",
-  "xboardGoToPay": "Go to Pay",
-  "xboardLoadFailed": "Load Failed",
-  "xboardPlanSummary": "Plan Summary",
-  "xboardPaymentDetails": "Payment Details",
-  "xboardContinueToPayment": "Continue to Payment",
-  "xboardOrderSummary": "Order Summary",
-  "xboardSubtotal": "Subtotal",
-  "xboardDiscount": "Discount",
-  "xboardTotal": "Total",
-  "xboardServerStatus": "Server Status",
-  "xboardServersOnline": "servers online",
-  "xboardServersOffline": "servers offline",
-  "xboardOnline": "online",
-  "xboardOffline": "offline",
-  "xboardServerName": "Server Name",
-  "xboardInvite": "Invite",
-  "xboardInviteTitle": "Invite Friends & Earn Commission",
-  "xboardInviteSubtitle": "Share your invite code and earn commission from referrals",
-  "xboardRegisteredUsers": "Registered Users",
-  "xboardSettledCommission": "Settled Commission",
-  "xboardPendingCommission": "Pending Commission",
-  "xboardSystemCommissionRate": "System Rate",
-  "xboardCustomCommissionRate": "Custom Rate",
-  "xboardUserSpecificRate": "User-specific",
-  "xboardAvailableCommission": "Available Commission",
-  "xboardInviteCodes": "Invite Codes",
-  "xboardCreateInviteCode": "Create Code",
-  "xboardCreating": "Creating...",
-  "xboardCopyCode": "Copy Code",
-  "xboardCodeCopied": "Code copied to clipboard",
-  "xboardLinkCopied": "Link copied to clipboard",
-  "xboardNoInviteCodes": "No invite codes yet",
-  "xboardNoInviteCodesDesc": "Create your first invite code to start earning commission",
-  "xboardMaxInviteCodesReached": "Maximum 5 invite codes allowed",
-  "xboardInviteCodeCreated": "Invite code created successfully",
-  "xboardWithdrawTransferComingSoon": "Withdrawal and transfer features coming soon",
-  "xboardLoadError": "Failed to load data",
-  "xboardError": "Error",
-  "xboardServerHost": "Server Host",
-  "xboardServerOnline": "Available",
-  "xboardServerOffline": "Unavailable",
-  "xboardNoServerData": "No server data available",
-  "xboardTrafficHistory": "Traffic History",
-  "xboardTrafficHistoryTitle": "Traffic Usage History",
-  "xboardViewChart": "View Chart",
-  "xboardViewList": "View List",
-  "xboardDailyTraffic": "Daily Traffic",
-  "xboardTrafficTotal": "Total",
-  "xboardTrafficNoData": "No traffic data available",
-  "xboardToday": "Today",
-  "xboardYesterday": "Yesterday",
-  "xboardHalfYearPayment": "Half-yearly",
-  "xboardOnetimePayment": "One-time",
-  "xboardResetTraffic": "Reset traffic",
-  "xboardPleaseLogin": "Please login first",
-  "xboardTickets": "Tickets",
-  "xboardCreateTicket": "Create Ticket",
-  "xboardTicketDetail": "Ticket Details",
-  "xboardCloseTicketConfirm": "Are you sure you want to close this ticket? You won't be able to reply after closing.",
-  "xboardTicketSubject": "Subject",
-  "xboardTicketMessage": "Message",
-  "xboardPriority": "Priority",
-  "xboardLowPriority": "Low",
-  "xboardMediumPriority": "Medium",
-  "xboardHighPriority": "High",
-  "xboardJustNow": "Just now",
-  "xboardMinutesAgo": "minutes ago",
-  "xboardHoursAgo": "hours ago",
-  "xboardDaysAgo": "days ago",
-  "xboardWeeksAgo": "weeks ago",
-  "xboardMonthsAgo": "months ago",
-  "xboardYearsAgo": "years ago",
-  "xboardCannotOpenPaymentLink": "Cannot open payment link",
-  "xboardPaymentLinkCopiedToClipboard": "Payment link copied to clipboard",
-  "xboardPleaseTryLaterOrContactSupport": "Please try again later or contact support",
-  "xboardPaymentFailedMessage": "Payment failed: {message}",
-  "xboardBalancePaymentFailed": "Balance payment failed",
-  "xboardNoAvailablePlans": "No available plans",
-  "xboardRecommended": "Recommended",
-  "xboardLowestPrice": "Lowest Price",
-  "xboardMonthlyPrice": "Monthly Price",
-  "xboardSubscriptionDetails": "Subscription Details",
-  "xboardTrafficUsage": "Traffic Usage",
-  "xboardRemaining": "Remaining",
-  "xboardExpirationTime": "Expiration Time",
-  "xboardNeverExpire": "Never Expire",
-  "xboardExpired": "Expired",
-  "xboardExpiringSoon": "Expiring Soon",
-  "xboardActive": "Active",
-  "xboardInactive": "Inactive",
-  "xboardImportingConfiguration": "Importing configuration",
-  "xboardDownloadingProfile": "Downloading profile",
-  "xboardValidatingProfile": "Validating profile",
-  "xboardReplacingProfile": "Replacing profile",
-  "xboardAddingProfile": "Adding profile",
-  "xboardInitializing": "Initializing",
-  "xboardInitializationFailed": "Initialization Failed",
-  "xboardNoTitle": "No Title",
-  "xboardClose": "Close",
-  "xboardCloseTicket": "Close Ticket",
-  "xboardReply": "Reply",
-  "xboardSend": "Send",
-  "xboardEnterMessage": "Please enter a message",
-  "xboardEnterSubject": "Please enter a subject",
-  "xboardSelectPriority": "Select priority",
-  "xboardTicketClosed": "Ticket closed",
-  "xboardTicketStatus": "Ticket Status",
-  "xboardOpen": "Open",
-  "xboardClosed": "Closed",
-  "xboardPending": "Pending",
-  "xboardReplied": "Replied",
-  "xboardNoTickets": "No tickets",
-  "xboardNoTicketsDesc": "Create your first ticket to get support",
-  "xboardCreateYourFirstTicket": "Create your first ticket",
-  "xboardTicketCreated": "Ticket created successfully",
-  "xboardTicketCreateFailed": "Failed to create ticket",
-  "xboardReplySent": "Reply sent successfully",
-  "xboardReplyFailed": "Failed to send reply",
-  "xboardPurchasePlanPrompt": "Please purchase a plan first",
-  "xboardBrowsePlansButton": "Browse Plans",
-  "xboardTimeInfo": "Time Information",
-  "xboardRemainingDaysLabel": "Days Remaining",
-  "xboardRemainingDaysCount": "{days} days",
-  "@xboardRemainingDaysCount": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
-  "xboardPlanWithId": "Plan #{planId}",
-  "@xboardPlanWithId": {
-    "placeholders": {
-      "planId": {
-        "type": "int"
-      }
-    }
-  },
-  "xboardDeviceLimitCount": "{limit} devices",
-  "@xboardDeviceLimitCount": {
-    "placeholders": {
-      "limit": {
-        "type": "int"
-      }
-    }
-  },
-  "xboardUploadTrafficLabel": "Upload: {traffic}",
-  "@xboardUploadTrafficLabel": {
-    "placeholders": {
-      "traffic": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardDownloadTrafficLabel": "Download: {traffic}",
-  "@xboardDownloadTrafficLabel": {
-    "placeholders": {
-      "traffic": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardRefreshSubscriptionInfo": "Refresh subscription info",
-  "xboardRefreshSubscriptionSuccess": "Subscription refreshed successfully",
-  "xboardTestAllNodes": "Test all nodes",
-  "xboardTestComplete": "Test complete",
-  "xboardUpdateNodes": "Update nodes",
-  "xboardNodesUpdated": "Nodes updated successfully",
-  "cannotSelectSpecialProxy": "Cannot select DIRECT or REJECT special proxy",
-  "xboardStatusCheckFailed": "Status check failed",
-  "xboardDownloadTimeout": "Download timeout",
-  "xboardHttpRequestFailed": "HTTP request failed",
-  "xboardAllDownloadTasksFailed": "All download tasks failed",
-  "xboardProxyConnectionLabel": "Proxy ({url})",
-  "@xboardProxyConnectionLabel": {
-    "placeholders": {
-      "url": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardDirectConnectionLabel": "Direct",
-  "xboardTaskCancelled": "Task cancelled",
-  "xboardCancelImport": "Cancel import",
-  "xboardConfigImportSuccess": "Configuration imported successfully",
-  "xboardConfigImportFailed": "Configuration import failed",
-  "xboardConfigImportedSuccessDetail": "Configuration has been successfully imported and added to the configuration list",
-  "xboardPreparingImportStatus": "Preparing import",
-  "xboardStartImportingSubscription": "Starting subscription import",
-  "xboardImportCancelled": "Import cancelled",
-  "xboardImportInProgress": "Import in progress, please wait",
-  "xboardReplaceOldConfig": "Replacing old subscription configuration",
-  "xboardRetryAttemptFailed": "Attempt {attempt} failed, waiting to retry...",
-  "@xboardRetryAttemptFailed": {
-    "placeholders": {
-      "attempt": {
-        "type": "int"
-      }
-    }
-  },
-  "xboardMultipleRetriesFailed": "Still failed after multiple retries",
-  "xboardDownloadTimeoutError": "Download timeout",
-  "xboardNetworkConnectionError": "Network connection failed",
-  "xboardHttpRequestError": "HTTP request failed",
-  "xboardConfigFormatInvalid": "Configuration file format error",
-  "xboardConfigDownloadError": "Failed to download configuration",
-  "xboardNetworkConnectionFailedCheckSettings": "Network connection failed, please check network settings and retry",
-  "xboardConfigDownloadFailedBadRequest": "Configuration download failed: HTTP request header format error, please try again later",
-  "xboardConfigDownloadFailedInvalidRequest": "Configuration download failed: Invalid request format, please try again later",
-  "xboardConfigDownloadFailedCheckLink": "Configuration download failed, please check if the subscription link is correct",
-  "xboardConfigValidationFailed": "Configuration format validation failed, please contact service provider to check configuration format",
-  "xboardConfigSaveFailedCheckStorage": "Failed to save configuration, please check storage space",
-  "xboardImportFailedAppConfigError": "Import failed: Application configuration error, please try again later or restart the app",
-  "xboardImportFailedRetryOrSupport": "Import failed, please try again later or contact support",
-  "xboardSkip": "Skip",
-  "xboardFirstStartupNote": "First startup may take some time\nPlease be patient...",
-  "xboardInitializationTimeout": "Initialization timeout",
-  "xboardDomainUnavailable": "Domain unavailable",
-  "xboardDomainNotReady": "Domain status not ready",
-  "xboardInitializationComplete": "Initialization complete",
-  "xboardFallbackModeUsed": "Initialized using fallback mode",
-  "xboardUsingFallbackMode": "Using fallback mode",
-  "xboardCannotLaunchBrowser": "Cannot launch external browser",
-  "xboardAutoOpeningPayment": "Auto-opening payment page, please return to app after payment",
-  "xboardPaymentPageOpenedInBrowserNote": "Payment page opened in browser, please return to app after payment",
-  "xboardOpenPaymentLinkError": "Failed to open payment link: {error}",
-  "@xboardOpenPaymentLinkError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardCopyFailedError": "Copy failed: {error}",
-  "@xboardCopyFailedError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardOrderInfoNotFound": "Order information not found",
-  "xboardCheckPaymentStatusError": "Failed to check payment status: {error}",
-  "@xboardCheckPaymentStatusError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardOperationStep1": "1. Payment page has been opened automatically",
-  "xboardOperationStep2": "2. Please complete payment in your browser",
-  "xboardOperationStep3": "3. Return to app after payment, system will detect automatically",
-  "xboardReopenPaymentNote": "To reopen, click the \"Reopen\" button below",
-  "xboardBrowserNotOpenedNote": "Tip: If browser doesn't open automatically, click \"Reopen\" or copy link manually",
-  "xboardClearOldOrders": "Clear old orders",
-  "xboardUnlimitedDevices": "Unlimited devices",
-  "xboardOldPassword": "Current Password",
-  "xboardNewPassword": "New Password",
-  "xboardPasswordChangedSuccess": "Password changed successfully",
-  "xboardPasswordChangeError": "Failed to change password",
-  "xboardResetConfirmTitle": "Reset Subscription",
-  "xboardResetConfirmDesc": "This will generate a new subscription URL. The old URL will become invalid and you will need to re-import the subscription. Are you sure?",
-  "xboardResetSubscriptionSuccess": "Subscription reset successfully. Please re-import.",
-  "xboardResetSubscriptionError": "Failed to reset subscription",
-  "xboardNotificationUpdateSuccess": "Notification settings updated",
-  "xboardNotificationUpdateError": "Failed to update notification settings",
-  "xboardConfirm": "Confirm",
-  "xboardResetting": "Resetting...",
-  "xboardChanging": "Changing...",
-  "xboardPasswordMinLength": "Password must be at least 8 characters",
-  "xboardCleaningPendingOrders": "Cleaning up previous pending orders...",
-  "xboardPaymentPageOpenedCopyDesc": "Payment page opened and link copied to clipboard. If not redirected automatically, please paste the link in your browser.",
-  "xboardNoPaymentMethodsAvailable": "No payment methods available, please check your network or try again later",
-  "xboardOperationFailedError": "Operation failed: {error}",
-  "@xboardOperationFailedError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardPaymentFailedEmptyResult": "Payment failed: empty result returned",
-  "xboardPaymentFailedBalanceError": "Payment failed: balance payment unsuccessful",
-  "xboardPaymentFailedInvalidData": "Payment failed: invalid payment data received",
-  "xboardCannotOpenPaymentUrl": "Cannot open payment link",
-  "xboardOpenPaymentPageError": "Failed to open payment page: {error}",
-  "@xboardOpenPaymentPageError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "xboardTapToCopy": "Tap to copy",
-  "xboardAutoDetectPaymentStatus": "Auto-detecting payment status",
-  "xboardAutoCheckPaymentDesc": "System checks every 5 seconds, auto-redirects on payment completion",
-  "xboardStop": "Stop",
-  "xboardOperationTips": "Instructions",
-  "xboardOperationStep4": "4. To reopen, click the \"Reopen\" button below",
-  "xboardReopenPayment": "Reopen",
-  "xboardCopyLink": "Copy Link",
-  "xboardChecking": "Checking...",
-  "xboardCheckStatus": "Check Status",
-  "xboardCancelPayment": "Cancel Payment",
-  "xboardGoBack": "Go Back",
-  "xboardToday": "Today",
-  "xboardYesterday": "Yesterday",
-  "xboardTomorrow": "Tomorrow",
-  "xboardWeeks": "weeks",
-  "xboardInitializing": "Initializing",
-  "xboardInitializationFailed": "Initialization Failed",
-  "xboardRetry": "Retry",
-  "xboardSkip": "Skip",
-  "xboardFirstStartTip": "First startup may take some time\nPlease wait patiently...",
-  "xboardImportStatusIdle": "Preparing to import",
-  "xboardImportStatusCleaning": "Cleaning old configuration",
-  "xboardImportStatusDownloading": "Downloading configuration",
-  "xboardImportStatusValidating": "Validating configuration",
-  "xboardImportStatusAdding": "Adding to configuration list",
-  "xboardImportStatusSuccess": "Import successful",
-  "xboardImportStatusFailed": "Import failed",
-  "xboardImportErrorNetwork": "Network connection failed, please check network settings",
-  "xboardImportErrorDownload": "Configuration download failed, please check subscription link",
-  "xboardImportErrorValidation": "Configuration format error, please contact service provider",
-  "xboardImportErrorStorage": "Failed to save configuration, please check storage space",
-  "xboardImportErrorUnknown": "Unknown error, please retry",
-  "xboardPlanPeriodOnetime": "One-time",
-  "xboardPlanPeriodMonthly": "Monthly",
-  "xboardPlanPeriodQuarterly": "Quarterly",
-  "xboardPlanPeriodHalfYearly": "Half-yearly",
-  "xboardPlanPeriodYearly": "Yearly",
-  "xboardPlanPeriodTwoYear": "Two-year",
-  "xboardPlanPeriodThreeYear": "Three-year",
-  "xboardPlanPeriodReset": "Reset Traffic",
-  "xboardOrderStatusPending": "Pending Payment",
-  "xboardOrderStatusProcessing": "Processing",
-  "xboardOrderStatusCanceled": "Canceled",
-  "xboardOrderStatusCompleted": "Completed",
-  "xboardOrderStatusDiscounted": "Discounted",
-  "xboardCommissionStatusPending": "Pending Confirmation",
-  "xboardCommissionStatusProcessing": "Processing",
-  "xboardCommissionStatusCompleted": "Distributed",
-  "xboardCommissionStatusNone": "No Commission",
-  "xboardPriorityLabel": "Priority",
-  "xboardUnknownPriority": "Unknown",
-  "xboardTicketStatusPending": "Pending",
-  "xboardTicketStatusClosed": "Closed",
-  "xboardLatencyTesting": "Testing",
-  "xboardLatencyAutoTesting": "Auto Testing",
-  "xboardLatencyTimeout": "Timeout",
-  "xboardLatencyExcellent": "Excellent",
-  "xboardLatencyGood": "Good",
-  "xboardLatencyFair": "Fair",
-  "xboardLatencyPoor": "Poor",
-  "xboardLatencyVeryPoor": "Very Poor",
-  "xboardLatencyTimeoutDesc": "Connection timeout, please check network",
-  "xboardLatencyExcellentDesc": "Excellent network quality, suitable for all applications",
-  "xboardLatencyGoodDesc": "Good network quality, suitable for most applications",
-  "xboardLatencyFairDesc": "Fair network quality, usable for basic applications",
-  "xboardLatencyPoorDesc": "Poor network quality, may affect experience",
-  "xboardLatencyVeryPoorDesc": "Very poor network quality, recommend changing node"
+  "loadTest": "Load test",
+  "yearsAgo": "{count, plural, =1{1 year ago} other{{count} years ago}}",
+  "monthsAgo": "{count, plural, =1{1 month ago} other{{count} months ago}}",
+  "daysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
+  "hoursAgo": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
+  "minutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
+  "justNow": "Just now",
+  "noLongerRemind": "Don't remind again",
+  "accessControlSettings": "Access Control Settings",
+  "turnOn": "Turn On",
+  "turnOff": "Turn Off",
+  "coreConfigChangeDetected": "Core configuration change detected",
+  "reload": "Reload",
+  "vpnConfigChangeDetected": "VPN configuration change detected",
+  "restart": "Restart",
+  "speedStatistics": "Speed statistics",
+  "resetPageChangesTip": "The current page has changes. Are you sure you want to reset?",
+  "overwriteTypeCustom": "Custom",
+  "overwriteTypeCustomDesc": "Custom mode, fully customize proxy groups and rules",
+  "unknownNetworkError": "Unknown network error",
+  "networkRequestException": "Network request exception, please try again later.",
+  "restoreException": "Recovery exception",
+  "networkException": "Network exception, please check your connection and try again",
+  "invalidBackupFile": "Invalid backup file",
+  "pruneCache": "Prune cache",
+  "backupAndRestore": "Backup and Restore",
+  "backupAndRestoreDesc": "Sync data via WebDAV or files",
+  "restore": "Restore",
+  "restoreSuccess": "Restore success",
+  "restoreFromWebDAVDesc": "Restore data via WebDAV",
+  "restoreFromFileDesc": "Restore data via file",
+  "restoreOnlyConfig": "Restore configuration files only",
+  "restoreAllData": "Restore all data",
+  "addProfile": "Add Profile",
+  "delayTest": "Delay Test"
 }

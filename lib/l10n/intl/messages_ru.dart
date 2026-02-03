@@ -68,11 +68,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m35(count) => "${count} правил настроено";
 
-  static String m46(time) => "Время работы: ${time}";
+  static String m41(error) => "Не удалось открыть страницу оплаты: ${error}";
 
-  static String m47(error) => "Операция не удалась: ${error}";
+  static String m42(error) => "Операция не удалась: ${error}";
 
-  static String m48(error) => "Не удалось открыть страницу оплаты: ${error}";
+  static String m48(time) => "Время работы: ${time}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -972,9 +972,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardAutoCheckEvery5Seconds": MessageLookupByLibrary.simpleMessage(
       "Система проверяет каждые 5 секунд, автоматически перенаправит после оплаты",
     ),
-    "xboardAutoCheckPaymentDesc": MessageLookupByLibrary.simpleMessage("Система проверяет каждые 5 секунд, автоматически перенаправляет при завершении оплаты"),
+    "xboardAutoCheckPaymentDesc": MessageLookupByLibrary.simpleMessage(
+      "Система проверяет каждые 5 секунд, автоматически перенаправляет при завершении оплаты",
+    ),
     "xboardAutoDetectPaymentStatus": MessageLookupByLibrary.simpleMessage(
-      "Автоопределение статуса оплаты",
+      "Автоматическое определение статуса оплаты",
     ),
     "xboardAutoOpeningPaymentPage": MessageLookupByLibrary.simpleMessage(
       "Автоматически открывается страница оплаты, вернитесь в приложение после оплаты",
@@ -999,8 +1001,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Добавить домены и IP для прямого подключения",
     ),
     "xboardCancel": MessageLookupByLibrary.simpleMessage("Отмена"),
-    "xboardCancelPayment": MessageLookupByLibrary.simpleMessage("Отменить оплату"),
-    "xboardCannotOpenPaymentUrl": MessageLookupByLibrary.simpleMessage("Не удалось открыть ссылку на оплату"),
+    "xboardCancelPayment": MessageLookupByLibrary.simpleMessage(
+      "Отменить оплату",
+    ),
+    "xboardCannotOpenPaymentUrl": MessageLookupByLibrary.simpleMessage(
+      "Не удалось открыть ссылку на оплату",
+    ),
     "xboardCheckPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Не удалось проверить статус оплаты",
     ),
@@ -1011,7 +1017,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCleaningOldConfig": MessageLookupByLibrary.simpleMessage(
       "Очистка старой конфигурации",
     ),
-    "xboardCleaningPendingOrders": MessageLookupByLibrary.simpleMessage("Очистка предыдущих ожидающих заказов..."),
+    "xboardCleaningPendingOrders": MessageLookupByLibrary.simpleMessage(
+      "Очистка предыдущих ожидающих заказов...",
+    ),
     "xboardClearError": MessageLookupByLibrary.simpleMessage("Очистить ошибку"),
     "xboardClickToCopy": MessageLookupByLibrary.simpleMessage(
       "Нажмите для копирования",
@@ -1059,9 +1067,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCopyFailed": MessageLookupByLibrary.simpleMessage(
       "Копирование не удалось",
     ),
-    "xboardCopyLink": MessageLookupByLibrary.simpleMessage(
-      "Скопировать ссылку",
-    ),
+    "xboardCopyLink": MessageLookupByLibrary.simpleMessage("Копировать ссылку"),
     "xboardCopyPaymentLink": MessageLookupByLibrary.simpleMessage(
       "Скопировать ссылку",
     ),
@@ -1233,7 +1239,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNoInternetConnection": MessageLookupByLibrary.simpleMessage(
       "Нет интернет-соединения, проверьте настройки сети",
     ),
-    "xboardNoPaymentMethodsAvailable": MessageLookupByLibrary.simpleMessage("Нет доступных способов оплаты, проверьте сеть или попробуйте позже"),
+    "xboardNoPaymentMethodsAvailable": MessageLookupByLibrary.simpleMessage(
+      "Нет доступных способов оплаты, проверьте сеть или попробуйте позже",
+    ),
     "xboardNoSubscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "Нет информации о подписке",
     ),
@@ -1254,12 +1262,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOpenPaymentLinkFailed": MessageLookupByLibrary.simpleMessage(
       "Не удалось открыть ссылку на оплату",
     ),
-    "xboardOpenPaymentPageError": m48,
+    "xboardOpenPaymentPageError": m41,
     "xboardOperationFailed": MessageLookupByLibrary.simpleMessage(
       "Операция не удалась",
     ),
-    "xboardOperationFailedError": m47,
-    "xboardOperationStep4": MessageLookupByLibrary.simpleMessage("4. Чтобы открыть снова, нажмите кнопку \"Открыть снова\" ниже"),
+    "xboardOperationFailedError": m42,
+    "xboardOperationStep4": MessageLookupByLibrary.simpleMessage(
+      "4. Чтобы открыть снова, нажмите кнопку \"Открыть снова\" ниже",
+    ),
     "xboardOperationTips": MessageLookupByLibrary.simpleMessage("Инструкции"),
     "xboardOrderCreationFailed": MessageLookupByLibrary.simpleMessage(
       "Создание заказа не удалось",
@@ -1284,9 +1294,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Платёж не удался",
     ),
-    "xboardPaymentFailedBalanceError": MessageLookupByLibrary.simpleMessage("Ошибка оплаты: оплата балансом не удалась"),
-    "xboardPaymentFailedEmptyResult": MessageLookupByLibrary.simpleMessage("Ошибка оплаты: получен пустой результат"),
-    "xboardPaymentFailedInvalidData": MessageLookupByLibrary.simpleMessage("Ошибка оплаты: получены недействительные данные оплаты"),
+    "xboardPaymentFailedBalanceError": MessageLookupByLibrary.simpleMessage(
+      "Ошибка оплаты: оплата балансом не удалась",
+    ),
+    "xboardPaymentFailedEmptyResult": MessageLookupByLibrary.simpleMessage(
+      "Ошибка оплаты: получен пустой результат",
+    ),
+    "xboardPaymentFailedInvalidData": MessageLookupByLibrary.simpleMessage(
+      "Ошибка оплаты: получены недействительные данные оплаты",
+    ),
     "xboardPaymentGateway": MessageLookupByLibrary.simpleMessage(
       "Платёжный шлюз",
     ),
@@ -1317,11 +1333,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentPageAutoOpened": MessageLookupByLibrary.simpleMessage(
       "1. Страница оплаты была открыта автоматически",
     ),
-    "xboardPaymentPageOpenedCopyDesc": MessageLookupByLibrary.simpleMessage("Страница оплаты открыта, ссылка скопирована в буфер обмена. Если перенаправление не произошло автоматически, вставьте ссылку в браузер."),
     "xboardPaymentPageOpenedCompleteAndReturn":
         MessageLookupByLibrary.simpleMessage(
           "Страница оплаты открыта, завершите оплату и вернитесь в приложение",
         ),
+    "xboardPaymentPageOpenedCopyDesc": MessageLookupByLibrary.simpleMessage(
+      "Страница оплаты открыта, ссылка скопирована в буфер обмена. Если перенаправление не произошло автоматически, вставьте ссылку в браузер.",
+    ),
     "xboardPaymentPageOpenedInBrowser": MessageLookupByLibrary.simpleMessage(
       "Страница оплаты открыта в браузере, вернитесь в приложение после оплаты",
     ),
@@ -1416,7 +1434,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardReopen": MessageLookupByLibrary.simpleMessage("Открыть заново"),
     "xboardReopenPayment": MessageLookupByLibrary.simpleMessage(
-      "Повторно открыть оплату",
+      "Открыть снова",
     ),
     "xboardReopenPaymentPageTip": MessageLookupByLibrary.simpleMessage(
       "Для повторного открытия нажмите кнопку \\\"Открыть заново\\\" ниже",
@@ -1428,7 +1446,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. Вернитесь в приложение после оплаты, система автоматически определит",
     ),
-    "xboardRunningTime": m46,
+    "xboardRunningTime": m48,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("Поиск узлов"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage(
       "Безопасное шифрование",
@@ -1454,7 +1472,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardStartProxy": MessageLookupByLibrary.simpleMessage(
       "Запустить прокси",
     ),
-    "xboardStop": MessageLookupByLibrary.simpleMessage("Остановить"),
+    "xboardStop": MessageLookupByLibrary.simpleMessage("Стоп"),
     "xboardStopProxy": MessageLookupByLibrary.simpleMessage(
       "Остановить прокси",
     ),
@@ -1485,7 +1503,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardSwitch": MessageLookupByLibrary.simpleMessage("Переключить"),
     "xboardSwitchNode": MessageLookupByLibrary.simpleMessage("Сменить узел"),
-    "xboardTapToCopy": MessageLookupByLibrary.simpleMessage("Нажмите для копирования"),
+    "xboardTapToCopy": MessageLookupByLibrary.simpleMessage(
+      "Нажмите для копирования",
+    ),
     "xboardTestAllNodes": MessageLookupByLibrary.simpleMessage(
       "Тестировать все узлы",
     ),

@@ -109,24 +109,24 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m40(error) => "Failed to open payment link: ${error}";
 
-  static String m41(message) => "Payment failed: ${message}";
+  static String m41(error) => "Failed to open payment page: ${error}";
 
-  static String m42(planId) => "Plan #${planId}";
+  static String m42(error) => "Operation failed: ${error}";
 
-  static String m43(url) => "Proxy (${url})";
+  static String m43(message) => "Payment failed: ${message}";
 
-  static String m44(days) => "${days} days";
+  static String m44(planId) => "Plan #${planId}";
 
-  static String m45(attempt) =>
+  static String m45(url) => "Proxy (${url})";
+
+  static String m46(days) => "${days} days";
+
+  static String m47(attempt) =>
       "Attempt ${attempt} failed, waiting to retry...";
 
-  static String m46(time) => "Running time: ${time}";
+  static String m48(time) => "Running time: ${time}";
 
-  static String m47(traffic) => "Upload: ${traffic}";
-
-  static String m48(error) => "Operation failed: ${error}";
-
-  static String m49(error) => "Failed to open payment page: ${error}";
+  static String m49(traffic) => "Upload: ${traffic}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1314,10 +1314,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCannotLaunchBrowser": MessageLookupByLibrary.simpleMessage(
       "Cannot launch external browser",
     ),
-    "xboardCannotOpenPaymentUrl": MessageLookupByLibrary.simpleMessage(
+    "xboardCannotOpenPaymentLink": MessageLookupByLibrary.simpleMessage(
       "Cannot open payment link",
     ),
-    "xboardCannotOpenPaymentLink": MessageLookupByLibrary.simpleMessage(
+    "xboardCannotOpenPaymentUrl": MessageLookupByLibrary.simpleMessage(
       "Cannot open payment link",
     ),
     "xboardChangePassword": MessageLookupByLibrary.simpleMessage(
@@ -1803,11 +1803,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOpenPaymentLinkFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to open payment link",
     ),
-    "xboardOpenPaymentPageError": m49,
+    "xboardOpenPaymentPageError": m41,
     "xboardOperationFailed": MessageLookupByLibrary.simpleMessage(
       "Operation failed",
     ),
-    "xboardOperationFailedError": m48,
+    "xboardOperationFailedError": m42,
     "xboardOperationStep1": MessageLookupByLibrary.simpleMessage(
       "1. Payment page has been opened automatically",
     ),
@@ -1881,7 +1881,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentFailedInvalidData": MessageLookupByLibrary.simpleMessage(
       "Payment failed: invalid payment data received",
     ),
-    "xboardPaymentFailedMessage": m41,
+    "xboardPaymentFailedMessage": m43,
     "xboardPaymentGateway": MessageLookupByLibrary.simpleMessage(
       "Payment gateway",
     ),
@@ -1914,13 +1914,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentPageAutoOpened": MessageLookupByLibrary.simpleMessage(
       "1. Payment page has been opened automatically",
     ),
-    "xboardPaymentPageOpenedCopyDesc": MessageLookupByLibrary.simpleMessage(
-      "Payment page opened and link copied to clipboard. If not redirected automatically, please paste the link in your browser.",
-    ),
     "xboardPaymentPageOpenedCompleteAndReturn":
         MessageLookupByLibrary.simpleMessage(
           "Payment page opened, please complete payment and return to app",
         ),
+    "xboardPaymentPageOpenedCopyDesc": MessageLookupByLibrary.simpleMessage(
+      "Payment page opened and link copied to clipboard. If not redirected automatically, please paste the link in your browser.",
+    ),
     "xboardPaymentPageOpenedInBrowser": MessageLookupByLibrary.simpleMessage(
       "Payment page opened in browser, please return to app after payment",
     ),
@@ -1945,7 +1945,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Plan not found",
     ),
     "xboardPlanSummary": MessageLookupByLibrary.simpleMessage("Plan Summary"),
-    "xboardPlanWithId": m42,
+    "xboardPlanWithId": m44,
     "xboardPlans": MessageLookupByLibrary.simpleMessage("Plans"),
     "xboardPleaseLogin": MessageLookupByLibrary.simpleMessage(
       "Please login first",
@@ -1985,7 +1985,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardProxyCommands": MessageLookupByLibrary.simpleMessage(
       "Set Proxy Commands",
     ),
-    "xboardProxyConnectionLabel": m43,
+    "xboardProxyConnectionLabel": m45,
     "xboardProxyInfo": MessageLookupByLibrary.simpleMessage(
       "Proxy Information",
     ),
@@ -2040,7 +2040,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReload": MessageLookupByLibrary.simpleMessage("Reload"),
     "xboardRelogin": MessageLookupByLibrary.simpleMessage("Login Again"),
     "xboardRemaining": MessageLookupByLibrary.simpleMessage("Remaining"),
-    "xboardRemainingDaysCount": m44,
+    "xboardRemainingDaysCount": m46,
     "xboardRemainingDaysLabel": MessageLookupByLibrary.simpleMessage(
       "Days Remaining",
     ),
@@ -2100,13 +2100,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardResetTraffic": MessageLookupByLibrary.simpleMessage("Reset traffic"),
     "xboardResetting": MessageLookupByLibrary.simpleMessage("Resetting..."),
     "xboardRetry": MessageLookupByLibrary.simpleMessage("Retry"),
-    "xboardRetryAttemptFailed": m45,
+    "xboardRetryAttemptFailed": m47,
     "xboardRetryGet": MessageLookupByLibrary.simpleMessage("Retry"),
     "xboardReturn": MessageLookupByLibrary.simpleMessage("Return"),
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. Return to app after payment, system will detect automatically",
     ),
-    "xboardRunningTime": m46,
+    "xboardRunningTime": m48,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("Search nodes"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage(
       "Secure encryption",
@@ -2297,7 +2297,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardUpdateSubscriptionRegularly": MessageLookupByLibrary.simpleMessage(
       "Update subscription regularly to get latest nodes",
     ),
-    "xboardUploadTrafficLabel": m47,
+    "xboardUploadTrafficLabel": m49,
     "xboardUsageInstructions": MessageLookupByLibrary.simpleMessage(
       "Usage instructions",
     ),

@@ -64,11 +64,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m35(count) => "${count} 件のルールが設定済み";
 
-  static String m46(time) => "実行時間: ${time}";
+  static String m41(error) => "支払いページを開けませんでした: ${error}";
 
-  static String m47(error) => "操作に失敗しました: ${error}";
+  static String m42(error) => "操作に失敗しました: ${error}";
 
-  static String m48(error) => "支払いページを開けませんでした: ${error}";
+  static String m48(time) => "実行時間: ${time}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -727,9 +727,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardAutoCheckEvery5Seconds": MessageLookupByLibrary.simpleMessage(
       "システムが5秒ごとに自動チェックし、支払い完了後に自動リダイレクトします",
     ),
-    "xboardAutoCheckPaymentDesc": MessageLookupByLibrary.simpleMessage("システムは5秒ごとに自動チェックし、支払い完了時に自動リダイレクトします"),
+    "xboardAutoCheckPaymentDesc": MessageLookupByLibrary.simpleMessage(
+      "システムは5秒ごとに自動チェックし、支払い完了時に自動リダイレクトします",
+    ),
     "xboardAutoDetectPaymentStatus": MessageLookupByLibrary.simpleMessage(
-      "支払い状況を自動検出",
+      "支払い状態を自動検出中",
     ),
     "xboardAutoOpeningPaymentPage": MessageLookupByLibrary.simpleMessage(
       "支払いページを自動的に開いています。支払い完了後はアプリに戻ってください",
@@ -751,16 +753,20 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardCancel": MessageLookupByLibrary.simpleMessage("キャンセル"),
     "xboardCancelPayment": MessageLookupByLibrary.simpleMessage("支払いをキャンセル"),
-    "xboardCannotOpenPaymentUrl": MessageLookupByLibrary.simpleMessage("支払いリンクを開けません"),
+    "xboardCannotOpenPaymentUrl": MessageLookupByLibrary.simpleMessage(
+      "支払いリンクを開けません",
+    ),
     "xboardCheckPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "支払い状況の確認に失敗しました",
     ),
-    "xboardCheckStatus": MessageLookupByLibrary.simpleMessage("ステータス確認"),
+    "xboardCheckStatus": MessageLookupByLibrary.simpleMessage("状態を確認"),
     "xboardChecking": MessageLookupByLibrary.simpleMessage("確認中..."),
     "xboardCleaningOldConfig": MessageLookupByLibrary.simpleMessage(
       "古い設定をクリーン中",
     ),
-    "xboardCleaningPendingOrders": MessageLookupByLibrary.simpleMessage("以前の未払い注文をクリーンアップ中..."),
+    "xboardCleaningPendingOrders": MessageLookupByLibrary.simpleMessage(
+      "以前の未払い注文をクリーンアップ中...",
+    ),
     "xboardClearError": MessageLookupByLibrary.simpleMessage("エラーをクリア"),
     "xboardClickToCopy": MessageLookupByLibrary.simpleMessage("クリックしてコピー"),
     "xboardClickToSetupNodes": MessageLookupByLibrary.simpleMessage(
@@ -922,7 +928,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNoInternetConnection": MessageLookupByLibrary.simpleMessage(
       "インターネット接続がありません、ネットワーク設定を確認してください",
     ),
-    "xboardNoPaymentMethodsAvailable": MessageLookupByLibrary.simpleMessage("利用可能な支払い方法がありません。ネットワークを確認するか、後でもう一度お試しください"),
+    "xboardNoPaymentMethodsAvailable": MessageLookupByLibrary.simpleMessage(
+      "利用可能な支払い方法がありません。ネットワークを確認するか、後でもう一度お試しください",
+    ),
     "xboardNoSubscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "サブスクリプション情報がありません",
     ),
@@ -943,10 +951,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOpenPaymentLinkFailed": MessageLookupByLibrary.simpleMessage(
       "支払いリンクを開けませんでした",
     ),
-    "xboardOpenPaymentPageError": m48,
+    "xboardOpenPaymentPageError": m41,
     "xboardOperationFailed": MessageLookupByLibrary.simpleMessage("操作に失敗しました"),
-    "xboardOperationFailedError": m47,
-    "xboardOperationStep4": MessageLookupByLibrary.simpleMessage("4. 再度開くには、下の\"再度開く\"ボタンをクリックしてください"),
+    "xboardOperationFailedError": m42,
+    "xboardOperationStep4": MessageLookupByLibrary.simpleMessage(
+      "4. 再度開くには、下の\"再度開く\"ボタンをクリックしてください",
+    ),
     "xboardOperationTips": MessageLookupByLibrary.simpleMessage("操作ガイド"),
     "xboardOrderCreationFailed": MessageLookupByLibrary.simpleMessage(
       "注文作成に失敗しました",
@@ -963,9 +973,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentComplete": MessageLookupByLibrary.simpleMessage("支払い完了"),
     "xboardPaymentCompleted": MessageLookupByLibrary.simpleMessage("支払い完了！"),
     "xboardPaymentFailed": MessageLookupByLibrary.simpleMessage("支払いに失敗しました"),
-    "xboardPaymentFailedBalanceError": MessageLookupByLibrary.simpleMessage("支払いに失敗しました: 残高支払いが失敗しました"),
-    "xboardPaymentFailedEmptyResult": MessageLookupByLibrary.simpleMessage("支払いに失敗しました: 空の結果が返されました"),
-    "xboardPaymentFailedInvalidData": MessageLookupByLibrary.simpleMessage("支払いに失敗しました: 無効な支払いデータ"),
+    "xboardPaymentFailedBalanceError": MessageLookupByLibrary.simpleMessage(
+      "支払いに失敗しました: 残高支払いが失敗しました",
+    ),
+    "xboardPaymentFailedEmptyResult": MessageLookupByLibrary.simpleMessage(
+      "支払いに失敗しました: 空の結果が返されました",
+    ),
+    "xboardPaymentFailedInvalidData": MessageLookupByLibrary.simpleMessage(
+      "支払いに失敗しました: 無効な支払いデータ",
+    ),
     "xboardPaymentGateway": MessageLookupByLibrary.simpleMessage("支払いゲートウェイ"),
     "xboardPaymentInfo": MessageLookupByLibrary.simpleMessage("支払い情報"),
     "xboardPaymentInstructions1": MessageLookupByLibrary.simpleMessage(
@@ -991,11 +1007,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentPageAutoOpened": MessageLookupByLibrary.simpleMessage(
       "1. 支払いページが自動的に開かれました",
     ),
-    "xboardPaymentPageOpenedCopyDesc": MessageLookupByLibrary.simpleMessage("支払いページが開き、リンクがクリップボードにコピーされました。自動リダイレクトされない場合は、ブラウザにリンクを貼り付けてください。"),
     "xboardPaymentPageOpenedCompleteAndReturn":
         MessageLookupByLibrary.simpleMessage(
           "支払いページが開かれました。支払いを完了してアプリに戻ってください",
         ),
+    "xboardPaymentPageOpenedCopyDesc": MessageLookupByLibrary.simpleMessage(
+      "支払いページが開き、リンクがクリップボードにコピーされました。自動リダイレクトされない場合は、ブラウザにリンクを貼り付けてください。",
+    ),
     "xboardPaymentPageOpenedInBrowser": MessageLookupByLibrary.simpleMessage(
       "ブラウザで支払いページが開かれました。支払い完了後はアプリに戻ってください",
     ),
@@ -1067,7 +1085,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "引き続き使用するには更新してください",
     ),
     "xboardReopen": MessageLookupByLibrary.simpleMessage("再開"),
-    "xboardReopenPayment": MessageLookupByLibrary.simpleMessage("支払いを再開"),
+    "xboardReopenPayment": MessageLookupByLibrary.simpleMessage("再度開く"),
     "xboardReopenPaymentPageTip": MessageLookupByLibrary.simpleMessage(
       "再度開くには、下の\\\"再開\\\"ボタンをクリックしてください",
     ),
@@ -1078,7 +1096,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. 支払い後にアプリに戻ると、システムが自動検出します",
     ),
-    "xboardRunningTime": m46,
+    "xboardRunningTime": m48,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("ノードを検索"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage("セキュア暗号化"),
     "xboardSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage(

@@ -102,23 +102,23 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m40(error) => "打开支付链接失败: ${error}";
 
-  static String m41(message) => "支付失败: ${message}";
+  static String m41(error) => "打开支付页面失败: ${error}";
 
-  static String m42(planId) => "套餐 #${planId}";
+  static String m42(error) => "操作失败: ${error}";
 
-  static String m43(url) => "代理(${url})";
+  static String m43(message) => "支付失败: ${message}";
 
-  static String m44(days) => "${days} 天";
+  static String m44(planId) => "套餐 #${planId}";
 
-  static String m45(attempt) => "第 ${attempt} 次尝试失败，等待重试...";
+  static String m45(url) => "代理(${url})";
 
-  static String m46(time) => "运行时间: ${time}";
+  static String m46(days) => "${days} 天";
 
-  static String m47(traffic) => "上传: ${traffic}";
+  static String m47(attempt) => "第 ${attempt} 次尝试失败，等待重试...";
 
-  static String m48(error) => "操作失败: ${error}";
+  static String m48(time) => "运行时间: ${time}";
 
-  static String m49(error) => "打开支付页面失败: ${error}";
+  static String m49(traffic) => "上传: ${traffic}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -917,10 +917,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCannotLaunchBrowser": MessageLookupByLibrary.simpleMessage(
       "无法启动外部浏览器",
     ),
-    "xboardCannotOpenPaymentUrl": MessageLookupByLibrary.simpleMessage(
+    "xboardCannotOpenPaymentLink": MessageLookupByLibrary.simpleMessage(
       "无法打开支付链接",
     ),
-    "xboardCannotOpenPaymentLink": MessageLookupByLibrary.simpleMessage(
+    "xboardCannotOpenPaymentUrl": MessageLookupByLibrary.simpleMessage(
       "无法打开支付链接",
     ),
     "xboardChangePassword": MessageLookupByLibrary.simpleMessage("修改密码"),
@@ -1255,9 +1255,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOpenPaymentLinkFailed": MessageLookupByLibrary.simpleMessage(
       "打开支付链接失败",
     ),
-    "xboardOpenPaymentPageError": m49,
+    "xboardOpenPaymentPageError": m41,
     "xboardOperationFailed": MessageLookupByLibrary.simpleMessage("操作失败"),
-    "xboardOperationFailedError": m48,
+    "xboardOperationFailedError": m42,
     "xboardOperationStep1": MessageLookupByLibrary.simpleMessage(
       "1. 系统已自动为您打开支付页面",
     ),
@@ -1309,7 +1309,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentFailedInvalidData": MessageLookupByLibrary.simpleMessage(
       "支付失败: 未获取到有效的支付数据",
     ),
-    "xboardPaymentFailedMessage": m41,
+    "xboardPaymentFailedMessage": m43,
     "xboardPaymentGateway": MessageLookupByLibrary.simpleMessage("支付网关"),
     "xboardPaymentInfo": MessageLookupByLibrary.simpleMessage("支付信息"),
     "xboardPaymentInstructions1": MessageLookupByLibrary.simpleMessage(
@@ -1336,11 +1336,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentPageAutoOpened": MessageLookupByLibrary.simpleMessage(
       "1. 系统已自动为您打开支付页面",
     ),
+    "xboardPaymentPageOpenedCompleteAndReturn":
+        MessageLookupByLibrary.simpleMessage("支付页面已打开，请完成支付并返回应用"),
     "xboardPaymentPageOpenedCopyDesc": MessageLookupByLibrary.simpleMessage(
       "支付页面已打开，支付链接已复制到剪贴板。如果没有自动跳转，请手动粘贴到浏览器打开。",
     ),
-    "xboardPaymentPageOpenedCompleteAndReturn":
-        MessageLookupByLibrary.simpleMessage("支付页面已打开，请完成支付并返回应用"),
     "xboardPaymentPageOpenedInBrowser": MessageLookupByLibrary.simpleMessage(
       "已在浏览器中打开支付页面，完成支付后请返回应用",
     ),
@@ -1355,7 +1355,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPlanInfo": MessageLookupByLibrary.simpleMessage("套餐信息"),
     "xboardPlanNotFound": MessageLookupByLibrary.simpleMessage("套餐不存在"),
     "xboardPlanSummary": MessageLookupByLibrary.simpleMessage("套餐概览"),
-    "xboardPlanWithId": m42,
+    "xboardPlanWithId": m44,
     "xboardPlans": MessageLookupByLibrary.simpleMessage("套餐"),
     "xboardPleaseLogin": MessageLookupByLibrary.simpleMessage("请先登录"),
     "xboardPleaseSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage(
@@ -1381,7 +1381,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardProxy": MessageLookupByLibrary.simpleMessage("代理"),
     "xboardProxyCommands": MessageLookupByLibrary.simpleMessage("设置代理命令"),
-    "xboardProxyConnectionLabel": m43,
+    "xboardProxyConnectionLabel": m45,
     "xboardProxyInfo": MessageLookupByLibrary.simpleMessage("代理信息"),
     "xboardProxyMode": MessageLookupByLibrary.simpleMessage("代理模式"),
     "xboardProxyModeDirectDescription": MessageLookupByLibrary.simpleMessage(
@@ -1422,7 +1422,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReload": MessageLookupByLibrary.simpleMessage("重新获取"),
     "xboardRelogin": MessageLookupByLibrary.simpleMessage("重新登录"),
     "xboardRemaining": MessageLookupByLibrary.simpleMessage("剩余"),
-    "xboardRemainingDaysCount": m44,
+    "xboardRemainingDaysCount": m46,
     "xboardRemainingDaysLabel": MessageLookupByLibrary.simpleMessage("剩余天数"),
     "xboardRememberPassword": MessageLookupByLibrary.simpleMessage("记住密码"),
     "xboardRemindExpire": MessageLookupByLibrary.simpleMessage("套餐到期提醒"),
@@ -1460,13 +1460,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardResetTraffic": MessageLookupByLibrary.simpleMessage("重置流量"),
     "xboardResetting": MessageLookupByLibrary.simpleMessage("重置中..."),
     "xboardRetry": MessageLookupByLibrary.simpleMessage("重试"),
-    "xboardRetryAttemptFailed": m45,
+    "xboardRetryAttemptFailed": m47,
     "xboardRetryGet": MessageLookupByLibrary.simpleMessage("重新获取"),
     "xboardReturn": MessageLookupByLibrary.simpleMessage("返回"),
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. 支付完成后返回应用，系统将自动检测",
     ),
-    "xboardRunningTime": m46,
+    "xboardRunningTime": m48,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("搜索节点"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage("安全加密"),
     "xboardSecurity": MessageLookupByLibrary.simpleMessage("安全设置"),
@@ -1579,7 +1579,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardUpdateSubscriptionRegularly": MessageLookupByLibrary.simpleMessage(
       "定期更新订阅获取最新节点",
     ),
-    "xboardUploadTrafficLabel": m47,
+    "xboardUploadTrafficLabel": m49,
     "xboardUsageInstructions": MessageLookupByLibrary.simpleMessage("使用说明"),
     "xboardUsed": MessageLookupByLibrary.simpleMessage("已用"),
     "xboardUsedTraffic": MessageLookupByLibrary.simpleMessage("已用"),

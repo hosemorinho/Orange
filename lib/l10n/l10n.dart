@@ -3614,10 +3614,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Reopen Payment`
+  /// `Reopen`
   String get xboardReopenPayment {
     return Intl.message(
-      'Reopen Payment',
+      'Reopen',
       name: 'xboardReopenPayment',
       desc: '',
       args: [],
@@ -3644,10 +3644,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Cancel payment`
+  /// `Cancel Payment`
   String get xboardCancelPayment {
     return Intl.message(
-      'Cancel payment',
+      'Cancel Payment',
       name: 'xboardCancelPayment',
       desc: '',
       args: [],
@@ -4429,10 +4429,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Auto-detect payment status`
+  /// `Auto-detecting payment status`
   String get xboardAutoDetectPaymentStatus {
     return Intl.message(
-      'Auto-detect payment status',
+      'Auto-detecting payment status',
       name: 'xboardAutoDetectPaymentStatus',
       desc: '',
       args: [],
@@ -4454,10 +4454,10 @@ class AppLocalizations {
     return Intl.message('Stop', name: 'xboardStop', desc: '', args: []);
   }
 
-  /// `Operation tips`
+  /// `Instructions`
   String get xboardOperationTips {
     return Intl.message(
-      'Operation tips',
+      'Instructions',
       name: 'xboardOperationTips',
       desc: '',
       args: [],
@@ -4519,15 +4519,20 @@ class AppLocalizations {
     return Intl.message('Reopen', name: 'xboardReopen', desc: '', args: []);
   }
 
-  /// `Checking`
+  /// `Checking...`
   String get xboardChecking {
-    return Intl.message('Checking', name: 'xboardChecking', desc: '', args: []);
+    return Intl.message(
+      'Checking...',
+      name: 'xboardChecking',
+      desc: '',
+      args: [],
+    );
   }
 
-  /// `Check status`
+  /// `Check Status`
   String get xboardCheckStatus {
     return Intl.message(
-      'Check status',
+      'Check Status',
       name: 'xboardCheckStatus',
       desc: '',
       args: [],
@@ -9674,41 +9679,11 @@ class AppLocalizations {
     );
   }
 
-  /// `Auto-detecting payment status`
-  String get xboardAutoDetectPaymentStatus {
-    return Intl.message(
-      'Auto-detecting payment status',
-      name: 'xboardAutoDetectPaymentStatus',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `System checks every 5 seconds, auto-redirects on payment completion`
   String get xboardAutoCheckPaymentDesc {
     return Intl.message(
       'System checks every 5 seconds, auto-redirects on payment completion',
       name: 'xboardAutoCheckPaymentDesc',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Stop`
-  String get xboardStop {
-    return Intl.message(
-      'Stop',
-      name: 'xboardStop',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Instructions`
-  String get xboardOperationTips {
-    return Intl.message(
-      'Instructions',
-      name: 'xboardOperationTips',
       desc: '',
       args: [],
     );
@@ -9724,64 +9699,9 @@ class AppLocalizations {
     );
   }
 
-  /// `Reopen`
-  String get xboardReopenPayment {
-    return Intl.message(
-      'Reopen',
-      name: 'xboardReopenPayment',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Copy Link`
-  String get xboardCopyLink {
-    return Intl.message(
-      'Copy Link',
-      name: 'xboardCopyLink',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Checking...`
-  String get xboardChecking {
-    return Intl.message(
-      'Checking...',
-      name: 'xboardChecking',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Check Status`
-  String get xboardCheckStatus {
-    return Intl.message(
-      'Check Status',
-      name: 'xboardCheckStatus',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Cancel Payment`
-  String get xboardCancelPayment {
-    return Intl.message(
-      'Cancel Payment',
-      name: 'xboardCancelPayment',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Go Back`
   String get xboardGoBack {
-    return Intl.message(
-      'Go Back',
-      name: 'xboardGoBack',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Go Back', name: 'xboardGoBack', desc: '', args: []);
   }
 }
 

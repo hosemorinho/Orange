@@ -824,6 +824,7 @@
   "xboardOnetimePayment": "Одноразовая",
   "xboardResetTraffic": "Сброс трафика",
   "cannotSelectSpecialProxy": "Невозможно выбрать специальный прокси DIRECT или REJECT",
+  "xboardRefreshSubscriptionInfo": "Обновить информацию о подписке",
   "xboardRefreshSubscriptionSuccess": "Подписка успешно обновлена",
   "xboardTestAllNodes": "Тестировать все узлы",
   "xboardTestComplete": "Тест завершен"

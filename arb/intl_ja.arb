@@ -824,6 +824,7 @@
   "xboardOnetimePayment": "一回限り",
   "xboardResetTraffic": "トラフィックをリセット",
   "cannotSelectSpecialProxy": "DIRECT または REJECT 特殊プロキシを選択できません",
+  "xboardRefreshSubscriptionInfo": "サブスクリプション情報を更新",
   "xboardRefreshSubscriptionSuccess": "サブスクリプションが正常に更新されました",
   "xboardTestAllNodes": "すべてのノードをテスト",
   "xboardTestComplete": "テスト完了"

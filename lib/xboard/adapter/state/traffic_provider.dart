@@ -63,10 +63,24 @@ class TrafficLogs extends _$TrafficLogs {
         return;
       }
 
-      // Parse response
-      final data = v2Response.data as Map<String, dynamic>;
-      final recordsList = data['data'] as List<dynamic>? ?? [];
-      final total = data['total'] as int? ?? 0;
+      // Parse response - handle both paginated Map and direct List formats
+      final rawData = v2Response.data;
+      List<dynamic> recordsList;
+      int total;
+
+      if (rawData is List) {
+        recordsList = rawData;
+        total = rawData.length;
+      } else if (rawData is Map<String, dynamic>) {
+        recordsList = rawData['data'] as List<dynamic>? ?? [];
+        total = rawData['total'] as int? ?? 0;
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'Unexpected traffic data format',
+        );
+        return;
+      }
 
       final records = recordsList.map((json) {
         final record = json as Map<String, dynamic>;

@@ -7,7 +7,6 @@ import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.d
 import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/clash/clash.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/views/proxies/common.dart' as proxies_common;
 import 'package:fl_clash/xboard/features/shared/utils/node_tag_parser.dart';
@@ -46,20 +45,8 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
       final proxies = nodes.map((n) => n.proxy).toList();
       final testUrl = ref.read(appSettingProvider).testUrl;
 
-      // 显示测试中提示
-      globalState.showNotifier(
-        AppLocalizations.of(context).xboardTesting,
-      );
-
       // 批量测速
       await proxies_common.delayTest(proxies, testUrl);
-
-      // 完成提示
-      if (mounted) {
-        globalState.showNotifier(
-          AppLocalizations.of(context).xboardTestComplete,
-        );
-      }
     } finally {
       if (mounted) {
         setState(() => _isTesting = false);
@@ -73,53 +60,23 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
     setState(() => _isRefreshing = true);
 
     try {
-      final providers = ref.read(providersProvider);
-      if (providers.isEmpty) {
-        // 如果没有 providers，刷新当前 profile
-        final currentProfile = ref.read(currentProfileProvider);
-        if (currentProfile != null) {
-          await globalState.appController.updateProfile(currentProfile);
-        }
-        return;
+      // 重新拉取订阅配置文件
+      final currentProfile = ref.read(currentProfileProvider);
+      if (currentProfile != null) {
+        await globalState.appController.updateProfile(currentProfile);
       }
 
-      // 更新所有 providers
-      final providersNotifier = ref.read(providersProvider.notifier);
-      final messages = <String>[];
-
-      final updateTasks = providers.map<Future>(
-        (provider) async {
-          providersNotifier.setProvider(
-            provider.copyWith(isUpdating: true),
-          );
-          final message = await clashCore.updateExternalProvider(
-            providerName: provider.name,
-          );
-          if (message.isNotEmpty) {
-            messages.add("${provider.name}: $message");
-          }
-          providersNotifier.setProvider(
-            await clashCore.getExternalProvider(provider.name),
-          );
-        },
-      );
-
-      await Future.wait(updateTasks);
-      await globalState.appController.updateGroupsDebounce();
-
       if (mounted) {
-        if (messages.isNotEmpty) {
-          globalState.showMessage(
-            title: AppLocalizations.of(context).tip,
-            message: TextSpan(
-              text: messages.join('\n'),
-            ),
-          );
-        } else {
-          globalState.showNotifier(
-            AppLocalizations.of(context).xboardRefreshSubscriptionSuccess,
-          );
-        }
+        globalState.showNotifier(
+          AppLocalizations.of(context).xboardRefreshSubscriptionSuccess,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        globalState.showMessage(
+          title: AppLocalizations.of(context).tip,
+          message: TextSpan(text: e.toString()),
+        );
       }
     } finally {
       if (mounted) {

@@ -185,7 +185,7 @@ class SubscriptionUsageCard extends ConsumerWidget {
                           color: statusColor,
                           size: 20,
                         ),
-                    tooltip: '刷新订阅信息',
+                    tooltip: AppLocalizations.of(context).xboardRefreshSubscriptionInfo,
                     style: IconButton.styleFrom(
                       padding: EdgeInsets.zero,
                       minimumSize: const Size(20, 20),
@@ -349,7 +349,7 @@ class SubscriptionUsageCard extends ConsumerWidget {
                           color: theme.colorScheme.primary,
                           size: 20,
                         ),
-                    tooltip: '刷新订阅信息',
+                    tooltip: AppLocalizations.of(context).xboardRefreshSubscriptionInfo,
                     style: IconButton.styleFrom(
                       padding: EdgeInsets.zero,
                       minimumSize: const Size(20, 20),

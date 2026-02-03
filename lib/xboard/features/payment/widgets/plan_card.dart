@@ -33,6 +33,20 @@ class _PlanCardState extends State<PlanCard> {
     return PriceCalculator.formatTraffic(transferEnable);
   }
 
+  String _getLowestPrice(DomainPlan plan) {
+    List<double> prices = [];
+    if (plan.monthlyPrice != null) prices.add(plan.monthlyPrice!);
+    if (plan.quarterlyPrice != null) prices.add(plan.quarterlyPrice!);
+    if (plan.halfYearlyPrice != null) prices.add(plan.halfYearlyPrice!);
+    if (plan.yearlyPrice != null) prices.add(plan.yearlyPrice!);
+    if (plan.twoYearPrice != null) prices.add(plan.twoYearPrice!);
+    if (plan.threeYearPrice != null) prices.add(plan.threeYearPrice!);
+    if (plan.onetimePrice != null) prices.add(plan.onetimePrice!);
+    if (prices.isEmpty) return '-';
+    final lowestPrice = prices.reduce((a, b) => a < b ? a : b);
+    return PriceCalculator.formatPrice(lowestPrice);
+  }
+
   String _getSpeedLimitText(BuildContext context) {
     if (widget.plan.speedLimit == null) {
       return AppLocalizations.of(context).xboardUnlimited;
@@ -68,15 +82,30 @@ class _PlanCardState extends State<PlanCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header section with plan name
+              // Header with plan name and price
               Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  plan.name,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                  ),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        plan.name,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    if (plan.hasPrice)
+                      Text(
+                        _getLowestPrice(plan),
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                  ],
                 ),
               ),
 

@@ -1029,6 +1029,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardQuarterlyPayment": MessageLookupByLibrary.simpleMessage("四半期払い"),
     "xboardRefresh": MessageLookupByLibrary.simpleMessage("更新"),
     "xboardRefreshStatus": MessageLookupByLibrary.simpleMessage("ステータスを更新"),
+    "xboardRefreshSubscriptionInfo": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプション情報を更新",
+    ),
     "xboardRefreshSubscriptionSuccess": MessageLookupByLibrary.simpleMessage(
       "サブスクリプションが正常に更新されました",
     ),

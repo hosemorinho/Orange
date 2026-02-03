@@ -1377,6 +1377,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardRefreshStatus": MessageLookupByLibrary.simpleMessage(
       "Обновить статус",
     ),
+    "xboardRefreshSubscriptionInfo": MessageLookupByLibrary.simpleMessage(
+      "Обновить информацию о подписке",
+    ),
     "xboardRefreshSubscriptionSuccess": MessageLookupByLibrary.simpleMessage(
       "Подписка успешно обновлена",
     ),

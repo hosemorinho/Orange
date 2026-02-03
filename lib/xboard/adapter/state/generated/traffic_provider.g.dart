@@ -6,7 +6,7 @@ part of '../traffic_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$trafficLogsHash() => r'da8ec2464611d874d272572140691c70bdd778e6';
+String _$trafficLogsHash() => r'b7b0caee18a6bf8307ae0c061dd99772877cdd54';
 
 /// Traffic logs provider
 ///

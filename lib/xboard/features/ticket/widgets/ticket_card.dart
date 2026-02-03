@@ -154,13 +154,14 @@ class TicketCard extends StatelessWidget {
   ({String label, Color color}) _getPriorityInfo(int priority, BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final localizations = AppLocalizations.of(context);
+    final priorityText = localizations.xboardPriorityLabel;
     switch (priority) {
       case 0:
-        return (label: '${localizations.xboardLowPriority}优先级', color: colorScheme.primary);
+        return (label: '${localizations.xboardLowPriority}$priorityText', color: colorScheme.primary);
       case 2:
-        return (label: '${localizations.xboardHighPriority}优先级', color: colorScheme.error);
+        return (label: '${localizations.xboardHighPriority}$priorityText', color: colorScheme.error);
       default:
-        return (label: '${localizations.xboardMediumPriority}优先级', color: colorScheme.secondary);
+        return (label: '${localizations.xboardMediumPriority}$priorityText', color: colorScheme.secondary);
     }
   }
 

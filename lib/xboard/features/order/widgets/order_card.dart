@@ -203,7 +203,7 @@ class OrderCard extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            status.label,
+            _getStatusLabel(context, status),
             style: theme.textTheme.labelSmall?.copyWith(
               color: statusConfig.textColor,
               fontWeight: FontWeight.w600,
@@ -286,6 +286,22 @@ class OrderCard extends StatelessWidget {
 
   String _formatPrice(double amount) {
     return '¥${amount.toStringAsFixed(2)}';
+  }
+
+  String _getStatusLabel(BuildContext context, OrderStatus status) {
+    final localizations = appLocalizations;
+    switch (status) {
+      case OrderStatus.pending:
+        return localizations.xboardOrderStatusPending;
+      case OrderStatus.processing:
+        return localizations.xboardOrderStatusProcessing;
+      case OrderStatus.canceled:
+        return localizations.xboardOrderStatusCanceled;
+      case OrderStatus.completed:
+        return localizations.xboardOrderStatusCompleted;
+      case OrderStatus.discounted:
+        return localizations.xboardOrderStatusDiscounted;
+    }
   }
 }
 

@@ -43,17 +43,17 @@ class DomainTicket with _$DomainTicket {
 
 /// DomainTicket 扩展方法
 extension DomainTicketX on DomainTicket {
-  /// 优先级标签
-  String get priorityLabel {
+  /// 优先级标签 key (需在 UI 层翻译)
+  String get priorityLabelKey {
     switch (priority) {
       case 0:
-        return '低';
+        return 'xboardLowPriority';
       case 1:
-        return '中';
+        return 'xboardMediumPriority';
       case 2:
-        return '高';
+        return 'xboardHighPriority';
       default:
-        return '未知';
+        return 'xboardUnknownPriority';
     }
   }
 
@@ -82,15 +82,15 @@ extension DomainTicketX on DomainTicket {
 /// - 1: 已关闭（不能回复）
 enum TicketStatus {
   /// 待处理/进行中
-  pending(0, '待处理'),
+  pending(0, 'xboardTicketStatusPending'),
 
   /// 已关闭
-  closed(1, '已关闭');
+  closed(1, 'xboardTicketStatusClosed');
 
-  const TicketStatus(this.code, this.label);
+  const TicketStatus(this.code, this.labelKey);
 
   final int code;
-  final String label;
+  final String labelKey; // Changed from label to labelKey for i18n
 
   static TicketStatus fromCode(int code) {
     return TicketStatus.values.firstWhere(

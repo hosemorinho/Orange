@@ -1,6 +1,9 @@
 /// 日期时间工具函数
 library;
 
+import 'package:fl_clash/l10n/l10n.dart';
+import 'package:flutter/material.dart';
+
 /// 日期时间扩展
 extension DateTimeExtensions on DateTime {
   /// 判断是否为今天
@@ -32,16 +35,18 @@ extension DateTimeExtensions on DateTime {
   bool get isFuture => isAfter(DateTime.now());
 
   /// 格式化为友好的时间显示
-  String toFriendlyString() {
+  String toFriendlyString(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    final timeStr = '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+
     if (isToday) {
-      return '今天 ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      return '${localizations.xboardToday} $timeStr';
     } else if (isYesterday) {
-      return '昨天 ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      return '${localizations.xboardYesterday} $timeStr';
     } else if (isTomorrow) {
-      return '明天 ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      return '${localizations.xboardTomorrow} $timeStr';
     } else {
-      return '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')} '
-          '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      return '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')} $timeStr';
     }
   }
 
@@ -69,24 +74,25 @@ extension DateTimeExtensions on DateTime {
   }
 
   /// 获取时间差的友好显示
-  String timeAgo() {
+  String timeAgo(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final difference = now.difference(this);
 
     if (difference.inSeconds < 60) {
-      return '刚刚';
+      return localizations.just;
     } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}分钟前';
+      return '${difference.inMinutes} ${localizations.minutes}${localizations.ago}';
     } else if (difference.inHours < 24) {
-      return '${difference.inHours}小时前';
+      return '${difference.inHours} ${localizations.hours}${localizations.ago}';
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}天前';
+      return '${difference.inDays} ${localizations.days}${localizations.ago}';
     } else if (difference.inDays < 30) {
-      return '${(difference.inDays / 7).floor()}周前';
+      return '${(difference.inDays / 7).floor()} ${localizations.xboardWeeks}${localizations.ago}';
     } else if (difference.inDays < 365) {
-      return '${(difference.inDays / 30).floor()}个月前';
+      return '${(difference.inDays / 30).floor()} ${localizations.months}${localizations.ago}';
     } else {
-      return '${(difference.inDays / 365).floor()}年前';
+      return '${(difference.inDays / 365).floor()} ${localizations.years}${localizations.ago}';
     }
   }
 }

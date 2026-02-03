@@ -50,7 +50,7 @@ class LoadingPage extends ConsumerWidget {
 
                 // 标题
                 Text(
-                  '正在初始化',
+                  AppLocalizations.of(context)!.xboardInitializing,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: colorScheme.onSurface,
                         fontWeight: FontWeight.bold,
@@ -124,7 +124,7 @@ class LoadingPage extends ConsumerWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '初始化失败',
+                              AppLocalizations.of(context)!.xboardInitializationFailed,
                               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                     color: colorScheme.error,
                                     fontWeight: FontWeight.bold,
@@ -156,7 +156,7 @@ class LoadingPage extends ConsumerWidget {
                           await ref.read(initializationProvider.notifier).refresh();
                         },
                         icon: const Icon(Icons.refresh),
-                        label: const Text('重试'),
+                        label: Text(AppLocalizations.of(context)!.xboardRetry),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colorScheme.primary,
                           foregroundColor: colorScheme.onPrimary,
@@ -171,7 +171,7 @@ class LoadingPage extends ConsumerWidget {
                           context.go('/login');
                         },
                         icon: const Icon(Icons.skip_next),
-                        label: const Text('跳过'),
+                        label: Text(AppLocalizations.of(context)!.xboardSkip),
                         style: TextButton.styleFrom(
                           foregroundColor: colorScheme.onSurfaceVariant,
                         ),
@@ -183,7 +183,7 @@ class LoadingPage extends ConsumerWidget {
                 // 提示信息
                 const SizedBox(height: 48),
                 Text(
-                  '首次启动可能需要一些时间\n请耐心等待...',
+                  AppLocalizations.of(context)!.xboardFirstStartTip,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       ),

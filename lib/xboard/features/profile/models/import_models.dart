@@ -87,37 +87,40 @@ class ImportState {
       lastSuccessTime: lastSuccessTime ?? this.lastSuccessTime,
     );
   }
-  String get statusText {
+  // Status text keys - to be translated in UI layer with AppLocalizations
+  String get statusTextKey {
     switch (status) {
       case ImportStatus.idle:
-        return '准备导入';
+        return 'xboardImportStatusIdle';
       case ImportStatus.cleaning:
-        return '清理旧配置';
+        return 'xboardImportStatusCleaning';
       case ImportStatus.downloading:
-        return '下载配置文件';
+        return 'xboardImportStatusDownloading';
       case ImportStatus.validating:
-        return '验证配置格式';
+        return 'xboardImportStatusValidating';
       case ImportStatus.adding:
-        return '添加到配置列表';
+        return 'xboardImportStatusAdding';
       case ImportStatus.success:
-        return '导入成功';
+        return 'xboardImportStatusSuccess';
       case ImportStatus.failed:
-        return '导入失败';
+        return 'xboardImportStatusFailed';
     }
   }
-  String? get errorTypeMessage {
+
+  // Error type message keys - to be translated in UI layer with AppLocalizations
+  String? get errorTypeMessageKey {
     if (lastResult?.errorType == null) return null;
     switch (lastResult!.errorType!) {
       case ImportErrorType.networkError:
-        return '网络连接失败，请检查网络设置';
+        return 'xboardImportErrorNetwork';
       case ImportErrorType.downloadError:
-        return '配置文件下载失败，请检查订阅链接';
+        return 'xboardImportErrorDownload';
       case ImportErrorType.validationError:
-        return '配置文件格式错误，请联系服务提供商';
+        return 'xboardImportErrorValidation';
       case ImportErrorType.storageError:
-        return '保存配置失败，请检查存储空间';
+        return 'xboardImportErrorStorage';
       case ImportErrorType.unknownError:
-        return '未知错误，请重试';
+        return 'xboardImportErrorUnknown';
     }
   }
 } 

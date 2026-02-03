@@ -1,4 +1,5 @@
 import 'package:fl_clash/common/utils.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 class LatencyIndicator extends StatelessWidget {
   final int? delayValue;
@@ -49,7 +50,7 @@ class LatencyIndicator extends StatelessWidget {
           if (!isCompact) ...[
             const SizedBox(width: 4),
             Text(
-              '测试中',
+              AppLocalizations.of(context)!.xboardLatencyTesting,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w500,
@@ -93,7 +94,7 @@ class LatencyIndicator extends StatelessWidget {
             const SizedBox(width: 4),
           ],
           Text(
-            '自动测试中',
+            AppLocalizations.of(context)!.xboardLatencyAutoTesting,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -116,7 +117,7 @@ class LatencyIndicator extends StatelessWidget {
             border: Border.all(color: color?.withValues(alpha: 0.3) ?? Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
           ),
           child: Text(
-            delayValue! < 0 ? '超时' : '$delayValue',
+            delayValue! < 0 ? AppLocalizations.of(context)!.xboardLatencyTimeout : '$delayValue',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: color,
               fontWeight: FontWeight.w600,
@@ -157,21 +158,23 @@ class LatencyQuality {
   static const int good = 100;
   static const int fair = 200;
   static const int poor = 500;
-  static String getQualityLevel(int delay) {
-    if (delay < 0) return '超时';
-    if (delay <= excellent) return '优秀';
-    if (delay <= good) return '良好';
-    if (delay <= fair) return '一般';
-    if (delay <= poor) return '较差';
-    return '很差';
+  static String getQualityLevel(BuildContext context, int delay) {
+    final loc = AppLocalizations.of(context)!;
+    if (delay < 0) return loc.xboardLatencyTimeout;
+    if (delay <= excellent) return loc.xboardLatencyExcellent;
+    if (delay <= good) return loc.xboardLatencyGood;
+    if (delay <= fair) return loc.xboardLatencyFair;
+    if (delay <= poor) return loc.xboardLatencyPoor;
+    return loc.xboardLatencyVeryPoor;
   }
-  static String getQualityDescription(int delay) {
-    if (delay < 0) return '连接超时，请检查网络';
-    if (delay <= excellent) return '网络质量优秀，适合所有应用';
-    if (delay <= good) return '网络质量良好，适合大多数应用';
-    if (delay <= fair) return '网络质量一般，可用于基本应用';
-    if (delay <= poor) return '网络质量较差，可能影响体验';
-    return '网络质量很差，建议更换节点';
+  static String getQualityDescription(BuildContext context, int delay) {
+    final loc = AppLocalizations.of(context)!;
+    if (delay < 0) return loc.xboardLatencyTimeoutDesc;
+    if (delay <= excellent) return loc.xboardLatencyExcellentDesc;
+    if (delay <= good) return loc.xboardLatencyGoodDesc;
+    if (delay <= fair) return loc.xboardLatencyFairDesc;
+    if (delay <= poor) return loc.xboardLatencyPoorDesc;
+    return loc.xboardLatencyVeryPoorDesc;
   }
   static IconData getQualityIcon(int delay) {
     if (delay < 0) return Icons.signal_wifi_off;

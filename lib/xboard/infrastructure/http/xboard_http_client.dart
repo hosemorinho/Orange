@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:fl_clash/xboard/core/core.dart';
+import 'package:fl_clash/l10n/l10n.dart';
+import 'package:flutter/material.dart';
 import 'user_agent_config.dart';
 
 // 初始化文件级日志器
@@ -280,52 +282,52 @@ class XBoardHttpClient {
       switch (error.type) {
         case DioExceptionType.connectionTimeout:
           return const HttpFailure(
-            '连接超时',
+            'Connection timeout',
             errorType: HttpErrorType.timeout,
           );
         case DioExceptionType.sendTimeout:
           return const HttpFailure(
-            '发送超时',
+            'Send timeout',
             errorType: HttpErrorType.timeout,
           );
         case DioExceptionType.receiveTimeout:
           return const HttpFailure(
-            '接收超时',
+            'Receive timeout',
             errorType: HttpErrorType.timeout,
           );
         case DioExceptionType.badResponse:
           final statusCode = error.response?.statusCode;
           return HttpFailure(
-            'HTTP错误: $statusCode',
+            'HTTP error: $statusCode',
             statusCode: statusCode,
             errorType: HttpErrorType.server,
             data: error.response?.data,
           );
         case DioExceptionType.cancel:
           return const HttpFailure(
-            '请求已取消',
+            'Request cancelled',
             errorType: HttpErrorType.cancel,
           );
         case DioExceptionType.badCertificate:
           return const HttpFailure(
-            '证书验证失败',
+            'Certificate verification failed',
             errorType: HttpErrorType.certificate,
           );
         case DioExceptionType.connectionError:
           return HttpFailure(
-            '网络连接失败: ${error.message}',
+            'Network connection failed: ${error.message}',
             errorType: HttpErrorType.network,
           );
         default:
           return HttpFailure(
-            '未知错误: ${error.message}',
+            'Unknown error: ${error.message}',
             errorType: HttpErrorType.unknown,
           );
       }
     }
-    
+
     return HttpFailure(
-      '请求异常: $error',
+      'Request exception: $error',
       errorType: HttpErrorType.unknown,
     );
   }

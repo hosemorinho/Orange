@@ -182,19 +182,19 @@ class DomainPlan with _$DomainPlan {
 
 /// 套餐周期枚举
 enum PlanPeriod {
-  onetime('onetime', '一次性'),
-  monthly('month', '月付'),
-  quarterly('quarter', '季付'),
-  halfYearly('half_year', '半年付'),
-  yearly('year', '年付'),
-  twoYear('two_year', '两年付'),
-  threeYear('three_year', '三年付'),
-  reset('reset', '重置流量');
+  onetime('onetime', 'xboardPlanPeriodOnetime'),
+  monthly('month', 'xboardPlanPeriodMonthly'),
+  quarterly('quarter', 'xboardPlanPeriodQuarterly'),
+  halfYearly('half_year', 'xboardPlanPeriodHalfYearly'),
+  yearly('year', 'xboardPlanPeriodYearly'),
+  twoYear('two_year', 'xboardPlanPeriodTwoYear'),
+  threeYear('three_year', 'xboardPlanPeriodThreeYear'),
+  reset('reset', 'xboardPlanPeriodReset');
 
-  const PlanPeriod(this.value, this.label);
-  
+  const PlanPeriod(this.value, this.labelKey);
+
   final String value;
-  final String label;
+  final String labelKey; // Changed from label to labelKey for i18n
 
   /// 从字符串值创建
   static PlanPeriod fromValue(String value) {

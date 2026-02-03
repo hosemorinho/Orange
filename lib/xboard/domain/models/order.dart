@@ -100,24 +100,24 @@ class DomainOrder with _$DomainOrder {
 /// 订单状态枚举
 enum OrderStatus {
   /// 待支付
-  pending(0, '待支付'),
-  
-  /// 开通中
-  processing(1, '开通中'),
-  
-  /// 已取消
-  canceled(2, '已取消'),
-  
-  /// 已完成
-  completed(3, '已完成'),
-  
-  /// 已折抵
-  discounted(4, '已折抵');
+  pending(0, 'xboardOrderStatusPending'),
 
-  const OrderStatus(this.code, this.label);
-  
+  /// 开通中
+  processing(1, 'xboardOrderStatusProcessing'),
+
+  /// 已取消
+  canceled(2, 'xboardOrderStatusCanceled'),
+
+  /// 已完成
+  completed(3, 'xboardOrderStatusCompleted'),
+
+  /// 已折抵
+  discounted(4, 'xboardOrderStatusDiscounted');
+
+  const OrderStatus(this.code, this.labelKey);
+
   final int code;
-  final String label;
+  final String labelKey; // Changed from label to labelKey for i18n
 
   static OrderStatus fromCode(int code) {
     return OrderStatus.values.firstWhere(
@@ -130,21 +130,21 @@ enum OrderStatus {
 /// 佣金状态枚举
 enum OrderCommissionStatus {
   /// 待确认
-  pending(0, '待确认'),
-  
-  /// 发放中
-  processing(1, '发放中'),
-  
-  /// 已发放
-  completed(2, '已发放'),
-  
-  /// 无佣金
-  none(3, '无佣金');
+  pending(0, 'xboardCommissionStatusPending'),
 
-  const OrderCommissionStatus(this.code, this.label);
-  
+  /// 发放中
+  processing(1, 'xboardCommissionStatusProcessing'),
+
+  /// 已发放
+  completed(2, 'xboardCommissionStatusCompleted'),
+
+  /// 无佣金
+  none(3, 'xboardCommissionStatusNone');
+
+  const OrderCommissionStatus(this.code, this.labelKey);
+
   final int code;
-  final String label;
+  final String labelKey; // Changed from label to labelKey for i18n
 
   static OrderCommissionStatus fromCode(int code) {
     return OrderCommissionStatus.values.firstWhere(

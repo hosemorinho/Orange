@@ -183,7 +183,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
           ),
           const SizedBox(width: 8),
           Text(
-            '${AppLocalizations.of(context).xboardPriority}: ${ticket.priorityLabel}',
+            '${AppLocalizations.of(context).xboardPriority}: ${_getPriorityLabel(ticket.priority)}',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
@@ -374,6 +374,20 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
         ],
       ),
     );
+  }
+
+  String _getPriorityLabel(int priority) {
+    final l10n = AppLocalizations.of(context);
+    switch (priority) {
+      case 0:
+        return l10n.xboardLowPriority;
+      case 1:
+        return l10n.xboardMediumPriority;
+      case 2:
+        return l10n.xboardHighPriority;
+      default:
+        return l10n.xboardUnknownPriority;
+    }
   }
 
   ({String label, Color color}) _getStatusInfo(TicketStatus status) {

@@ -1,3 +1,4 @@
+import 'package:fl_clash/common/app_localizations.dart';
 import 'package:fl_clash/models/models.dart';
 enum ImportStatus {
   idle,        // 空闲状态
@@ -87,6 +88,43 @@ class ImportState {
       lastSuccessTime: lastSuccessTime ?? this.lastSuccessTime,
     );
   }
+  /// Localized status text resolved via [appLocalizations].
+  String get statusText {
+    switch (status) {
+      case ImportStatus.idle:
+        return appLocalizations.xboardImportStatusIdle;
+      case ImportStatus.cleaning:
+        return appLocalizations.xboardImportStatusCleaning;
+      case ImportStatus.downloading:
+        return appLocalizations.xboardImportStatusDownloading;
+      case ImportStatus.validating:
+        return appLocalizations.xboardImportStatusValidating;
+      case ImportStatus.adding:
+        return appLocalizations.xboardImportStatusAdding;
+      case ImportStatus.success:
+        return appLocalizations.xboardImportStatusSuccess;
+      case ImportStatus.failed:
+        return appLocalizations.xboardImportStatusFailed;
+    }
+  }
+
+  /// Localized error type message resolved via [appLocalizations].
+  String? get errorTypeMessage {
+    if (lastResult?.errorType == null) return null;
+    switch (lastResult!.errorType!) {
+      case ImportErrorType.networkError:
+        return appLocalizations.xboardImportErrorNetwork;
+      case ImportErrorType.downloadError:
+        return appLocalizations.xboardImportErrorDownload;
+      case ImportErrorType.validationError:
+        return appLocalizations.xboardImportErrorValidation;
+      case ImportErrorType.storageError:
+        return appLocalizations.xboardImportErrorStorage;
+      case ImportErrorType.unknownError:
+        return appLocalizations.xboardImportErrorUnknown;
+    }
+  }
+
   // Status text keys - to be translated in UI layer with AppLocalizations
   String get statusTextKey {
     switch (status) {

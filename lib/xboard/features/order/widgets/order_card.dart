@@ -60,7 +60,7 @@ class OrderCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              _buildStatusBadge(theme, order.status),
+              _buildStatusBadge(context, theme, order.status),
             ],
           ),
           const SizedBox(height: 4),
@@ -181,7 +181,7 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge(ThemeData theme, OrderStatus status) {
+  Widget _buildStatusBadge(BuildContext context, ThemeData theme, OrderStatus status) {
     final statusConfig = _getStatusConfig(theme, status);
 
     return Container(

@@ -5,24 +5,20 @@ import 'package:flutter/material.dart';
 import '../utils/price_calculator.dart';
 import 'plan_description_widget.dart';
 
-/// Modern plan card component matching frontend design
+/// Plan card component
 ///
 /// Features:
-/// - Header with plan name and optional badge
-/// - Large price display with gradient background
+/// - Header with plan name
 /// - Feature list with checkmarks
 /// - Purchase button
 /// - Hover effects on desktop
-/// - Equal height cards in grid
 class PlanCard extends StatefulWidget {
   final DomainPlan plan;
-  final bool isHighlighted;
   final VoidCallback onPurchase;
 
   const PlanCard({
     super.key,
     required this.plan,
-    this.isHighlighted = false,
     required this.onPurchase,
   });
 
@@ -37,20 +33,6 @@ class _PlanCardState extends State<PlanCard> {
     return PriceCalculator.formatTraffic(transferEnable);
   }
 
-  String _getLowestPrice(DomainPlan plan) {
-    List<double> prices = [];
-    if (plan.monthlyPrice != null) prices.add(plan.monthlyPrice!);
-    if (plan.quarterlyPrice != null) prices.add(plan.quarterlyPrice!);
-    if (plan.halfYearlyPrice != null) prices.add(plan.halfYearlyPrice!);
-    if (plan.yearlyPrice != null) prices.add(plan.yearlyPrice!);
-    if (plan.twoYearPrice != null) prices.add(plan.twoYearPrice!);
-    if (plan.threeYearPrice != null) prices.add(plan.threeYearPrice!);
-    if (plan.onetimePrice != null) prices.add(plan.onetimePrice!);
-    if (prices.isEmpty) return '-';
-    final lowestPrice = prices.reduce((a, b) => a < b ? a : b);
-    return PriceCalculator.formatPrice(lowestPrice);
-  }
-
   String _getSpeedLimitText(BuildContext context) {
     if (widget.plan.speedLimit == null) {
       return AppLocalizations.of(context).xboardUnlimited;
@@ -63,7 +45,6 @@ class _PlanCardState extends State<PlanCard> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final plan = widget.plan;
-    final isHighlighted = widget.isHighlighted;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -72,11 +53,9 @@ class _PlanCardState extends State<PlanCard> {
         duration: const Duration(milliseconds: 200),
         child: XBDashboardCard(
           padding: EdgeInsets.zero,
-          borderColor: isHighlighted
-              ? colorScheme.primary
-              : (_isHovered
-                  ? colorScheme.outline.withValues(alpha: 0.4)
-                  : colorScheme.outline.withValues(alpha: 0.2)),
+          borderColor: _isHovered
+              ? colorScheme.outline.withValues(alpha: 0.4)
+              : colorScheme.outline.withValues(alpha: 0.2),
           shadows: _isHovered
               ? [
                   BoxShadow(
@@ -89,97 +68,17 @@ class _PlanCardState extends State<PlanCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header section with plan name and badge
-              Container(
+              // Header section with plan name
+              Padding(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: colorScheme.outline.withValues(alpha: 0.1),
-                      width: 1,
-                    ),
+                child: Text(
+                  plan.name,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            plan.name,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22,
-                            ),
-                          ),
-                        ),
-                        if (isHighlighted)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  colorScheme.tertiary,
-                                  colorScheme.tertiary.withValues(alpha: 0.8),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '推荐',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onTertiary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
                 ),
               ),
-
-              // Price section
-              if (plan.hasPrice)
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        colorScheme.primary,
-                        colorScheme.primary.withValues(alpha: 0.8),
-                      ],
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '最低价格',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: colorScheme.onPrimary.withValues(alpha: 0.9),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _getLowestPrice(plan),
-                        style: theme.textTheme.displaySmall?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 32,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
 
               // Features section
               Padding(

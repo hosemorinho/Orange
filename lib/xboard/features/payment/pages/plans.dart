@@ -69,20 +69,6 @@ class _PlansViewState extends ConsumerState<PlansView> {
       _selectedPlan = null;
     });
   }
-  /// Determine if a plan should be highlighted (e.g., most popular)
-  bool _shouldHighlightPlan(DomainPlan plan, List<DomainPlan> allPlans) {
-    // Highlight the middle-priced plan or the one with best value
-    // You can customize this logic based on your business needs
-    if (allPlans.length < 2) return false;
-
-    // Get plans with prices
-    final plansWithPrices = allPlans.where((p) => p.hasPrice).toList();
-    if (plansWithPrices.length < 2) return false;
-
-    // Find middle plan by index
-    final middleIndex = (plansWithPrices.length / 2).floor();
-    return plansWithPrices[middleIndex].id == plan.id;
-  }
   void _navigateToPurchase(DomainPlan plan) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 768;
@@ -223,12 +209,10 @@ class _PlansViewState extends ConsumerState<PlansView> {
                     spacing: spacing,
                     runSpacing: spacing,
                     children: plans.map((plan) {
-                      final isHighlighted = _shouldHighlightPlan(plan, plans);
                       return SizedBox(
                         width: cardWidth,
                         child: PlanCard(
                           plan: plan,
-                          isHighlighted: isHighlighted,
                           onPurchase: () => _navigateToPurchase(plan),
                         ),
                       );

@@ -8889,6 +8889,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Update nodes`
+  String get xboardUpdateNodes {
+    return Intl.message(
+      'Update nodes',
+      name: 'xboardUpdateNodes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Nodes updated successfully`
+  String get xboardNodesUpdated {
+    return Intl.message(
+      'Nodes updated successfully',
+      name: 'xboardNodesUpdated',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Cannot select DIRECT or REJECT special proxy`
   String get cannotSelectSpecialProxy {
     return Intl.message(

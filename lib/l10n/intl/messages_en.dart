@@ -2177,6 +2177,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardTestComplete": MessageLookupByLibrary.simpleMessage("Test complete"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("Testing"),
+    "xboardUpdateNodes":
+        MessageLookupByLibrary.simpleMessage("Update nodes"),
+    "xboardNodesUpdated": MessageLookupByLibrary.simpleMessage(
+        "Nodes updated successfully"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36-month cycle",
     ),

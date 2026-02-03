@@ -1489,6 +1489,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTestAllNodes": MessageLookupByLibrary.simpleMessage("测速全部节点"),
     "xboardTestComplete": MessageLookupByLibrary.simpleMessage("测速完成"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("测试中"),
+    "xboardUpdateNodes":
+        MessageLookupByLibrary.simpleMessage("更新节点"),
+    "xboardNodesUpdated":
+        MessageLookupByLibrary.simpleMessage("节点更新成功"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage("36个月周期"),
     "xboardThreeMonthCycle": MessageLookupByLibrary.simpleMessage("3个月周期"),
     "xboardThreeYearPayment": MessageLookupByLibrary.simpleMessage("三年付"),

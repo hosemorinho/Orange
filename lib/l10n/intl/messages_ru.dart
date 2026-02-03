@@ -1475,6 +1475,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardTestComplete": MessageLookupByLibrary.simpleMessage("Тест завершен"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("Тестирование"),
+    "xboardUpdateNodes":
+        MessageLookupByLibrary.simpleMessage("Обновить узлы"),
+    "xboardNodesUpdated": MessageLookupByLibrary.simpleMessage(
+        "Узлы успешно обновлены"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36-месячный цикл",
     ),

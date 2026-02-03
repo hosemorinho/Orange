@@ -68,7 +68,7 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
 
       if (mounted) {
         globalState.showNotifier(
-          AppLocalizations.of(context).xboardRefreshSubscriptionSuccess,
+          AppLocalizations.of(context).xboardNodesUpdated,
         );
       }
     } catch (e) {
@@ -123,7 +123,7 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
             ),
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: appLocalizations.xboardRefreshSubscriptionInfo,
+              tooltip: appLocalizations.xboardUpdateNodes,
               onPressed: _refreshSubscription,
             ),
           ],

@@ -827,5 +827,7 @@
   "xboardRefreshSubscriptionInfo": "Обновить информацию о подписке",
   "xboardRefreshSubscriptionSuccess": "Подписка успешно обновлена",
   "xboardTestAllNodes": "Тестировать все узлы",
-  "xboardTestComplete": "Тест завершен"
+  "xboardTestComplete": "Тест завершен",
+  "xboardUpdateNodes": "Обновить узлы",
+  "xboardNodesUpdated": "Узлы успешно обновлены"
 }

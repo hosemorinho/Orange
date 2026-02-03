@@ -827,5 +827,7 @@
   "xboardRefreshSubscriptionInfo": "サブスクリプション情報を更新",
   "xboardRefreshSubscriptionSuccess": "サブスクリプションが正常に更新されました",
   "xboardTestAllNodes": "すべてのノードをテスト",
-  "xboardTestComplete": "テスト完了"
+  "xboardTestComplete": "テスト完了",
+  "xboardUpdateNodes": "ノードを更新",
+  "xboardNodesUpdated": "ノードが正常に更新されました"
 }

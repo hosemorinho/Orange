@@ -1107,6 +1107,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTestAllNodes": MessageLookupByLibrary.simpleMessage("すべてのノードをテスト"),
     "xboardTestComplete": MessageLookupByLibrary.simpleMessage("テスト完了"),
     "xboardTesting": MessageLookupByLibrary.simpleMessage("テスト中"),
+    "xboardUpdateNodes":
+        MessageLookupByLibrary.simpleMessage("ノードを更新"),
+    "xboardNodesUpdated": MessageLookupByLibrary.simpleMessage(
+        "ノードが正常に更新されました"),
     "xboardThirtySixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "36ヶ月サイクル",
     ),

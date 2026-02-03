@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
+import 'package:fl_clash/xboard/adapter/state/config_state.dart';
 
 /// Invite codes management card
 ///
@@ -11,7 +13,7 @@ import 'package:fl_clash/xboard/features/shared/shared.dart';
 /// - Create new code button
 /// - Copy code and copy link actions
 /// - Empty state
-class InviteCodesCard extends StatefulWidget {
+class InviteCodesCard extends ConsumerStatefulWidget {
   final List<DomainInviteCode> codes;
   final VoidCallback onCreateCode;
   final bool isCreating;
@@ -24,10 +26,10 @@ class InviteCodesCard extends StatefulWidget {
   });
 
   @override
-  State<InviteCodesCard> createState() => _InviteCodesCardState();
+  ConsumerState<InviteCodesCard> createState() => _InviteCodesCardState();
 }
 
-class _InviteCodesCardState extends State<InviteCodesCard> {
+class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
   String? _copiedCode;
   String? _copiedLink;
 
@@ -53,8 +55,32 @@ class _InviteCodesCardState extends State<InviteCodesCard> {
   }
 
   Future<void> _copyLink(String code) async {
-    // Build invite link (matching frontend pattern)
-    final inviteLink = '${Uri.base.origin}/#/register?invite=$code';
+    // Get app_url from guest config
+    String baseUrl;
+    try {
+      final config = await ref.read(getConfigProvider.future);
+      baseUrl = (config['app_url'] as String?) ?? '';
+      // Remove trailing slash
+      if (baseUrl.endsWith('/')) {
+        baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+      }
+    } catch (_) {
+      baseUrl = '';
+    }
+
+    if (baseUrl.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(appLocalizations.xboardError),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
+    final inviteLink = '$baseUrl/#/register?invite=$code';
     await Clipboard.setData(ClipboardData(text: inviteLink));
     setState(() => _copiedLink = code);
 

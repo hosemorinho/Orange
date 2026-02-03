@@ -1261,6 +1261,8 @@
   "xboardRefreshSubscriptionSuccess": "Subscription refreshed successfully",
   "xboardTestAllNodes": "Test all nodes",
   "xboardTestComplete": "Test complete",
+  "xboardUpdateNodes": "Update nodes",
+  "xboardNodesUpdated": "Nodes updated successfully",
   "cannotSelectSpecialProxy": "Cannot select DIRECT or REJECT special proxy",
   "xboardStatusCheckFailed": "Status check failed",
   "xboardDownloadTimeout": "Download timeout",

@@ -150,42 +150,38 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                     constraints: BoxConstraints(
                       minHeight: constraints.maxHeight - (2 * verticalPadding),
                     ),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const NoticeBanner(),
-                          SizedBox(height: sectionSpacing * 0.5),
-                          // 连接状态卡片（合并按钮 + 节点 + 模式标签）
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            child: const ConnectionStatusCard(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const NoticeBanner(),
+                        SizedBox(height: sectionSpacing * 0.5),
+                        // 连接状态卡片（合并按钮 + 节点 + 模式标签）
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                          child: const ConnectionStatusCard(),
+                        ),
+                        SizedBox(height: connectionCardSpacing),
+                        // 使用情况和快捷操作 - 使用网格布局
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                          child: _buildMainContentSection(constraints),
+                        ),
+                        SizedBox(height: sectionSpacing),
+                        // 代理模式选择
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                          child: _buildProxyModeSection(),
+                        ),
+                        SizedBox(height: sectionSpacing),
+                        // 流量历史（可折叠）
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                          child: const TrafficHistoryCard(
+                            initiallyExpanded: false,
                           ),
-                          SizedBox(height: connectionCardSpacing),
-                          // 使用情况和快捷操作 - 使用网格布局
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            child: _buildMainContentSection(constraints),
-                          ),
-                          SizedBox(height: sectionSpacing),
-                          // 代理模式选择
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            child: _buildProxyModeSection(),
-                          ),
-                          SizedBox(height: sectionSpacing),
-                          // 流量历史（可折叠）
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            child: const TrafficHistoryCard(
-                              initiallyExpanded: false,
-                            ),
-                          ),
-                          // 添加弹性空间，确保内容不会太紧凑
-                          if (availableHeight > 600) const Spacer(),
-                          SizedBox(height: sectionSpacing),
-                        ],
-                      ),
+                        ),
+                        SizedBox(height: sectionSpacing),
+                      ],
                     ),
                   ),
                 );

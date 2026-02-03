@@ -1360,6 +1360,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCommissionRate": MessageLookupByLibrary.simpleMessage(
       "Commission Rate",
     ),
+    "xboardCommissionStatusCompleted": MessageLookupByLibrary.simpleMessage(
+      "Distributed",
+    ),
+    "xboardCommissionStatusNone": MessageLookupByLibrary.simpleMessage(
+      "No Commission",
+    ),
+    "xboardCommissionStatusPending": MessageLookupByLibrary.simpleMessage(
+      "Pending Confirmation",
+    ),
+    "xboardCommissionStatusProcessing": MessageLookupByLibrary.simpleMessage(
+      "Processing",
+    ),
     "xboardCompletePaymentInBrowser": MessageLookupByLibrary.simpleMessage(
       "2. Please complete payment in your browser",
     ),
@@ -1546,6 +1558,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardFallbackModeUsed": MessageLookupByLibrary.simpleMessage(
       "Initialized using fallback mode",
     ),
+    "xboardFirstStartTip": MessageLookupByLibrary.simpleMessage(
+      "First startup may take some time\nPlease wait patiently...",
+    ),
     "xboardFirstStartupNote": MessageLookupByLibrary.simpleMessage(
       "First startup may take some time\nPlease be patient...",
     ),
@@ -1585,6 +1600,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardImportCancelled": MessageLookupByLibrary.simpleMessage(
       "Import cancelled",
     ),
+    "xboardImportErrorDownload": MessageLookupByLibrary.simpleMessage(
+      "Configuration download failed, please check subscription link",
+    ),
+    "xboardImportErrorNetwork": MessageLookupByLibrary.simpleMessage(
+      "Network connection failed, please check network settings",
+    ),
+    "xboardImportErrorStorage": MessageLookupByLibrary.simpleMessage(
+      "Failed to save configuration, please check storage space",
+    ),
+    "xboardImportErrorUnknown": MessageLookupByLibrary.simpleMessage(
+      "Unknown error, please retry",
+    ),
+    "xboardImportErrorValidation": MessageLookupByLibrary.simpleMessage(
+      "Configuration format error, please contact service provider",
+    ),
     "xboardImportFailed": MessageLookupByLibrary.simpleMessage(
       "Configuration import failed",
     ),
@@ -1596,6 +1626,27 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardImportInProgress": MessageLookupByLibrary.simpleMessage(
       "Import in progress, please wait",
+    ),
+    "xboardImportStatusAdding": MessageLookupByLibrary.simpleMessage(
+      "Adding to configuration list",
+    ),
+    "xboardImportStatusCleaning": MessageLookupByLibrary.simpleMessage(
+      "Cleaning old configuration",
+    ),
+    "xboardImportStatusDownloading": MessageLookupByLibrary.simpleMessage(
+      "Downloading configuration",
+    ),
+    "xboardImportStatusFailed": MessageLookupByLibrary.simpleMessage(
+      "Import failed",
+    ),
+    "xboardImportStatusIdle": MessageLookupByLibrary.simpleMessage(
+      "Preparing to import",
+    ),
+    "xboardImportStatusSuccess": MessageLookupByLibrary.simpleMessage(
+      "Import successful",
+    ),
+    "xboardImportStatusValidating": MessageLookupByLibrary.simpleMessage(
+      "Validating configuration",
     ),
     "xboardImportSuccess": MessageLookupByLibrary.simpleMessage(
       "Configuration imported successfully",
@@ -1650,6 +1701,34 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardLanSharingDesc": MessageLookupByLibrary.simpleMessage(
       "Allow LAN devices to use this proxy",
+    ),
+    "xboardLatencyAutoTesting": MessageLookupByLibrary.simpleMessage(
+      "Auto Testing",
+    ),
+    "xboardLatencyExcellent": MessageLookupByLibrary.simpleMessage("Excellent"),
+    "xboardLatencyExcellentDesc": MessageLookupByLibrary.simpleMessage(
+      "Excellent network quality, suitable for all applications",
+    ),
+    "xboardLatencyFair": MessageLookupByLibrary.simpleMessage("Fair"),
+    "xboardLatencyFairDesc": MessageLookupByLibrary.simpleMessage(
+      "Fair network quality, usable for basic applications",
+    ),
+    "xboardLatencyGood": MessageLookupByLibrary.simpleMessage("Good"),
+    "xboardLatencyGoodDesc": MessageLookupByLibrary.simpleMessage(
+      "Good network quality, suitable for most applications",
+    ),
+    "xboardLatencyPoor": MessageLookupByLibrary.simpleMessage("Poor"),
+    "xboardLatencyPoorDesc": MessageLookupByLibrary.simpleMessage(
+      "Poor network quality, may affect experience",
+    ),
+    "xboardLatencyTesting": MessageLookupByLibrary.simpleMessage("Testing"),
+    "xboardLatencyTimeout": MessageLookupByLibrary.simpleMessage("Timeout"),
+    "xboardLatencyTimeoutDesc": MessageLookupByLibrary.simpleMessage(
+      "Connection timeout, please check network",
+    ),
+    "xboardLatencyVeryPoor": MessageLookupByLibrary.simpleMessage("Very Poor"),
+    "xboardLatencyVeryPoorDesc": MessageLookupByLibrary.simpleMessage(
+      "Very poor network quality, recommend changing node",
     ),
     "xboardLater": MessageLookupByLibrary.simpleMessage("Later"),
     "xboardLinkCopied": MessageLookupByLibrary.simpleMessage(
@@ -1842,8 +1921,20 @@ class MessageLookup extends MessageLookupByLibrary {
       "Order not found",
     ),
     "xboardOrderNumber": MessageLookupByLibrary.simpleMessage("Order number"),
+    "xboardOrderStatusCanceled": MessageLookupByLibrary.simpleMessage(
+      "Canceled",
+    ),
+    "xboardOrderStatusCompleted": MessageLookupByLibrary.simpleMessage(
+      "Completed",
+    ),
+    "xboardOrderStatusDiscounted": MessageLookupByLibrary.simpleMessage(
+      "Discounted",
+    ),
     "xboardOrderStatusPending": MessageLookupByLibrary.simpleMessage(
-      "Order Status: Pending Payment",
+      "Pending Payment",
+    ),
+    "xboardOrderStatusProcessing": MessageLookupByLibrary.simpleMessage(
+      "Processing",
     ),
     "xboardOrderSummary": MessageLookupByLibrary.simpleMessage("Order Summary"),
     "xboardPassword": MessageLookupByLibrary.simpleMessage("Password"),
@@ -1944,6 +2035,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPlanNotFound": MessageLookupByLibrary.simpleMessage(
       "Plan not found",
     ),
+    "xboardPlanPeriodHalfYearly": MessageLookupByLibrary.simpleMessage(
+      "Half-yearly",
+    ),
+    "xboardPlanPeriodMonthly": MessageLookupByLibrary.simpleMessage("Monthly"),
+    "xboardPlanPeriodOnetime": MessageLookupByLibrary.simpleMessage("One-time"),
+    "xboardPlanPeriodQuarterly": MessageLookupByLibrary.simpleMessage(
+      "Quarterly",
+    ),
+    "xboardPlanPeriodReset": MessageLookupByLibrary.simpleMessage(
+      "Reset Traffic",
+    ),
+    "xboardPlanPeriodThreeYear": MessageLookupByLibrary.simpleMessage(
+      "Three-year",
+    ),
+    "xboardPlanPeriodTwoYear": MessageLookupByLibrary.simpleMessage("Two-year"),
+    "xboardPlanPeriodYearly": MessageLookupByLibrary.simpleMessage("Yearly"),
     "xboardPlanSummary": MessageLookupByLibrary.simpleMessage("Plan Summary"),
     "xboardPlanWithId": m44,
     "xboardPlans": MessageLookupByLibrary.simpleMessage("Plans"),
@@ -1970,6 +2077,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardPrevious": MessageLookupByLibrary.simpleMessage("Previous"),
     "xboardPriority": MessageLookupByLibrary.simpleMessage("Priority"),
+    "xboardPriorityLabel": MessageLookupByLibrary.simpleMessage("Priority"),
     "xboardProcessing": MessageLookupByLibrary.simpleMessage("Processing..."),
     "xboardProcessingOrders": MessageLookupByLibrary.simpleMessage(
       "Processing",
@@ -2232,6 +2340,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardTicketMessage": MessageLookupByLibrary.simpleMessage("Message"),
     "xboardTicketStatus": MessageLookupByLibrary.simpleMessage("Ticket Status"),
+    "xboardTicketStatusClosed": MessageLookupByLibrary.simpleMessage("Closed"),
+    "xboardTicketStatusPending": MessageLookupByLibrary.simpleMessage(
+      "Pending",
+    ),
     "xboardTicketSubject": MessageLookupByLibrary.simpleMessage("Subject"),
     "xboardTickets": MessageLookupByLibrary.simpleMessage("Tickets"),
     "xboardTimeInfo": MessageLookupByLibrary.simpleMessage("Time Information"),
@@ -2243,6 +2355,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTokenExpiredTitle": MessageLookupByLibrary.simpleMessage(
       "Login Expired",
     ),
+    "xboardTomorrow": MessageLookupByLibrary.simpleMessage("Tomorrow"),
     "xboardTotal": MessageLookupByLibrary.simpleMessage("Total"),
     "xboardTotalAmount": MessageLookupByLibrary.simpleMessage("Total Amount"),
     "xboardTradeNo": MessageLookupByLibrary.simpleMessage("Trade No"),
@@ -2278,6 +2391,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardUnknownErrorRetry": MessageLookupByLibrary.simpleMessage(
       "Unknown error, please retry",
     ),
+    "xboardUnknownPriority": MessageLookupByLibrary.simpleMessage("Unknown"),
     "xboardUnknownUser": MessageLookupByLibrary.simpleMessage("Unknown User"),
     "xboardUnlimited": MessageLookupByLibrary.simpleMessage("Unlimited"),
     "xboardUnlimitedDevices": MessageLookupByLibrary.simpleMessage(
@@ -2332,6 +2446,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardWaitingPaymentCompletion": MessageLookupByLibrary.simpleMessage(
       "Waiting for payment completion",
     ),
+    "xboardWeeks": MessageLookupByLibrary.simpleMessage("weeks"),
     "xboardWeeksAgo": MessageLookupByLibrary.simpleMessage("weeks ago"),
     "xboardWithdrawTransferComingSoon": MessageLookupByLibrary.simpleMessage(
       "Withdrawal and transfer features coming soon",

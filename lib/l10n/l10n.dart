@@ -4364,10 +4364,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Order Status: Pending Payment`
+  /// `Pending Payment`
   String get xboardOrderStatusPending {
     return Intl.message(
-      'Order Status: Pending Payment',
+      'Pending Payment',
       name: 'xboardOrderStatusPending',
       desc: '',
       args: [],
@@ -9702,6 +9702,471 @@ class AppLocalizations {
   /// `Go Back`
   String get xboardGoBack {
     return Intl.message('Go Back', name: 'xboardGoBack', desc: '', args: []);
+  }
+
+  /// `Tomorrow`
+  String get xboardTomorrow {
+    return Intl.message('Tomorrow', name: 'xboardTomorrow', desc: '', args: []);
+  }
+
+  /// `weeks`
+  String get xboardWeeks {
+    return Intl.message('weeks', name: 'xboardWeeks', desc: '', args: []);
+  }
+
+  /// `First startup may take some time\nPlease wait patiently...`
+  String get xboardFirstStartTip {
+    return Intl.message(
+      'First startup may take some time\nPlease wait patiently...',
+      name: 'xboardFirstStartTip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Preparing to import`
+  String get xboardImportStatusIdle {
+    return Intl.message(
+      'Preparing to import',
+      name: 'xboardImportStatusIdle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cleaning old configuration`
+  String get xboardImportStatusCleaning {
+    return Intl.message(
+      'Cleaning old configuration',
+      name: 'xboardImportStatusCleaning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Downloading configuration`
+  String get xboardImportStatusDownloading {
+    return Intl.message(
+      'Downloading configuration',
+      name: 'xboardImportStatusDownloading',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Validating configuration`
+  String get xboardImportStatusValidating {
+    return Intl.message(
+      'Validating configuration',
+      name: 'xboardImportStatusValidating',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Adding to configuration list`
+  String get xboardImportStatusAdding {
+    return Intl.message(
+      'Adding to configuration list',
+      name: 'xboardImportStatusAdding',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import successful`
+  String get xboardImportStatusSuccess {
+    return Intl.message(
+      'Import successful',
+      name: 'xboardImportStatusSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import failed`
+  String get xboardImportStatusFailed {
+    return Intl.message(
+      'Import failed',
+      name: 'xboardImportStatusFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network connection failed, please check network settings`
+  String get xboardImportErrorNetwork {
+    return Intl.message(
+      'Network connection failed, please check network settings',
+      name: 'xboardImportErrorNetwork',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration download failed, please check subscription link`
+  String get xboardImportErrorDownload {
+    return Intl.message(
+      'Configuration download failed, please check subscription link',
+      name: 'xboardImportErrorDownload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration format error, please contact service provider`
+  String get xboardImportErrorValidation {
+    return Intl.message(
+      'Configuration format error, please contact service provider',
+      name: 'xboardImportErrorValidation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to save configuration, please check storage space`
+  String get xboardImportErrorStorage {
+    return Intl.message(
+      'Failed to save configuration, please check storage space',
+      name: 'xboardImportErrorStorage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown error, please retry`
+  String get xboardImportErrorUnknown {
+    return Intl.message(
+      'Unknown error, please retry',
+      name: 'xboardImportErrorUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `One-time`
+  String get xboardPlanPeriodOnetime {
+    return Intl.message(
+      'One-time',
+      name: 'xboardPlanPeriodOnetime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Monthly`
+  String get xboardPlanPeriodMonthly {
+    return Intl.message(
+      'Monthly',
+      name: 'xboardPlanPeriodMonthly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quarterly`
+  String get xboardPlanPeriodQuarterly {
+    return Intl.message(
+      'Quarterly',
+      name: 'xboardPlanPeriodQuarterly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Half-yearly`
+  String get xboardPlanPeriodHalfYearly {
+    return Intl.message(
+      'Half-yearly',
+      name: 'xboardPlanPeriodHalfYearly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Yearly`
+  String get xboardPlanPeriodYearly {
+    return Intl.message(
+      'Yearly',
+      name: 'xboardPlanPeriodYearly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Two-year`
+  String get xboardPlanPeriodTwoYear {
+    return Intl.message(
+      'Two-year',
+      name: 'xboardPlanPeriodTwoYear',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Three-year`
+  String get xboardPlanPeriodThreeYear {
+    return Intl.message(
+      'Three-year',
+      name: 'xboardPlanPeriodThreeYear',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset Traffic`
+  String get xboardPlanPeriodReset {
+    return Intl.message(
+      'Reset Traffic',
+      name: 'xboardPlanPeriodReset',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Processing`
+  String get xboardOrderStatusProcessing {
+    return Intl.message(
+      'Processing',
+      name: 'xboardOrderStatusProcessing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Canceled`
+  String get xboardOrderStatusCanceled {
+    return Intl.message(
+      'Canceled',
+      name: 'xboardOrderStatusCanceled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Completed`
+  String get xboardOrderStatusCompleted {
+    return Intl.message(
+      'Completed',
+      name: 'xboardOrderStatusCompleted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Discounted`
+  String get xboardOrderStatusDiscounted {
+    return Intl.message(
+      'Discounted',
+      name: 'xboardOrderStatusDiscounted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pending Confirmation`
+  String get xboardCommissionStatusPending {
+    return Intl.message(
+      'Pending Confirmation',
+      name: 'xboardCommissionStatusPending',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Processing`
+  String get xboardCommissionStatusProcessing {
+    return Intl.message(
+      'Processing',
+      name: 'xboardCommissionStatusProcessing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Distributed`
+  String get xboardCommissionStatusCompleted {
+    return Intl.message(
+      'Distributed',
+      name: 'xboardCommissionStatusCompleted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No Commission`
+  String get xboardCommissionStatusNone {
+    return Intl.message(
+      'No Commission',
+      name: 'xboardCommissionStatusNone',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Priority`
+  String get xboardPriorityLabel {
+    return Intl.message(
+      'Priority',
+      name: 'xboardPriorityLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown`
+  String get xboardUnknownPriority {
+    return Intl.message(
+      'Unknown',
+      name: 'xboardUnknownPriority',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pending`
+  String get xboardTicketStatusPending {
+    return Intl.message(
+      'Pending',
+      name: 'xboardTicketStatusPending',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Closed`
+  String get xboardTicketStatusClosed {
+    return Intl.message(
+      'Closed',
+      name: 'xboardTicketStatusClosed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Testing`
+  String get xboardLatencyTesting {
+    return Intl.message(
+      'Testing',
+      name: 'xboardLatencyTesting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Auto Testing`
+  String get xboardLatencyAutoTesting {
+    return Intl.message(
+      'Auto Testing',
+      name: 'xboardLatencyAutoTesting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Timeout`
+  String get xboardLatencyTimeout {
+    return Intl.message(
+      'Timeout',
+      name: 'xboardLatencyTimeout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Excellent`
+  String get xboardLatencyExcellent {
+    return Intl.message(
+      'Excellent',
+      name: 'xboardLatencyExcellent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Good`
+  String get xboardLatencyGood {
+    return Intl.message('Good', name: 'xboardLatencyGood', desc: '', args: []);
+  }
+
+  /// `Fair`
+  String get xboardLatencyFair {
+    return Intl.message('Fair', name: 'xboardLatencyFair', desc: '', args: []);
+  }
+
+  /// `Poor`
+  String get xboardLatencyPoor {
+    return Intl.message('Poor', name: 'xboardLatencyPoor', desc: '', args: []);
+  }
+
+  /// `Very Poor`
+  String get xboardLatencyVeryPoor {
+    return Intl.message(
+      'Very Poor',
+      name: 'xboardLatencyVeryPoor',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connection timeout, please check network`
+  String get xboardLatencyTimeoutDesc {
+    return Intl.message(
+      'Connection timeout, please check network',
+      name: 'xboardLatencyTimeoutDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Excellent network quality, suitable for all applications`
+  String get xboardLatencyExcellentDesc {
+    return Intl.message(
+      'Excellent network quality, suitable for all applications',
+      name: 'xboardLatencyExcellentDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Good network quality, suitable for most applications`
+  String get xboardLatencyGoodDesc {
+    return Intl.message(
+      'Good network quality, suitable for most applications',
+      name: 'xboardLatencyGoodDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fair network quality, usable for basic applications`
+  String get xboardLatencyFairDesc {
+    return Intl.message(
+      'Fair network quality, usable for basic applications',
+      name: 'xboardLatencyFairDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Poor network quality, may affect experience`
+  String get xboardLatencyPoorDesc {
+    return Intl.message(
+      'Poor network quality, may affect experience',
+      name: 'xboardLatencyPoorDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Very poor network quality, recommend changing node`
+  String get xboardLatencyVeryPoorDesc {
+    return Intl.message(
+      'Very poor network quality, recommend changing node',
+      name: 'xboardLatencyVeryPoorDesc',
+      desc: '',
+      args: [],
+    );
   }
 }
 

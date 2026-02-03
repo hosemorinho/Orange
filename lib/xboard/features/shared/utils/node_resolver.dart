@@ -91,7 +91,22 @@ import 'package:fl_clash/models/models.dart';
       currentProxy = validProxy;
     }
   } else {
-    currentProxy = currentGroup.all.first;
+    // 未选择代理，查找子级 URLTest 自动选择组的当前节点
+    for (final proxy in currentGroup.all) {
+      final urlTestGroup = groups.where(
+        (g) => g.name == proxy.name && g.type == GroupType.URLTest,
+      ).firstOrNull;
+      if (urlTestGroup != null &&
+          urlTestGroup.now != null &&
+          urlTestGroup.now!.isNotEmpty) {
+        currentProxy = urlTestGroup.all.firstWhere(
+          (p) => p.name == urlTestGroup.now,
+          orElse: () => urlTestGroup.all.first,
+        );
+        break;
+      }
+    }
+    currentProxy ??= currentGroup.all.first;
   }
 
   return (group: currentGroup, proxy: currentProxy);

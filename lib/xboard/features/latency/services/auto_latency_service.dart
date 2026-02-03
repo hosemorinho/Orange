@@ -111,6 +111,12 @@ class AutoLatencyService {
         _logger.debug('未找到当前代理，跳过测试');
         return;
       }
+
+      final upperName = currentProxy.name.toUpperCase();
+      if (upperName == 'DIRECT' || upperName == 'REJECT') {
+        _logger.debug('跳过特殊节点: ${currentProxy.name}');
+        return;
+      }
       
       if (!forceTest) {
         if (!_shouldTestProxy(currentProxy.name)) {
@@ -333,10 +339,9 @@ class AutoLatencyService {
         _logger.debug('最终选中的代理: ${selectedProxy.name}');
         return selectedProxy;
       }
-      
-      final fallbackProxy = currentGroup.all.first;
-      _logger.debug('使用备用代理: ${fallbackProxy.name}');
-      return fallbackProxy;
+
+      _logger.debug('未找到已选中的代理节点，跳过测试');
+      return null;
     } catch (e) {
       _logger.error('获取当前代理失败', e);
       return null;
@@ -398,8 +403,18 @@ class AutoLatencyService {
           }
         }
       } else {
-        realNodeName = group.all.isNotEmpty ? group.all.first.name : "";
-        _logger.debug('未选择代理，使用默认节点: $realNodeName');
+        // 未选择代理，查找 URLTest 自动选择组
+        for (final proxy in group.all) {
+          final urlTestGroup = allGroups.where(
+            (g) => g.name == proxy.name && g.type == GroupType.URLTest,
+          ).firstOrNull;
+          if (urlTestGroup != null) {
+            _logger.debug('未选择代理，使用自动选择组: ${urlTestGroup.name}');
+            return _getSelectedProxyFromGroup(urlTestGroup, selectedMap, allGroups);
+          }
+        }
+        _logger.debug('未选择代理且无自动选择组，跳过测试');
+        return null;
       }
       _logger.debug('Selector组当前节点: $realNodeName');
     }

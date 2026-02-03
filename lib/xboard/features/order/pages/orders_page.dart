@@ -1,11 +1,19 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/adapter/state/order_state.dart';
+import 'package:fl_clash/xboard/adapter/state/payment_state.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
+import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
+import 'package:fl_clash/xboard/features/payment/providers/xboard_payment_provider.dart';
+import 'package:fl_clash/xboard/features/payment/widgets/payment_waiting_overlay.dart';
+import 'package:fl_clash/xboard/features/payment/widgets/payment_method_selector_dialog.dart';
+import 'package:fl_clash/xboard/features/payment/models/payment_step.dart';
 import '../widgets/order_card.dart';
 import '../widgets/order_detail_sheet.dart';
 import '../providers/order_provider.dart';
@@ -261,12 +269,179 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => OrderDetailSheet(order: order),
+      builder: (context) => OrderDetailSheet(
+        order: order,
+        onPay: order.canPay ? () => _navigateToCheckout(order) : null,
+      ),
     );
   }
 
-  void _navigateToCheckout(DomainOrder order) {
-    _showOrderDetail(order);
+  Future<void> _navigateToCheckout(DomainOrder order) async {
+    try {
+      // Ensure payment provider is initialized
+      ref.read(xboardPaymentProvider);
+
+      // Get available payment methods
+      var paymentMethods = ref.read(xboardAvailablePaymentMethodsProvider);
+
+      // If empty, try reloading
+      if (paymentMethods.isEmpty) {
+        ref.invalidate(getPaymentMethodsProvider);
+        await ref.read(xboardPaymentProvider.notifier).loadPaymentMethods();
+        paymentMethods = ref.read(xboardAvailablePaymentMethodsProvider);
+      }
+
+      if (paymentMethods.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(appLocalizations.xboardNoPaymentMethodsAvailable),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Select payment method
+      DomainPaymentMethod? selectedMethod;
+      if (paymentMethods.length == 1) {
+        selectedMethod = paymentMethods.first;
+      } else {
+        if (!mounted) return;
+        selectedMethod = await PaymentMethodSelectorDialog.show(
+          context,
+          paymentMethods: paymentMethods,
+        );
+        if (selectedMethod == null) return;
+      }
+
+      if (!mounted) return;
+
+      // Show payment waiting overlay
+      PaymentWaitingManager.show(
+        context,
+        onClose: () {
+          ref.invalidate(getOrdersProvider);
+        },
+        onPaymentSuccess: _handlePaymentSuccess,
+        tradeNo: order.tradeNo,
+      );
+      PaymentWaitingManager.updateStep(PaymentStep.loadingPayment);
+      PaymentWaitingManager.updateStep(PaymentStep.verifyPayment);
+
+      // Submit payment
+      final paymentNotifier = ref.read(xboardPaymentProvider.notifier);
+      final paymentResult = await paymentNotifier.submitPayment(
+        tradeNo: order.tradeNo,
+        method: selectedMethod.id.toString(),
+      );
+
+      if (paymentResult == null) {
+        PaymentWaitingManager.hide();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(appLocalizations.xboardPaymentFailedEmptyResult),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+        return;
+      }
+
+      if (!mounted) return;
+
+      final paymentType = paymentResult['type'] as int? ?? 0;
+      final paymentData = paymentResult['data'];
+
+      if (paymentType == -1) {
+        // Balance payment
+        PaymentWaitingManager.hide();
+        if (paymentData == true) {
+          _handlePaymentSuccess();
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(appLocalizations.xboardPaymentFailedBalanceError),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+        }
+      } else if (paymentData != null && paymentData is String && paymentData.isNotEmpty) {
+        // Redirect payment URL
+        PaymentWaitingManager.updateStep(PaymentStep.waitingPayment);
+        await _launchPaymentUrl(paymentData);
+      } else {
+        PaymentWaitingManager.hide();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(appLocalizations.xboardPaymentFailedInvalidData),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      PaymentWaitingManager.hide();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${appLocalizations.xboardLoadFailed}: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  void _handlePaymentSuccess() {
+    try {
+      final userProvider = ref.read(xboardUserProvider.notifier);
+      userProvider.refreshSubscriptionInfoAfterPayment();
+    } catch (_) {}
+
+    ref.invalidate(getOrdersProvider);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(appLocalizations.xboardPaymentSuccess),
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
+        ),
+      );
+    }
+  }
+
+  Future<void> _launchPaymentUrl(String url) async {
+    try {
+      if (!mounted) return;
+      await Clipboard.setData(ClipboardData(text: url));
+      final uri = Uri.parse(url);
+      if (!await canLaunchUrl(uri)) {
+        throw Exception(appLocalizations.xboardCannotOpenPaymentUrl);
+      }
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        throw Exception(appLocalizations.xboardCannotLaunchBrowser);
+      }
+    } catch (e) {
+      if (mounted) {
+        PaymentWaitingManager.hide();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${appLocalizations.xboardLoadFailed}: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _cancelOrder(String tradeNo) async {

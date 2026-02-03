@@ -13,10 +13,12 @@ import 'package:fl_clash/xboard/domain/domain.dart';
 /// - Pay button (if payable)
 class OrderDetailSheet extends StatelessWidget {
   final DomainOrder order;
+  final VoidCallback? onPay;
 
   const OrderDetailSheet({
     super.key,
     required this.order,
+    this.onPay,
   });
 
   @override
@@ -323,7 +325,7 @@ class OrderDetailSheet extends StatelessWidget {
         child: FilledButton(
           onPressed: () {
             Navigator.of(context).pop();
-            // TODO: Navigate to checkout
+            onPay?.call();
           },
           style: FilledButton.styleFrom(
             backgroundColor: colorScheme.primary,

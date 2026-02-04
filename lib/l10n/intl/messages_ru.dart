@@ -53,7 +53,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m37(label) => "${label} должен быть URL";
 
-  static String m55(count) =>
+  static String m56(count) =>
       "${Intl.plural(count, one: '${count} год назад', few: '${count} года назад', many: '${count} лет назад', other: '${count} года назад')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -934,7 +934,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Режим белого списка",
     ),
     "years": MessageLookupByLibrary.simpleMessage("Лет"),
-    "yearsAgo": m55,
+    "yearsAgo": m56,
     "zh_CN": MessageLookupByLibrary.simpleMessage("Упрощенный китайский"),
   };
 }

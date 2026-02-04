@@ -109,42 +109,42 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m38(email) =>
       "Verification code has been sent to ${email}, please check and enter the verification code and new password";
 
-  static String m39(amount) => "Withdrawable amount: ${amount}";
+  static String m39(error) => "Withdrawal failed: ${error}";
 
-  static String m40(count) => "${count} rules configured";
+  static String m40(amount) => "Withdrawable amount: ${amount}";
 
-  static String m41(error) => "Failed to check payment status: ${error}";
+  static String m41(count) => "${count} rules configured";
 
-  static String m42(error) => "Copy failed: ${error}";
+  static String m42(error) => "Failed to check payment status: ${error}";
 
-  static String m43(limit) => "${limit} devices";
+  static String m43(error) => "Copy failed: ${error}";
 
-  static String m44(traffic) => "Download: ${traffic}";
+  static String m44(limit) => "${limit} devices";
 
-  static String m45(error) => "Failed to open payment link: ${error}";
+  static String m45(traffic) => "Download: ${traffic}";
 
-  static String m46(error) => "Failed to open payment page: ${error}";
+  static String m46(error) => "Failed to open payment link: ${error}";
 
-  static String m47(error) => "Operation failed: ${error}";
+  static String m47(error) => "Failed to open payment page: ${error}";
 
-  static String m48(message) => "Payment failed: ${message}";
+  static String m48(error) => "Operation failed: ${error}";
 
-  static String m49(planId) => "Plan #${planId}";
+  static String m49(message) => "Payment failed: ${message}";
 
-  static String m50(url) => "Proxy (${url})";
+  static String m50(planId) => "Plan #${planId}";
 
-  static String m51(days) => "${days} days";
+  static String m51(url) => "Proxy (${url})";
 
-  static String m52(attempt) =>
+  static String m52(days) => "${days} days";
+
+  static String m53(attempt) =>
       "Attempt ${attempt} failed, waiting to retry...";
 
-  static String m53(time) => "Running time: ${time}";
+  static String m54(time) => "Running time: ${time}";
 
-  static String m54(traffic) => "Upload: ${traffic}";
+  static String m55(traffic) => "Upload: ${traffic}";
 
-  static String m56(error) => "Withdrawal failed: ${error}";
-
-  static String m55(count) =>
+  static String m56(count) =>
       "${Intl.plural(count, one: '1 year ago', other: '${count} years ago')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -348,6 +348,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Confirm New Password",
     ),
     "confirmTransfer": MessageLookupByLibrary.simpleMessage("Confirm Transfer"),
+    "confirmWithdraw": MessageLookupByLibrary.simpleMessage(
+      "Confirm Withdrawal",
+    ),
     "connected": MessageLookupByLibrary.simpleMessage("Connected"),
     "connecting": MessageLookupByLibrary.simpleMessage("Connecting..."),
     "connection": MessageLookupByLibrary.simpleMessage("Connection"),
@@ -485,6 +488,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "enterTransferAmountError": MessageLookupByLibrary.simpleMessage(
       "Please enter transfer amount",
+    ),
+    "enterWithdrawAccount": MessageLookupByLibrary.simpleMessage(
+      "Enter withdrawal account",
     ),
     "entries": MessageLookupByLibrary.simpleMessage(" entries"),
     "exclude": MessageLookupByLibrary.simpleMessage("Hidden from recent tasks"),
@@ -1152,6 +1158,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "seconds": MessageLookupByLibrary.simpleMessage("Seconds"),
     "selectAll": MessageLookupByLibrary.simpleMessage("Select all"),
     "selectTheme": MessageLookupByLibrary.simpleMessage("Select Theme"),
+    "selectWithdrawMethod": MessageLookupByLibrary.simpleMessage(
+      "Select withdrawal method",
+    ),
     "selected": MessageLookupByLibrary.simpleMessage("Selected"),
     "selectedCountTitle": m24,
     "sendCodeFailed": MessageLookupByLibrary.simpleMessage(
@@ -1381,13 +1390,25 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("Whitelist mode"),
     "withdraw": MessageLookupByLibrary.simpleMessage("Withdraw"),
+    "withdrawAccount": MessageLookupByLibrary.simpleMessage(
+      "Withdrawal Account",
+    ),
+    "withdrawClosed": MessageLookupByLibrary.simpleMessage(
+      "Withdrawal is currently unavailable",
+    ),
     "withdrawCommission": MessageLookupByLibrary.simpleMessage(
       "Withdraw Commission",
     ),
-    "withdrawableAmount": m39,
+    "withdrawFailed": m39,
+    "withdrawMethod": MessageLookupByLibrary.simpleMessage("Withdrawal Method"),
+    "withdrawSubmitted": MessageLookupByLibrary.simpleMessage(
+      "Withdrawal request submitted",
+    ),
+    "withdrawableAmount": m40,
     "withdrawalAvailable": MessageLookupByLibrary.simpleMessage(
       "Available commission can be withdrawn",
     ),
+    "withdrawing": MessageLookupByLibrary.simpleMessage("Submitting..."),
     "xboard": MessageLookupByLibrary.simpleMessage("Home"),
     "xboard24HourCustomerService": MessageLookupByLibrary.simpleMessage(
       "24-hour customer service support",
@@ -1468,7 +1489,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardBypassDomain": MessageLookupByLibrary.simpleMessage(
       "Bypass Domain/IP",
     ),
-    "xboardBypassDomainCount": m40,
+    "xboardBypassDomainCount": m41,
     "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "Add domains and IPs for direct connection",
     ),
@@ -1499,7 +1520,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCheckPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to check payment status",
     ),
-    "xboardCheckPaymentStatusError": m41,
+    "xboardCheckPaymentStatusError": m42,
     "xboardCheckStatus": MessageLookupByLibrary.simpleMessage("Check Status"),
     "xboardChecking": MessageLookupByLibrary.simpleMessage("Checking..."),
     "xboardCleaningOldConfig": MessageLookupByLibrary.simpleMessage(
@@ -1616,7 +1637,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCopied": MessageLookupByLibrary.simpleMessage("Copied"),
     "xboardCopyCode": MessageLookupByLibrary.simpleMessage("Copy Code"),
     "xboardCopyFailed": MessageLookupByLibrary.simpleMessage("Copy failed"),
-    "xboardCopyFailedError": m42,
+    "xboardCopyFailedError": m43,
     "xboardCopyLink": MessageLookupByLibrary.simpleMessage("Copy Link"),
     "xboardCopyPaymentLink": MessageLookupByLibrary.simpleMessage("Copy Link"),
     "xboardCopySubscriptionLinkAbove": MessageLookupByLibrary.simpleMessage(
@@ -1660,7 +1681,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Deductible during payment",
     ),
     "xboardDetail": MessageLookupByLibrary.simpleMessage("Detail"),
-    "xboardDeviceLimitCount": m43,
+    "xboardDeviceLimitCount": m44,
     "xboardDirectConnectionLabel": MessageLookupByLibrary.simpleMessage(
       "Direct",
     ),
@@ -1682,7 +1703,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardDownloadTimeoutError": MessageLookupByLibrary.simpleMessage(
       "Download timeout",
     ),
-    "xboardDownloadTrafficLabel": m44,
+    "xboardDownloadTrafficLabel": m45,
     "xboardDownloadingConfig": MessageLookupByLibrary.simpleMessage(
       "Downloading configuration file",
     ),
@@ -2050,15 +2071,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOpenPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to open payment page",
     ),
-    "xboardOpenPaymentLinkError": m45,
+    "xboardOpenPaymentLinkError": m46,
     "xboardOpenPaymentLinkFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to open payment link",
     ),
-    "xboardOpenPaymentPageError": m46,
+    "xboardOpenPaymentPageError": m47,
     "xboardOperationFailed": MessageLookupByLibrary.simpleMessage(
       "Operation failed",
     ),
-    "xboardOperationFailedError": m47,
+    "xboardOperationFailedError": m48,
     "xboardOperationStep1": MessageLookupByLibrary.simpleMessage(
       "1. Payment page has been opened automatically",
     ),
@@ -2144,7 +2165,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentFailedInvalidData": MessageLookupByLibrary.simpleMessage(
       "Payment failed: invalid payment data received",
     ),
-    "xboardPaymentFailedMessage": m48,
+    "xboardPaymentFailedMessage": m49,
     "xboardPaymentGateway": MessageLookupByLibrary.simpleMessage(
       "Payment gateway",
     ),
@@ -2224,7 +2245,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPlanPeriodTwoYear": MessageLookupByLibrary.simpleMessage("Two-year"),
     "xboardPlanPeriodYearly": MessageLookupByLibrary.simpleMessage("Yearly"),
     "xboardPlanSummary": MessageLookupByLibrary.simpleMessage("Plan Summary"),
-    "xboardPlanWithId": m49,
+    "xboardPlanWithId": m50,
     "xboardPlans": MessageLookupByLibrary.simpleMessage("Plans"),
     "xboardPleaseLogin": MessageLookupByLibrary.simpleMessage(
       "Please login first",
@@ -2265,7 +2286,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardProxyCommands": MessageLookupByLibrary.simpleMessage(
       "Set Proxy Commands",
     ),
-    "xboardProxyConnectionLabel": m50,
+    "xboardProxyConnectionLabel": m51,
     "xboardProxyInfo": MessageLookupByLibrary.simpleMessage(
       "Proxy Information",
     ),
@@ -2320,7 +2341,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReload": MessageLookupByLibrary.simpleMessage("Reload"),
     "xboardRelogin": MessageLookupByLibrary.simpleMessage("Login Again"),
     "xboardRemaining": MessageLookupByLibrary.simpleMessage("Remaining"),
-    "xboardRemainingDaysCount": m51,
+    "xboardRemainingDaysCount": m52,
     "xboardRemainingDaysLabel": MessageLookupByLibrary.simpleMessage(
       "Days Remaining",
     ),
@@ -2380,13 +2401,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardResetTraffic": MessageLookupByLibrary.simpleMessage("Reset traffic"),
     "xboardResetting": MessageLookupByLibrary.simpleMessage("Resetting..."),
     "xboardRetry": MessageLookupByLibrary.simpleMessage("Retry"),
-    "xboardRetryAttemptFailed": m52,
+    "xboardRetryAttemptFailed": m53,
     "xboardRetryGet": MessageLookupByLibrary.simpleMessage("Retry"),
     "xboardReturn": MessageLookupByLibrary.simpleMessage("Return"),
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. Return to app after payment, system will detect automatically",
     ),
-    "xboardRunningTime": m53,
+    "xboardRunningTime": m54,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("Search nodes"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage(
       "Secure encryption",
@@ -2583,7 +2604,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardUpdateSubscriptionRegularly": MessageLookupByLibrary.simpleMessage(
       "Update subscription regularly to get latest nodes",
     ),
-    "xboardUploadTrafficLabel": m54,
+    "xboardUploadTrafficLabel": m55,
     "xboardUsageInstructions": MessageLookupByLibrary.simpleMessage(
       "Usage instructions",
     ),
@@ -2626,29 +2647,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardYearlyPayment": MessageLookupByLibrary.simpleMessage("Yearly"),
     "xboardYearsAgo": MessageLookupByLibrary.simpleMessage("years ago"),
     "xboardYesterday": MessageLookupByLibrary.simpleMessage("Yesterday"),
-    "withdrawAccount": MessageLookupByLibrary.simpleMessage(
-      "Withdrawal Account",
-    ),
-    "withdrawClosed": MessageLookupByLibrary.simpleMessage(
-      "Withdrawal is currently unavailable",
-    ),
-    "withdrawFailed": m56,
-    "withdrawMethod": MessageLookupByLibrary.simpleMessage("Withdrawal Method"),
-    "withdrawSubmitted": MessageLookupByLibrary.simpleMessage(
-      "Withdrawal request submitted",
-    ),
-    "withdrawing": MessageLookupByLibrary.simpleMessage("Submitting..."),
-    "confirmWithdraw": MessageLookupByLibrary.simpleMessage(
-      "Confirm Withdrawal",
-    ),
-    "enterWithdrawAccount": MessageLookupByLibrary.simpleMessage(
-      "Enter withdrawal account",
-    ),
-    "selectWithdrawMethod": MessageLookupByLibrary.simpleMessage(
-      "Select withdrawal method",
-    ),
     "years": MessageLookupByLibrary.simpleMessage("Years"),
-    "yearsAgo": m55,
+    "yearsAgo": m56,
     "zh_CN": MessageLookupByLibrary.simpleMessage("Simplified Chinese"),
   };
 }

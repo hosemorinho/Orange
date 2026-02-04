@@ -193,8 +193,15 @@ const commissionConfigProvider = CommissionConfigProvider._();
 /// Get commission config (withdrawal methods)
 
 final class CommissionConfigProvider
-    extends $FunctionalProvider<AsyncValue<Map<String, dynamic>>, Map<String, dynamic>, FutureOr<Map<String, dynamic>>>
-    with $FutureModifier<Map<String, dynamic>>, $FutureProvider<Map<String, dynamic>> {
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, dynamic>>,
+          Map<String, dynamic>,
+          FutureOr<Map<String, dynamic>>
+        >
+    with
+        $FutureModifier<Map<String, dynamic>>,
+        $FutureProvider<Map<String, dynamic>> {
   /// Get commission config (withdrawal methods)
   const CommissionConfigProvider._()
     : super(
@@ -212,8 +219,9 @@ final class CommissionConfigProvider
 
   @$internal
   @override
-  $FutureProviderElement<Map<String, dynamic>> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  $FutureProviderElement<Map<String, dynamic>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<Map<String, dynamic>> create(Ref ref) {
@@ -221,7 +229,7 @@ final class CommissionConfigProvider
   }
 }
 
-String _$commissionConfigHash() => r'b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0';
+String _$commissionConfigHash() => r'459d5d786abc407e8d9d64373404d8c0bbae604c';
 
 /// Submit withdrawal ticket
 
@@ -252,7 +260,7 @@ final class WithdrawCommissionProvider
   String toString() {
     return r'withdrawCommissionProvider'
         ''
-        '($argument)';
+        '$argument';
   }
 
   @$internal
@@ -278,7 +286,7 @@ final class WithdrawCommissionProvider
 }
 
 String _$withdrawCommissionHash() =>
-    r'c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1';
+    r'cc7ad5fcb12f9d0488d2c4f201cd38156d6d5770';
 
 /// Submit withdrawal ticket
 

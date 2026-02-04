@@ -98,41 +98,41 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m38(email) => "验证码已发送到 ${email}，请查收并输入验证码和新密码";
 
-  static String m39(amount) => "可提现金额: ${amount}";
+  static String m39(error) => "提现失败：${error}";
 
-  static String m40(count) => "已添加 ${count} 项规则";
+  static String m40(amount) => "可提现金额: ${amount}";
 
-  static String m41(error) => "检查支付状态失败: ${error}";
+  static String m41(count) => "已添加 ${count} 项规则";
 
-  static String m42(error) => "复制失败: ${error}";
+  static String m42(error) => "检查支付状态失败: ${error}";
 
-  static String m43(limit) => "${limit} 设备";
+  static String m43(error) => "复制失败: ${error}";
 
-  static String m44(traffic) => "下载: ${traffic}";
+  static String m44(limit) => "${limit} 设备";
 
-  static String m45(error) => "打开支付链接失败: ${error}";
+  static String m45(traffic) => "下载: ${traffic}";
 
-  static String m46(error) => "打开支付页面失败: ${error}";
+  static String m46(error) => "打开支付链接失败: ${error}";
 
-  static String m47(error) => "操作失败: ${error}";
+  static String m47(error) => "打开支付页面失败: ${error}";
 
-  static String m48(message) => "支付失败: ${message}";
+  static String m48(error) => "操作失败: ${error}";
 
-  static String m49(planId) => "套餐 #${planId}";
+  static String m49(message) => "支付失败: ${message}";
 
-  static String m50(url) => "代理(${url})";
+  static String m50(planId) => "套餐 #${planId}";
 
-  static String m51(days) => "${days} 天";
+  static String m51(url) => "代理(${url})";
 
-  static String m52(attempt) => "第 ${attempt} 次尝试失败，等待重试...";
+  static String m52(days) => "${days} 天";
 
-  static String m53(time) => "运行时间: ${time}";
+  static String m53(attempt) => "第 ${attempt} 次尝试失败，等待重试...";
 
-  static String m54(traffic) => "上传: ${traffic}";
+  static String m54(time) => "运行时间: ${time}";
 
-  static String m55(count) => "${count} 年前";
+  static String m55(traffic) => "上传: ${traffic}";
 
-  static String m56(error) => "提现失败：${error}";
+  static String m56(count) => "${count} 年前";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -255,6 +255,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmLogout": MessageLookupByLibrary.simpleMessage("确认登出"),
     "confirmNewPassword": MessageLookupByLibrary.simpleMessage("确认新密码"),
     "confirmTransfer": MessageLookupByLibrary.simpleMessage("确认划转"),
+    "confirmWithdraw": MessageLookupByLibrary.simpleMessage("确认提现"),
     "connected": MessageLookupByLibrary.simpleMessage("已连接"),
     "connecting": MessageLookupByLibrary.simpleMessage("连接中..."),
     "connection": MessageLookupByLibrary.simpleMessage("连接"),
@@ -349,6 +350,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "enterTransferAmount": MessageLookupByLibrary.simpleMessage("请输入划转金额"),
     "enterTransferAmountError": MessageLookupByLibrary.simpleMessage("请输入划转金额"),
+    "enterWithdrawAccount": MessageLookupByLibrary.simpleMessage("请输入提现账号"),
     "entries": MessageLookupByLibrary.simpleMessage("个条目"),
     "exclude": MessageLookupByLibrary.simpleMessage("从最近任务中隐藏"),
     "excludeDesc": MessageLookupByLibrary.simpleMessage("应用在后台时,从最近任务中隐藏应用"),
@@ -782,6 +784,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "seconds": MessageLookupByLibrary.simpleMessage("秒"),
     "selectAll": MessageLookupByLibrary.simpleMessage("全选"),
     "selectTheme": MessageLookupByLibrary.simpleMessage("选择主题"),
+    "selectWithdrawMethod": MessageLookupByLibrary.simpleMessage("请选择提现方式"),
     "selected": MessageLookupByLibrary.simpleMessage("已选择"),
     "selectedCountTitle": m24,
     "sendCodeFailed": MessageLookupByLibrary.simpleMessage("发送验证码失败"),
@@ -953,9 +956,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage("WebDAV配置"),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("白名单模式"),
     "withdraw": MessageLookupByLibrary.simpleMessage("提现"),
+    "withdrawAccount": MessageLookupByLibrary.simpleMessage("提现账号"),
+    "withdrawClosed": MessageLookupByLibrary.simpleMessage("提现功能暂未开放"),
     "withdrawCommission": MessageLookupByLibrary.simpleMessage("提现佣金"),
-    "withdrawableAmount": m39,
+    "withdrawFailed": m39,
+    "withdrawMethod": MessageLookupByLibrary.simpleMessage("提现方式"),
+    "withdrawSubmitted": MessageLookupByLibrary.simpleMessage("提现申请已提交"),
+    "withdrawableAmount": m40,
     "withdrawalAvailable": MessageLookupByLibrary.simpleMessage("可用佣金可申请提现"),
+    "withdrawing": MessageLookupByLibrary.simpleMessage("正在提交..."),
     "xboard": MessageLookupByLibrary.simpleMessage("首页"),
     "xboard24HourCustomerService": MessageLookupByLibrary.simpleMessage(
       "24小时客服支持",
@@ -1016,7 +1025,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardBuyNow": MessageLookupByLibrary.simpleMessage("立即购买"),
     "xboardBuyoutPlan": MessageLookupByLibrary.simpleMessage("买断制"),
     "xboardBypassDomain": MessageLookupByLibrary.simpleMessage("排除域名/IP"),
-    "xboardBypassDomainCount": m40,
+    "xboardBypassDomainCount": m41,
     "xboardBypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "添加不走代理的域名和IP段",
     ),
@@ -1043,7 +1052,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCheckPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "检查支付状态失败",
     ),
-    "xboardCheckPaymentStatusError": m41,
+    "xboardCheckPaymentStatusError": m42,
     "xboardCheckStatus": MessageLookupByLibrary.simpleMessage("检查状态"),
     "xboardChecking": MessageLookupByLibrary.simpleMessage("检查中..."),
     "xboardCleaningOldConfig": MessageLookupByLibrary.simpleMessage("清理旧配置"),
@@ -1127,7 +1136,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCopied": MessageLookupByLibrary.simpleMessage("已复制"),
     "xboardCopyCode": MessageLookupByLibrary.simpleMessage("复制码"),
     "xboardCopyFailed": MessageLookupByLibrary.simpleMessage("复制失败"),
-    "xboardCopyFailedError": m42,
+    "xboardCopyFailedError": m43,
     "xboardCopyLink": MessageLookupByLibrary.simpleMessage("复制链接"),
     "xboardCopyPaymentLink": MessageLookupByLibrary.simpleMessage("复制链接"),
     "xboardCopySubscriptionLinkAbove": MessageLookupByLibrary.simpleMessage(
@@ -1157,7 +1166,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "支付时可抵扣",
     ),
     "xboardDetail": MessageLookupByLibrary.simpleMessage("详情"),
-    "xboardDeviceLimitCount": m43,
+    "xboardDeviceLimitCount": m44,
     "xboardDirectConnectionLabel": MessageLookupByLibrary.simpleMessage("直连"),
     "xboardDisconnected": MessageLookupByLibrary.simpleMessage("已断开"),
     "xboardDiscount": MessageLookupByLibrary.simpleMessage("优惠"),
@@ -1167,7 +1176,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardDomainUnavailable": MessageLookupByLibrary.simpleMessage("域名不可用"),
     "xboardDownloadTimeout": MessageLookupByLibrary.simpleMessage("下载超时"),
     "xboardDownloadTimeoutError": MessageLookupByLibrary.simpleMessage("下载超时"),
-    "xboardDownloadTrafficLabel": m44,
+    "xboardDownloadTrafficLabel": m45,
     "xboardDownloadingConfig": MessageLookupByLibrary.simpleMessage("下载配置文件"),
     "xboardDownloadingProfile": MessageLookupByLibrary.simpleMessage(
       "正在下载配置文件",
@@ -1431,13 +1440,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOnline": MessageLookupByLibrary.simpleMessage("在线"),
     "xboardOpen": MessageLookupByLibrary.simpleMessage("打开"),
     "xboardOpenPaymentFailed": MessageLookupByLibrary.simpleMessage("打开支付页面失败"),
-    "xboardOpenPaymentLinkError": m45,
+    "xboardOpenPaymentLinkError": m46,
     "xboardOpenPaymentLinkFailed": MessageLookupByLibrary.simpleMessage(
       "打开支付链接失败",
     ),
-    "xboardOpenPaymentPageError": m46,
+    "xboardOpenPaymentPageError": m47,
     "xboardOperationFailed": MessageLookupByLibrary.simpleMessage("操作失败"),
-    "xboardOperationFailedError": m47,
+    "xboardOperationFailedError": m48,
     "xboardOperationStep1": MessageLookupByLibrary.simpleMessage(
       "1. 系统已自动为您打开支付页面",
     ),
@@ -1491,7 +1500,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentFailedInvalidData": MessageLookupByLibrary.simpleMessage(
       "支付失败: 未获取到有效的支付数据",
     ),
-    "xboardPaymentFailedMessage": m48,
+    "xboardPaymentFailedMessage": m49,
     "xboardPaymentGateway": MessageLookupByLibrary.simpleMessage("支付网关"),
     "xboardPaymentInfo": MessageLookupByLibrary.simpleMessage("支付信息"),
     "xboardPaymentInstructions1": MessageLookupByLibrary.simpleMessage(
@@ -1545,7 +1554,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPlanPeriodTwoYear": MessageLookupByLibrary.simpleMessage("两年付"),
     "xboardPlanPeriodYearly": MessageLookupByLibrary.simpleMessage("年付"),
     "xboardPlanSummary": MessageLookupByLibrary.simpleMessage("套餐概览"),
-    "xboardPlanWithId": m49,
+    "xboardPlanWithId": m50,
     "xboardPlans": MessageLookupByLibrary.simpleMessage("套餐"),
     "xboardPleaseLogin": MessageLookupByLibrary.simpleMessage("请先登录"),
     "xboardPleaseSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage(
@@ -1572,7 +1581,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardProxy": MessageLookupByLibrary.simpleMessage("代理"),
     "xboardProxyCommands": MessageLookupByLibrary.simpleMessage("设置代理命令"),
-    "xboardProxyConnectionLabel": m50,
+    "xboardProxyConnectionLabel": m51,
     "xboardProxyInfo": MessageLookupByLibrary.simpleMessage("代理信息"),
     "xboardProxyMode": MessageLookupByLibrary.simpleMessage("代理模式"),
     "xboardProxyModeDirectDescription": MessageLookupByLibrary.simpleMessage(
@@ -1613,7 +1622,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardReload": MessageLookupByLibrary.simpleMessage("重新获取"),
     "xboardRelogin": MessageLookupByLibrary.simpleMessage("重新登录"),
     "xboardRemaining": MessageLookupByLibrary.simpleMessage("剩余"),
-    "xboardRemainingDaysCount": m51,
+    "xboardRemainingDaysCount": m52,
     "xboardRemainingDaysLabel": MessageLookupByLibrary.simpleMessage("剩余天数"),
     "xboardRememberPassword": MessageLookupByLibrary.simpleMessage("记住密码"),
     "xboardRemindExpire": MessageLookupByLibrary.simpleMessage("套餐到期提醒"),
@@ -1651,13 +1660,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardResetTraffic": MessageLookupByLibrary.simpleMessage("重置流量"),
     "xboardResetting": MessageLookupByLibrary.simpleMessage("重置中..."),
     "xboardRetry": MessageLookupByLibrary.simpleMessage("重试"),
-    "xboardRetryAttemptFailed": m52,
+    "xboardRetryAttemptFailed": m53,
     "xboardRetryGet": MessageLookupByLibrary.simpleMessage("重新获取"),
     "xboardReturn": MessageLookupByLibrary.simpleMessage("返回"),
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. 支付完成后返回应用，系统将自动检测",
     ),
-    "xboardRunningTime": m53,
+    "xboardRunningTime": m54,
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("搜索节点"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage("安全加密"),
     "xboardSecurity": MessageLookupByLibrary.simpleMessage("安全设置"),
@@ -1774,7 +1783,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardUpdateSubscriptionRegularly": MessageLookupByLibrary.simpleMessage(
       "定期更新订阅获取最新节点",
     ),
-    "xboardUploadTrafficLabel": m54,
+    "xboardUploadTrafficLabel": m55,
     "xboardUsageInstructions": MessageLookupByLibrary.simpleMessage("使用说明"),
     "xboardUsed": MessageLookupByLibrary.simpleMessage("已用"),
     "xboardUsedTraffic": MessageLookupByLibrary.simpleMessage("已用"),
@@ -1805,17 +1814,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardYearlyPayment": MessageLookupByLibrary.simpleMessage("年付"),
     "xboardYearsAgo": MessageLookupByLibrary.simpleMessage("年前"),
     "xboardYesterday": MessageLookupByLibrary.simpleMessage("昨天"),
-    "withdrawAccount": MessageLookupByLibrary.simpleMessage("提现账号"),
-    "withdrawClosed": MessageLookupByLibrary.simpleMessage("提现功能暂未开放"),
-    "withdrawFailed": m56,
-    "withdrawMethod": MessageLookupByLibrary.simpleMessage("提现方式"),
-    "withdrawSubmitted": MessageLookupByLibrary.simpleMessage("提现申请已提交"),
-    "withdrawing": MessageLookupByLibrary.simpleMessage("正在提交..."),
-    "confirmWithdraw": MessageLookupByLibrary.simpleMessage("确认提现"),
-    "enterWithdrawAccount": MessageLookupByLibrary.simpleMessage("请输入提现账号"),
-    "selectWithdrawMethod": MessageLookupByLibrary.simpleMessage("请选择提现方式"),
     "years": MessageLookupByLibrary.simpleMessage("年"),
-    "yearsAgo": m55,
+    "yearsAgo": m56,
     "zh_CN": MessageLookupByLibrary.simpleMessage("中文简体"),
   };
 }

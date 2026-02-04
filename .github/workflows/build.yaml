@@ -101,6 +101,16 @@ jobs:
       - name: Generate Code
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Setup Android Configuration
+        if: matrix.platform == 'android'
+        shell: bash
+        env:
+          APP_NAME: ${{ secrets.APP_NAME }}
+          APP_PACKAGE_NAME: ${{ secrets.APP_PACKAGE_NAME }}
+        run: |
+          chmod +x scripts/setup_android_config.sh
+          bash scripts/setup_android_config.sh
+
       - name: Mask API URL
         if: env.API_BASE_URL != ''
         shell: bash

@@ -7,7 +7,7 @@ part 'generated/traffic_record.g.dart';
 ///
 /// Represents a single traffic usage record with server rate information
 @freezed
-class TrafficRecord with _$TrafficRecord {
+abstract class TrafficRecord with _$TrafficRecord {
   const factory TrafficRecord({
     /// Record timestamp (Unix timestamp in seconds)
     required int recordAt,
@@ -21,8 +21,6 @@ class TrafficRecord with _$TrafficRecord {
     /// Server rate multiplier (e.g., "1.0", "1.5", "2.0")
     required String serverRate,
   }) = _TrafficRecord;
-
-  const TrafficRecord._();
 
   factory TrafficRecord.fromJson(Map<String, dynamic> json) =>
     _$TrafficRecordFromJson(json);
@@ -52,7 +50,7 @@ class TrafficRecord with _$TrafficRecord {
 
 /// Aggregated traffic data by date
 @freezed
-class AggregatedTraffic with _$AggregatedTraffic {
+abstract class AggregatedTraffic with _$AggregatedTraffic {
   const factory AggregatedTraffic({
     /// Date string (YYYY-MM-DD)
     required String date,
@@ -73,8 +71,6 @@ class AggregatedTraffic with _$AggregatedTraffic {
     required int total,
   }) = _AggregatedTraffic;
 
-  const AggregatedTraffic._();
-
   factory AggregatedTraffic.fromJson(Map<String, dynamic> json) =>
     _$AggregatedTrafficFromJson(json);
 
@@ -84,7 +80,7 @@ class AggregatedTraffic with _$AggregatedTraffic {
 
 /// Traffic grouped by rate
 @freezed
-class TrafficRateGroup with _$TrafficRateGroup {
+abstract class TrafficRateGroup with _$TrafficRateGroup {
   const factory TrafficRateGroup({
     /// Upload bytes
     required int u,
@@ -95,8 +91,6 @@ class TrafficRateGroup with _$TrafficRateGroup {
     /// Rate multiplier
     required double rate,
   }) = _TrafficRateGroup;
-
-  const TrafficRateGroup._();
 
   factory TrafficRateGroup.fromJson(Map<String, dynamic> json) =>
     _$TrafficRateGroupFromJson(json);

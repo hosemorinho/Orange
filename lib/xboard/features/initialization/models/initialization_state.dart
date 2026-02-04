@@ -22,7 +22,7 @@ enum InitializationStatus {
 
 /// XBoard 初始化状态
 @freezed
-class InitializationState with _$InitializationState {
+abstract class InitializationState with _$InitializationState {
   const factory InitializationState({
     /// 当前状态
     @Default(InitializationStatus.idle) InitializationStatus status,
@@ -42,8 +42,6 @@ class InitializationState with _$InitializationState {
     /// 当前步骤描述
     String? currentStepDescription,
   }) = _InitializationState;
-  
-  const InitializationState._();
   
   /// 是否已就绪
   bool get isReady => status == InitializationStatus.ready;

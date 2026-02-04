@@ -5,7 +5,7 @@ part 'generated/notice.g.dart';
 
 /// 领域层：公告模型
 @freezed
-class DomainNotice with _$DomainNotice {
+abstract class DomainNotice with _$DomainNotice {
   const factory DomainNotice({
     /// 公告 ID
     required int id,
@@ -34,8 +34,6 @@ class DomainNotice with _$DomainNotice {
     /// 元数据
     @Default({}) Map<String, dynamic> metadata,
   }) = _DomainNotice;
-
-  const DomainNotice._();
 
   factory DomainNotice.fromJson(Map<String, dynamic> json) => 
     _$DomainNoticeFromJson(json);

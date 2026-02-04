@@ -8,16 +8,18 @@ final _logger = FileLogger('update_check_provider.dart');
 
 final updateServiceProvider = Provider<UpdateService>((ref) => UpdateService());
 final updateCheckProvider =
-    StateNotifierProvider<UpdateCheckNotifier, UpdateCheckState>((ref) {
-  final updateService = ref.watch(updateServiceProvider);
-  return UpdateCheckNotifier(updateService: updateService);
-});
-class UpdateCheckNotifier extends StateNotifier<UpdateCheckState> {
-  final UpdateService _updateService;
-  UpdateCheckNotifier({
-    required UpdateService updateService,
-  })  : _updateService = updateService,
-        super(const UpdateCheckState());
+    NotifierProvider<UpdateCheckNotifier, UpdateCheckState>(
+        UpdateCheckNotifier.new);
+
+class UpdateCheckNotifier extends Notifier<UpdateCheckState> {
+  late final UpdateService _updateService;
+
+  @override
+  UpdateCheckState build() {
+    _updateService = ref.watch(updateServiceProvider);
+    return const UpdateCheckState();
+  }
+
   Future<void> initialize() async {
     _logger.info('开始检查更新');
     await checkForUpdates();
@@ -27,7 +29,6 @@ class UpdateCheckNotifier extends StateNotifier<UpdateCheckState> {
     await checkForUpdates();
   }
   Future<void> checkForUpdates() async {
-    if (!mounted) return;
     state = state.copyWith(
       isChecking: true,
       error: null,
@@ -37,7 +38,6 @@ class UpdateCheckNotifier extends StateNotifier<UpdateCheckState> {
       _logger.info('当前版本: $currentVersion');
       state = state.copyWith(currentVersion: currentVersion);
       final updateInfo = await _updateService.checkForUpdates();
-      if (!mounted) return;
       state = state.copyWith(
         isChecking: false,
         hasUpdate: updateInfo["hasUpdate"] as bool? ?? false,
@@ -55,7 +55,6 @@ class UpdateCheckNotifier extends StateNotifier<UpdateCheckState> {
         _logger.info('已是最新版本');
       }
     } catch (e) {
-      if (!mounted) return;
       _logger.error('检查更新失败', e);
       state = state.copyWith(
         isChecking: false,

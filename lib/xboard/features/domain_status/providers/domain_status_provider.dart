@@ -13,10 +13,9 @@ final domainStatusServiceProvider = Provider<DomainStatusService>((ref) {
 });
 
 /// 域名状态提供者
-final domainStatusProvider = StateNotifierProvider<DomainStatusNotifier, DomainStatusState>((ref) {
-  final service = ref.watch(domainStatusServiceProvider);
-  return DomainStatusNotifier(service: service);
-});
+final domainStatusProvider = NotifierProvider<DomainStatusNotifier, DomainStatusState>(
+  DomainStatusNotifier.new,
+);
 
 /// 域名就绪状态提供者
 final domainReadyProvider = Provider<bool>((ref) {
@@ -31,14 +30,17 @@ final currentDomainProvider = Provider<String?>((ref) {
 });
 
 /// 域名状态通知器
-class DomainStatusNotifier extends StateNotifier<DomainStatusState> {
-  final DomainStatusService _service;
+class DomainStatusNotifier extends Notifier<DomainStatusState> {
+  late final DomainStatusService _service;
 
-  DomainStatusNotifier({
-    required DomainStatusService service,
-  }) : _service = service,
-       super(const DomainStatusState()) {
+  @override
+  DomainStatusState build() {
+    _service = ref.watch(domainStatusServiceProvider);
+    ref.onDispose(() {
+      _service.dispose();
+    });
     _initialize();
+    return const DomainStatusState();
   }
 
   /// 初始化
@@ -73,8 +75,6 @@ class DomainStatusNotifier extends StateNotifier<DomainStatusState> {
       
       final result = await _service.checkDomainStatus();
       
-      if (!mounted) return;
-
       if (result['success'] == true) {
         state = state.copyWith(
           status: DomainStatus.success,
@@ -95,8 +95,6 @@ class DomainStatusNotifier extends StateNotifier<DomainStatusState> {
         _logger.error('域名检查失败: ${state.errorMessage}');
       }
     } catch (e) {
-      if (!mounted) return;
-      
       _logger.error('域名检查异常', e);
       state = state.copyWith(
         status: DomainStatus.failed,
@@ -114,11 +112,9 @@ class DomainStatusNotifier extends StateNotifier<DomainStatusState> {
       await checkDomain();
     } catch (e) {
       _logger.error('刷新失败', e);
-      if (mounted) {
-        state = state.copyWith(
-          errorMessage: '刷新失败: $e',
-        );
-      }
+      state = state.copyWith(
+        errorMessage: '刷新失败: $e',
+      );
     }
   }
 
@@ -137,9 +133,4 @@ class DomainStatusNotifier extends StateNotifier<DomainStatusState> {
     return _service.getStatistics();
   }
 
-  @override
-  void dispose() {
-    _service.dispose();
-    super.dispose();
-  }
 }

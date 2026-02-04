@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
@@ -164,7 +165,7 @@ class XBoardProfileImportService {
       // 未 mounted 会失败，所以我们在这里手动用 silence 模式触发
       _logger.info('📋 使用 silence 模式应用配置...');
       try {
-        await globalState.appController.applyProfile(silence: true);
+        await appController.applyProfile(silence: true);
         _logger.info('✅ 配置应用成功');
       } catch (e) {
         _logger.error('❌ 配置应用失败', e);
@@ -186,7 +187,7 @@ class XBoardProfileImportService {
           currentProfileIdNotifier.value = updateId;
         } else {
           currentProfileIdNotifier.value = null;
-          globalState.appController.updateStatus(false);
+          appController.updateStatus(false);
         }
       }
     } catch (e) {

@@ -5,7 +5,7 @@ part 'generated/ticket.g.dart';
 
 /// 领域层：工单模型
 @freezed
-class DomainTicket with _$DomainTicket {
+abstract class DomainTicket with _$DomainTicket {
   const factory DomainTicket({
     /// 工单 ID
     required int id,
@@ -34,8 +34,6 @@ class DomainTicket with _$DomainTicket {
     /// 元数据
     @Default({}) Map<String, dynamic> metadata,
   }) = _DomainTicket;
-
-  const DomainTicket._();
 
   factory DomainTicket.fromJson(Map<String, dynamic> json) => 
     _$DomainTicketFromJson(json);
@@ -102,7 +100,7 @@ enum TicketStatus {
 
 /// 工单消息模型
 @freezed
-class TicketMessage with _$TicketMessage {
+abstract class TicketMessage with _$TicketMessage {
   const factory TicketMessage({
     /// 消息 ID
     required int id,
@@ -125,8 +123,6 @@ class TicketMessage with _$TicketMessage {
     /// 元数据
     @Default({}) Map<String, dynamic> metadata,
   }) = _TicketMessage;
-
-  const TicketMessage._();
 
   factory TicketMessage.fromJson(Map<String, dynamic> json) => 
     _$TicketMessageFromJson(json);

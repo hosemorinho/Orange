@@ -5,7 +5,7 @@ part 'generated/payment_method.g.dart';
 
 /// 领域层：支付方式模型
 @freezed
-class DomainPaymentMethod with _$DomainPaymentMethod {
+abstract class DomainPaymentMethod with _$DomainPaymentMethod {
   const factory DomainPaymentMethod({
     /// 支付方式 ID
     required int id,
@@ -37,8 +37,6 @@ class DomainPaymentMethod with _$DomainPaymentMethod {
     /// 元数据
     @Default({}) Map<String, dynamic> metadata,
   }) = _DomainPaymentMethod;
-
-  const DomainPaymentMethod._();
 
   factory DomainPaymentMethod.fromJson(Map<String, dynamic> json) => 
     _$DomainPaymentMethodFromJson(json);

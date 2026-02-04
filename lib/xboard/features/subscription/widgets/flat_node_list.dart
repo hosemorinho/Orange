@@ -1,3 +1,4 @@
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
@@ -63,7 +64,7 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
       // 重新拉取订阅配置文件
       final currentProfile = ref.read(currentProfileProvider);
       if (currentProfile != null) {
-        await globalState.appController.updateProfile(currentProfile);
+        await appController.updateProfile(currentProfile);
       }
 
       if (mounted) {
@@ -232,7 +233,7 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
   }
 
   void _selectNode(_FlatNode node) {
-    globalState.appController.updateCurrentSelectedMap(
+    appController.updateCurrentSelectedMap(
       node.groupName,
       node.proxy.name,
     );

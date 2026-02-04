@@ -1,7 +1,7 @@
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
-import 'package:fl_clash/state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -24,7 +24,7 @@ class XBoardOutboundMode extends StatelessWidget {
       _syncNodeSelectionOnModeChange(ref, from: currentMode, to: modeOption);
     }
 
-    globalState.appController.changeMode(modeOption);
+    appController.changeMode(modeOption);
 
     if (modeOption == Mode.global) {
       _logger.debug('[XBoardOutboundMode] 切换到全局模式，检查节点选择');
@@ -84,7 +84,7 @@ class XBoardOutboundMode extends StatelessWidget {
           resolved.proxy!.name.toUpperCase() != 'DIRECT' &&
           resolved.proxy!.name.toUpperCase() != 'REJECT') {
         _logger.debug('[XBoardOutboundMode] 同步节点 ${resolved.proxy!.name} 到 GLOBAL 组');
-        globalState.appController.updateCurrentSelectedMap(
+        appController.updateCurrentSelectedMap(
           GroupName.GLOBAL.name,
           resolved.proxy!.name,
         );
@@ -120,7 +120,7 @@ class XBoardOutboundMode extends StatelessWidget {
           if (nodeExists) {
             _logger
                 .debug('[XBoardOutboundMode] 同步节点 $globalSelected 到 ${ruleGroup.name} 组');
-            globalState.appController.updateCurrentSelectedMap(
+            appController.updateCurrentSelectedMap(
               ruleGroup.name,
               globalSelected,
             );
@@ -179,7 +179,7 @@ class XBoardOutboundMode extends StatelessWidget {
     }
     if (validProxy != null) {
       _logger.debug('[XBoardOutboundMode] 设置选中代理: ${validProxy.name}');
-      globalState.appController.updateCurrentSelectedMap(
+      appController.updateCurrentSelectedMap(
         globalGroup.name,
         validProxy.name,
       );

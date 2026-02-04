@@ -1,4 +1,5 @@
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
@@ -54,7 +55,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
     debouncer.call(
       FunctionTag.updateStatus,
       () {
-        globalState.appController.updateStatus(isStart);
+        appController.updateStatus(isStart);
       },
       duration: commonDuration,
     );

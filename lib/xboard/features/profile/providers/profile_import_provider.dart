@@ -5,10 +5,9 @@ import 'package:fl_clash/xboard/core/core.dart';
 
 // 初始化文件级日志器
 final _logger = FileLogger('profile_import_provider.dart');
-class ProfileImportNotifier extends StateNotifier<ImportState> {
-  final Ref _ref;
-  
-  ProfileImportNotifier(this._ref) : super(const ImportState());
+class ProfileImportNotifier extends Notifier<ImportState> {
+  @override
+  ImportState build() => const ImportState();
   
   Future<bool> importSubscription(String url, {bool forceRefresh = false}) async {
     _logger.info('开始导入订阅: $url, forceRefresh: $forceRefresh');
@@ -23,7 +22,7 @@ class ProfileImportNotifier extends StateNotifier<ImportState> {
     
     try {
       // 使用实际的导入服务
-      final importService = _ref.read(xboardProfileImportServiceProvider);
+      final importService = ref.read(xboardProfileImportServiceProvider);
       
       final result = await importService.importSubscription(
         url,
@@ -93,9 +92,9 @@ class ProfileImportNotifier extends StateNotifier<ImportState> {
   ImportErrorType? get errorType => state.lastResult?.errorType;
   bool get canRetry => hasError && state.currentUrl?.isNotEmpty == true;
 }
-final profileImportProvider = StateNotifierProvider<ProfileImportNotifier, ImportState>((ref) {
-  return ProfileImportNotifier(ref);
-});
+final profileImportProvider = NotifierProvider<ProfileImportNotifier, ImportState>(
+  ProfileImportNotifier.new,
+);
 extension ProfileImportProviderExtension on WidgetRef {
   ImportState get importState => watch(profileImportProvider);
   ProfileImportNotifier get importNotifier => read(profileImportProvider.notifier);

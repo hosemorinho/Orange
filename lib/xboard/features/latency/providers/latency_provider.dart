@@ -1,13 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-class LatencyState extends StateNotifier<Map<String, int?>> {
-  LatencyState() : super({});
+
+class LatencyNotifier extends Notifier<Map<String, int?>> {
+  @override
+  Map<String, int?> build() => {};
+
   void updateLatencies(Map<String, int?> newLatencies) {
     state = {...state, ...newLatencies};
   }
+
   void clear() {
     state = {};
   }
 }
-final latencyProvider = StateNotifierProvider<LatencyState, Map<String, int?>>((ref) {
-  return LatencyState();
-});
+
+final latencyProvider = NotifierProvider<LatencyNotifier, Map<String, int?>>(
+  LatencyNotifier.new,
+);

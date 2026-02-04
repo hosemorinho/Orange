@@ -15,9 +15,9 @@ final configProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((ref) a
 
 /// 配置状态Provider
 /// 提供配置的加载状态和错误信息
-final configStateProvider = StateNotifierProvider<ConfigStateNotifier, ConfigState>((ref) {
-  return ConfigStateNotifier(ref);
-});
+final configStateProvider = NotifierProvider<ConfigStateNotifier, ConfigState>(
+  ConfigStateNotifier.new,
+);
 
 class ConfigState {
   final Map<String, dynamic>? data;
@@ -43,18 +43,18 @@ class ConfigState {
   }
 }
 
-class ConfigStateNotifier extends StateNotifier<ConfigState> {
-  final Ref _ref;
-
-  ConfigStateNotifier(this._ref) : super(const ConfigState(isLoading: false)) {
+class ConfigStateNotifier extends Notifier<ConfigState> {
+  @override
+  ConfigState build() {
     loadConfig();
+    return const ConfigState(isLoading: false);
   }
 
   Future<void> loadConfig() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final config = await _ref.read(getConfigProvider.future);
+      final config = await ref.read(getConfigProvider.future);
       state = state.copyWith(
         data: config,
         isLoading: false,

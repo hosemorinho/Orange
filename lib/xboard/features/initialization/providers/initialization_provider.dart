@@ -18,15 +18,15 @@ final _logger = FileLogger('initialization_provider.dart');
 /// 2. SDK 初始化
 ///
 /// 提供统一的初始化入口和状态管理
-class XBoardInitializationNotifier extends StateNotifier<InitializationState> {
-  final Ref ref;
-
+class XBoardInitializationNotifier extends Notifier<InitializationState> {
   // 初始化超时配置
   static const Duration _initializationTimeout = Duration(seconds: 30);
   static const int _maxRetries = 2;
 
-  XBoardInitializationNotifier(this.ref) : super(const InitializationState()) {
+  @override
+  InitializationState build() {
     _logger.info('[Initialization] Provider 已创建');
+    return const InitializationState();
   }
   
   /// 统一初始化入口
@@ -230,9 +230,9 @@ class XBoardInitializationNotifier extends StateNotifier<InitializationState> {
 }
 
 /// XBoard 统一初始化 Provider
-final initializationProvider = 
-    StateNotifierProvider<XBoardInitializationNotifier, InitializationState>(
-  (ref) => XBoardInitializationNotifier(ref),
+final initializationProvider =
+    NotifierProvider<XBoardInitializationNotifier, InitializationState>(
+  XBoardInitializationNotifier.new,
 );
 
 /// 便捷 Provider: 是否已初始化

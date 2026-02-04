@@ -8,7 +8,7 @@ part 'generated/user.g.dart';
 /// 这是业务核心模型，完全独立于任何 SDK 实现
 /// 代表应用中"用户"的概念
 @freezed
-class DomainUser with _$DomainUser {
+abstract class DomainUser with _$DomainUser {
   const factory DomainUser({
     /// 用户邮箱（唯一标识）
     required String email,
@@ -67,8 +67,6 @@ class DomainUser with _$DomainUser {
     /// 元数据（存储 SDK 特有字段）
     @Default({}) Map<String, dynamic> metadata,
   }) = _DomainUser;
-
-  const DomainUser._();
 
   factory DomainUser.fromJson(Map<String, dynamic> json) => 
     _$DomainUserFromJson(json);

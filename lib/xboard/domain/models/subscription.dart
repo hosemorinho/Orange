@@ -5,7 +5,7 @@ part 'generated/subscription.g.dart';
 
 /// 领域层：订阅模型
 @freezed
-class DomainSubscription with _$DomainSubscription {
+abstract class DomainSubscription with _$DomainSubscription {
   const factory DomainSubscription({
     /// 订阅 URL
     required String subscribeUrl,
@@ -49,8 +49,6 @@ class DomainSubscription with _$DomainSubscription {
     /// 元数据
     @Default({}) Map<String, dynamic> metadata,
   }) = _DomainSubscription;
-
-  const DomainSubscription._();
 
   factory DomainSubscription.fromJson(Map<String, dynamic> json) => 
     _$DomainSubscriptionFromJson(json);

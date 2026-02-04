@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:fl_clash/clash/core.dart';
+import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';
 import 'package:fl_clash/xboard/core/core.dart';
@@ -91,7 +91,7 @@ class SubscriptionDownloader {
       
       // 验证配置
       _logger.info('验证订阅配置...');
-      final validationMessage = await clashCore.validateConfig(result.content);
+      final validationMessage = await coreController.validateConfig(result.content);
       if (validationMessage.isNotEmpty) {
         throw Exception('配置验证失败: $validationMessage');
       }

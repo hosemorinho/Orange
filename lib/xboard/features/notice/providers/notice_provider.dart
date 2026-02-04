@@ -43,10 +43,9 @@ class NoticeState {
 }
 
 /// 公告Provider
-class NoticeNotifier extends StateNotifier<NoticeState> {
-  NoticeNotifier(this._ref) : super(const NoticeState());
-
-  final Ref _ref;
+class NoticeNotifier extends Notifier<NoticeState> {
+  @override
+  NoticeState build() => const NoticeState();
 
   /// 获取公告列表
   Future<void> fetchNotices() async {
@@ -55,7 +54,7 @@ class NoticeNotifier extends StateNotifier<NoticeState> {
     state = state.copyWith(isLoading: true, error: null);
     
     try {
-      final notices = await _ref.read(getNoticesProvider.future);
+      final notices = await ref.read(getNoticesProvider.future);
       state = state.copyWith(
         notices: notices,
         isLoading: false,
@@ -81,8 +80,8 @@ class NoticeNotifier extends StateNotifier<NoticeState> {
 }
 
 /// 公告Provider实例
-final noticeProvider = StateNotifierProvider<NoticeNotifier, NoticeState>((ref) {
-  return NoticeNotifier(ref);
-});
+final noticeProvider = NotifierProvider<NoticeNotifier, NoticeState>(
+  NoticeNotifier.new,
+);
 
 

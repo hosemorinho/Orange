@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -85,7 +86,7 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
     debouncer.call(
       FunctionTag.updateStatus,
       () {
-        globalState.appController.updateStatus(_isStart);
+        appController.updateStatus(_isStart);
       },
       duration: commonDuration,
     );

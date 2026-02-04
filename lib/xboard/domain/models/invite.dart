@@ -5,7 +5,7 @@ part 'generated/invite.g.dart';
 
 /// Domain layer: Invite Code model
 @freezed
-class DomainInviteCode with _$DomainInviteCode {
+abstract class DomainInviteCode with _$DomainInviteCode {
   const factory DomainInviteCode({
     /// Invite code string
     required String code,
@@ -32,8 +32,6 @@ class DomainInviteCode with _$DomainInviteCode {
     @Default({}) Map<String, dynamic> metadata,
   }) = _DomainInviteCode;
 
-  const DomainInviteCode._();
-
   factory DomainInviteCode.fromJson(Map<String, dynamic> json) =>
       _$DomainInviteCodeFromJson(json);
 
@@ -58,7 +56,7 @@ class DomainInviteCode with _$DomainInviteCode {
 /// - stat[3]: Commission rate (%)
 /// - stat[4]: Available commission (cents)
 @freezed
-class DomainInviteStats with _$DomainInviteStats {
+abstract class DomainInviteStats with _$DomainInviteStats {
   const factory DomainInviteStats({
     /// Total registered users via all invite codes
     @Default(0) int registeredUsers,
@@ -75,8 +73,6 @@ class DomainInviteStats with _$DomainInviteStats {
     /// Available commission for withdrawal in cents
     @Default(0) int availableCommissionInCents,
   }) = _DomainInviteStats;
-
-  const DomainInviteStats._();
 
   factory DomainInviteStats.fromJson(Map<String, dynamic> json) =>
       _$DomainInviteStatsFromJson(json);

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fl_clash/xboard/features/shared/shared.dart';
+import 'package:fl_clash/xboard/features/notice/notice.dart';
 import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_status_checker.dart';
 import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
@@ -101,6 +102,10 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
           ),
         ),
         centerTitle: false,
+        actions: [
+          const LanguageSelector(),
+          _buildNoticeIconButton(),
+        ],
       ),
       body: Consumer(
         builder: (_, ref, __) {
@@ -149,6 +154,18 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (isDesktop)
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                const LanguageSelector(),
+                                const SizedBox(width: 4),
+                                _buildNoticeIconButton(),
+                              ],
+                            ),
+                          ),
                         const NoticeBanner(),
                         SizedBox(height: sectionSpacing * 0.5),
                         // VPN Hero Card (connection + subscription + mode controls)
@@ -184,6 +201,34 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       ),
     );
   }
+  Widget _buildNoticeIconButton() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final noticeState = ref.watch(noticeProvider);
+        final hasNotices = noticeState.notices.isNotEmpty;
+        return IconButton(
+          icon: Badge(
+            isLabelVisible: hasNotices,
+            smallSize: 8,
+            child: const Icon(Icons.notifications_outlined),
+          ),
+          onPressed: () {
+            final notices = noticeState.notices;
+            if (notices.isNotEmpty) {
+              showDialog(
+                context: context,
+                builder: (context) => NoticeDetailDialog(
+                  notices: notices,
+                  initialIndex: 0,
+                ),
+              );
+            }
+          },
+        );
+      },
+    );
+  }
+
   /// 等待订阅导入完成后再检查订阅状态（备用方案）
   /// 如果3秒后还没有触发导入完成监听器，则主动检查
   void _waitForSubscriptionImportThenCheck() async {

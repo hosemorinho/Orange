@@ -245,7 +245,7 @@ class ApplicationState extends ConsumerState<Application> {
           routerConfig: _router,
           scrollBehavior: BaseScrollBehavior(),
           title: appName,
-          locale: utils.getLocaleForString(locale),
+          locale: utils.getLocaleForString(locale) ?? _getAutoLocale(),
           supportedLocales: AppLocalizations.delegate.supportedLocales,
           themeMode: themeProps.themeMode,
           theme: ThemeData(
@@ -267,6 +267,13 @@ class ApplicationState extends ConsumerState<Application> {
         );
       },
     );
+  }
+
+  Locale _getAutoLocale() {
+    final deviceLocale = WidgetsBinding.instance.platformDispatcher.locale;
+    return deviceLocale.languageCode.startsWith('zh')
+        ? const Locale('zh', 'CN')
+        : const Locale('en');
   }
 
   GoRouter _createRouter() {

@@ -56,7 +56,6 @@ extension InitControllerExt on AppController {
       window?.hide();
     }
     await _handleFailedPreference();
-    await _handlerDisclaimer();
     await _showCrashlyticsTip();
     await _connectCore();
     await _initCore();
@@ -79,31 +78,6 @@ extension InitControllerExt on AppController {
     await handleExit();
   }
 
-  Future<bool> showDisclaimer() async {
-    return await globalState.showCommonDialog<bool>(
-          dismissible: false,
-          child: CommonDialog(
-            title: appLocalizations.disclaimer,
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(_context).pop<bool>(false);
-                },
-                child: Text(appLocalizations.exit),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(_context).pop<bool>(true);
-                },
-                child: Text(appLocalizations.agree),
-              ),
-            ],
-            child: Text(appLocalizations.disclaimerDesc),
-          ),
-        ) ??
-        false;
-  }
-
   Future<void> _showCrashlyticsTip() async {
     if (!system.isAndroid) {
       return;
@@ -119,22 +93,6 @@ extension InitControllerExt on AppController {
     _ref
         .read(appSettingProvider.notifier)
         .update((state) => state.copyWith(crashlyticsTip: true));
-  }
-
-  Future<void> _handlerDisclaimer() async {
-    if (_ref.read(
-      appSettingProvider.select((state) => state.disclaimerAccepted),
-    )) {
-      return;
-    }
-    final isDisclaimerAccepted = await showDisclaimer();
-    if (!isDisclaimerAccepted) {
-      await handleExit();
-    }
-    _ref
-        .read(appSettingProvider.notifier)
-        .update((state) => state.copyWith(disclaimerAccepted: true));
-    return;
   }
 
   Future<void> _initStatus() async {

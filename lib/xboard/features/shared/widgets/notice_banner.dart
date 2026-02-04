@@ -51,6 +51,16 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
       ref.read(noticeProvider.notifier).fetchNotices();
       await _checkDismissalStatus();
     });
+
+    // Listen for notices loaded, then check for popup dialog notices
+    ref.listenManual(noticeProvider, (previous, next) {
+      if (!_hasCheckedDialogNotices && !next.isLoading && next.notices.isNotEmpty) {
+        _hasCheckedDialogNotices = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _checkAndShowDialogNotices(next.notices);
+        });
+      }
+    });
   }
 
   @override
@@ -123,14 +133,6 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
 
     if (topNotices.isEmpty) {
       return const SizedBox.shrink();
-    }
-
-    // Check for dialog notices
-    if (!_hasCheckedDialogNotices) {
-      _hasCheckedDialogNotices = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _checkAndShowDialogNotices(noticeState.visibleNotices);
-      });
     }
 
     // Start auto-scroll
@@ -321,7 +323,7 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
   }
 
   /// 检查并显示需要弹窗的公告
-  Future<void> _checkAndShowDialogNotices(List<dynamic> notices) async {
+  Future<void> _checkAndShowDialogNotices(List<DomainNotice> notices) async {
     if (!mounted) return;
 
     // 找到所有标签包含"弹窗"的公告

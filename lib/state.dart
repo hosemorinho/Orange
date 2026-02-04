@@ -84,7 +84,7 @@ class GlobalState {
     final appStateOverrides = buildAppStateOverrides(appState);
     packageInfo = await PackageInfo.fromPlatform();
     final configMap = await preferences.getConfigMap();
-    final config = await migration.migrationIfNeeded(
+    var config = await migration.migrationIfNeeded(
       configMap,
       sync: (data) async {
         final newConfigMap = data.configMap;
@@ -96,6 +96,14 @@ class GlobalState {
         return config;
       },
     );
+    // Auto-detect language on first launch (locale is null)
+    if (config.appSettingProps.locale == null) {
+      final deviceLocale = WidgetsBinding.instance.platformDispatcher.locale;
+      final detectedLocale = deviceLocale.languageCode.startsWith('zh') ? 'zh_CN' : 'en';
+      config = config.copyWith(
+        appSettingProps: config.appSettingProps.copyWith(locale: detectedLocale),
+      );
+    }
     final configOverrides = buildConfigOverrides(config);
     final container = ProviderContainer(
       overrides: [...appStateOverrides, ...configOverrides],
@@ -103,8 +111,7 @@ class GlobalState {
     final profiles = await database.profilesDao.all().get();
     container.read(profilesProvider.notifier).setAndReorder(profiles);
     await AppLocalizations.load(
-      utils.getLocaleForString(config.appSettingProps.locale) ??
-          WidgetsBinding.instance.platformDispatcher.locale,
+      utils.getLocaleForString(config.appSettingProps.locale)!,
     );
     await window?.init(version, config.windowProps);
     return container;

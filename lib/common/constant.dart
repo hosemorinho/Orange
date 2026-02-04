@@ -108,10 +108,10 @@ const proxiesListStoreKey = PageStorageKey<String>('proxies_list');
 const toolsStoreKey = PageStorageKey<String>('tools');
 const profilesStoreKey = PageStorageKey<String>('profiles');
 
-const defaultPrimaryColor = 0XFFD8C0C3;
+const _palettePinkish = 0XFFD8C0C3;
 
-/// 环境变量配置的主题色（运行时解析）
-final int configuredPrimaryColor = parseThemeColor();
+/// 默认主题色 = 环境变量 THEME_COLOR（运行时解析）
+final int defaultPrimaryColor = parseThemeColor();
 
 double getWidgetHeight(num lines) {
   final space = 14.mAp;
@@ -139,15 +139,15 @@ const defaultPrimaryColors = [
   0xFFFFFF00,
   0XFFBBC9CC,
   0XFFABD397,
-  defaultPrimaryColor,
+  _palettePinkish,
   0XFF665390,
 ];
 
-/// 包含环境变量配置色的调色盘
+/// 包含环境变量配置色的调色盘（将 THEME_COLOR 插入首位）
 final List<int> configuredPrimaryColors = () {
   final colors = List<int>.from(defaultPrimaryColors);
-  final envColor = configuredPrimaryColor;
-  if (envColor != defaultPrimaryColor && !colors.contains(envColor)) {
+  final envColor = defaultPrimaryColor;
+  if (!colors.contains(envColor)) {
     colors.insert(0, envColor);
   }
   return colors;

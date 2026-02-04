@@ -159,30 +159,26 @@ class XBoardSettingsPage extends ConsumerWidget {
                       _SettingTile(
                         icon: Icons.schedule_outlined,
                         title: appLocalizations.xboardRemindExpire,
-                        trailing: Switch(
+                        trailing: _LoadingSwitch(
                           value: userInfo.remindExpire,
-                          onChanged: (value) {
-                            _updateNotificationSetting(
-                              ref,
-                              remindExpire: value,
-                              remindTraffic: userInfo.remindTraffic,
-                            );
-                          },
+                          onChanged: (value) => _updateNotificationSetting(
+                            ref,
+                            remindExpire: value,
+                            remindTraffic: userInfo.remindTraffic,
+                          ),
                         ),
                       ),
                       _SettingDivider(),
                       _SettingTile(
                         icon: Icons.data_usage_outlined,
                         title: appLocalizations.xboardRemindTraffic,
-                        trailing: Switch(
+                        trailing: _LoadingSwitch(
                           value: userInfo.remindTraffic,
-                          onChanged: (value) {
-                            _updateNotificationSetting(
-                              ref,
-                              remindExpire: userInfo.remindExpire,
-                              remindTraffic: value,
-                            );
-                          },
+                          onChanged: (value) => _updateNotificationSetting(
+                            ref,
+                            remindExpire: userInfo.remindExpire,
+                            remindTraffic: value,
+                          ),
                         ),
                       ),
                       _SettingDivider(),
@@ -501,6 +497,65 @@ class _SettingDivider extends StatelessWidget {
       child: Divider(
         height: 1,
         color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+      ),
+    );
+  }
+}
+
+// Switch with loading overlay during async operations
+class _LoadingSwitch extends StatefulWidget {
+  final bool value;
+  final Future<void> Function(bool) onChanged;
+
+  const _LoadingSwitch({
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  State<_LoadingSwitch> createState() => _LoadingSwitchState();
+}
+
+class _LoadingSwitchState extends State<_LoadingSwitch> {
+  bool _isLoading = false;
+
+  Future<void> _handleChanged(bool value) async {
+    setState(() => _isLoading = true);
+    try {
+      await widget.onChanged(value);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 60,
+      height: 48,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          AnimatedOpacity(
+            opacity: _isLoading ? 0.4 : 1.0,
+            duration: const Duration(milliseconds: 200),
+            child: Switch(
+              value: widget.value,
+              onChanged: _isLoading ? null : _handleChanged,
+            ),
+          ),
+          if (_isLoading)
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+        ],
       ),
     );
   }

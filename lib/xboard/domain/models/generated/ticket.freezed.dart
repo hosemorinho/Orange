@@ -225,8 +225,8 @@ return $default(_that.id,_that.subject,_that.priority,_that.status,_that.message
 /// @nodoc
 @JsonSerializable()
 
-class _DomainTicket extends DomainTicket {
-  const _DomainTicket({required this.id, required this.subject, this.priority = 1, required this.status, final  List<TicketMessage> messages = const [], required this.createdAt, this.updatedAt, this.closedAt, final  Map<String, dynamic> metadata = const {}}): _messages = messages,_metadata = metadata,super._();
+class _DomainTicket implements DomainTicket {
+  const _DomainTicket({required this.id, required this.subject, this.priority = 1, required this.status, final  List<TicketMessage> messages = const [], required this.createdAt, this.updatedAt, this.closedAt, final  Map<String, dynamic> metadata = const {}}): _messages = messages,_metadata = metadata;
   factory _DomainTicket.fromJson(Map<String, dynamic> json) => _$DomainTicketFromJson(json);
 
 /// 工单 ID
@@ -540,8 +540,8 @@ return $default(_that.id,_that.content,_that.isFromUser,_that.isRead,_that.attac
 /// @nodoc
 @JsonSerializable()
 
-class _TicketMessage extends TicketMessage {
-  const _TicketMessage({required this.id, required this.content, this.isFromUser = true, this.isRead = false, final  List<String> attachments = const [], required this.createdAt, final  Map<String, dynamic> metadata = const {}}): _attachments = attachments,_metadata = metadata,super._();
+class _TicketMessage implements TicketMessage {
+  const _TicketMessage({required this.id, required this.content, this.isFromUser = true, this.isRead = false, final  List<String> attachments = const [], required this.createdAt, final  Map<String, dynamic> metadata = const {}}): _attachments = attachments,_metadata = metadata;
   factory _TicketMessage.fromJson(Map<String, dynamic> json) => _$TicketMessageFromJson(json);
 
 /// 消息 ID

@@ -227,8 +227,8 @@ return $default(_that.id,_that.name,_that.iconUrl,_that.feePercentage,_that.isAv
 /// @nodoc
 @JsonSerializable()
 
-class _DomainPaymentMethod extends DomainPaymentMethod {
-  const _DomainPaymentMethod({required this.id, required this.name, this.iconUrl, this.feePercentage = 0.0, this.isAvailable = true, this.description, this.minAmount, this.maxAmount, final  Map<String, dynamic> config = const {}, final  Map<String, dynamic> metadata = const {}}): _config = config,_metadata = metadata,super._();
+class _DomainPaymentMethod implements DomainPaymentMethod {
+  const _DomainPaymentMethod({required this.id, required this.name, this.iconUrl, this.feePercentage = 0.0, this.isAvailable = true, this.description, this.minAmount, this.maxAmount, final  Map<String, dynamic> config = const {}, final  Map<String, dynamic> metadata = const {}}): _config = config,_metadata = metadata;
   factory _DomainPaymentMethod.fromJson(Map<String, dynamic> json) => _$DomainPaymentMethodFromJson(json);
 
 /// 支付方式 ID

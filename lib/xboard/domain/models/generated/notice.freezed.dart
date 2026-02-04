@@ -225,8 +225,8 @@ return $default(_that.id,_that.title,_that.content,_that.imageUrls,_that.tags,_t
 /// @nodoc
 @JsonSerializable()
 
-class _DomainNotice extends DomainNotice {
-  const _DomainNotice({required this.id, required this.title, required this.content, final  List<String> imageUrls = const [], final  List<String> tags = const [], this.isVisible = true, required this.createdAt, this.updatedAt, final  Map<String, dynamic> metadata = const {}}): _imageUrls = imageUrls,_tags = tags,_metadata = metadata,super._();
+class _DomainNotice implements DomainNotice {
+  const _DomainNotice({required this.id, required this.title, required this.content, final  List<String> imageUrls = const [], final  List<String> tags = const [], this.isVisible = true, required this.createdAt, this.updatedAt, final  Map<String, dynamic> metadata = const {}}): _imageUrls = imageUrls,_tags = tags,_metadata = metadata;
   factory _DomainNotice.fromJson(Map<String, dynamic> json) => _$DomainNoticeFromJson(json);
 
 /// 公告 ID

@@ -235,8 +235,8 @@ return $default(_that.subscribeUrl,_that.email,_that.uuid,_that.planId,_that.pla
 /// @nodoc
 @JsonSerializable()
 
-class _DomainSubscription extends DomainSubscription {
-  const _DomainSubscription({required this.subscribeUrl, required this.email, required this.uuid, required this.planId, this.planName, this.token, required this.transferLimit, required this.uploadedBytes, required this.downloadedBytes, this.speedLimit, this.deviceLimit, this.expiredAt, this.nextResetAt, final  Map<String, dynamic> metadata = const {}}): _metadata = metadata,super._();
+class _DomainSubscription implements DomainSubscription {
+  const _DomainSubscription({required this.subscribeUrl, required this.email, required this.uuid, required this.planId, this.planName, this.token, required this.transferLimit, required this.uploadedBytes, required this.downloadedBytes, this.speedLimit, this.deviceLimit, this.expiredAt, this.nextResetAt, final  Map<String, dynamic> metadata = const {}}): _metadata = metadata;
   factory _DomainSubscription.fromJson(Map<String, dynamic> json) => _$DomainSubscriptionFromJson(json);
 
 /// 订阅 URL

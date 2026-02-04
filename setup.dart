@@ -371,10 +371,17 @@ class BuildCommand extends Command {
 
   Future<void> _buildEnvFile(String env, {String? coreSha256}) async {
     final apiBaseUrl = Platform.environment['API_BASE_URL'] ?? '';
+    final appName = Platform.environment['APP_NAME'] ?? '';
+    final appPackageName = Platform.environment['APP_PACKAGE_NAME'] ?? '';
+    final themeColor = Platform.environment['THEME_COLOR'] ?? '';
+
     final data = {
       'APP_ENV': env,
       if (coreSha256 != null) 'CORE_SHA256': coreSha256,
       if (apiBaseUrl.isNotEmpty) 'API_BASE_URL': apiBaseUrl,
+      if (appName.isNotEmpty) 'APP_NAME': appName,
+      if (appPackageName.isNotEmpty) 'APP_PACKAGE_NAME': appPackageName,
+      if (themeColor.isNotEmpty) 'THEME_COLOR': themeColor,
     };
     final envFile = File(join(current, 'env.json'))..create();
     await envFile.writeAsString(json.encode(data));

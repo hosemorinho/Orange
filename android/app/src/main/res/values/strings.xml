@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name will be set by Flutter at build time via generated resources -->
+    <!-- Fallback to FlClash if not configured -->
+    <string name="app_name">FlClash</string>
+    <string name="app_name_debug">FlClash Debug</string>
+</resources>

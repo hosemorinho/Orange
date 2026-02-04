@@ -13,9 +13,29 @@ import 'package:fl_clash/xboard/adapter/state/subscription_state.dart';
 final _logger = FileLogger('xboard_user_provider.dart');
 
 // 使用领域模型
-final userInfoProvider = StateProvider<DomainUser?>((ref) => null);
-final subscriptionInfoProvider = StateProvider<DomainSubscription?>((ref) => null);
-final userUIStateProvider = StateProvider<UIState>((ref) => const UIState());
+class _UserInfoNotifier extends Notifier<DomainUser?> {
+  @override
+  DomainUser? build() => null;
+}
+final userInfoProvider = NotifierProvider<_UserInfoNotifier, DomainUser?>(
+  _UserInfoNotifier.new,
+);
+
+class _SubscriptionInfoNotifier extends Notifier<DomainSubscription?> {
+  @override
+  DomainSubscription? build() => null;
+}
+final subscriptionInfoProvider = NotifierProvider<_SubscriptionInfoNotifier, DomainSubscription?>(
+  _SubscriptionInfoNotifier.new,
+);
+
+class _UserUIStateNotifier extends Notifier<UIState> {
+  @override
+  UIState build() => const UIState();
+}
+final userUIStateProvider = NotifierProvider<_UserUIStateNotifier, UIState>(
+  _UserUIStateNotifier.new,
+);
 class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
   late final XBoardStorageService _storageService;
 

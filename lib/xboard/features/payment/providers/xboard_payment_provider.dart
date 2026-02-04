@@ -11,9 +11,29 @@ import 'package:fl_clash/xboard/adapter/state/order_state.dart';
 // 初始化文件级日志器
 final _logger = FileLogger('xboard_payment_provider.dart');
 
-final pendingOrdersProvider = StateProvider<List<DomainOrder>>((ref) => []);
-final paymentMethodsProvider = StateProvider<List<DomainPaymentMethod>>((ref) => []);
-final paymentProcessStateProvider = StateProvider<PaymentProcessState>((ref) => const PaymentProcessState());
+class _PendingOrdersNotifier extends Notifier<List<DomainOrder>> {
+  @override
+  List<DomainOrder> build() => [];
+}
+final pendingOrdersProvider = NotifierProvider<_PendingOrdersNotifier, List<DomainOrder>>(
+  _PendingOrdersNotifier.new,
+);
+
+class _PaymentMethodsNotifier extends Notifier<List<DomainPaymentMethod>> {
+  @override
+  List<DomainPaymentMethod> build() => [];
+}
+final paymentMethodsProvider = NotifierProvider<_PaymentMethodsNotifier, List<DomainPaymentMethod>>(
+  _PaymentMethodsNotifier.new,
+);
+
+class _PaymentProcessStateNotifier extends Notifier<PaymentProcessState> {
+  @override
+  PaymentProcessState build() => const PaymentProcessState();
+}
+final paymentProcessStateProvider = NotifierProvider<_PaymentProcessStateNotifier, PaymentProcessState>(
+  _PaymentProcessStateNotifier.new,
+);
 
 class XBoardPaymentNotifier extends Notifier<void> {
   @override

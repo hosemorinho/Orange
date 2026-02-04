@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';
@@ -91,15 +92,15 @@ class SubscriptionDownloader {
       
       // 验证配置
       _logger.info('验证订阅配置...');
-      final validationMessage = await coreController.validateConfig(result.content);
+      final validationMessage = await coreController.validateConfigWithData(result.content);
       if (validationMessage.isNotEmpty) {
         throw Exception('配置验证失败: $validationMessage');
       }
       _logger.info('✅ 订阅配置验证通过');
-      
+
       // 创建并保存 Profile
       final profile = Profile.normal(url: url);
-      final savedProfile = await profile.saveFileWithString(result.content);
+      final savedProfile = await profile.saveFile(Uint8List.fromList(result.bytes));
       
       // 更新订阅信息
       final finalProfile = savedProfile.copyWith(

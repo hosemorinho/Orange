@@ -4,6 +4,7 @@ import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/providers/database.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/xboard/features/subscription/widgets/flat_node_list.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
   @override
   void initState() {
     super.initState();
-    _isStart = globalState.appState.runTime != null;
+    _isStart = ref.read(isStartProvider);
 
     _iconController = AnimationController(
       vsync: this,
@@ -115,8 +116,10 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(startButtonSelectorStateProvider);
-    if (!state.isInit || !state.hasProfile) {
+    final hasProfile = ref.watch(
+      profilesProvider.select((state) => state.isNotEmpty),
+    );
+    if (!hasProfile) {
       return const SizedBox.shrink();
     }
 

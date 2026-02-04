@@ -1,7 +1,5 @@
 import 'package:fl_clash/l10n/l10n.dart';
-import 'package:fl_clash/models/config.dart';
 import 'package:fl_clash/providers/providers.dart';
-import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,64 +38,26 @@ class BypassDomainCard extends ConsumerWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        onTap: () {
-          Navigator.of(context).push(
+        onTap: () async {
+          final result = await Navigator.of(context).push<List<String>>(
             MaterialPageRoute(
-              builder: (context) => const _BypassDomainPage(),
+              builder: (context) => ListInputPage(
+                title: appLocalizations.xboardBypassDomain,
+                items: bypassDomain,
+                titleBuilder: (item) => Text(item),
+              ),
             ),
           );
+          if (result != null) {
+            ref.read(networkSettingProvider.notifier).update(
+                  (state) => state.copyWith(
+                    bypassDomain: List.from(result),
+                  ),
+                );
+          }
         },
       ),
     );
   }
 }
 
-class _BypassDomainPage extends ConsumerWidget {
-  const _BypassDomainPage();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final appLocalizations = AppLocalizations.of(context);
-    final bypassDomain = ref.watch(
-      networkSettingProvider.select((state) => state.bypassDomain),
-    );
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(appLocalizations.xboardBypassDomain),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              final res = await globalState.showMessage(
-                title: appLocalizations.reset,
-                message: TextSpan(
-                  text: appLocalizations.resetTip,
-                ),
-              );
-              if (res != true) return;
-              ref.read(networkSettingProvider.notifier).updateState(
-                    (state) => state.copyWith(
-                      bypassDomain: defaultBypassDomain,
-                    ),
-                  );
-            },
-            tooltip: appLocalizations.reset,
-            icon: const Icon(Icons.replay),
-          ),
-        ],
-      ),
-      body: ListInputPage(
-        title: appLocalizations.xboardBypassDomain,
-        items: bypassDomain,
-        titleBuilder: (item) => Text(item),
-        onChange: (items) {
-          ref.read(networkSettingProvider.notifier).updateState(
-                (state) => state.copyWith(
-                  bypassDomain: List.from(items),
-                ),
-              );
-        },
-      ),
-    );
-  }
-}

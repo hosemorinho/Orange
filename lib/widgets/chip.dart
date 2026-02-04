@@ -7,6 +7,7 @@ class CommonChip extends StatelessWidget {
   final VoidCallback? onPressed;
   final ChipType type;
   final Widget? avatar;
+  final TextStyle? labelStyle;
 
   const CommonChip({
     super.key,
@@ -14,6 +15,7 @@ class CommonChip extends StatelessWidget {
     this.onPressed,
     this.avatar,
     this.type = ChipType.action,
+    this.labelStyle,
   });
 
   @override
@@ -30,7 +32,7 @@ class CommonChip extends StatelessWidget {
         onDeleted: onPressed ?? () {},
         side:
             BorderSide(color: Theme.of(context).dividerColor.opacity15),
-        labelStyle: Theme.of(context).textTheme.bodyMedium,
+        labelStyle: labelStyle ?? Theme.of(context).textTheme.bodyMedium,
         label: Text(label),
       );
     }
@@ -44,7 +46,7 @@ class CommonChip extends StatelessWidget {
       ),
       onPressed: onPressed ?? () {},
       side: BorderSide(color: Theme.of(context).dividerColor.opacity15),
-      labelStyle: Theme.of(context).textTheme.bodyMedium,
+      labelStyle: labelStyle ?? Theme.of(context).textTheme.bodyMedium,
       label: Text(label),
     );
   }

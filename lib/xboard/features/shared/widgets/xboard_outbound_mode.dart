@@ -43,18 +43,18 @@ class XBoardOutboundMode extends StatelessWidget {
           final shouldEnable = await TunIntroductionDialog.show(context);
           if (shouldEnable == true) {
             await storageService.markTunFirstUseShown();
-            ref.read(patchClashConfigProvider.notifier).updateState(
+            ref.read(patchClashConfigProvider.notifier).update(
                   (state) => state.copyWith.tun(enable: true),
                 );
           }
         }
       } else {
-        ref.read(patchClashConfigProvider.notifier).updateState(
+        ref.read(patchClashConfigProvider.notifier).update(
               (state) => state.copyWith.tun(enable: true),
             );
       }
     } else {
-      ref.read(patchClashConfigProvider.notifier).updateState(
+      ref.read(patchClashConfigProvider.notifier).update(
             (state) => state.copyWith.tun(enable: false),
           );
     }

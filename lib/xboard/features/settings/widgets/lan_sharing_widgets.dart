@@ -28,7 +28,7 @@ class AllowLanCard extends ConsumerWidget {
       value: allowLan,
       contentPadding: EdgeInsets.zero,
       onChanged: (value) {
-        ref.read(patchClashConfigProvider.notifier).updateState(
+        ref.read(patchClashConfigProvider.notifier).update(
               (state) => state.copyWith(allowLan: value),
             );
       },
@@ -105,7 +105,7 @@ class LanPortCard extends ConsumerWidget {
                   );
                   return;
                 }
-                ref.read(patchClashConfigProvider.notifier).updateState(
+                ref.read(patchClashConfigProvider.notifier).update(
                       (state) => state.copyWith(mixedPort: port),
                     );
                 Navigator.pop(context);

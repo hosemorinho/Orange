@@ -84,15 +84,15 @@ class ApplicationState extends ConsumerState<Application> {
     });
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      // 快速认证独立运行，不被 Clash 核心初始化阻塞
+      _performQuickAuthWithDomainService();
+
       final currentContext = globalState.navigatorKey.currentContext;
       if (currentContext != null) {
         await appController.attach(currentContext, ref);
       } else {
         exit(0);
       }
-
-      // 快速认证独立运行，不被 Clash 核心初始化阻塞
-      _performQuickAuthWithDomainService();
 
       _autoUpdateProfilesTask();
       app?.initShortcuts();

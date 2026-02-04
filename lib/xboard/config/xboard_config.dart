@@ -149,13 +149,33 @@ class XBoardConfig {
     String provider = 'Flclash',
     ConfigSettings? settings,
   }) async {
-    final config = settings ?? ConfigSettings(currentProvider: provider);
-    
+    final ConfigSettings config;
+    final bool shouldWarmUp;
+
+    if (settings != null) {
+      config = settings;
+      shouldWarmUp = true;
+    } else if (apiBaseUrl.isNotEmpty) {
+      // API_BASE_URL is set — remote config JSON sources are not needed.
+      // Create a minimal valid config to pass validation; skip warm-up
+      // since the API URL is not a config JSON endpoint.
+      config = ConfigSettings(
+        currentProvider: provider,
+        remoteConfig: RemoteConfigSettings(
+          sources: [RemoteSourceConfig(name: 'env', url: apiBaseUrl)],
+        ),
+      );
+      shouldWarmUp = false;
+    } else {
+      config = ConfigSettings(currentProvider: provider);
+      shouldWarmUp = true;
+    }
+
     _instance = await ModuleInitializer.createConfigAccessor(
       settings: config,
-      autoWarmUp: true,
+      autoWarmUp: shouldWarmUp,
     );
-    
+
     // 创建配置提供者实例
     _provider = _XBoardConfigProvider(_instance!);
   }

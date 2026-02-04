@@ -104,7 +104,7 @@ class SubscriptionDownloader {
       
       // 更新订阅信息
       final finalProfile = savedProfile.copyWith(
-        label: result.label ?? savedProfile.id,
+        label: result.label ?? savedProfile.id.toString(),
         subscriptionInfo: result.subscriptionInfo,
         lastUpdateDate: DateTime.now(),
       );

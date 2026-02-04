@@ -177,7 +177,7 @@ class XBoardProfileImportService {
       throw Exception('添加配置失败: $e');
     }
   }
-  void _clearProfileEffect(String profileId) {
+  void _clearProfileEffect(int profileId) {
     try {
       if (_ref.read(currentProfileIdProvider) == profileId) {
         final profiles = _ref.read(profilesProvider);

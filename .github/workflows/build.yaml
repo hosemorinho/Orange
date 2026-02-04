@@ -8,29 +8,14 @@ on:
     types: [published]
   workflow_dispatch:
     inputs:
-      app_name:
-        description: 'Override APP_NAME (display name)'
-        required: false
-        default: ''
-      package_name:
-        description: 'Override APP_PACKAGE_NAME'
-        required: false
-        default: ''
       api_url:
         description: 'Override API_BASE_URL'
-        required: false
-        default: ''
-      theme_color:
-        description: 'Override THEME_COLOR (hex, e.g. 66558E)'
         required: false
         default: ''
 
 env:
   IS_STABLE: ${{ github.event_name == 'release' }}
-  APP_NAME: ${{ inputs.app_name || secrets.APP_NAME || '' }}
-  APP_PACKAGE_NAME: ${{ inputs.package_name || secrets.APP_PACKAGE_NAME || '' }}
   API_BASE_URL: ${{ inputs.api_url || secrets.API_BASE_URL || '' }}
-  THEME_COLOR: ${{ inputs.theme_color || secrets.THEME_COLOR || '' }}
 
 jobs:
   build:
@@ -55,14 +40,6 @@ jobs:
             arch: arm64
 
     steps:
-      - name: Mask Secrets
-        shell: bash
-        run: |
-          if [ -n "$APP_NAME" ]; then echo "::add-mask::$APP_NAME"; fi
-          if [ -n "$APP_PACKAGE_NAME" ]; then echo "::add-mask::$APP_PACKAGE_NAME"; fi
-          if [ -n "$API_BASE_URL" ]; then echo "::add-mask::$API_BASE_URL"; fi
-          if [ -n "$THEME_COLOR" ]; then echo "::add-mask::$THEME_COLOR"; fi
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -126,13 +103,10 @@ jobs:
 
       - name: Build
         shell: bash
+        env:
+          API_BASE_URL: ${{ env.API_BASE_URL }}
         run: |
-          ARGS=""
-          if [ -n "$APP_NAME" ]; then ARGS="$ARGS --app-name $APP_NAME"; fi
-          if [ -n "$APP_PACKAGE_NAME" ]; then ARGS="$ARGS --package-name $APP_PACKAGE_NAME"; fi
-          if [ -n "$API_BASE_URL" ]; then ARGS="$ARGS --api-url $API_BASE_URL"; fi
-          if [ -n "$THEME_COLOR" ]; then ARGS="$ARGS --theme-color $THEME_COLOR"; fi
-          dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }} $ARGS
+          dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

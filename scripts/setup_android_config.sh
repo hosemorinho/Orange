@@ -43,7 +43,10 @@ if [ "$OLD_PACKAGE" != "$NEW_PACKAGE" ]; then
 
     # Update all source files
     echo "Updating source file contents..."
-    find "$ANDROID_DIR" -type f \( -name "*.kt" -o -name "*.java" -o -name "*.aidl" -o -name "*.kts" -o -name "AndroidManifest.xml" \) -exec sed -i "s/${OLD_PACKAGE//./\\.}/${NEW_PACKAGE}/g" {} +
+    # Escape special characters for sed
+    OLD_PACKAGE_ESCAPED="${OLD_PACKAGE//./\\.}"
+    NEW_PACKAGE_ESCAPED=$(printf '%s\n' "$NEW_PACKAGE" | sed 's/[&/\]/\\&/g')
+    find "$ANDROID_DIR" -type f \( -name "*.kt" -o -name "*.java" -o -name "*.aidl" -o -name "*.kts" -o -name "AndroidManifest.xml" \) -exec sed -i "s|${OLD_PACKAGE_ESCAPED}|${NEW_PACKAGE_ESCAPED}|g" {} +
     echo "✓ Updated source files"
 
     # Move package directories

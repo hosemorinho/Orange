@@ -196,29 +196,34 @@ class _PlansViewState extends ConsumerState<PlansView> {
             }
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = constraints.maxWidth;
-                  // Responsive grid: 1 column on mobile, 2 on tablet, 3 on desktop
-                  final crossAxisCount = width < 600 ? 1 : (width < 900 ? 2 : 3);
-                  const spacing = 16.0;
-                  final totalSpacing = spacing * (crossAxisCount - 1);
-                  final cardWidth = (width - totalSpacing) / crossAxisCount;
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 768),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      // Responsive grid: 1 column on mobile, 2 on tablet, 3 on desktop
+                      final crossAxisCount = width < 600 ? 1 : (width < 900 ? 2 : 3);
+                      const spacing = 16.0;
+                      final totalSpacing = spacing * (crossAxisCount - 1);
+                      final cardWidth = (width - totalSpacing) / crossAxisCount;
 
-                  return Wrap(
-                    spacing: spacing,
-                    runSpacing: spacing,
-                    children: plans.map((plan) {
-                      return SizedBox(
-                        width: cardWidth,
-                        child: PlanCard(
-                          plan: plan,
-                          onPurchase: () => _navigateToPurchase(plan),
-                        ),
+                      return Wrap(
+                        spacing: spacing,
+                        runSpacing: spacing,
+                        children: plans.map((plan) {
+                          return SizedBox(
+                            width: cardWidth,
+                            child: PlanCard(
+                              plan: plan,
+                              onPurchase: () => _navigateToPurchase(plan),
+                            ),
+                          );
+                        }).toList(),
                       );
-                    }).toList(),
-                  );
-                },
+                    },
+                  ),
+                ),
               ),
             );
           },

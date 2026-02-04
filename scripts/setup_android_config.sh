@@ -8,8 +8,9 @@ ANDROID_DIR="$(cd "$(dirname "$0")/.." && pwd)/android"
 OLD_PACKAGE="com.follow.clash"
 
 # Read configuration from environment or use defaults
-NEW_PACKAGE="${APP_PACKAGE_NAME:-com.follow.clash}"
-APP_NAME="${APP_NAME:-FlClash}"
+# Trim whitespace/newlines from environment variables (matching setup.dart behavior)
+NEW_PACKAGE=$(echo "${APP_PACKAGE_NAME:-com.follow.clash}" | tr -d '[:space:]')
+APP_NAME=$(echo "${APP_NAME:-FlClash}" | xargs)
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  Android Configuration Setup"

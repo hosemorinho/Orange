@@ -370,10 +370,10 @@ class BuildCommand extends Command {
       .toList();
 
   Future<void> _buildEnvFile(String env, {String? coreSha256}) async {
-    final apiBaseUrl = Platform.environment['API_BASE_URL'] ?? '';
-    final appName = Platform.environment['APP_NAME'] ?? '';
-    final appPackageName = Platform.environment['APP_PACKAGE_NAME'] ?? '';
-    final themeColor = Platform.environment['THEME_COLOR'] ?? '';
+    final apiBaseUrl = (Platform.environment['API_BASE_URL'] ?? '').trim();
+    final appName = (Platform.environment['APP_NAME'] ?? '').trim();
+    final appPackageName = (Platform.environment['APP_PACKAGE_NAME'] ?? '').trim();
+    final themeColor = (Platform.environment['THEME_COLOR'] ?? '').trim();
 
     final data = {
       'APP_ENV': env,

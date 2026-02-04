@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:math';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -34,6 +36,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   late AnimationController _ringController;
   late Animation<double> _ringAnimation;
   bool _isStart = false;
+
+  bool get _isDesktop =>
+      Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
   @override
   void initState() {
@@ -368,9 +373,6 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     final onStatusColor =
         _isStart ? colorScheme.onTertiary : colorScheme.onPrimary;
 
-    const buttonSize = 64.0;
-    const ringSize = 80.0;
-
     // Subscription data
     final currentProfile = ref.watch(currentProfileProvider);
     final profileSubInfo = currentProfile?.subscriptionInfo;
@@ -401,15 +403,164 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        child: Column(
+        child: _isDesktop
+            ? _buildDesktopLayout(
+                context, theme, colorScheme, proxy, mode, tunEnabled,
+                statusColor, onStatusColor, bgColor,
+                progress, usedTraffic, totalTraffic, remainingDays)
+            : _buildMobileLayout(
+                context, theme, colorScheme, proxy, mode, tunEnabled,
+                statusColor, onStatusColor,
+                progress, usedTraffic, totalTraffic, remainingDays),
+      ),
+    );
+  }
+
+  // --- Mobile Layout: Center-focused ---
+
+  Widget _buildMobileLayout(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    Proxy proxy,
+    Mode mode,
+    bool tunEnabled,
+    Color statusColor,
+    Color onStatusColor,
+    double progress,
+    double usedTraffic,
+    double totalTraffic,
+    int? remainingDays,
+  ) {
+    const buttonSize = 88.0;
+    const ringSize = 108.0;
+
+    return Column(
+      children: [
+        // Status text
+        Text(
+          _isStart
+              ? AppLocalizations.of(context).xboardConnected
+              : AppLocalizations.of(context).xboardDisconnected,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: statusColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // Node pill
+        _buildNodePill(proxy, colorScheme, theme),
+        const SizedBox(height: 16),
+
+        // Circular button with progress ring
+        SizedBox(
+          width: ringSize,
+          height: ringSize,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              AnimatedBuilder(
+                animation: _ringAnimation,
+                builder: (context, child) {
+                  return CustomPaint(
+                    size: const Size(ringSize, ringSize),
+                    painter: _ProgressRingPainter(
+                      color: statusColor,
+                      isActive: _isStart,
+                      pulseProgress: _ringAnimation.value,
+                      progress: progress,
+                      ringRadius: ringSize / 2 - 4,
+                    ),
+                  );
+                },
+              ),
+              GestureDetector(
+                onTap: _handleSwitchStart,
+                child: Container(
+                  width: buttonSize,
+                  height: buttonSize,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: statusColor.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: AnimatedIcon(
+                      icon: AnimatedIcons.play_pause,
+                      progress: _iconAnimation,
+                      size: 40,
+                      color: onStatusColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Compact traffic text
+        _buildCompactTrafficText(
+            theme, colorScheme, progress, usedTraffic, totalTraffic, remainingDays),
+        const SizedBox(height: 16),
+
+        // Controls row
+        _buildControlsRow(theme, colorScheme, mode, tunEnabled),
+      ],
+    );
+  }
+
+  // --- Desktop Layout: Side-by-side ---
+
+  Widget _buildDesktopLayout(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    Proxy proxy,
+    Mode mode,
+    bool tunEnabled,
+    Color statusColor,
+    Color onStatusColor,
+    Color bgColor,
+    double progress,
+    double usedTraffic,
+    double totalTraffic,
+    int? remainingDays,
+  ) {
+    const buttonSize = 80.0;
+    const ringSize = 100.0;
+
+    return Column(
+      children: [
+        // Row: Left info | Right button
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Row 1: Status + Node (left) | Start Button (right)
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            // Left section
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Status dot + text
+                  Row(
                     children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       Text(
                         _isStart
                             ? AppLocalizations.of(context).xboardConnected
@@ -419,99 +570,258 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                           color: statusColor,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              proxy.name,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurface,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildLatency(proxy),
-                        ],
-                      ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 16),
-                // Start button with ring
-                SizedBox(
-                  width: ringSize,
-                  height: ringSize,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      AnimatedBuilder(
-                        animation: _ringAnimation,
-                        builder: (context, child) {
-                          return CustomPaint(
-                            size: const Size(ringSize, ringSize),
-                            painter: _RingPainter(
-                              color: statusColor,
-                              isActive: _isStart,
-                              pulseProgress: _ringAnimation.value,
-                              buttonRadius: buttonSize / 2,
-                            ),
-                          );
-                        },
-                      ),
-                      GestureDetector(
-                        onTap: _handleSwitchStart,
-                        child: Container(
-                          width: buttonSize,
-                          height: buttonSize,
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: statusColor.withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                spreadRadius: 1,
+                  const SizedBox(height: 8),
+                  // Proxy name
+                  Text(
+                    proxy.name,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  // Latency
+                  _buildLatency(proxy),
+                  const SizedBox(height: 12),
+                  // Desktop controls (no switch node button)
+                  _buildDesktopControlsRow(theme, colorScheme, mode, tunEnabled),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 24),
+
+            // Right section: button + switch node
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  // Button with progress ring
+                  SizedBox(
+                    width: ringSize,
+                    height: ringSize,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        AnimatedBuilder(
+                          animation: _ringAnimation,
+                          builder: (context, child) {
+                            return CustomPaint(
+                              size: const Size(ringSize, ringSize),
+                              painter: _ProgressRingPainter(
+                                color: statusColor,
+                                isActive: _isStart,
+                                pulseProgress: _ringAnimation.value,
+                                progress: progress,
+                                ringRadius: ringSize / 2 - 4,
                               ),
-                            ],
-                          ),
-                          child: Center(
-                            child: AnimatedIcon(
-                              icon: AnimatedIcons.play_pause,
-                              progress: _iconAnimation,
-                              size: 32,
-                              color: onStatusColor,
+                            );
+                          },
+                        ),
+                        GestureDetector(
+                          onTap: _handleSwitchStart,
+                          child: Container(
+                            width: buttonSize,
+                            height: buttonSize,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: statusColor.withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: AnimatedIcon(
+                                icon: AnimatedIcons.play_pause,
+                                progress: _iconAnimation,
+                                size: 36,
+                                color: onStatusColor,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: 12),
+                  // Switch node button
+                  OutlinedButton.icon(
+                    onPressed: _navigateToProxies,
+                    icon: const Icon(Icons.swap_horiz, size: 16),
+                    label: Text(
+                      AppLocalizations.of(context).xboardSwitchNode,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      visualDensity: VisualDensity.compact,
+                      side: BorderSide(
+                        color: colorScheme.outline.withValues(alpha: 0.3),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // Full-width subscription row
+        _buildSubscriptionRow(
+          theme, colorScheme, progress, usedTraffic, totalTraffic, remainingDays,
+        ),
+      ],
+    );
+  }
+
+  // --- Shared sub-widgets ---
+
+  Widget _buildNodePill(Proxy proxy, ColorScheme colorScheme, ThemeData theme) {
+    return GestureDetector(
+      onTap: _navigateToProxies,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.dns_outlined,
+              size: 14,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 6),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 160),
+              child: Text(
+                proxy.name,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface,
                 ),
-              ],
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-
-            const SizedBox(height: 16),
-
-            // Row 2: Compact subscription info
-            _buildSubscriptionRow(
-              theme,
-              colorScheme,
-              progress,
-              usedTraffic,
-              totalTraffic,
-              remainingDays,
+            const SizedBox(width: 6),
+            _buildLatency(proxy),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.chevron_right,
+              size: 14,
+              color: colorScheme.onSurfaceVariant,
             ),
-
-            const SizedBox(height: 16),
-
-            // Row 3: Mode + TUN + Switch Node
-            _buildControlsRow(theme, colorScheme, mode, tunEnabled),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCompactTrafficText(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    double progress,
+    double usedTraffic,
+    double totalTraffic,
+    int? remainingDays,
+  ) {
+    final progressColor = _getProgressColor(progress, theme);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          '${_formatBytes(usedTraffic)} / ${_formatBytes(totalTraffic)}',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: progressColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            remainingDays != null
+                ? AppLocalizations.of(context).xboardRemainingDaysCount(remainingDays)
+                : '${(progress * 100).toInt()}%',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: progressColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopControlsRow(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    Mode mode,
+    bool tunEnabled,
+  ) {
+    return Row(
+      children: [
+        Flexible(
+          child: SegmentedButton<Mode>(
+            segments: [
+              ButtonSegment(
+                value: Mode.rule,
+                label: Text(
+                  Intl.message(Mode.rule.name),
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+              ButtonSegment(
+                value: Mode.global,
+                label: Text(
+                  Intl.message(Mode.global.name),
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+            ],
+            selected: {mode == Mode.direct ? Mode.rule : mode},
+            onSelectionChanged: (selected) {
+              _handleModeChange(selected.first);
+            },
+            style: ButtonStyle(
+              visualDensity: VisualDensity.compact,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        FilterChip(
+          label: const Text('TUN', style: TextStyle(fontSize: 12)),
+          selected: tunEnabled,
+          onSelected: (selected) {
+            _handleTunToggle(selected);
+          },
+          visualDensity: VisualDensity.compact,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          selectedColor: colorScheme.tertiaryContainer,
+          checkmarkColor: colorScheme.onTertiaryContainer,
+        ),
+      ],
     );
   }
 
@@ -761,45 +1071,81 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   }
 }
 
-class _RingPainter extends CustomPainter {
+class _ProgressRingPainter extends CustomPainter {
   final Color color;
   final bool isActive;
   final double pulseProgress;
-  final double buttonRadius;
+  final double progress;
+  final double ringRadius;
 
-  _RingPainter({
+  _ProgressRingPainter({
     required this.color,
     required this.isActive,
     required this.pulseProgress,
-    required this.buttonRadius,
+    required this.progress,
+    required this.ringRadius,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final baseRadius = buttonRadius + 6;
+    const strokeWidth = 3.5;
+    const startAngle = -pi / 2; // 12 o'clock
 
-    if (isActive) {
-      final scale = 1.0 + 0.08 * pulseProgress;
-      final opacity = 0.3 + 0.5 * pulseProgress;
-      final paint = Paint()
+    // Background ring (full circle, low opacity)
+    final bgPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..color = color.withValues(alpha: 0.15);
+    canvas.drawCircle(center, ringRadius, bgPaint);
+
+    // Foreground arc (progress-based)
+    if (progress > 0) {
+      final sweepAngle = 2 * pi * progress.clamp(0.0, 1.0);
+      final scale = isActive ? 1.0 + 0.03 * pulseProgress : 1.0;
+      final effectiveRadius = ringRadius * scale;
+
+      final gradientPaint = Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round
+        ..shader = SweepGradient(
+          startAngle: startAngle,
+          endAngle: startAngle + sweepAngle,
+          colors: [
+            color,
+            color.withValues(alpha: 0.7),
+          ],
+        ).createShader(
+          Rect.fromCircle(center: center, radius: effectiveRadius),
+        );
+
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: effectiveRadius),
+        startAngle,
+        sweepAngle,
+        false,
+        gradientPaint,
+      );
+    } else if (isActive) {
+      // When active but no progress data, show a pulsing full ring
+      final scale = 1.0 + 0.03 * pulseProgress;
+      final opacity = 0.3 + 0.4 * pulseProgress;
+      final pulsePaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round
         ..color = color.withValues(alpha: opacity);
-      canvas.drawCircle(center, baseRadius * scale, paint);
-    } else {
-      final paint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5
-        ..color = color.withValues(alpha: 0.3);
-      canvas.drawCircle(center, baseRadius, paint);
+      canvas.drawCircle(center, ringRadius * scale, pulsePaint);
     }
   }
 
   @override
-  bool shouldRepaint(_RingPainter oldDelegate) {
+  bool shouldRepaint(_ProgressRingPainter oldDelegate) {
     return oldDelegate.isActive != isActive ||
         oldDelegate.pulseProgress != pulseProgress ||
+        oldDelegate.progress != progress ||
         oldDelegate.color != color;
   }
 }

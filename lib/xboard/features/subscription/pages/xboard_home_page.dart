@@ -164,8 +164,8 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                         // Traffic history (collapsible)
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                          child: const TrafficHistoryCard(
-                            initiallyExpanded: false,
+                          child: TrafficHistoryCard(
+                            initiallyExpanded: isDesktop,
                           ),
                         ),
                         SizedBox(height: sectionSpacing),

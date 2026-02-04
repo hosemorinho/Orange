@@ -95,7 +95,6 @@ class ApplicationState extends ConsumerState<Application> {
       _performQuickAuthWithDomainService();
 
       _autoUpdateProfilesTask();
-      appController.initLink();
       app?.initShortcuts();
 
       // 启动后检查更新
@@ -300,7 +299,6 @@ class ApplicationState extends ConsumerState<Application> {
 
   @override
   Future<void> dispose() async {
-    linkManager.destroy();
     _autoUpdateProfilesTaskTimer?.cancel();
     await coreController.destroy();
     await appController.handleExit();

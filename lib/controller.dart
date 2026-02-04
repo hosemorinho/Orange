@@ -908,35 +908,6 @@ extension SystemControllerExt on AppController {
     });
   }
 
-  void initLink() {
-    linkManager.initAppLinksListen((url) async {
-      final res = await globalState.showMessage(
-        title: '${appLocalizations.add}${appLocalizations.profile}',
-        message: TextSpan(
-          children: [
-            TextSpan(text: appLocalizations.doYouWantToPass),
-            TextSpan(
-              text: ' $url ',
-              style: TextStyle(
-                color: _context.colorScheme.primary,
-                decoration: TextDecoration.underline,
-                decorationColor: _context.colorScheme.primary,
-              ),
-            ),
-            TextSpan(
-              text: '${appLocalizations.create}${appLocalizations.profile}',
-            ),
-          ],
-        ),
-      );
-
-      if (res != true) {
-        return;
-      }
-      addProfileFormURL(url);
-    });
-  }
-
   void updateTun() {
     _ref
         .read(patchClashConfigProvider.notifier)

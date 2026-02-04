@@ -15,7 +15,7 @@ const _envApiBaseUrl = String.fromEnvironment('API_BASE_URL');
 const _envThemeColor = String.fromEnvironment('THEME_COLOR');
 const _envAppName = String.fromEnvironment('APP_NAME');
 
-const appName = _envAppName == '' ? 'FlClash' : _envAppName;
+const appName = _envAppName == '' ? 'Orange' : _envAppName;
 const appNameEn = appName;
 final appHelperService = '${appName}HelperService';
 const coreName = 'clash.meta';

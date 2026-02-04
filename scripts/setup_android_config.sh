@@ -10,7 +10,7 @@ OLD_PACKAGE="com.follow.clash"
 # Read configuration from environment or use defaults
 # Trim whitespace/newlines from environment variables (matching setup.dart behavior)
 NEW_PACKAGE=$(echo "${APP_PACKAGE_NAME:-com.follow.clash}" | tr -d '[:space:]')
-APP_NAME=$(echo "${APP_NAME:-FlClash}" | xargs)
+APP_NAME=$(echo "${APP_NAME:-Orange}" | xargs)
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  Android Configuration Setup"

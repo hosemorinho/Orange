@@ -1,14 +1,14 @@
-display_name: Flclash
+display_name: Orange
 
 icon: ./assets/images/icon.png
 
 keywords:
-  - Flclash
+  - Orange
   - Clash
   - ClashMeta
   - Proxy
 
-generic_name: Flclash
+generic_name: Orange
 
 categories:
   - Network

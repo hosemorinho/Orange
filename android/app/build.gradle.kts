@@ -22,7 +22,7 @@ val isRelease =
     mStoreFile.exists() && mStorePassword != null && mKeyAlias != null && mKeyPassword != null
 
 // Read app name from local.properties (set by Flutter dart-define)
-val appName = localProperties.getProperty("flutter.appName", "FlClash")
+val appName = localProperties.getProperty("flutter.appName", "Orange")
 
 android {
     namespace = "com.follow.clash"

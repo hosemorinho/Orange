@@ -1,5 +1,5 @@
-display_name: Flclash
-package_name: Flclash
+display_name: Orange
+package_name: Orange
 maintainer:
   name: chen08209
   email: chen08209@gmail.com
@@ -15,12 +15,12 @@ dependencies:
   - libkeybinder-3.0-dev
 
 keywords:
-  - Flclash
+  - Orange
   - Clash
   - ClashMeta
   - Proxy
 
-generic_name: Flclash
+generic_name: Orange
 
 categories:
   - Network

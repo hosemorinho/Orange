@@ -21,11 +21,6 @@ class Window {
     if (!acquire) {
       exit(0);
     }
-    if (system.isWindows) {
-      protocol.register('clash');
-      protocol.register('clashmeta');
-      protocol.register('flclash');
-    }
     await windowManager.ensureInitialized();
     // kDebugMode ? Size(680, 580) :
     WindowOptions windowOptions = WindowOptions(

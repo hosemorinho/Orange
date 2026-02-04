@@ -93,9 +93,12 @@ class Build {
     BuildItem(target: Target.android, arch: Arch.amd64, archName: 'x86_64'),
   ];
 
-  static String get appName => 'FlClash';
+  static String get appName {
+    final envName = (Platform.environment['APP_NAME'] ?? '').trim();
+    return envName.isNotEmpty ? envName : 'Orange';
+  }
 
-  static String get coreName => 'FlClashCore';
+  static String get coreName => '${appName}Core';
 
   static String get libName => 'libclash';
 
@@ -280,7 +283,7 @@ class Build {
     final targetPath = join(
       outDir,
       target.name,
-      'FlClashHelperService${target.executableExtensionName}',
+      '${appName}HelperService${target.executableExtensionName}',
     );
     await File(outPath).copy(targetPath);
   }
@@ -312,6 +315,104 @@ class Build {
       name: 'get distributor',
       Build.getExecutable('dart pub global activate -s path $distributorDir'),
     );
+  }
+
+  static Future<void> _replaceInFile(
+    String relativePath,
+    Map<String, String> replacements,
+  ) async {
+    final file = File(join(current, relativePath));
+    if (!await file.exists()) return;
+    var content = await file.readAsString();
+    for (final entry in replacements.entries) {
+      content = content.replaceAll(entry.key, entry.value);
+    }
+    await file.writeAsString(content);
+  }
+
+  static Future<void> updatePlatformBinaryNames(Target target) async {
+    final name = appName;
+    if (name == 'Orange') return;
+
+    final core = coreName;
+    final helper = '${name}HelperService';
+    print('Updating platform binary names: app=$name core=$core helper=$helper');
+
+    // distribute_options.yaml
+    await _replaceInFile('distribute_options.yaml', {
+      "app_name: 'Orange'": "app_name: '$name'",
+    });
+
+    switch (target) {
+      case Target.windows:
+        await _replaceInFile('windows/CMakeLists.txt', {
+          'project(Orange ': 'project($name ',
+          'set(BINARY_NAME "Orange")': 'set(BINARY_NAME "$name")',
+          'OrangeCore.exe': '$core.exe',
+          'OrangeHelperService.exe': '$helper.exe',
+        });
+        await _replaceInFile('windows/runner/main.cpp', {
+          'L"Orange"': 'L"$name"',
+        });
+        await _replaceInFile('windows/runner/Runner.rc', {
+          '"FileDescription", "Orange"': '"FileDescription", "$name"',
+          '"InternalName", "Orange"': '"InternalName", "$name"',
+          '"OriginalFilename", "Orange.exe"': '"OriginalFilename", "$name.exe"',
+          '"ProductName", "Orange"': '"ProductName", "$name"',
+        });
+        await _replaceInFile('windows/packaging/exe/make_config.yaml', {
+          'app_name: Orange': 'app_name: $name',
+          'display_name: Orange': 'display_name: $name',
+          'executable_name: Orange.exe': 'executable_name: $name.exe',
+          'output_base_file_name: Orange.exe': 'output_base_file_name: $name.exe',
+        });
+        await _replaceInFile('windows/packaging/exe/inno_setup.iss', {
+          "'Orange.exe'": "'$name.exe'",
+          "'OrangeCore.exe'": "'$core.exe'",
+          "'OrangeHelperService.exe'": "'$helper.exe'",
+        });
+        break;
+      case Target.linux:
+        await _replaceInFile('linux/CMakeLists.txt', {
+          'set(BINARY_NAME "Orange")': 'set(BINARY_NAME "$name")',
+          '"OrangeCore"': '"$core"',
+        });
+        await _replaceInFile('linux/runner/my_application.cc', {
+          '"Orange"': '"$name"',
+        });
+        for (final pkg in ['appimage', 'deb', 'rpm']) {
+          await _replaceInFile('linux/packaging/$pkg/make_config.yaml', {
+            'display_name: Orange': 'display_name: $name',
+            'package_name: Orange': 'package_name: $name',
+            'generic_name: Orange': 'generic_name: $name',
+            '  - Orange': '  - $name',
+          });
+        }
+        break;
+      case Target.macos:
+        await _replaceInFile('macos/Runner/Configs/AppInfo.xcconfig', {
+          'PRODUCT_NAME = Orange': 'PRODUCT_NAME = $name',
+        });
+        await _replaceInFile('macos/packaging/dmg/make_config.yaml', {
+          'title: Orange': 'title: $name',
+          'path: Orange.app': 'path: $name.app',
+        });
+        await _replaceInFile('macos/Runner.xcodeproj/project.pbxproj', {
+          'OrangeCore': core,
+          'Orange.app': '$name.app',
+          'INFOPLIST_KEY_CFBundleDisplayName = Orange;':
+              'INFOPLIST_KEY_CFBundleDisplayName = $name;',
+        });
+        await _replaceInFile(
+          'macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme',
+          {'Orange.app': '$name.app'},
+        );
+        break;
+      case Target.android:
+        // Android binary names handled by setup_android_config.sh
+        break;
+    }
+    print('Platform binary names updated successfully');
   }
 
   static void copyFile(String sourceFilePath, String destinationFilePath) {
@@ -459,6 +560,8 @@ class BuildCommand extends Command {
     if (arch == null && target != Target.android) {
       throw 'Invalid arch parameter';
     }
+
+    await Build.updatePlatformBinaryNames(target);
 
     final corePaths = await Build.buildCore(
       target: target,

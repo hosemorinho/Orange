@@ -95,7 +95,7 @@ dev_dependencies:
   drift_dev: ^2.29.0
 
   # Orange/XBoard-specific dev dependencies
-  custom_lint: ^0.7.0
+  custom_lint: ^0.8.1
   intl_utils: ^2.8.11
   mockito: ^5.4.4
 

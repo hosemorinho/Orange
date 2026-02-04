@@ -64,7 +64,7 @@ class QuickActionsCard extends ConsumerWidget {
                 child: _CompactActionTile(
                   icon: Icons.person_add_outlined,
                   title: appLocalizations.xboardInviteFriends,
-                  onTap: () => context.push('/invite'),
+                  onTap: () => context.go('/invite'),
                 ),
               ),
             ],

@@ -1520,5 +1520,21 @@
   "xboardLatencyGoodDesc": "Good network quality, suitable for most applications",
   "xboardLatencyFairDesc": "Fair network quality, usable for basic applications",
   "xboardLatencyPoorDesc": "Poor network quality, may affect experience",
-  "xboardLatencyVeryPoorDesc": "Very poor network quality, recommend changing node"
+  "xboardLatencyVeryPoorDesc": "Very poor network quality, recommend changing node",
+  "withdrawMethod": "Withdrawal Method",
+  "withdrawAccount": "Withdrawal Account",
+  "enterWithdrawAccount": "Enter withdrawal account",
+  "selectWithdrawMethod": "Select withdrawal method",
+  "confirmWithdraw": "Confirm Withdrawal",
+  "withdrawSubmitted": "Withdrawal request submitted",
+  "withdrawFailed": "Withdrawal failed: {error}",
+  "@withdrawFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "withdrawClosed": "Withdrawal is currently unavailable",
+  "withdrawing": "Submitting..."
 }

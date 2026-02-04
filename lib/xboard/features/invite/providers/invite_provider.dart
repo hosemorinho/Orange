@@ -83,9 +83,36 @@ Future<void> transferCommission(Ref ref, double amount) async {
 
     // Refresh invite data and user info
     ref.invalidate(inviteDataProviderProvider);
-    // TODO: Also invalidate user provider when needed
   } catch (e, stackTrace) {
     _logger.error('[transferCommission] Failed to transfer commission', e, stackTrace);
+    rethrow;
+  }
+}
+
+/// Get commission config (withdrawal methods)
+@riverpod
+Future<Map<String, dynamic>> commissionConfig(Ref ref) async {
+  try {
+    final api = await ref.read(xboardSdkProvider.future);
+    final response = await api.getCommissionConfig();
+    return response['data'] as Map<String, dynamic>? ?? {};
+  } catch (e, stackTrace) {
+    _logger.error('[commissionConfig] Failed to get commission config', e, stackTrace);
+    rethrow;
+  }
+}
+
+/// Submit withdrawal ticket
+@riverpod
+Future<void> withdrawCommission(Ref ref, String method, String account) async {
+  try {
+    final api = await ref.read(xboardSdkProvider.future);
+    await api.withdrawTicket(method, account);
+
+    // Refresh invite data
+    ref.invalidate(inviteDataProviderProvider);
+  } catch (e, stackTrace) {
+    _logger.error('[withdrawCommission] Failed to submit withdrawal', e, stackTrace);
     rethrow;
   }
 }

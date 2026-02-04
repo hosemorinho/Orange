@@ -10873,6 +10873,96 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Withdrawal Method`
+  String get withdrawMethod {
+    return Intl.message(
+      'Withdrawal Method',
+      name: 'withdrawMethod',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Withdrawal Account`
+  String get withdrawAccount {
+    return Intl.message(
+      'Withdrawal Account',
+      name: 'withdrawAccount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter withdrawal account`
+  String get enterWithdrawAccount {
+    return Intl.message(
+      'Enter withdrawal account',
+      name: 'enterWithdrawAccount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select withdrawal method`
+  String get selectWithdrawMethod {
+    return Intl.message(
+      'Select withdrawal method',
+      name: 'selectWithdrawMethod',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm Withdrawal`
+  String get confirmWithdraw {
+    return Intl.message(
+      'Confirm Withdrawal',
+      name: 'confirmWithdraw',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Withdrawal request submitted`
+  String get withdrawSubmitted {
+    return Intl.message(
+      'Withdrawal request submitted',
+      name: 'withdrawSubmitted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Withdrawal failed: {error}`
+  String withdrawFailed(String error) {
+    return Intl.message(
+      'Withdrawal failed: $error',
+      name: 'withdrawFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Withdrawal is currently unavailable`
+  String get withdrawClosed {
+    return Intl.message(
+      'Withdrawal is currently unavailable',
+      name: 'withdrawClosed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Submitting...`
+  String get withdrawing {
+    return Intl.message(
+      'Submitting...',
+      name: 'withdrawing',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

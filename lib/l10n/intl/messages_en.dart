@@ -142,6 +142,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m54(traffic) => "Upload: ${traffic}";
 
+  static String m56(error) => "Withdrawal failed: ${error}";
+
   static String m55(count) =>
       "${Intl.plural(count, one: '1 year ago', other: '${count} years ago')}";
 
@@ -2624,6 +2626,27 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardYearlyPayment": MessageLookupByLibrary.simpleMessage("Yearly"),
     "xboardYearsAgo": MessageLookupByLibrary.simpleMessage("years ago"),
     "xboardYesterday": MessageLookupByLibrary.simpleMessage("Yesterday"),
+    "withdrawAccount": MessageLookupByLibrary.simpleMessage(
+      "Withdrawal Account",
+    ),
+    "withdrawClosed": MessageLookupByLibrary.simpleMessage(
+      "Withdrawal is currently unavailable",
+    ),
+    "withdrawFailed": m56,
+    "withdrawMethod": MessageLookupByLibrary.simpleMessage("Withdrawal Method"),
+    "withdrawSubmitted": MessageLookupByLibrary.simpleMessage(
+      "Withdrawal request submitted",
+    ),
+    "withdrawing": MessageLookupByLibrary.simpleMessage("Submitting..."),
+    "confirmWithdraw": MessageLookupByLibrary.simpleMessage(
+      "Confirm Withdrawal",
+    ),
+    "enterWithdrawAccount": MessageLookupByLibrary.simpleMessage(
+      "Enter withdrawal account",
+    ),
+    "selectWithdrawMethod": MessageLookupByLibrary.simpleMessage(
+      "Select withdrawal method",
+    ),
     "years": MessageLookupByLibrary.simpleMessage("Years"),
     "yearsAgo": m55,
     "zh_CN": MessageLookupByLibrary.simpleMessage("Simplified Chinese"),

@@ -30,6 +30,9 @@ class AdaptiveShellLayout extends ConsumerWidget {
       case 3:
         context.go('/settings');
         break;
+      case 4:
+        context.go('/invite');
+        break;
     }
   }
 
@@ -40,6 +43,7 @@ class AdaptiveShellLayout extends ConsumerWidget {
     if (location.startsWith('/plans')) return 1;
     if (location.startsWith('/support')) return 2;
     if (location.startsWith('/settings')) return 3;
+    if (location.startsWith('/invite')) return 4;
     return 0;
   }
 

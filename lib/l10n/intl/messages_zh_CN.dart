@@ -132,6 +132,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m55(count) => "${count} 年前";
 
+  static String m56(error) => "提现失败：${error}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("关于"),
@@ -1803,6 +1805,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardYearlyPayment": MessageLookupByLibrary.simpleMessage("年付"),
     "xboardYearsAgo": MessageLookupByLibrary.simpleMessage("年前"),
     "xboardYesterday": MessageLookupByLibrary.simpleMessage("昨天"),
+    "withdrawAccount": MessageLookupByLibrary.simpleMessage("提现账号"),
+    "withdrawClosed": MessageLookupByLibrary.simpleMessage("提现功能暂未开放"),
+    "withdrawFailed": m56,
+    "withdrawMethod": MessageLookupByLibrary.simpleMessage("提现方式"),
+    "withdrawSubmitted": MessageLookupByLibrary.simpleMessage("提现申请已提交"),
+    "withdrawing": MessageLookupByLibrary.simpleMessage("正在提交..."),
+    "confirmWithdraw": MessageLookupByLibrary.simpleMessage("确认提现"),
+    "enterWithdrawAccount": MessageLookupByLibrary.simpleMessage("请输入提现账号"),
+    "selectWithdrawMethod": MessageLookupByLibrary.simpleMessage("请选择提现方式"),
     "years": MessageLookupByLibrary.simpleMessage("年"),
     "yearsAgo": m55,
     "zh_CN": MessageLookupByLibrary.simpleMessage("中文简体"),

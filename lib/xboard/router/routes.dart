@@ -77,6 +77,19 @@ final List<RouteBase> routes = [
             ),
           ],
         ),
+
+        // 邀请页面分支
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/invite',
+              name: 'invite',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: InvitePage(),
+              ),
+            ),
+          ],
+        ),
       ],
     ),
     
@@ -122,15 +135,6 @@ final List<RouteBase> routes = [
       name: 'orders',
       pageBuilder: (context, state) => const MaterialPage(
         child: OrdersPage(),
-      ),
-    ),
-
-    // 邀请页面
-    GoRoute(
-      path: '/invite',
-      name: 'invite',
-      pageBuilder: (context, state) => const MaterialPage(
-        child: InvitePage(),
       ),
     ),
 

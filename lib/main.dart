@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:fl_clash/pages/error.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,6 +21,9 @@ Future<void> main() async {
       try {
         final logDir = await appPath.homeDirPath;
         final diskLogger = await DiskLogger.init(logDir);
+        if (kReleaseMode) {
+          diskLogger.minLevel = LogLevel.info;
+        }
         XBoardLogger.setLogger(diskLogger);
         debugPrint('[Main] 磁盘日志已启用: $logDir/xboard.log');
       } catch (e) {

@@ -1521,5 +1521,21 @@
   "xboardLatencyGoodDesc": "网络质量良好，适合大多数应用",
   "xboardLatencyFairDesc": "网络质量一般，可用于基本应用",
   "xboardLatencyPoorDesc": "网络质量较差，可能影响体验",
-  "xboardLatencyVeryPoorDesc": "网络质量很差，建议更换节点"
+  "xboardLatencyVeryPoorDesc": "网络质量很差，建议更换节点",
+  "withdrawMethod": "提现方式",
+  "withdrawAccount": "提现账号",
+  "enterWithdrawAccount": "请输入提现账号",
+  "selectWithdrawMethod": "请选择提现方式",
+  "confirmWithdraw": "确认提现",
+  "withdrawSubmitted": "提现申请已提交",
+  "withdrawFailed": "提现失败：{error}",
+  "@withdrawFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "withdrawClosed": "提现功能暂未开放",
+  "withdrawing": "正在提交..."
 }

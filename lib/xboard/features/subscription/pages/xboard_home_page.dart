@@ -140,8 +140,10 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
               builder: (context, constraints) {
                 return SingleChildScrollView(
                   padding: EdgeInsets.symmetric(vertical: verticalPadding),
-                  child: ConstrainedBox(
+                  child: Center(
+                    child: ConstrainedBox(
                     constraints: BoxConstraints(
+                      maxWidth: 768,
                       minHeight: constraints.maxHeight - (2 * verticalPadding),
                     ),
                     child: Column(
@@ -171,6 +173,7 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                         SizedBox(height: sectionSpacing),
                       ],
                     ),
+                  ),
                   ),
                 );
               },

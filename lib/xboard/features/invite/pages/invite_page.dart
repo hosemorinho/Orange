@@ -2,19 +2,22 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/features/invite/providers/invite_provider.dart';
 import 'package:fl_clash/xboard/features/invite/widgets/invite_stats_section.dart';
 import 'package:fl_clash/xboard/features/invite/widgets/invite_codes_card.dart';
+import 'package:fl_clash/xboard/features/invite/widgets/commission_transfer_dialog.dart';
+import 'package:fl_clash/xboard/features/invite/widgets/commission_withdraw_dialog.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 
 /// Invite page - Referral & Commission system
 ///
 /// Features:
-/// - Statistics cards (5 stats)
+/// - Statistics cards (compact rows)
 /// - Invite codes management (max 5 codes)
+/// - Commission transfer to wallet
+/// - Commission withdrawal
 /// - Copy code and copy link functionality
-/// - Responsive grid layout
-/// - Custom commission rate banner
 class InvitePage extends ConsumerStatefulWidget {
   const InvitePage({super.key});
 
@@ -22,8 +25,12 @@ class InvitePage extends ConsumerStatefulWidget {
   ConsumerState<InvitePage> createState() => _InvitePageState();
 }
 
-class _InvitePageState extends ConsumerState<InvitePage> {
+class _InvitePageState extends ConsumerState<InvitePage>
+    with AutomaticKeepAliveClientMixin {
   bool _isCreatingCode = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   Future<void> _handleCreateCode() async {
     setState(() => _isCreatingCode = true);
@@ -35,7 +42,7 @@ class _InvitePageState extends ConsumerState<InvitePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(appLocalizations.xboardInviteCodeCreated),
-            backgroundColor: Colors.green,
+            backgroundColor: Theme.of(context).colorScheme.tertiary,
           ),
         );
       }
@@ -44,7 +51,7 @@ class _InvitePageState extends ConsumerState<InvitePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${appLocalizations.xboardError}: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -57,6 +64,7 @@ class _InvitePageState extends ConsumerState<InvitePage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
@@ -69,7 +77,6 @@ class _InvitePageState extends ConsumerState<InvitePage> {
         title: Text(appLocalizations.xboardInvite),
         centerTitle: false,
         actions: [
-          // Refresh button
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -81,7 +88,6 @@ class _InvitePageState extends ConsumerState<InvitePage> {
       ),
       body: inviteDataAsync.when(
         data: (inviteData) {
-          // Get custom commission rate from user info (if available)
           final customRate = user?.commissionRate;
 
           return RefreshIndicator(
@@ -92,7 +98,7 @@ class _InvitePageState extends ConsumerState<InvitePage> {
               padding: EdgeInsets.all(isDesktop ? 24 : 16),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1200),
+                  constraints: const BoxConstraints(maxWidth: 768),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -127,8 +133,9 @@ class _InvitePageState extends ConsumerState<InvitePage> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Coming soon section (Withdraw & Transfer)
-                      _buildComingSoonSection(context),
+                      // Commission actions (Transfer & Withdraw)
+                      _buildCommissionActionsSection(
+                          context, inviteData.stats),
                     ],
                   ),
                 ),
@@ -181,49 +188,45 @@ class _InvitePageState extends ConsumerState<InvitePage> {
     );
   }
 
-  Widget _buildComingSoonSection(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  Widget _buildCommissionActionsSection(
+      BuildContext context, DomainInviteStats stats) {
+    final hasCommission = stats.availableCommission > 0;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.2),
+    return Row(
+      children: [
+        Expanded(
+          child: FilledButton.icon(
+            onPressed: hasCommission ? () => _showTransferDialog(stats) : null,
+            icon: const Icon(Icons.swap_horiz),
+            label: Text(appLocalizations.transferToWallet),
+          ),
         ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: hasCommission ? () => _showWithdrawDialog(stats) : null,
+            icon: const Icon(Icons.account_balance_outlined),
+            label: Text(appLocalizations.withdraw),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showTransferDialog(DomainInviteStats stats) {
+    showDialog(
+      context: context,
+      builder: (context) => CommissionTransferDialog(
+        availableCommission: stats.availableCommission,
       ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.construction_outlined,
-            size: 32,
-            color: colorScheme.onSurface.withValues(alpha: 0.4),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  appLocalizations.xboardComingSoon,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface.withValues(alpha: 0.8),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  appLocalizations.xboardWithdrawTransferComingSoon,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+    );
+  }
+
+  void _showWithdrawDialog(DomainInviteStats stats) {
+    showDialog(
+      context: context,
+      builder: (context) => CommissionWithdrawDialog(
+        availableCommission: stats.availableCommission,
       ),
     );
   }

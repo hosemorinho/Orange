@@ -65,7 +65,8 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
-          child: ConstrainedBox(
+          child: Center(
+            child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 768),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,6 +95,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                 _buildOrdersList(),
               ],
             ),
+          ),
           ),
         ),
       ),

@@ -62,18 +62,28 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
         ],
       ),
       body: subscription == null
-          ? _buildNoSubscription(theme)
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 768),
+                child: _buildNoSubscription(theme),
+              ),
+            )
           : RefreshIndicator(
               onRefresh: () => ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo(),
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _buildPlanInfoCard(theme, subscription, user),
-                  const SizedBox(height: 16),
-                  _buildTrafficCard(theme, subscription),
-                  const SizedBox(height: 16),
-                  _buildTimeInfoCard(theme, subscription),
-                ],
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 768),
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      _buildPlanInfoCard(theme, subscription, user),
+                      const SizedBox(height: 16),
+                      _buildTrafficCard(theme, subscription),
+                      const SizedBox(height: 16),
+                      _buildTimeInfoCard(theme, subscription),
+                    ],
+                  ),
+                ),
               ),
             ),
     );

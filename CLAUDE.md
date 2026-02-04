@@ -71,14 +71,14 @@ Self-contained module with its own layered architecture, exported via `lib/xboar
 | Core | `xboard/core/` | Zero-dependency utilities: logger, exceptions, Result type |
 | Domain | `xboard/domain/` | Business models (User, Plan, Order, Subscription) and repository interfaces |
 | Infrastructure | `xboard/infrastructure/` | API client (`v2board_api_service.dart`), HTTP wrapper, domain racing, cache, storage |
-| Config | `xboard/config/` | Configuration loading (`xboard.config.yaml`), domain selection |
+| Config | `xboard/config/` | Configuration models, domain selection |
 | Adapter | `xboard/adapter/` | Riverpod state providers (user, subscription, order, plan, etc.) and API service initialization |
 | Features | `xboard/features/` | Feature modules: auth, subscription, payment, invite, notice, profile, domain_status, latency, update_check |
 | Router | `xboard/router/` | GoRouter route definitions |
 | Services | `xboard/services/` | Storage provider |
 
 ### Initialization Flow
-1. `main()` loads `xboard.config.yaml` via `ConfigFileLoader` and initializes `XBoardConfig`
+1. `main()` initializes `XBoardConfig` with default `ConfigSettings`
 2. `Application.initState()` triggers `initializationProvider` (domain racing + API service setup) in background
 3. After initialization, quick auth check runs; GoRouter redirects based on auth state (`/login` vs `/`)
 

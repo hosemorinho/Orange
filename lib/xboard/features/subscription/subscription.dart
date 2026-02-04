@@ -6,4 +6,5 @@ export 'services/subscription_status_checker.dart';
 export 'widgets/subscription_status_dialog.dart';
 export 'widgets/subscription_usage_card.dart';
 export 'widgets/xboard_connect_button.dart';
+export 'widgets/vpn_hero_card.dart';
 export 'utils/utils.dart';

@@ -1,7 +1,6 @@
 import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/xboard/xboard.dart';
 
 class LatencyService {
   LatencyService();
@@ -12,8 +11,7 @@ class LatencyService {
       return latencies;
     }
     
-    // 从配置文件获取延迟测试URL（开源友好：可在 xboard.config.json 中配置）
-    final testUrl = await ConfigFileLoaderHelper.getLatencyTestUrl();
+    const testUrl = 'http://www.gstatic.com/generate_204';
     final List<Future> tasks = [];
     for (final node in nodes) {
       tasks.add(

@@ -28,6 +28,7 @@ export 'num.dart';
 export 'package.dart';
 export 'path.dart';
 export 'picker.dart';
+export 'port.dart';
 export 'preferences.dart';
 export 'print.dart';
 export 'proxy.dart';

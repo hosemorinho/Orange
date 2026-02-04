@@ -25,12 +25,6 @@ Xboard-Mihomo 使用**主源配置**模式，将所有服务器信息集中在�
          │ 读取配置
          ↓
 ┌─────────────────┐
-│ xboard.config   │ ← 指向主源地址
-│     .yaml       │
-└────────┬────────┘
-         │ 下载主源
-         ↓
-┌─────────────────┐
 │  config.json    │ ← 主源配置（面板、代理、订阅等）
 │  (托管在远程)    │
 └────────┬────────┘
@@ -60,19 +54,16 @@ Xboard-Mihomo 使用**主源配置**模式，将所有服务器信息集中在�
 
 **托管位置**：GitHub/Gitee/自建服务器/CDN
 
-### xboard.config.yaml - 客户端配置文件
-客户端本地配置，主要包括：
-- `provider` - 提供商名称
-- `remote_config` - 主源地址
-- `log` - 日志配置
-- `sdk` - SDK 配置
-- `security` - 安全配置
-
-**文件位置**：`assets/config/xboard.config.yaml`
+### Build-time Configuration
+All customization is done via `--dart-define` flags (no config files needed):
+- `API_BASE_URL` - V2Board panel URL (skips domain racing if set)
+- `APP_NAME` - App display name
+- `APP_PACKAGE_NAME` - Android applicationId
+- `THEME_COLOR` - Material 3 seed color (6-digit hex)
 
 ## 📝 最小配置示例
 
-### 1. config.json（主源）
+### config.json（主源）
 ```json
 {
     "panels": {
@@ -84,17 +75,6 @@ Xboard-Mihomo 使用**主源配置**模式，将所有服务器信息集中在�
         ]
     }
 }
-```
-
-### 2. xboard.config.yaml（客户端）
-```yaml
-xboard:
-  provider: mihomo
-  remote_config:
-    sources:
-      - name: redirect
-        url: https://your-domain.com/config.json
-        priority: 100
 ```
 
 完整教程请查看 **[快速开始](./quick-start.md)**
@@ -134,10 +114,11 @@ xboard:
 }
 ```
 
-### 3. provider 名称保持一致
-确保两个配置文件中的 provider 名称一致：
-- `config.json`: `"panels": { "mihomo": [...] }`
-- `xboard.config.yaml`: `provider: mihomo`
+### 3. 使用 API_BASE_URL 简化配置
+设置 `API_BASE_URL` 环境变量可以直接指定面板地址，跳过域名竞速：
+```bash
+dart setup.dart android --api-url https://your-panel.com
+```
 
 ## 📚 更多资源
 

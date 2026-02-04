@@ -29,9 +29,6 @@ export 'internal/xboard_config_accessor.dart' show ConfigAccessorState;
 // 日志工具已移至core
 // export 'utils/logger.dart' show ConfigLogger;
 
-// 配置文件加载器（开源友好）
-export 'utils/config_file_loader.dart';
-
 // ========== 便捷API ==========
 
 import 'package:fl_clash/common/constant.dart' show apiBaseUrl;

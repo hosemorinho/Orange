@@ -12,8 +12,7 @@ import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.d
 import 'package:fl_clash/xboard/features/subscription/services/subscription_status_checker.dart';
 import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
 
-import '../widgets/subscription_usage_card.dart';
-import '../widgets/connection_status_card.dart';
+import '../widgets/vpn_hero_card.dart';
 import '../widgets/quick_actions_card.dart';
 import '../widgets/traffic_history_card.dart';
 class XBoardHomePage extends ConsumerStatefulWidget {
@@ -117,24 +116,19 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         double verticalPadding;
         double horizontalPadding;
 
-        double connectionCardSpacing;
-
         if (availableHeight < 500) {
           // 小屏幕：紧凑布局
           sectionSpacing = 12.0;
-          connectionCardSpacing = 16.0;
           verticalPadding = 12.0;
           horizontalPadding = 16.0;
         } else if (availableHeight < 650) {
           // 中等屏幕：适中布局
           sectionSpacing = 16.0;
-          connectionCardSpacing = 20.0;
           verticalPadding = 16.0;
           horizontalPadding = 20.0;
         } else {
           // 大屏幕：标准布局
           sectionSpacing = 20.0;
-          connectionCardSpacing = 24.0;
           verticalPadding = 20.0;
           horizontalPadding = 24.0;
         }
@@ -155,25 +149,19 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                       children: [
                         const NoticeBanner(),
                         SizedBox(height: sectionSpacing * 0.5),
-                        // 连接状态卡片（合并按钮 + 节点 + 模式标签）
+                        // VPN Hero Card (connection + subscription + mode controls)
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                          child: const ConnectionStatusCard(),
-                        ),
-                        SizedBox(height: connectionCardSpacing),
-                        // 使用情况和快捷操作 - 使用网格布局
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                          child: _buildMainContentSection(constraints),
+                          child: const VpnHeroCard(),
                         ),
                         SizedBox(height: sectionSpacing),
-                        // 代理模式选择
+                        // Quick actions
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                          child: _buildProxyModeSection(),
+                          child: const QuickActionsCard(),
                         ),
                         SizedBox(height: sectionSpacing),
-                        // 流量历史（可折叠）
+                        // Traffic history (collapsible)
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                           child: const TrafficHistoryCard(
@@ -192,68 +180,6 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         },
       ),
     );
-  }
-  /// 主要内容区域 - 响应式网格布局
-  /// 桌面: 2列 (使用情况 + 快捷操作)
-  /// 移动: 单列 (堆叠)
-  Widget _buildMainContentSection(BoxConstraints constraints) {
-    // 判断是否使用网格布局（宽度大于 800px 时）
-    final useGridLayout = constraints.maxWidth > 800;
-
-    return Consumer(
-      builder: (context, ref, child) {
-        final userInfo = ref.userInfo;
-        final subscriptionInfo = ref.subscriptionInfo;
-        final currentProfile = ref.watch(currentProfileProvider);
-
-        final usageCard = SubscriptionUsageCard(
-          subscriptionInfo: subscriptionInfo,
-          userInfo: userInfo,
-          profileSubscriptionInfo: currentProfile?.subscriptionInfo,
-        );
-
-        const quickActionsCard = QuickActionsCard();
-
-        if (useGridLayout) {
-          // 桌面: 网格布局
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: usageCard),
-              const SizedBox(width: 16),
-              Expanded(child: quickActionsCard),
-            ],
-          );
-        } else {
-          // 移动: 单列堆叠
-          return Column(
-            children: [
-              usageCard,
-              const SizedBox(height: 16),
-              quickActionsCard,
-            ],
-          );
-        }
-      },
-    );
-  }
-
-  Widget _buildUsageSection() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final userInfo = ref.userInfo;
-        final subscriptionInfo = ref.subscriptionInfo;
-        final currentProfile = ref.watch(currentProfileProvider);
-        return SubscriptionUsageCard(
-          subscriptionInfo: subscriptionInfo,
-          userInfo: userInfo,
-          profileSubscriptionInfo: currentProfile?.subscriptionInfo,
-        );
-      },
-    );
-  }
-  Widget _buildProxyModeSection() {
-    return const XBoardOutboundMode();
   }
   /// 等待订阅导入完成后再检查订阅状态（备用方案）
   /// 如果3秒后还没有触发导入完成监听器，则主动检查

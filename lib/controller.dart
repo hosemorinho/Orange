@@ -744,7 +744,18 @@ extension SetupControllerExt on AppController {
       return;
     }
     final realTunEnable = _ref.read(realTunEnableProvider);
-    final realPatchConfig = patchConfig.copyWith.tun(enable: realTunEnable);
+    var realPatchConfig = patchConfig.copyWith.tun(enable: realTunEnable);
+    if (!system.isAndroid &&
+        !await isPortAvailable(realPatchConfig.mixedPort)) {
+      final newPort = await findAvailablePort(realPatchConfig.mixedPort);
+      commonPrint.log(
+        'Port ${realPatchConfig.mixedPort} is occupied, using $newPort',
+        logLevel: LogLevel.warning,
+      );
+      realPatchConfig = realPatchConfig.copyWith(mixedPort: newPort);
+      _ref.read(patchClashConfigProvider.notifier).value =
+          patchConfig.copyWith(mixedPort: newPort);
+    }
     final setupState = await _ref.read(setupStateProvider(profile?.id).future);
     globalState.lastSetupState = setupState;
     if (system.isAndroid) {

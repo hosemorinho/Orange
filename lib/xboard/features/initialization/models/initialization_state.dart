@@ -42,7 +42,8 @@ abstract class InitializationState with _$InitializationState {
     /// 当前步骤描述
     String? currentStepDescription,
   }) = _InitializationState;
-  
+  const InitializationState._();
+
   /// 是否已就绪
   bool get isReady => status == InitializationStatus.ready;
   

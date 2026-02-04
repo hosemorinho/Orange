@@ -31,6 +31,7 @@ abstract class DomainInviteCode with _$DomainInviteCode {
     /// Metadata
     @Default({}) Map<String, dynamic> metadata,
   }) = _DomainInviteCode;
+  const DomainInviteCode._();
 
   factory DomainInviteCode.fromJson(Map<String, dynamic> json) =>
       _$DomainInviteCodeFromJson(json);
@@ -73,6 +74,7 @@ abstract class DomainInviteStats with _$DomainInviteStats {
     /// Available commission for withdrawal in cents
     @Default(0) int availableCommissionInCents,
   }) = _DomainInviteStats;
+  const DomainInviteStats._();
 
   factory DomainInviteStats.fromJson(Map<String, dynamic> json) =>
       _$DomainInviteStatsFromJson(json);

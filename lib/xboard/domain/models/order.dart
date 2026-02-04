@@ -67,8 +67,9 @@ abstract class DomainOrder with _$DomainOrder {
     /// 元数据
     @Default({}) Map<String, dynamic> metadata,
   }) = _DomainOrder;
+  const DomainOrder._();
 
-  factory DomainOrder.fromJson(Map<String, dynamic> json) => 
+  factory DomainOrder.fromJson(Map<String, dynamic> json) =>
     _$DomainOrderFromJson(json);
 
   // ========== 业务逻辑 ==========

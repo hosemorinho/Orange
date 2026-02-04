@@ -67,8 +67,9 @@ abstract class DomainUser with _$DomainUser {
     /// 元数据（存储 SDK 特有字段）
     @Default({}) Map<String, dynamic> metadata,
   }) = _DomainUser;
+  const DomainUser._();
 
-  factory DomainUser.fromJson(Map<String, dynamic> json) => 
+  factory DomainUser.fromJson(Map<String, dynamic> json) =>
     _$DomainUserFromJson(json);
 
   // ========== 业务逻辑（Getter） ==========

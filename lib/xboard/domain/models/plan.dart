@@ -77,8 +77,9 @@ abstract class DomainPlan with _$DomainPlan {
     /// 元数据
     @Default({}) Map<String, dynamic> metadata,
   }) = _DomainPlan;
+  const DomainPlan._();
 
-  factory DomainPlan.fromJson(Map<String, dynamic> json) => 
+  factory DomainPlan.fromJson(Map<String, dynamic> json) =>
     _$DomainPlanFromJson(json);
 
   // ========== 业务逻辑 ==========

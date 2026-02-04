@@ -21,6 +21,7 @@ abstract class TrafficRecord with _$TrafficRecord {
     /// Server rate multiplier (e.g., "1.0", "1.5", "2.0")
     required String serverRate,
   }) = _TrafficRecord;
+  const TrafficRecord._();
 
   factory TrafficRecord.fromJson(Map<String, dynamic> json) =>
     _$TrafficRecordFromJson(json);
@@ -70,6 +71,7 @@ abstract class AggregatedTraffic with _$AggregatedTraffic {
     /// Total traffic for the day
     required int total,
   }) = _AggregatedTraffic;
+  const AggregatedTraffic._();
 
   factory AggregatedTraffic.fromJson(Map<String, dynamic> json) =>
     _$AggregatedTrafficFromJson(json);
@@ -91,6 +93,7 @@ abstract class TrafficRateGroup with _$TrafficRateGroup {
     /// Rate multiplier
     required double rate,
   }) = _TrafficRateGroup;
+  const TrafficRateGroup._();
 
   factory TrafficRateGroup.fromJson(Map<String, dynamic> json) =>
     _$TrafficRateGroupFromJson(json);

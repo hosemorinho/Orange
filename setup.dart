@@ -375,7 +375,7 @@ class Build {
       case Target.linux:
         await _replaceInFile('linux/CMakeLists.txt', {
           'set(BINARY_NAME "Orange")': 'set(BINARY_NAME "$name")',
-          '"OrangeCore"': '"$core"',
+          'OrangeCore': core,
         });
         await _replaceInFile('linux/runner/my_application.cc', {
           '"Orange"': '"$name"',

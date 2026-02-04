@@ -6,9 +6,8 @@ part of '../subscription.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$DomainSubscriptionImpl _$$DomainSubscriptionImplFromJson(
-        Map<String, dynamic> json) =>
-    _$DomainSubscriptionImpl(
+_DomainSubscription _$DomainSubscriptionFromJson(Map<String, dynamic> json) =>
+    _DomainSubscription(
       subscribeUrl: json['subscribeUrl'] as String,
       email: json['email'] as String,
       uuid: json['uuid'] as String,
@@ -29,8 +28,7 @@ _$DomainSubscriptionImpl _$$DomainSubscriptionImplFromJson(
       metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$$DomainSubscriptionImplToJson(
-        _$DomainSubscriptionImpl instance) =>
+Map<String, dynamic> _$DomainSubscriptionToJson(_DomainSubscription instance) =>
     <String, dynamic>{
       'subscribeUrl': instance.subscribeUrl,
       'email': instance.email,

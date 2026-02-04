@@ -6,9 +6,8 @@ part of '../payment_method.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$DomainPaymentMethodImpl _$$DomainPaymentMethodImplFromJson(
-        Map<String, dynamic> json) =>
-    _$DomainPaymentMethodImpl(
+_DomainPaymentMethod _$DomainPaymentMethodFromJson(Map<String, dynamic> json) =>
+    _DomainPaymentMethod(
       id: (json['id'] as num).toInt(),
       name: json['name'] as String,
       iconUrl: json['iconUrl'] as String?,
@@ -21,17 +20,17 @@ _$DomainPaymentMethodImpl _$$DomainPaymentMethodImplFromJson(
       metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$$DomainPaymentMethodImplToJson(
-        _$DomainPaymentMethodImpl instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'iconUrl': instance.iconUrl,
-      'feePercentage': instance.feePercentage,
-      'isAvailable': instance.isAvailable,
-      'description': instance.description,
-      'minAmount': instance.minAmount,
-      'maxAmount': instance.maxAmount,
-      'config': instance.config,
-      'metadata': instance.metadata,
-    };
+Map<String, dynamic> _$DomainPaymentMethodToJson(
+  _DomainPaymentMethod instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'iconUrl': instance.iconUrl,
+  'feePercentage': instance.feePercentage,
+  'isAvailable': instance.isAvailable,
+  'description': instance.description,
+  'minAmount': instance.minAmount,
+  'maxAmount': instance.maxAmount,
+  'config': instance.config,
+  'metadata': instance.metadata,
+};

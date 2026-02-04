@@ -6,187 +6,40 @@ part of '../invite_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$createInviteCodeHash() => r'c60900a1241fbcd0c52f17dea8925d8c29e45463';
-
-/// Create a new invite code
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Invite data provider
 ///
-/// Copied from [createInviteCode].
-@ProviderFor(createInviteCode)
-final createInviteCodeProvider = AutoDisposeFutureProvider<void>.internal(
-  createInviteCode,
-  name: r'createInviteCodeProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$createInviteCodeHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+/// Fetches invite codes and statistics from API
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CreateInviteCodeRef = AutoDisposeFutureProviderRef<void>;
-String _$transferCommissionHash() =>
-    r'a941b9a4450184ac7f0b5aa40b31f7810a6f957e';
+@ProviderFor(InviteDataProvider)
+const inviteDataProviderProvider = InviteDataProviderProvider._();
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// Transfer commission to balance
+/// Invite data provider
 ///
-/// Copied from [transferCommission].
-@ProviderFor(transferCommission)
-const transferCommissionProvider = TransferCommissionFamily();
-
-/// Transfer commission to balance
-///
-/// Copied from [transferCommission].
-class TransferCommissionFamily extends Family<AsyncValue<void>> {
-  /// Transfer commission to balance
+/// Fetches invite codes and statistics from API
+final class InviteDataProviderProvider
+    extends $AsyncNotifierProvider<InviteDataProvider, InviteData> {
+  /// Invite data provider
   ///
-  /// Copied from [transferCommission].
-  const TransferCommissionFamily();
-
-  /// Transfer commission to balance
-  ///
-  /// Copied from [transferCommission].
-  TransferCommissionProvider call(
-    double amount,
-  ) {
-    return TransferCommissionProvider(
-      amount,
-    );
-  }
-
-  @override
-  TransferCommissionProvider getProviderOverride(
-    covariant TransferCommissionProvider provider,
-  ) {
-    return call(
-      provider.amount,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'transferCommissionProvider';
-}
-
-/// Transfer commission to balance
-///
-/// Copied from [transferCommission].
-class TransferCommissionProvider extends AutoDisposeFutureProvider<void> {
-  /// Transfer commission to balance
-  ///
-  /// Copied from [transferCommission].
-  TransferCommissionProvider(
-    double amount,
-  ) : this._internal(
-          (ref) => transferCommission(
-            ref as TransferCommissionRef,
-            amount,
-          ),
-          from: transferCommissionProvider,
-          name: r'transferCommissionProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$transferCommissionHash,
-          dependencies: TransferCommissionFamily._dependencies,
-          allTransitiveDependencies:
-              TransferCommissionFamily._allTransitiveDependencies,
-          amount: amount,
-        );
-
-  TransferCommissionProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.amount,
-  }) : super.internal();
-
-  final double amount;
-
-  @override
-  Override overrideWith(
-    FutureOr<void> Function(TransferCommissionRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: TransferCommissionProvider._internal(
-        (ref) => create(ref as TransferCommissionRef),
-        from: from,
-        name: null,
+  /// Fetches invite codes and statistics from API
+  const InviteDataProviderProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'inviteDataProviderProvider',
+        isAutoDispose: true,
         dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        amount: amount,
-      ),
-    );
-  }
+        $allTransitiveDependencies: null,
+      );
 
   @override
-  AutoDisposeFutureProviderElement<void> createElement() {
-    return _TransferCommissionProviderElement(this);
-  }
+  String debugGetCreateSourceHash() => _$inviteDataProviderHash();
 
+  @$internal
   @override
-  bool operator ==(Object other) {
-    return other is TransferCommissionProvider && other.amount == amount;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, amount.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin TransferCommissionRef on AutoDisposeFutureProviderRef<void> {
-  /// The parameter `amount` of this provider.
-  double get amount;
-}
-
-class _TransferCommissionProviderElement
-    extends AutoDisposeFutureProviderElement<void> with TransferCommissionRef {
-  _TransferCommissionProviderElement(super.provider);
-
-  @override
-  double get amount => (origin as TransferCommissionProvider).amount;
+  InviteDataProvider create() => InviteDataProvider();
 }
 
 String _$inviteDataProviderHash() =>
@@ -195,20 +48,139 @@ String _$inviteDataProviderHash() =>
 /// Invite data provider
 ///
 /// Fetches invite codes and statistics from API
-///
-/// Copied from [InviteDataProvider].
-@ProviderFor(InviteDataProvider)
-final inviteDataProviderProvider =
-    AutoDisposeAsyncNotifierProvider<InviteDataProvider, InviteData>.internal(
-  InviteDataProvider.new,
-  name: r'inviteDataProviderProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$inviteDataProviderHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-typedef _$InviteDataProvider = AutoDisposeAsyncNotifier<InviteData>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$InviteDataProvider extends $AsyncNotifier<InviteData> {
+  FutureOr<InviteData> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<AsyncValue<InviteData>, InviteData>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<InviteData>, InviteData>,
+              AsyncValue<InviteData>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+/// Create a new invite code
+
+@ProviderFor(createInviteCode)
+const createInviteCodeProvider = CreateInviteCodeProvider._();
+
+/// Create a new invite code
+
+final class CreateInviteCodeProvider
+    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
+    with $FutureModifier<void>, $FutureProvider<void> {
+  /// Create a new invite code
+  const CreateInviteCodeProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'createInviteCodeProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$createInviteCodeHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<void> create(Ref ref) {
+    return createInviteCode(ref);
+  }
+}
+
+String _$createInviteCodeHash() => r'c60900a1241fbcd0c52f17dea8925d8c29e45463';
+
+/// Transfer commission to balance
+
+@ProviderFor(transferCommission)
+const transferCommissionProvider = TransferCommissionFamily._();
+
+/// Transfer commission to balance
+
+final class TransferCommissionProvider
+    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
+    with $FutureModifier<void>, $FutureProvider<void> {
+  /// Transfer commission to balance
+  const TransferCommissionProvider._({
+    required TransferCommissionFamily super.from,
+    required double super.argument,
+  }) : super(
+         retry: null,
+         name: r'transferCommissionProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$transferCommissionHash();
+
+  @override
+  String toString() {
+    return r'transferCommissionProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<void> create(Ref ref) {
+    final argument = this.argument as double;
+    return transferCommission(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TransferCommissionProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$transferCommissionHash() =>
+    r'a941b9a4450184ac7f0b5aa40b31f7810a6f957e';
+
+/// Transfer commission to balance
+
+final class TransferCommissionFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<void>, double> {
+  const TransferCommissionFamily._()
+    : super(
+        retry: null,
+        name: r'transferCommissionProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Transfer commission to balance
+
+  TransferCommissionProvider call(double amount) =>
+      TransferCommissionProvider._(argument: amount, from: this);
+
+  @override
+  String toString() => r'transferCommissionProvider';
+}

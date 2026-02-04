@@ -6,9 +6,8 @@ part of '../invite.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$DomainInviteCodeImpl _$$DomainInviteCodeImplFromJson(
-        Map<String, dynamic> json) =>
-    _$DomainInviteCodeImpl(
+_DomainInviteCode _$DomainInviteCodeFromJson(Map<String, dynamic> json) =>
+    _DomainInviteCode(
       code: json['code'] as String,
       status: (json['status'] as num?)?.toInt() ?? 1,
       commissionRate: (json['commissionRate'] as num).toDouble(),
@@ -20,8 +19,7 @@ _$DomainInviteCodeImpl _$$DomainInviteCodeImplFromJson(
       metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$$DomainInviteCodeImplToJson(
-        _$DomainInviteCodeImpl instance) =>
+Map<String, dynamic> _$DomainInviteCodeToJson(_DomainInviteCode instance) =>
     <String, dynamic>{
       'code': instance.code,
       'status': instance.status,
@@ -33,9 +31,8 @@ Map<String, dynamic> _$$DomainInviteCodeImplToJson(
       'metadata': instance.metadata,
     };
 
-_$DomainInviteStatsImpl _$$DomainInviteStatsImplFromJson(
-        Map<String, dynamic> json) =>
-    _$DomainInviteStatsImpl(
+_DomainInviteStats _$DomainInviteStatsFromJson(Map<String, dynamic> json) =>
+    _DomainInviteStats(
       registeredUsers: (json['registeredUsers'] as num?)?.toInt() ?? 0,
       settledCommissionInCents:
           (json['settledCommissionInCents'] as num?)?.toInt() ?? 0,
@@ -46,8 +43,7 @@ _$DomainInviteStatsImpl _$$DomainInviteStatsImplFromJson(
           (json['availableCommissionInCents'] as num?)?.toInt() ?? 0,
     );
 
-Map<String, dynamic> _$$DomainInviteStatsImplToJson(
-        _$DomainInviteStatsImpl instance) =>
+Map<String, dynamic> _$DomainInviteStatsToJson(_DomainInviteStats instance) =>
     <String, dynamic>{
       'registeredUsers': instance.registeredUsers,
       'settledCommissionInCents': instance.settledCommissionInCents,

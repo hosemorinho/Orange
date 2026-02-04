@@ -6,13 +6,14 @@ part of '../ticket.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$DomainTicketImpl _$$DomainTicketImplFromJson(Map<String, dynamic> json) =>
-    _$DomainTicketImpl(
+_DomainTicket _$DomainTicketFromJson(Map<String, dynamic> json) =>
+    _DomainTicket(
       id: (json['id'] as num).toInt(),
       subject: json['subject'] as String,
       priority: (json['priority'] as num?)?.toInt() ?? 1,
       status: $enumDecode(_$TicketStatusEnumMap, json['status']),
-      messages: (json['messages'] as List<dynamic>?)
+      messages:
+          (json['messages'] as List<dynamic>?)
               ?.map((e) => TicketMessage.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
@@ -26,7 +27,7 @@ _$DomainTicketImpl _$$DomainTicketImplFromJson(Map<String, dynamic> json) =>
       metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$$DomainTicketImplToJson(_$DomainTicketImpl instance) =>
+Map<String, dynamic> _$DomainTicketToJson(_DomainTicket instance) =>
     <String, dynamic>{
       'id': instance.id,
       'subject': instance.subject,
@@ -44,13 +45,14 @@ const _$TicketStatusEnumMap = {
   TicketStatus.closed: 'closed',
 };
 
-_$TicketMessageImpl _$$TicketMessageImplFromJson(Map<String, dynamic> json) =>
-    _$TicketMessageImpl(
+_TicketMessage _$TicketMessageFromJson(Map<String, dynamic> json) =>
+    _TicketMessage(
       id: (json['id'] as num).toInt(),
       content: json['content'] as String,
       isFromUser: json['isFromUser'] as bool? ?? true,
       isRead: json['isRead'] as bool? ?? false,
-      attachments: (json['attachments'] as List<dynamic>?)
+      attachments:
+          (json['attachments'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
@@ -58,7 +60,7 @@ _$TicketMessageImpl _$$TicketMessageImplFromJson(Map<String, dynamic> json) =>
       metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$$TicketMessageImplToJson(_$TicketMessageImpl instance) =>
+Map<String, dynamic> _$TicketMessageToJson(_TicketMessage instance) =>
     <String, dynamic>{
       'id': instance.id,
       'content': instance.content,

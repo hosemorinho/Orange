@@ -6,167 +6,82 @@ part of '../order_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$cancelOrderHash() => r'0777f4fdaa56aa5f8b16b39254ee166da4873733';
-
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 /// Cancel an order by trade number
-///
-/// Copied from [cancelOrder].
+
 @ProviderFor(cancelOrder)
-const cancelOrderProvider = CancelOrderFamily();
+const cancelOrderProvider = CancelOrderFamily._();
 
 /// Cancel an order by trade number
-///
-/// Copied from [cancelOrder].
-class CancelOrderFamily extends Family<AsyncValue<void>> {
-  /// Cancel an order by trade number
-  ///
-  /// Copied from [cancelOrder].
-  const CancelOrderFamily();
 
+final class CancelOrderProvider
+    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
+    with $FutureModifier<void>, $FutureProvider<void> {
   /// Cancel an order by trade number
-  ///
-  /// Copied from [cancelOrder].
-  CancelOrderProvider call(
-    String tradeNo,
-  ) {
-    return CancelOrderProvider(
-      tradeNo,
-    );
+  const CancelOrderProvider._({
+    required CancelOrderFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'cancelOrderProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$cancelOrderHash();
+
+  @override
+  String toString() {
+    return r'cancelOrderProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  CancelOrderProvider getProviderOverride(
-    covariant CancelOrderProvider provider,
-  ) {
-    return call(
-      provider.tradeNo,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'cancelOrderProvider';
-}
-
-/// Cancel an order by trade number
-///
-/// Copied from [cancelOrder].
-class CancelOrderProvider extends AutoDisposeFutureProvider<void> {
-  /// Cancel an order by trade number
-  ///
-  /// Copied from [cancelOrder].
-  CancelOrderProvider(
-    String tradeNo,
-  ) : this._internal(
-          (ref) => cancelOrder(
-            ref as CancelOrderRef,
-            tradeNo,
-          ),
-          from: cancelOrderProvider,
-          name: r'cancelOrderProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$cancelOrderHash,
-          dependencies: CancelOrderFamily._dependencies,
-          allTransitiveDependencies:
-              CancelOrderFamily._allTransitiveDependencies,
-          tradeNo: tradeNo,
-        );
-
-  CancelOrderProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.tradeNo,
-  }) : super.internal();
-
-  final String tradeNo;
-
-  @override
-  Override overrideWith(
-    FutureOr<void> Function(CancelOrderRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: CancelOrderProvider._internal(
-        (ref) => create(ref as CancelOrderRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        tradeNo: tradeNo,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<void> createElement() {
-    return _CancelOrderProviderElement(this);
+  FutureOr<void> create(Ref ref) {
+    final argument = this.argument as String;
+    return cancelOrder(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is CancelOrderProvider && other.tradeNo == tradeNo;
+    return other is CancelOrderProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, tradeNo.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin CancelOrderRef on AutoDisposeFutureProviderRef<void> {
-  /// The parameter `tradeNo` of this provider.
-  String get tradeNo;
-}
+String _$cancelOrderHash() => r'0777f4fdaa56aa5f8b16b39254ee166da4873733';
 
-class _CancelOrderProviderElement extends AutoDisposeFutureProviderElement<void>
-    with CancelOrderRef {
-  _CancelOrderProviderElement(super.provider);
+/// Cancel an order by trade number
+
+final class CancelOrderFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<void>, String> {
+  const CancelOrderFamily._()
+    : super(
+        retry: null,
+        name: r'cancelOrderProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Cancel an order by trade number
+
+  CancelOrderProvider call(String tradeNo) =>
+      CancelOrderProvider._(argument: tradeNo, from: this);
 
   @override
-  String get tradeNo => (origin as CancelOrderProvider).tradeNo;
+  String toString() => r'cancelOrderProvider';
 }
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

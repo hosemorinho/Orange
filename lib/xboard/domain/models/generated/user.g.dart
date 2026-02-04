@@ -6,37 +6,35 @@ part of '../user.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$DomainUserImpl _$$DomainUserImplFromJson(Map<String, dynamic> json) =>
-    _$DomainUserImpl(
-      email: json['email'] as String,
-      uuid: json['uuid'] as String,
-      avatarUrl: json['avatarUrl'] as String,
-      planId: (json['planId'] as num?)?.toInt(),
-      transferLimit: (json['transferLimit'] as num).toInt(),
-      uploadedBytes: (json['uploadedBytes'] as num).toInt(),
-      downloadedBytes: (json['downloadedBytes'] as num).toInt(),
-      balanceInCents: (json['balanceInCents'] as num).toInt(),
-      commissionBalanceInCents:
-          (json['commissionBalanceInCents'] as num).toInt(),
-      expiredAt: json['expiredAt'] == null
-          ? null
-          : DateTime.parse(json['expiredAt'] as String),
-      lastLoginAt: json['lastLoginAt'] == null
-          ? null
-          : DateTime.parse(json['lastLoginAt'] as String),
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-      banned: json['banned'] as bool? ?? false,
-      remindExpire: json['remindExpire'] as bool? ?? true,
-      remindTraffic: json['remindTraffic'] as bool? ?? true,
-      discount: (json['discount'] as num?)?.toDouble(),
-      commissionRate: (json['commissionRate'] as num?)?.toDouble(),
-      telegramId: json['telegramId'] as String?,
-      metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
-    );
+_DomainUser _$DomainUserFromJson(Map<String, dynamic> json) => _DomainUser(
+  email: json['email'] as String,
+  uuid: json['uuid'] as String,
+  avatarUrl: json['avatarUrl'] as String,
+  planId: (json['planId'] as num?)?.toInt(),
+  transferLimit: (json['transferLimit'] as num).toInt(),
+  uploadedBytes: (json['uploadedBytes'] as num).toInt(),
+  downloadedBytes: (json['downloadedBytes'] as num).toInt(),
+  balanceInCents: (json['balanceInCents'] as num).toInt(),
+  commissionBalanceInCents: (json['commissionBalanceInCents'] as num).toInt(),
+  expiredAt: json['expiredAt'] == null
+      ? null
+      : DateTime.parse(json['expiredAt'] as String),
+  lastLoginAt: json['lastLoginAt'] == null
+      ? null
+      : DateTime.parse(json['lastLoginAt'] as String),
+  createdAt: json['createdAt'] == null
+      ? null
+      : DateTime.parse(json['createdAt'] as String),
+  banned: json['banned'] as bool? ?? false,
+  remindExpire: json['remindExpire'] as bool? ?? true,
+  remindTraffic: json['remindTraffic'] as bool? ?? true,
+  discount: (json['discount'] as num?)?.toDouble(),
+  commissionRate: (json['commissionRate'] as num?)?.toDouble(),
+  telegramId: json['telegramId'] as String?,
+  metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
+);
 
-Map<String, dynamic> _$$DomainUserImplToJson(_$DomainUserImpl instance) =>
+Map<String, dynamic> _$DomainUserToJson(_DomainUser instance) =>
     <String, dynamic>{
       'email': instance.email,
       'uuid': instance.uuid,

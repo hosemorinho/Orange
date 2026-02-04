@@ -6,18 +6,19 @@ part of '../notice.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$DomainNoticeImpl _$$DomainNoticeImplFromJson(Map<String, dynamic> json) =>
-    _$DomainNoticeImpl(
+_DomainNotice _$DomainNoticeFromJson(Map<String, dynamic> json) =>
+    _DomainNotice(
       id: (json['id'] as num).toInt(),
       title: json['title'] as String,
       content: json['content'] as String,
-      imageUrls: (json['imageUrls'] as List<dynamic>?)
+      imageUrls:
+          (json['imageUrls'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
       tags:
           (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-              const [],
+          const [],
       isVisible: json['isVisible'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: json['updatedAt'] == null
@@ -26,7 +27,7 @@ _$DomainNoticeImpl _$$DomainNoticeImplFromJson(Map<String, dynamic> json) =>
       metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$$DomainNoticeImplToJson(_$DomainNoticeImpl instance) =>
+Map<String, dynamic> _$DomainNoticeToJson(_DomainNotice instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,

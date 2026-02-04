@@ -6,15 +6,15 @@ part of '../traffic_record.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$TrafficRecordImpl _$$TrafficRecordImplFromJson(Map<String, dynamic> json) =>
-    _$TrafficRecordImpl(
+_TrafficRecord _$TrafficRecordFromJson(Map<String, dynamic> json) =>
+    _TrafficRecord(
       recordAt: (json['recordAt'] as num).toInt(),
       u: (json['u'] as num).toInt(),
       d: (json['d'] as num).toInt(),
       serverRate: json['serverRate'] as String,
     );
 
-Map<String, dynamic> _$$TrafficRecordImplToJson(_$TrafficRecordImpl instance) =>
+Map<String, dynamic> _$TrafficRecordToJson(_TrafficRecord instance) =>
     <String, dynamic>{
       'recordAt': instance.recordAt,
       'u': instance.u,
@@ -22,9 +22,8 @@ Map<String, dynamic> _$$TrafficRecordImplToJson(_$TrafficRecordImpl instance) =>
       'serverRate': instance.serverRate,
     };
 
-_$AggregatedTrafficImpl _$$AggregatedTrafficImplFromJson(
-        Map<String, dynamic> json) =>
-    _$AggregatedTrafficImpl(
+_AggregatedTraffic _$AggregatedTrafficFromJson(Map<String, dynamic> json) =>
+    _AggregatedTraffic(
       date: json['date'] as String,
       timestamp: (json['timestamp'] as num).toInt(),
       rateGroups: (json['rateGroups'] as List<dynamic>)
@@ -35,8 +34,7 @@ _$AggregatedTrafficImpl _$$AggregatedTrafficImplFromJson(
       total: (json['total'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$AggregatedTrafficImplToJson(
-        _$AggregatedTrafficImpl instance) =>
+Map<String, dynamic> _$AggregatedTrafficToJson(_AggregatedTraffic instance) =>
     <String, dynamic>{
       'date': instance.date,
       'timestamp': instance.timestamp,
@@ -46,18 +44,12 @@ Map<String, dynamic> _$$AggregatedTrafficImplToJson(
       'total': instance.total,
     };
 
-_$TrafficRateGroupImpl _$$TrafficRateGroupImplFromJson(
-        Map<String, dynamic> json) =>
-    _$TrafficRateGroupImpl(
+_TrafficRateGroup _$TrafficRateGroupFromJson(Map<String, dynamic> json) =>
+    _TrafficRateGroup(
       u: (json['u'] as num).toInt(),
       d: (json['d'] as num).toInt(),
       rate: (json['rate'] as num).toDouble(),
     );
 
-Map<String, dynamic> _$$TrafficRateGroupImplToJson(
-        _$TrafficRateGroupImpl instance) =>
-    <String, dynamic>{
-      'u': instance.u,
-      'd': instance.d,
-      'rate': instance.rate,
-    };
+Map<String, dynamic> _$TrafficRateGroupToJson(_TrafficRateGroup instance) =>
+    <String, dynamic>{'u': instance.u, 'd': instance.d, 'rate': instance.rate};

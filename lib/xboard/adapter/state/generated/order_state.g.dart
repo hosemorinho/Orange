@@ -6,185 +6,137 @@ part of '../order_state.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$getOrdersHash() => r'935f807e5afa90507dabfaad70d703255e1821c7';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// 订单状态管理
+/// 获取订单列表
+
+@ProviderFor(getOrders)
+const getOrdersProvider = GetOrdersProvider._();
 
 /// 订单状态管理
 /// 获取订单列表
-///
-/// Copied from [getOrders].
-@ProviderFor(getOrders)
-final getOrdersProvider = AutoDisposeFutureProvider<List<DomainOrder>>.internal(
-  getOrders,
-  name: r'getOrdersProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$getOrdersHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef GetOrdersRef = AutoDisposeFutureProviderRef<List<DomainOrder>>;
-String _$getOrderHash() => r'4d556a21cb2ffe9cf790b0f22d857adb8698b171';
-
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// 获取单个订单
-///
-/// Copied from [getOrder].
-@ProviderFor(getOrder)
-const getOrderProvider = GetOrderFamily();
-
-/// 获取单个订单
-///
-/// Copied from [getOrder].
-class GetOrderFamily extends Family<AsyncValue<DomainOrder?>> {
-  /// 获取单个订单
-  ///
-  /// Copied from [getOrder].
-  const GetOrderFamily();
-
-  /// 获取单个订单
-  ///
-  /// Copied from [getOrder].
-  GetOrderProvider call(
-    String tradeNo,
-  ) {
-    return GetOrderProvider(
-      tradeNo,
-    );
-  }
-
-  @override
-  GetOrderProvider getProviderOverride(
-    covariant GetOrderProvider provider,
-  ) {
-    return call(
-      provider.tradeNo,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'getOrderProvider';
-}
-
-/// 获取单个订单
-///
-/// Copied from [getOrder].
-class GetOrderProvider extends AutoDisposeFutureProvider<DomainOrder?> {
-  /// 获取单个订单
-  ///
-  /// Copied from [getOrder].
-  GetOrderProvider(
-    String tradeNo,
-  ) : this._internal(
-          (ref) => getOrder(
-            ref as GetOrderRef,
-            tradeNo,
-          ),
-          from: getOrderProvider,
-          name: r'getOrderProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$getOrderHash,
-          dependencies: GetOrderFamily._dependencies,
-          allTransitiveDependencies: GetOrderFamily._allTransitiveDependencies,
-          tradeNo: tradeNo,
-        );
-
-  GetOrderProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.tradeNo,
-  }) : super.internal();
-
-  final String tradeNo;
-
-  @override
-  Override overrideWith(
-    FutureOr<DomainOrder?> Function(GetOrderRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: GetOrderProvider._internal(
-        (ref) => create(ref as GetOrderRef),
-        from: from,
-        name: null,
+final class GetOrdersProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<DomainOrder>>,
+          List<DomainOrder>,
+          FutureOr<List<DomainOrder>>
+        >
+    with
+        $FutureModifier<List<DomainOrder>>,
+        $FutureProvider<List<DomainOrder>> {
+  /// 订单状态管理
+  /// 获取订单列表
+  const GetOrdersProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getOrdersProvider',
+        isAutoDispose: true,
         dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        tradeNo: tradeNo,
-      ),
-    );
-  }
+        $allTransitiveDependencies: null,
+      );
 
   @override
-  AutoDisposeFutureProviderElement<DomainOrder?> createElement() {
-    return _GetOrderProviderElement(this);
+  String debugGetCreateSourceHash() => _$getOrdersHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<DomainOrder>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<DomainOrder>> create(Ref ref) {
+    return getOrders(ref);
+  }
+}
+
+String _$getOrdersHash() => r'935f807e5afa90507dabfaad70d703255e1821c7';
+
+/// 获取单个订单
+
+@ProviderFor(getOrder)
+const getOrderProvider = GetOrderFamily._();
+
+/// 获取单个订单
+
+final class GetOrderProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<DomainOrder?>,
+          DomainOrder?,
+          FutureOr<DomainOrder?>
+        >
+    with $FutureModifier<DomainOrder?>, $FutureProvider<DomainOrder?> {
+  /// 获取单个订单
+  const GetOrderProvider._({
+    required GetOrderFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'getOrderProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$getOrderHash();
+
+  @override
+  String toString() {
+    return r'getOrderProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<DomainOrder?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<DomainOrder?> create(Ref ref) {
+    final argument = this.argument as String;
+    return getOrder(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is GetOrderProvider && other.tradeNo == tradeNo;
+    return other is GetOrderProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, tradeNo.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin GetOrderRef on AutoDisposeFutureProviderRef<DomainOrder?> {
-  /// The parameter `tradeNo` of this provider.
-  String get tradeNo;
-}
+String _$getOrderHash() => r'4d556a21cb2ffe9cf790b0f22d857adb8698b171';
 
-class _GetOrderProviderElement
-    extends AutoDisposeFutureProviderElement<DomainOrder?> with GetOrderRef {
-  _GetOrderProviderElement(super.provider);
+/// 获取单个订单
+
+final class GetOrderFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<DomainOrder?>, String> {
+  const GetOrderFamily._()
+    : super(
+        retry: null,
+        name: r'getOrderProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// 获取单个订单
+
+  GetOrderProvider call(String tradeNo) =>
+      GetOrderProvider._(argument: tradeNo, from: this);
 
   @override
-  String get tradeNo => (origin as GetOrderProvider).tradeNo;
+  String toString() => r'getOrderProvider';
 }
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

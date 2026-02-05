@@ -104,13 +104,14 @@ class XBoardProfileImportService {
     try {
       final profiles = _ref.read(profilesProvider);
       final urlProfiles = profiles.where((profile) => profile.type == ProfileType.url).toList();
-      
+
       for (final profile in urlProfiles) {
         _logger.debug('删除旧的URL配置: ${profile.label ?? profile.id}');
         _ref.read(profilesProvider.notifier).del(profile.id);
-        _clearProfileEffect(profile.id);
+        // 删除实际的 yaml 配置文件和 providers 目录，避免文件堆积
+        await appController.clearEffect(profile.id);
       }
-      
+
       _logger.info('清理了 ${urlProfiles.length} 个旧的URL配置');
     } catch (e) {
       _logger.warning('清理旧配置时出错', e);
@@ -175,23 +176,6 @@ class XBoardProfileImportService {
       _logger.info('配置添加成功: ${profile.label ?? profile.id}');
     } catch (e) {
       throw Exception('添加配置失败: $e');
-    }
-  }
-  void _clearProfileEffect(int profileId) {
-    try {
-      if (_ref.read(currentProfileIdProvider) == profileId) {
-        final profiles = _ref.read(profilesProvider);
-        final currentProfileIdNotifier = _ref.read(currentProfileIdProvider.notifier);
-        if (profiles.isNotEmpty) {
-          final updateId = profiles.first.id;
-          currentProfileIdNotifier.value = updateId;
-        } else {
-          currentProfileIdNotifier.value = null;
-          appController.updateStatus(false);
-        }
-      }
-    } catch (e) {
-      _logger.warning('清理配置缓存时出错', e);
     }
   }
   ImportErrorType _classifyError(dynamic error) {

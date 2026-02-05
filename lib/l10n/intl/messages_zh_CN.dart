@@ -989,6 +989,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardApiUrlNotConfigured": MessageLookupByLibrary.simpleMessage(
       "API地址未配置",
     ),
+    "xboardAppearance": MessageLookupByLibrary.simpleMessage("外观"),
     "xboardAutoCheckEvery5Seconds": MessageLookupByLibrary.simpleMessage(
       "系统每5秒自动检查一次，支付完成后会自动跳转",
     ),
@@ -1390,7 +1391,6 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardNetworkConnectionFailedCheckSettings":
         MessageLookupByLibrary.simpleMessage("网络连接失败，请检查网络设置后重试"),
-    "xboardAppearance": MessageLookupByLibrary.simpleMessage("外观"),
     "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage("网络设置"),
     "xboardNeverExpire": MessageLookupByLibrary.simpleMessage("永不过期"),
     "xboardNewPassword": MessageLookupByLibrary.simpleMessage("新密码"),

@@ -7874,21 +7874,21 @@ class AppLocalizations {
     return Intl.message('Settings', name: 'xboardSettings', desc: '', args: []);
   }
 
-  /// `Appearance`
-  String get xboardAppearance {
-    return Intl.message(
-      'Appearance',
-      name: 'xboardAppearance',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Network Settings`
   String get xboardNetworkSettings {
     return Intl.message(
       'Network Settings',
       name: 'xboardNetworkSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Appearance`
+  String get xboardAppearance {
+    return Intl.message(
+      'Appearance',
+      name: 'xboardAppearance',
       desc: '',
       args: [],
     );

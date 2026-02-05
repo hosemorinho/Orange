@@ -1443,6 +1443,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardApiUrlNotConfigured": MessageLookupByLibrary.simpleMessage(
       "API URL not configured",
     ),
+    "xboardAppearance": MessageLookupByLibrary.simpleMessage("Appearance"),
     "xboardAutoCheckEvery5Seconds": MessageLookupByLibrary.simpleMessage(
       "System checks every 5 seconds, will redirect automatically after payment",
     ),
@@ -1993,7 +1994,6 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage(
           "Network connection failed, please check network settings and retry",
         ),
-    "xboardAppearance": MessageLookupByLibrary.simpleMessage("Appearance"),
     "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage(
       "Network Settings",
     ),

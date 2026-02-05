@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart';
-import 'package:fl_clash/common/common.dart' show appLocalizations, system, windows;
+import 'package:fl_clash/common/common.dart' show system, windows;
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/xb_dashboard_card.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
@@ -168,6 +168,7 @@ class XBoardSettingsPage extends ConsumerWidget {
                           value: userInfo.remindExpire,
                           onChanged: (value) => _updateNotificationSetting(
                             ref,
+                            context,
                             remindExpire: value,
                             remindTraffic: userInfo.remindTraffic,
                           ),
@@ -181,6 +182,7 @@ class XBoardSettingsPage extends ConsumerWidget {
                           value: userInfo.remindTraffic,
                           onChanged: (value) => _updateNotificationSetting(
                             ref,
+                            context,
                             remindExpire: userInfo.remindExpire,
                             remindTraffic: value,
                           ),
@@ -387,10 +389,12 @@ class XBoardSettingsPage extends ConsumerWidget {
   }
 
   Future<void> _updateNotificationSetting(
-    WidgetRef ref, {
+    WidgetRef ref,
+    BuildContext context, {
     required bool remindExpire,
     required bool remindTraffic,
   }) async {
+    final appLocalizations = AppLocalizations.of(context);
     try {
       final api = await ref.read(xboardSdkProvider.future);
       await api.updateUser({

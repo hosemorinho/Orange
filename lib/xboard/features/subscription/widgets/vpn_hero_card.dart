@@ -424,6 +424,19 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     const buttonSize = 88.0;
     const ringSize = 108.0;
 
+    // 检查订阅状态
+    final userState = ref.watch(xboardUserProvider);
+    final currentProfile = ref.watch(currentProfileProvider);
+    final profileSubInfo = currentProfile?.subscriptionInfo;
+
+    SubscriptionStatusResult? subscriptionStatus;
+    if (userState.isAuthenticated && profileSubInfo != null) {
+      subscriptionStatus = subscriptionStatusService.checkSubscriptionStatus(
+        userState: userState,
+        profileSubscriptionInfo: profileSubInfo,
+      );
+    }
+
     return Column(
       children: [
         // Status text
@@ -495,6 +508,10 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         ),
         const SizedBox(height: 14),
 
+        // 订阅状态警告提示
+        if (subscriptionStatus != null && _shouldShowWarning(subscriptionStatus))
+          _buildSubscriptionWarning(context, theme, subscriptionStatus),
+
         // Compact traffic text
         _buildCompactTrafficText(
             theme, colorScheme, progress, usedTraffic, totalTraffic, remainingDays),
@@ -526,8 +543,27 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     const buttonSize = 80.0;
     const ringSize = 100.0;
 
+    // 检查订阅状态
+    final userState = ref.watch(xboardUserProvider);
+    final currentProfile = ref.watch(currentProfileProvider);
+    final profileSubInfo = currentProfile?.subscriptionInfo;
+
+    SubscriptionStatusResult? subscriptionStatus;
+    if (userState.isAuthenticated && profileSubInfo != null) {
+      subscriptionStatus = subscriptionStatusService.checkSubscriptionStatus(
+        userState: userState,
+        profileSubscriptionInfo: profileSubInfo,
+      );
+    }
+
     return Column(
       children: [
+        // 订阅状态警告提示（桌面端显示在顶部）
+        if (subscriptionStatus != null && _shouldShowWarning(subscriptionStatus)) ...[
+          _buildSubscriptionWarning(context, theme, subscriptionStatus),
+          const SizedBox(height: 12),
+        ],
+
         // Row: Left info | Right button
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -1052,6 +1088,78 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 判断是否需要显示订阅状态警告
+  bool _shouldShowWarning(SubscriptionStatusResult status) {
+    return status.type == SubscriptionStatusType.expired ||
+        status.type == SubscriptionStatusType.exhausted ||
+        status.type == SubscriptionStatusType.noSubscription;
+  }
+
+  /// 构建订阅状态警告组件
+  Widget _buildSubscriptionWarning(
+    BuildContext context,
+    ThemeData theme,
+    SubscriptionStatusResult status,
+  ) {
+    IconData warningIcon;
+    Color warningColor;
+    String warningText;
+
+    switch (status.type) {
+      case SubscriptionStatusType.noSubscription:
+        warningIcon = Icons.info_outline;
+        warningColor = theme.colorScheme.primary;
+        warningText = AppLocalizations.of(context).xboardNoAvailableSubscription;
+        break;
+      case SubscriptionStatusType.expired:
+        warningIcon = Icons.warning_amber_rounded;
+        warningColor = theme.colorScheme.error;
+        warningText = AppLocalizations.of(context).xboardSubscriptionExpired;
+        break;
+      case SubscriptionStatusType.exhausted:
+        warningIcon = Icons.error_outline;
+        warningColor = theme.colorScheme.error;
+        warningText = AppLocalizations.of(context).xboardTrafficExhausted;
+        break;
+      default:
+        return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: warningColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: warningColor.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            warningIcon,
+            size: 16,
+            color: warningColor,
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              warningText,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: warningColor,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

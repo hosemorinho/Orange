@@ -167,8 +167,24 @@ class SubscriptionStatusService {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
   bool shouldShowStartupDialog(SubscriptionStatusResult result) {
-    // 首页套餐卡片已经展示了所有订阅状态，这里不再弹订阅状态弹窗
-    return false;
+    // 在以下情况下弹窗提醒用户：
+    // 1. 订阅已过期
+    // 2. 流量已耗尽（使用超过 95%）
+    // 3. 无订阅（需要购买）
+    switch (result.type) {
+      case SubscriptionStatusType.expired:
+        return true;  // 订阅已过期，强制提醒
+      case SubscriptionStatusType.exhausted:
+        return true;  // 流量耗尽，强制提醒
+      case SubscriptionStatusType.noSubscription:
+        return true;  // 无订阅，提醒购买
+      case SubscriptionStatusType.valid:
+        // 订阅正常，不需要弹窗
+        return false;
+      case SubscriptionStatusType.notLoggedIn:
+        // 未登录，不弹窗
+        return false;
+    }
   }
 }
 final subscriptionStatusService = SubscriptionStatusService();

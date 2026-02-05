@@ -21,12 +21,13 @@ class XBoardHomePage extends ConsumerStatefulWidget {
   @override
   ConsumerState<XBoardHomePage> createState() => _XBoardHomePageState();
 }
-class _XBoardHomePageState extends ConsumerState<XBoardHomePage> 
+class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
     with AutomaticKeepAliveClientMixin {
   bool _hasInitialized = false;
   bool _hasStartedLatencyTesting = false;
   bool _hasCheckedSubscriptionStatus = false;
-  
+  Timer? _subscriptionRefreshTimer;  // 订阅信息定时刷新计时器
+
   @override
   bool get wantKeepAlive => true;  // 保持页面状态，防止重建
   
@@ -40,6 +41,8 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       if (userState.isAuthenticated) {
         // 等待订阅导入完成后再检查订阅状态
         _waitForSubscriptionImportThenCheck();
+        // 启动订阅信息定时刷新（每 5 分钟）
+        _startSubscriptionRefreshTimer();
       }
       autoLatencyService.initialize(ref);
       _waitForGroupsAndStartTesting();
@@ -85,6 +88,12 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       }
     });
   }
+  @override
+  void dispose() {
+    _subscriptionRefreshTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);  // 必须调用，配合 AutomaticKeepAliveClientMixin
@@ -312,5 +321,24 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         }
       }
     });
+  }
+
+  /// 启动订阅信息定时刷新（每 5 分钟）
+  void _startSubscriptionRefreshTimer() {
+    _subscriptionRefreshTimer?.cancel();
+    _subscriptionRefreshTimer = Timer.periodic(
+      const Duration(minutes: 5),
+      (_) async {
+        if (!mounted) return;
+        final userState = ref.read(xboardUserProvider);
+        if (userState.isAuthenticated) {
+          try {
+            await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
+          } catch (e) {
+            // 静默失败，不影响用户体验
+          }
+        }
+      },
+    );
   }
 } 

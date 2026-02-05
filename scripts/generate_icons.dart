@@ -23,6 +23,12 @@ class IconGenerator {
 
   /// Find ImageMagick executable on Windows
   Future<String?> _findImageMagickOnWindows() async {
+    // Check Chocolatey bin path first (most likely on CI)
+    final chocoPath = r'C:\ProgramData\chocolatey\bin\magick.exe';
+    if (await File(chocoPath).exists()) {
+      return chocoPath;
+    }
+
     // Check common installation paths
     final programFiles = Platform.environment['ProgramFiles'] ?? r'C:\Program Files';
     final programFilesX86 = Platform.environment['ProgramFiles(x86)'] ?? r'C:\Program Files (x86)';
@@ -31,15 +37,34 @@ class IconGenerator {
       final dir = Directory(baseDir);
       if (!await dir.exists()) continue;
 
-      await for (final entity in dir.list()) {
-        if (entity is Directory && entity.path.contains('ImageMagick')) {
-          final magickExe = File(path.join(entity.path, 'magick.exe'));
-          if (await magickExe.exists()) {
-            return magickExe.path;
+      try {
+        await for (final entity in dir.list()) {
+          if (entity is Directory && entity.path.contains('ImageMagick')) {
+            final magickExe = File(path.join(entity.path, 'magick.exe'));
+            if (await magickExe.exists()) {
+              return magickExe.path;
+            }
           }
         }
+      } catch (e) {
+        // Skip directories we can't access
+        continue;
       }
     }
+
+    // Also check Chocolatey lib path
+    final chocoLibPath = r'C:\ProgramData\chocolatey\lib\imagemagick\tools';
+    final chocoLibDir = Directory(chocoLibPath);
+    if (await chocoLibDir.exists()) {
+      try {
+        await for (final entity in chocoLibDir.list(recursive: true)) {
+          if (entity is File && entity.path.endsWith('magick.exe')) {
+            return entity.path;
+          }
+        }
+      } catch (_) {}
+    }
+
     return null;
   }
 
@@ -119,11 +144,14 @@ class IconGenerator {
           _magickCmd = magickPath;
           return;
         }
+        print('❌ Could not find ImageMagick in common paths');
       }
       throw 'ImageMagick is not installed. Please install it first:\n'
           '  Ubuntu/Debian: sudo apt install imagemagick\n'
           '  macOS: brew install imagemagick\n'
           '  Windows: choco install imagemagick';
+    } else {
+      print('✅ Found ImageMagick command: $_magickCmd');
     }
   }
 
@@ -147,7 +175,23 @@ class IconGenerator {
     // Windows app icon (256x256 ICO)
     final windowsIconPath =
         path.join(projectRoot, 'windows', 'runner', 'resources', 'app_icon.ico');
+
+    // Ensure directory exists
+    final windowsIconDir = Directory(path.dirname(windowsIconPath));
+    if (!await windowsIconDir.exists()) {
+      await windowsIconDir.create(recursive: true);
+    }
+
     await _generateIco(sourcePath, windowsIconPath, 256);
+
+    // Verify the icon was created
+    final iconFile = File(windowsIconPath);
+    if (await iconFile.exists()) {
+      final size = await iconFile.length();
+      print('✅ Windows icon created: $windowsIconPath ($size bytes)');
+    } else {
+      print('❌ Failed to create Windows icon at: $windowsIconPath');
+    }
 
     print('✅ Windows icons generated');
   }

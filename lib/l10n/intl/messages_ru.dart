@@ -933,6 +933,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "whitelistMode": MessageLookupByLibrary.simpleMessage(
       "Режим белого списка",
     ),
+    "xboardDevices": MessageLookupByLibrary.simpleMessage("устройств"),
+    "xboardUnlimited": MessageLookupByLibrary.simpleMessage("Безлимитный"),
+    "xboardUnlimitedDevices": MessageLookupByLibrary.simpleMessage(
+      "Неограниченное количество устройств",
+    ),
+    "xboardUnlimitedTime": MessageLookupByLibrary.simpleMessage("Безлимитный"),
     "years": MessageLookupByLibrary.simpleMessage("Лет"),
     "yearsAgo": m56,
     "zh_CN": MessageLookupByLibrary.simpleMessage("Упрощенный китайский"),

@@ -1,4 +1,6 @@
-import 'package:fl_clash/common/common.dart' show appLocalizations;
+import 'dart:io';
+import 'package:path/path.dart';
+import 'package:fl_clash/common/common.dart' show appLocalizations, system, windows;
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/xb_dashboard_card.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
@@ -11,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_clash/xboard/features/shared/dialogs/theme_dialog.dart';
+import 'package:fl_clash/views/hotkey.dart';
+import 'package:fl_clash/views/config/advanced.dart';
 
 import '../widgets/bypass_domain_card.dart';
 import '../widgets/lan_sharing_widgets.dart';
@@ -286,6 +290,68 @@ class XBoardSettingsPage extends ConsumerWidget {
                   onTap: () {
                     showThemeDialog(context, ref);
                   },
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Application Settings Section
+              XBSectionTitle(
+                title: appLocalizations.applicationSettings,
+                icon: Icons.tune_outlined,
+              ),
+              const SizedBox(height: 8),
+              XBDashboardCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    // Advanced Configuration
+                    _SettingTile(
+                      icon: Icons.build_outlined,
+                      title: appLocalizations.advancedConfig,
+                      subtitle: appLocalizations.advancedConfigDesc,
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const AdvancedConfigView(),
+                          ),
+                        );
+                      },
+                    ),
+                    // Hotkey Management (Desktop only)
+                    if (system.isDesktop) ...[
+                      _SettingDivider(),
+                      _SettingTile(
+                        icon: Icons.keyboard_outlined,
+                        title: appLocalizations.hotkeyManagement,
+                        subtitle: appLocalizations.hotkeyManagementDesc,
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const HotKeyView(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                    // Loopback Unlock Tool (Windows only)
+                    if (system.isWindows) ...[
+                      _SettingDivider(),
+                      _SettingTile(
+                        icon: Icons.lock_open_outlined,
+                        title: appLocalizations.loopback,
+                        subtitle: appLocalizations.loopbackDesc,
+                        trailing: const Icon(Icons.launch),
+                        onTap: () {
+                          windows?.runas(
+                            '"${join(dirname(Platform.resolvedExecutable), "EnableLoopback.exe")}"',
+                            '',
+                          );
+                        },
+                      ),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(height: 32),

@@ -101,6 +101,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "application": MessageLookupByLibrary.simpleMessage("アプリケーション"),
     "applicationDesc": MessageLookupByLibrary.simpleMessage("アプリ関連設定を変更"),
+    "applicationSettings": MessageLookupByLibrary.simpleMessage("アプリケーション設定"),
     "auto": MessageLookupByLibrary.simpleMessage("自動"),
     "autoCheckUpdate": MessageLookupByLibrary.simpleMessage("自動更新チェック"),
     "autoCheckUpdateDesc": MessageLookupByLibrary.simpleMessage(

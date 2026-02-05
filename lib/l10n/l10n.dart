@@ -459,6 +459,16 @@ class AppLocalizations {
     );
   }
 
+  /// `Application Settings`
+  String get applicationSettings {
+    return Intl.message(
+      'Application Settings',
+      name: 'applicationSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Edit`
   String get edit {
     return Intl.message('Edit', name: 'edit', desc: '', args: []);

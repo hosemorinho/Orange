@@ -43,108 +43,83 @@ class XBoardSettingsPage extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Profile Section
+              // Profile Section (Compact)
               if (userInfo != null) ...[
                 XBDashboardCard(
-                  child: Column(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
                     children: [
-                      // Avatar and basic info
-                      Row(
-                        children: [
-                          // Avatar
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [
-                                  colorScheme.primary,
-                                  colorScheme.tertiary,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                userInfo.email[0].toUpperCase(),
-                                style: theme.textTheme.headlineMedium?.copyWith(
-                                  color: colorScheme.onPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                      // Compact Avatar
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [colorScheme.primary, colorScheme.tertiary],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            userInfo.email[0].toUpperCase(),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          // Email and member info
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Email and plan
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              userInfo.email,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
                               children: [
-                                Text(
-                                  userInfo.email,
-                                  style: theme.textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                if (subscription?.planName != null) ...[
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.primaryContainer,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      subscription!.planName!,
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        color: colorScheme.onPrimaryContainer,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
+                                  const SizedBox(width: 6),
+                                ],
                                 Text(
-                                  '${appLocalizations.xboardMemberSince} ${_formatDate(userInfo.createdAt)}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
+                                  '¥${userInfo.balanceInYuan.toStringAsFixed(2)}',
+                                  style: theme.textTheme.labelSmall?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      // Balance and plan info
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _StatItem(
-                              label: appLocalizations.xboardAccountBalance,
-                              value: '¥${userInfo.balanceInYuan.toStringAsFixed(2)}',
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _StatItem(
-                              label: appLocalizations.xboardCommissionBalance,
-                              value: '¥${userInfo.commissionBalanceInYuan.toStringAsFixed(2)}',
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (subscription?.planName != null || userInfo.commissionRate != null) ...[
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            if (subscription?.planName != null) ...[
-                              XBStatusBadge(
-                                label: subscription!.planName!,
-                                color: colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                            ],
-                            if (userInfo.commissionRate != null)
-                              XBStatusBadge(
-                                label: '${appLocalizations.xboardCommissionRate}: ${(userInfo.commissionRate! * 100).toStringAsFixed(0)}%',
-                                color: Colors.orange,
-                              ),
                           ],
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // Account Settings Section
                 XBSectionTitle(
@@ -413,44 +388,6 @@ class XBoardSettingsPage extends ConsumerWidget {
         '${appLocalizations.xboardNotificationUpdateError}: $e',
       );
     }
-  }
-}
-
-// Stat item widget for balance display
-class _StatItem extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-
-  const _StatItem({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: theme.textTheme.titleLarge?.copyWith(
-            color: color,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
   }
 }
 

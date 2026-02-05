@@ -485,5 +485,9 @@
   "restoreOnlyConfig": "Восстановить только файлы конфигурации",
   "restoreAllData": "Восстановить все данные",
   "addProfile": "Добавить профиль",
-  "delayTest": "Тест задержки"
+  "delayTest": "Тест задержки",
+  "xboardUnlimited": "Безлимитный",
+  "xboardUnlimitedTime": "Безлимитный",
+  "xboardUnlimitedDevices": "Неограниченное количество устройств",
+  "xboardDevices": "устройств"
 }

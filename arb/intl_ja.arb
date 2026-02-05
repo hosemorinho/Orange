@@ -477,5 +477,9 @@
   "restoreOnlyConfig": "設定ファイルのみを復元する",
   "restoreAllData": "すべてのデータを復元する",
   "addProfile": "プロファイルを追加",
-  "delayTest": "遅延テスト"
+  "delayTest": "遅延テスト",
+  "xboardUnlimited": "無制限",
+  "xboardUnlimitedTime": "無制限",
+  "xboardUnlimitedDevices": "デバイス数無制限",
+  "xboardDevices": "台デバイス"
 }

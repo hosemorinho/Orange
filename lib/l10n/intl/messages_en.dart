@@ -1683,6 +1683,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardDetail": MessageLookupByLibrary.simpleMessage("Detail"),
     "xboardDeviceLimitCount": m44,
+    "xboardDevices": MessageLookupByLibrary.simpleMessage("devices"),
     "xboardDirectConnectionLabel": MessageLookupByLibrary.simpleMessage(
       "Direct",
     ),

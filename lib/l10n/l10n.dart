@@ -10164,6 +10164,11 @@ class AppLocalizations {
     );
   }
 
+  /// `devices`
+  String get xboardDevices {
+    return Intl.message('devices', name: 'xboardDevices', desc: '', args: []);
+  }
+
   /// `Current Password`
   String get xboardOldPassword {
     return Intl.message(

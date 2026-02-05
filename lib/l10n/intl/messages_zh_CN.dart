@@ -1168,6 +1168,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardDetail": MessageLookupByLibrary.simpleMessage("详情"),
     "xboardDeviceLimitCount": m44,
+    "xboardDevices": MessageLookupByLibrary.simpleMessage("台设备"),
     "xboardDirectConnectionLabel": MessageLookupByLibrary.simpleMessage("直连"),
     "xboardDisconnected": MessageLookupByLibrary.simpleMessage("已断开"),
     "xboardDiscount": MessageLookupByLibrary.simpleMessage("优惠"),

@@ -100,9 +100,11 @@ jobs:
           path: |
             lib/l10n/
             lib/models/generated/
+            lib/database/generated/
             lib/xboard/domain/models/generated/
             lib/xboard/adapter/state/generated/
             lib/xboard/adapter/initialization/generated/
+            lib/xboard/database/generated/
           retention-days: 1
 
   build:

@@ -10,6 +10,7 @@ targets:
             # lib/database (upstream)
             '^lib/database/{{}}.dart': 'lib/database/generated/{{}}.g.dart'
             # lib/xboard
+            '^lib/xboard/database/{{}}.dart': 'lib/xboard/database/generated/{{}}.g.dart'
             '^lib/xboard/adapter/state/{{}}.dart': 'lib/xboard/adapter/state/generated/{{}}.g.dart'
             '^lib/xboard/adapter/initialization/{{}}.dart': 'lib/xboard/adapter/initialization/generated/{{}}.g.dart'
             '^lib/xboard/domain/models/{{}}.dart': 'lib/xboard/domain/models/generated/{{}}.g.dart'

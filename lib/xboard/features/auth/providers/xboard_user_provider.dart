@@ -209,7 +209,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
         return false;
       }
 
-      await api.saveAndSetToken(token);
+      await api.saveAndSetToken(token, email: email);
 
       _logger.info('登录成功，立即获取用户信息');
       await _storageService.saveUserEmail(email);
@@ -291,7 +291,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       final data = json['data'] as Map<String, dynamic>? ?? {};
       final token = data['auth_data'] as String?;
       if (token != null && token.isNotEmpty) {
-        await api.saveAndSetToken(token);
+        await api.saveAndSetToken(token, email: email);
       }
 
       _logger.info('注册成功');

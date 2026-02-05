@@ -4,7 +4,9 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/infrastructure/infrastructure.dart';
 import 'package:fl_clash/xboard/core/core.dart';
+import 'package:fl_clash/xboard/database/database.dart';
 import 'xboard_storage_service.dart';
+import 'xboard_db_storage_service.dart';
 
 /// Storage 接口 FutureProvider
 /// 提供默认的 SharedPreferences 实现
@@ -69,3 +71,14 @@ class _PlaceholderStorage implements StorageInterface {
   Future<Result<Set<String>>> getKeys() async => Result.success({});
 }
 
+/// XBoard 数据库存储服务 Provider
+///
+/// 使用 Drift 数据库的存储服务
+final dbStorageServiceProvider = Provider<XBoardDbStorageService>((ref) {
+  return XBoardDbStorageService(
+    userRepo: ref.watch(userRepositoryProvider),
+    subscriptionRepo: ref.watch(subscriptionRepositoryProvider),
+    authRepo: ref.watch(authRepositoryProvider),
+    noticeRepo: ref.watch(noticeRepositoryProvider),
+  );
+});

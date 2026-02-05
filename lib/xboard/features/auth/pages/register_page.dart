@@ -97,7 +97,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         final data = json['data'] as Map<String, dynamic>? ?? {};
         final token = data['token'] as String?;
         if (token != null && token.isNotEmpty) {
-          await api.saveAndSetToken(token);
+          await api.saveAndSetToken(token, email: _fullEmail);
         }
 
         if (mounted) {

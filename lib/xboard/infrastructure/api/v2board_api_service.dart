@@ -35,9 +35,9 @@ class V2BoardApiService {
     _authToken = await V2BoardTokenStorage.getToken();
   }
 
-  Future<void> saveAndSetToken(String token) async {
+  Future<void> saveAndSetToken(String token, {String? email}) async {
     _authToken = token;
-    await V2BoardTokenStorage.saveToken(token);
+    await V2BoardTokenStorage.saveToken(token, email: email);
   }
 
   Future<void> clearToken() async {

@@ -11,6 +11,7 @@ class QuickActionsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final appLocalizations = AppLocalizations.of(context);
     final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     return XBDashboardCard(

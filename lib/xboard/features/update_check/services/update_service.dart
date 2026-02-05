@@ -12,32 +12,41 @@ final _logger = FileLogger('update_service.dart');
 
 class UpdateService {
   /// Get the best update server URL from configuration
-  Future<String> _getServerUrl() async {
+  /// Returns null if no URL is configured (update check will be skipped)
+  Future<String?> _getServerUrl() async {
     final updateUrl = XBoardConfig.updateUrl;
     if (updateUrl != null && updateUrl.isNotEmpty) {
       _logger.info('从配置获取更新URL: $updateUrl');
       return updateUrl;
     }
-    
-    throw Exception(appLocalizations.updateCheckServerUrlNotConfigured);
+
+    _logger.info('未配置更新服务器URL，跳过更新检查');
+    return null;
   }
 
   /// 获取所有可用的更新服务器URL
+  /// Returns empty list if no URLs are configured
   Future<List<String>> _getAllServerUrls() async {
     final configUrls = XBoardConfig.allUpdateUrls;
-    
+
     if (configUrls.isEmpty) {
-      throw Exception(appLocalizations.updateCheckNoServerUrlsConfigured);
+      _logger.info('未配置更新服务器URL列表，跳过更新检查');
+      return [];
     }
-    
+
     _logger.info('从配置获取到 ${configUrls.length} 个更新URL');
     return configUrls;
   }
 
   /// 检查更新（使用配置的更新服务器）
-  Future<Map<String, dynamic>> checkForUpdatesWithFallback() async {
+  /// Returns null if no update URLs are configured (silently skipped)
+  Future<Map<String, dynamic>?> checkForUpdatesWithFallback() async {
     final serverUrls = await _getAllServerUrls();
-    
+
+    if (serverUrls.isEmpty) {
+      return null; // 静默跳过，不报错
+    }
+
     for (int i = 0; i < serverUrls.length; i++) {
       try {
         _logger.info('尝试更新服务器 ${i + 1}/${serverUrls.length}: ${serverUrls[i]}');
@@ -52,7 +61,7 @@ class UpdateService {
         continue;
       }
     }
-    
+
     throw Exception(appLocalizations.updateCheckAllServersUnavailable);
   }
 
@@ -113,8 +122,14 @@ class UpdateService {
     final packageInfo = await PackageInfo.fromPlatform();
     return packageInfo.version;
   }
-  Future<Map<String, dynamic>> checkForUpdates() async {
+
+  /// 检查更新
+  /// Returns null if no update URL is configured (silently skipped)
+  Future<Map<String, dynamic>?> checkForUpdates() async {
     final serverUrl = await _getServerUrl();
+    if (serverUrl == null) {
+      return null; // 静默跳过，不报错
+    }
     return await _checkForUpdatesFromUrl(serverUrl);
   }
   String _getPlatformName() {

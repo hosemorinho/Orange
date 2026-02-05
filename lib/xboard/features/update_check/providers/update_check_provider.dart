@@ -37,7 +37,19 @@ class UpdateCheckNotifier extends Notifier<UpdateCheckState> {
       final currentVersion = await _updateService.getCurrentVersion();
       _logger.info('当前版本: $currentVersion');
       state = state.copyWith(currentVersion: currentVersion);
+
       final updateInfo = await _updateService.checkForUpdates();
+
+      // 如果没有配置更新URL，静默跳过
+      if (updateInfo == null) {
+        _logger.info('更新检查已跳过（未配置更新服务器）');
+        state = state.copyWith(
+          isChecking: false,
+          hasUpdate: false,
+        );
+        return;
+      }
+
       state = state.copyWith(
         isChecking: false,
         hasUpdate: updateInfo["hasUpdate"] as bool? ?? false,

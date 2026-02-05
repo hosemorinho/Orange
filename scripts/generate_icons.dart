@@ -86,6 +86,7 @@ class IconGenerator {
       await _generateMacOSIcons(sourcePath);
       await _generateAndroidIcons(sourcePath);
       await _generateAssetIcons(sourcePath);
+      await _generateTrayIcons(sourcePath);
 
       print('✅ Icon generation complete!');
     } finally {
@@ -214,6 +215,69 @@ class IconGenerator {
     await _generateIco(sourcePath, mainIcoPath, 256);
 
     print('✅ Asset icons generated');
+  }
+
+  Future<void> _generateTrayIcons(String sourcePath) async {
+    print('🔔 Generating tray icons...');
+
+    final trayIconDir = path.join(projectRoot, 'assets', 'images', 'icon');
+
+    // Tray icon size (typically 16-32 for Windows, 22 for macOS)
+    const traySize = 32;
+
+    // status_1: Default/stopped state - grayscale version
+    final status1Png = path.join(trayIconDir, 'status_1.png');
+    final status1Ico = path.join(trayIconDir, 'status_1.ico');
+    await _generateGrayscalePng(sourcePath, status1Png, traySize);
+    await _generateIco(status1Png, status1Ico, traySize);
+
+    // status_2: Running without TUN - normal colored version
+    final status2Png = path.join(trayIconDir, 'status_2.png');
+    final status2Ico = path.join(trayIconDir, 'status_2.ico');
+    await _resizePng(sourcePath, status2Png, traySize);
+    await _generateIco(status2Png, status2Ico, traySize);
+
+    // status_3: Running with TUN - slightly brighter/enhanced version
+    final status3Png = path.join(trayIconDir, 'status_3.png');
+    final status3Ico = path.join(trayIconDir, 'status_3.ico');
+    await _generateEnhancedPng(sourcePath, status3Png, traySize);
+    await _generateIco(status3Png, status3Ico, traySize);
+
+    print('✅ Tray icons generated');
+  }
+
+  Future<void> _generateGrayscalePng(String input, String output, int size) async {
+    await _exec(_magickCmd, [
+      input,
+      '-resize',
+      '${size}x$size',
+      '-background',
+      'none',
+      '-gravity',
+      'center',
+      '-extent',
+      '${size}x$size',
+      '-colorspace',
+      'Gray',
+      output,
+    ]);
+  }
+
+  Future<void> _generateEnhancedPng(String input, String output, int size) async {
+    await _exec(_magickCmd, [
+      input,
+      '-resize',
+      '${size}x$size',
+      '-background',
+      'none',
+      '-gravity',
+      'center',
+      '-extent',
+      '${size}x$size',
+      '-modulate',
+      '110,120,100', // Slightly brighter and more saturated
+      output,
+    ]);
   }
 
   Future<void> _resizePng(String input, String output, int size) async {

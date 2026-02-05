@@ -109,7 +109,19 @@ extension DomainSubscriptionX on DomainSubscription {
   }
 
   /// 总流量（格式化）
+  ///
+  /// V2Board API 应该返回字节值，但某些实现可能返回 GB 值。
+  /// 如果值小于 1024，假定已经是 GB 单位；否则按字节转换。
   String get formattedTotalTraffic {
+    if (transferLimit == 0) {
+      return '∞'; // Unlimited
+    }
+
+    // If value is small (< 1024), assume it's already in GB
+    if (transferLimit < 1024) {
+      return '$transferLimit GB';
+    }
+
     final trafficShow = transferLimit.traffic;
     return '${trafficShow.value} ${trafficShow.unit}';
   }

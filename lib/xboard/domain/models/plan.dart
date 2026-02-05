@@ -169,7 +169,21 @@ abstract class DomainPlan with _$DomainPlan {
   }
 
   /// 格式化流量显示
+  ///
+  /// V2Board API 应该返回字节值，但某些实现可能返回 GB 值。
+  /// 如果值小于 1024，假定已经是 GB 单位；否则按字节转换。
   String get formattedTraffic {
+    if (transferQuota == 0) {
+      return '∞'; // Unlimited
+    }
+
+    // If value is small (< 1024), assume it's already in GB
+    // Normal byte values for plans would be at least 1GB = 1073741824 bytes
+    if (transferQuota < 1024) {
+      return '$transferQuota GB';
+    }
+
+    // Standard bytes conversion
     final trafficShow = transferQuota.traffic;
     return '${trafficShow.value} ${trafficShow.unit}';
   }

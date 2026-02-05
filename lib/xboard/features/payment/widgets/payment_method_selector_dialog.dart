@@ -40,7 +40,7 @@ class _PaymentMethodSelectorDialog extends StatefulWidget {
   State<_PaymentMethodSelectorDialog> createState() => _PaymentMethodSelectorDialogState();
 }
 
-class _PaymentMethodSelectorDialogState extends State<PaymentMethodSelectorDialog> {
+class _PaymentMethodSelectorDialogState extends State<_PaymentMethodSelectorDialog> {
   DomainPaymentMethod? _selectedMethod;
 
   @override

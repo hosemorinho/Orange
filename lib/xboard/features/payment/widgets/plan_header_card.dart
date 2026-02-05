@@ -68,75 +68,63 @@ class PlanHeaderCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          _buildFeatureRow(
-            context,
-            Icons.cloud_download_outlined,
-            AppLocalizations.of(context).xboardTraffic,
-            _getTrafficDisplay(context),
-          ),
-          const SizedBox(height: 8),
-          _buildFeatureRow(
-            context,
-            Icons.speed,
-            AppLocalizations.of(context).xboardSpeedLimit,
-            _getSpeedLimitDisplay(context),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildCompactInfo(
+                context,
+                Icons.cloud_download_outlined,
+                _getTrafficDisplay(context),
+              ),
+              _buildCompactInfo(
+                context,
+                Icons.speed,
+                _getSpeedLimitDisplay(context),
+              ),
+              if (plan.deviceLimit != null)
+                _buildCompactInfo(
+                  context,
+                  Icons.devices,
+                  '${plan.deviceLimit} ${AppLocalizations.of(context).xboardDevices}',
+                )
+              else
+                _buildCompactInfo(
+                  context,
+                  Icons.devices,
+                  AppLocalizations.of(context).xboardUnlimited,
+                ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFeatureRow(
-    BuildContext context,
-    IconData icon,
-    String label,
-    String value,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        Icon(icon, color: colorScheme.primary, size: 18),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: colorScheme.primary,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildCompactInfo(BuildContext context, IconData icon, String text) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(6),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.3),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: colorScheme.primary, size: 14),
-          const SizedBox(width: 5),
+          const SizedBox(width: 6),
           Text(
             text,
             style: TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: colorScheme.primary,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
             ),
           ),
         ],

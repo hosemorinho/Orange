@@ -1433,6 +1433,7 @@
   "xboardBrowserNotOpenedNote": "Tip: If browser doesn't open automatically, click \"Reopen\" or copy link manually",
   "xboardClearOldOrders": "Clear old orders",
   "xboardUnlimitedDevices": "Unlimited devices",
+  "xboardDevices": "devices",
   "xboardOldPassword": "Current Password",
   "xboardNewPassword": "New Password",
   "xboardPasswordChangedSuccess": "Password changed successfully",

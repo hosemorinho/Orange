@@ -1434,6 +1434,7 @@
   "xboardBrowserNotOpenedNote": "提示：如果浏览器未自动打开，可以点击\"重新打开\"或复制链接手动打开",
   "xboardClearOldOrders": "清理旧订单",
   "xboardUnlimitedDevices": "不限设备数量",
+  "xboardDevices": "台设备",
   "xboardOldPassword": "当前密码",
   "xboardNewPassword": "新密码",
   "xboardPasswordChangedSuccess": "密码修改成功",

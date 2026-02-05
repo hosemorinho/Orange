@@ -105,33 +105,40 @@ class _PlanCardState extends State<PlanCard> {
                 ),
               ),
 
-              // Features section
+              // Features section with tags
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Traffic
-                    _buildFeatureItem(
-                      context,
-                      Icons.cloud_download_outlined,
-                      '${AppLocalizations.of(context).xboardTraffic}: ${plan.formattedTraffic}',
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Speed limit
-                    _buildFeatureItem(
-                      context,
-                      Icons.speed,
-                      '${AppLocalizations.of(context).xboardSpeedLimit}: ${_getSpeedLimitText(context)}',
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Unlimited devices
-                    _buildFeatureItem(
-                      context,
-                      Icons.devices,
-                      AppLocalizations.of(context).xboardUnlimitedDevices,
+                    // Feature tags
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildFeatureTag(
+                          context,
+                          Icons.cloud_download_outlined,
+                          plan.formattedTraffic,
+                        ),
+                        _buildFeatureTag(
+                          context,
+                          Icons.speed,
+                          _getSpeedLimitText(context),
+                        ),
+                        if (plan.deviceLimit != null)
+                          _buildFeatureTag(
+                            context,
+                            Icons.devices,
+                            '${plan.deviceLimit} ${AppLocalizations.of(context).xboardDevices}',
+                          )
+                        else
+                          _buildFeatureTag(
+                            context,
+                            Icons.devices,
+                            AppLocalizations.of(context).xboardUnlimited,
+                          ),
+                      ],
                     ),
 
                     // Description (if exists)
@@ -182,26 +189,37 @@ class _PlanCardState extends State<PlanCard> {
     );
   }
 
-  Widget _buildFeatureItem(BuildContext context, IconData icon, String text) {
+  Widget _buildFeatureTag(BuildContext context, IconData icon, String text) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          Icons.check_circle,
-          size: 20,
-          color: colorScheme.primary,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.2),
+          width: 1,
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(width: 6),
+          Text(
             text,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
                 ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -4,7 +4,6 @@
 export 'providers/latency_provider.dart';
 
 // Services
-export 'services/latency_service.dart';
 export 'services/auto_latency_service.dart';
 
 // Widgets

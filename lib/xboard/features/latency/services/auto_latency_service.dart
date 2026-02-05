@@ -6,6 +6,7 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/views/proxies/common.dart' as proxies_common;
 // operation_coordinator已废弃，移除相关代码
 import 'package:fl_clash/xboard/core/core.dart';
+import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // 初始化文件级日志器
@@ -325,115 +326,25 @@ class AutoLatencyService {
         return null;
       }
       _logger.debug('当前模式: $mode, 组数量: ${groups.length}', null);
-      
-      Group? currentGroup = _findCurrentGroup(groups, selectedMap, mode);
-      if (currentGroup == null || currentGroup.all.isEmpty) {
-        _logger.debug('当前组为空或无代理节点');
+
+      final (:group, :proxy) = resolveCurrentNode(
+        groups: groups,
+        selectedMap: selectedMap,
+        mode: mode,
+      );
+
+      if (group == null || proxy == null) {
+        _logger.debug('未找到当前组或代理节点');
         return null;
       }
-      
-      _logger.debug('找到当前组: ${currentGroup.name}, 类型: ${currentGroup.type}, 节点数: ${currentGroup.all.length}', null);
-      
-      Proxy? selectedProxy = _getSelectedProxyFromGroup(currentGroup, selectedMap, groups);
-      if (selectedProxy != null) {
-        _logger.debug('最终选中的代理: ${selectedProxy.name}');
-        return selectedProxy;
-      }
 
-      _logger.debug('未找到已选中的代理节点，跳过测试');
-      return null;
+      _logger.debug('找到当前组: ${group.name}, 类型: ${group.type}, 节点数: ${group.all.length}', null);
+      _logger.debug('最终选中的代理: ${proxy.name}');
+      return proxy;
     } catch (e) {
       _logger.error('获取当前代理失败', e);
       return null;
     }
-  }
-
-  Group? _findCurrentGroup(List<Group> groups, Map<String, String> selectedMap, Mode mode) {
-    if (mode == Mode.global) {
-      return groups.firstWhere(
-        (group) => group.name == GroupName.GLOBAL.name,
-        orElse: () => groups.first,
-      );
-    } else if (mode == Mode.rule) {
-      for (final group in groups) {
-        if (group.hidden == true || group.name == GroupName.GLOBAL.name) continue;
-        final selectedProxyName = selectedMap[group.name];
-        if (selectedProxyName != null && selectedProxyName.isNotEmpty) {
-          final referencedGroup = groups.where((g) => g.name == selectedProxyName).firstOrNull;
-          if (referencedGroup != null && referencedGroup.type == GroupType.URLTest) {
-            return referencedGroup;
-          }
-          return group;
-        }
-      }
-      return groups.where(
-        (group) => group.hidden != true && group.name != GroupName.GLOBAL.name,
-      ).firstOrNull ?? groups.first;
-    }
-    return null;
-  }
-
-  Proxy? _getSelectedProxyFromGroup(Group group, Map<String, String> selectedMap, List<Group> allGroups) {
-    final selectedProxyName = selectedMap[group.name] ?? "";
-    _logger.debug('组 ${group.name} 的选中代理: $selectedProxyName');
-    
-    String realNodeName = "";
-    
-    if (group.type == GroupType.URLTest || group.type == GroupType.Fallback) {
-      realNodeName = group.now?.isNotEmpty == true ? group.now! : "";
-      if (realNodeName.isEmpty && group.all.isNotEmpty) {
-        realNodeName = group.all.first.name;
-        _logger.debug('${group.type}组now为空，使用第一个节点: $realNodeName');
-      }
-      _logger.debug('${group.type}组当前节点: $realNodeName');
-    } else {
-      if (selectedProxyName.isNotEmpty) {
-        final referencedGroup = allGroups.where((g) => g.name == selectedProxyName).firstOrNull;
-        if (referencedGroup != null) {
-          return _getSelectedProxyFromGroup(referencedGroup, selectedMap, allGroups);
-        } else {
-          final realName = group.getCurrentSelectedName(selectedProxyName);
-          if (realName != selectedProxyName && group.all.any((p) => p.name == realName)) {
-            realNodeName = realName;
-          } else if (group.all.any((p) => p.name == selectedProxyName)) {
-            realNodeName = selectedProxyName;
-          } else {
-            realNodeName = group.all.isNotEmpty ? group.all.first.name : "";
-            _logger.debug('选中的代理不存在，使用默认节点: $realNodeName');
-          }
-        }
-      } else {
-        // 未选择代理，查找 URLTest 自动选择组
-        for (final proxy in group.all) {
-          final urlTestGroup = allGroups.where(
-            (g) => g.name == proxy.name && g.type == GroupType.URLTest,
-          ).firstOrNull;
-          if (urlTestGroup != null) {
-            _logger.debug('未选择代理，使用自动选择组: ${urlTestGroup.name}');
-            return _getSelectedProxyFromGroup(urlTestGroup, selectedMap, allGroups);
-          }
-        }
-        _logger.debug('未选择代理且无自动选择组，跳过测试');
-        return null;
-      }
-      _logger.debug('Selector组当前节点: $realNodeName');
-    }
-    
-    if (realNodeName.isNotEmpty && group.all.any((p) => p.name == realNodeName)) {
-      final proxy = group.all.firstWhere((proxy) => proxy.name == realNodeName);
-      final isRealProxy = !allGroups.any((g) => g.name == realNodeName);
-      if (isRealProxy) {
-        _logger.debug('找到真实代理节点: ${proxy.name}');
-        return proxy;
-      } else {
-        _logger.debug('节点 $realNodeName 是组引用，递归查找真实节点');
-        final referencedGroup = allGroups.firstWhere((g) => g.name == realNodeName);
-        return _getSelectedProxyFromGroup(referencedGroup, selectedMap, allGroups);
-      }
-    }
-    
-    _logger.debug('未找到有效的代理节点');
-    return null;
   }
   Group? _getCurrentGroup() {
     if (_ref == null || !_isRefValid()) return null;
@@ -442,26 +353,14 @@ class AutoLatencyService {
       final selectedMap = _ref!.read(selectedMapProvider);
       final mode = _ref!.read(patchClashConfigProvider.select((state) => state.mode));
       if (groups.isEmpty) return null;
-      if (mode == Mode.global) {
-        return groups.firstWhere(
-          (group) => group.name == GroupName.GLOBAL.name,
-          orElse: () => groups.first,
-        );
-      } else if (mode == Mode.rule) {
-        for (final group in groups) {
-          if (group.hidden == true) continue;
-          if (group.name == GroupName.GLOBAL.name) continue;
-          final selectedProxyName = selectedMap[group.name];
-          if (selectedProxyName != null && selectedProxyName.isNotEmpty) {
-            return group;
-          }
-        }
-        return groups.firstWhere(
-          (group) => group.hidden != true && group.name != GroupName.GLOBAL.name,
-          orElse: () => groups.first,
-        );
-      }
-      return null;
+
+      final (:group, :proxy) = resolveCurrentNode(
+        groups: groups,
+        selectedMap: selectedMap,
+        mode: mode,
+      );
+
+      return group;
     } catch (e) {
       _logger.error('获取当前组失败', e);
       return null;

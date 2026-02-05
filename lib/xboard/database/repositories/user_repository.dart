@@ -5,10 +5,10 @@ import '../converters/converters.dart';
 /// 用户数据仓库
 ///
 /// 封装用户相关的数据库操作，提供领域模型接口
-class UserRepository {
+class DbUserRepository {
   final XBoardDatabase _db;
 
-  UserRepository(this._db);
+  DbUserRepository(this._db);
 
   /// 获取当前用户
   Future<DomainUser?> getCurrentUser() async {

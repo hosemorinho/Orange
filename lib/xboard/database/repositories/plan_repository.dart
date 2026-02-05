@@ -3,13 +3,13 @@ import '../xboard_database.dart';
 import '../converters/converters.dart';
 
 /// 套餐数据仓库
-class PlanRepository {
+class DbPlanRepository {
   final XBoardDatabase _db;
 
   /// 缓存有效期（默认 1 小时）
   final Duration cacheMaxAge;
 
-  PlanRepository(this._db, {this.cacheMaxAge = const Duration(hours: 1)});
+  DbPlanRepository(this._db, {this.cacheMaxAge = const Duration(hours: 1)});
 
   /// 获取所有套餐
   Future<List<DomainPlan>> getAllPlans() async {

@@ -3,10 +3,10 @@ import '../xboard_database.dart';
 /// 认证数据仓库
 ///
 /// 管理认证令牌和用户登录状态
-class AuthRepository {
+class DbAuthRepository {
   final XBoardDatabase _db;
 
-  AuthRepository(this._db);
+  DbAuthRepository(this._db);
 
   /// 获取当前令牌
   Future<String?> getCurrentToken() async {

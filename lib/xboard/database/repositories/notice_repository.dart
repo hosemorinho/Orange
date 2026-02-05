@@ -3,13 +3,13 @@ import '../xboard_database.dart';
 /// 公告数据仓库
 ///
 /// 管理公告已读状态
-class NoticeRepository {
+class DbNoticeRepository {
   final XBoardDatabase _db;
 
   /// 已读状态有效期（默认 24 小时）
   final Duration readValidDuration;
 
-  NoticeRepository(this._db, {this.readValidDuration = const Duration(hours: 24)});
+  DbNoticeRepository(this._db, {this.readValidDuration = const Duration(hours: 24)});
 
   /// 检查公告是否需要显示
   Future<bool> shouldShowNotice(int noticeId) async {

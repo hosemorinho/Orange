@@ -11,16 +11,16 @@ import 'package:fl_clash/xboard/database/database.dart';
 ///
 /// 负责存储和读取XBoard相关数据，使用 Drift 数据库
 class XBoardDbStorageService {
-  final UserRepository _userRepo;
-  final SubscriptionRepository _subscriptionRepo;
-  final AuthRepository _authRepo;
-  final NoticeRepository _noticeRepo;
+  final DbUserRepository _userRepo;
+  final DbSubscriptionRepository _subscriptionRepo;
+  final DbAuthRepository _authRepo;
+  final DbNoticeRepository _noticeRepo;
 
   XBoardDbStorageService({
-    required UserRepository userRepo,
-    required SubscriptionRepository subscriptionRepo,
-    required AuthRepository authRepo,
-    required NoticeRepository noticeRepo,
+    required DbUserRepository userRepo,
+    required DbSubscriptionRepository subscriptionRepo,
+    required DbAuthRepository authRepo,
+    required DbNoticeRepository noticeRepo,
   })  : _userRepo = userRepo,
         _subscriptionRepo = subscriptionRepo,
         _authRepo = authRepo,

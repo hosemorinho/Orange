@@ -3,10 +3,10 @@ import '../xboard_database.dart';
 import '../converters/converters.dart';
 
 /// 订单数据仓库
-class OrderRepository {
+class DbOrderRepository {
   final XBoardDatabase _db;
 
-  OrderRepository(this._db);
+  DbOrderRepository(this._db);
 
   /// 获取所有订单
   Future<List<DomainOrder>> getAllOrders() async {

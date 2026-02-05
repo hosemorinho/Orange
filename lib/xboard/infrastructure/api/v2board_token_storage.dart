@@ -7,8 +7,8 @@ import 'package:fl_clash/xboard/database/database.dart';
 import 'package:fl_clash/xboard/database/repositories/repositories.dart';
 
 class V2BoardTokenStorage {
-  static final _authRepo = AuthRepository(xboardDatabase);
-  static final _userRepo = UserRepository(xboardDatabase);
+  static final _authRepo = DbAuthRepository(xboardDatabase);
+  static final _userRepo = DbUserRepository(xboardDatabase);
 
   /// 保存 token
   ///

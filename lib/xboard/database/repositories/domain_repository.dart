@@ -19,10 +19,10 @@ class DomainConfig {
 }
 
 /// 域名数据仓库
-class DomainRepository {
+class DbDomainRepository {
   final XBoardDatabase _db;
 
-  DomainRepository(this._db);
+  DbDomainRepository(this._db);
 
   /// 获取所有域名
   Future<List<DomainConfig>> getAllDomains() async {

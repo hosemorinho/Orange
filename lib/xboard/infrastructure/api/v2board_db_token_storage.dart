@@ -8,7 +8,7 @@ import 'package:fl_clash/xboard/database/repositories/repositories.dart';
 ///
 /// 使用 Drift 数据库替代 SharedPreferences
 class V2BoardDbTokenStorage {
-  final AuthRepository _authRepo;
+  final DbAuthRepository _authRepo;
 
   V2BoardDbTokenStorage(this._authRepo);
 
@@ -47,7 +47,7 @@ class V2BoardDbTokenStorage {
 ///
 /// 使用全局数据库实例
 class V2BoardTokenStorageCompat {
-  static final _authRepo = AuthRepository(xboardDatabase);
+  static final _authRepo = DbAuthRepository(xboardDatabase);
 
   /// 保存 token
   static Future<void> saveToken(String email, String token) async {

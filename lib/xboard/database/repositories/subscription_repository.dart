@@ -3,10 +3,10 @@ import '../xboard_database.dart';
 import '../converters/converters.dart';
 
 /// 订阅数据仓库
-class SubscriptionRepository {
+class DbSubscriptionRepository {
   final XBoardDatabase _db;
 
-  SubscriptionRepository(this._db);
+  DbSubscriptionRepository(this._db);
 
   /// 获取当前订阅
   Future<DomainSubscription?> getCurrentSubscription() async {

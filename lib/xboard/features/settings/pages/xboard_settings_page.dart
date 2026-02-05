@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:path/path.dart';
+import 'package:path/path.dart' hide windows;
 import 'package:fl_clash/common/common.dart' show system, windows;
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/xb_dashboard_card.dart';

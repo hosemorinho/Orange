@@ -1,5 +1,6 @@
 import 'package:fl_clash/xboard/features/auth/auth.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

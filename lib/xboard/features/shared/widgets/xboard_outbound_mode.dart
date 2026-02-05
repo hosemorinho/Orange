@@ -88,6 +88,10 @@ class XBoardOutboundMode extends StatelessWidget {
           GroupName.GLOBAL.name,
           resolved.proxy!.name,
         );
+        appController.changeProxyDebounce(
+          GroupName.GLOBAL.name,
+          resolved.proxy!.name,
+        );
       }
     }
 
@@ -183,6 +187,7 @@ class XBoardOutboundMode extends StatelessWidget {
         globalGroup.name,
         validProxy.name,
       );
+      appController.changeProxyDebounce(globalGroup.name, validProxy.name);
       _logger.debug('[XBoardOutboundMode] 代理节点设置完成');
     } else {
       _logger.debug('[XBoardOutboundMode] 没有找到有效的代理节点');

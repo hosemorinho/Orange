@@ -231,6 +231,16 @@ class Windows {
       return true;
     }
 
+    // Verify helper binary exists
+    final helperFile = File(appPath.helperPath);
+    if (!await helperFile.exists()) {
+      commonPrint.log(
+        'Helper binary not found at: ${appPath.helperPath}',
+        logLevel: LogLevel.error,
+      );
+      return false;
+    }
+
     final command = [
       '/c',
       if (status == WindowsHelperServiceStatus.presence) ...[
@@ -256,15 +266,28 @@ class Windows {
     ].join(' ');
 
     final res = runas('cmd.exe', command);
+    if (!res) {
+      commonPrint.log(
+        'Failed to execute service registration command',
+        logLevel: LogLevel.error,
+      );
+      return false;
+    }
 
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(Duration(milliseconds: 500));
     final retryStatus = await retry(
       task: checkService,
-      maxAttempts: 5,
+      maxAttempts: 8,
       retryIf: (status) => status != WindowsHelperServiceStatus.running,
       delay: Duration(seconds: 1),
     );
-    return res && retryStatus == WindowsHelperServiceStatus.running;
+    if (retryStatus != WindowsHelperServiceStatus.running) {
+      commonPrint.log(
+        'Helper service failed to start after retries, status: $retryStatus',
+        logLevel: LogLevel.error,
+      );
+    }
+    return retryStatus == WindowsHelperServiceStatus.running;
   }
 
   Future<bool> registerTask(String appName) async {

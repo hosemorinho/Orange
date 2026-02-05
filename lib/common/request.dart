@@ -153,6 +153,10 @@ class Request {
       if (response.statusCode != HttpStatus.ok) {
         return false;
       }
+      // If CORE_SHA256 is not set at build time, accept any response
+      if (globalState.coreSHA256.isEmpty) {
+        return true;
+      }
       return (response.data as String) == globalState.coreSHA256;
     } catch (_) {
       return false;

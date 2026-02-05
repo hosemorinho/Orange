@@ -198,28 +198,50 @@ class _PlansViewState extends ConsumerState<PlansView> {
               padding: const EdgeInsets.all(16),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 768),
+                  constraints: const BoxConstraints(maxWidth: 1200),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final width = constraints.maxWidth;
-                      // Responsive grid: 1 column on mobile, 2 on tablet, 3 on desktop
-                      final crossAxisCount = width < 600 ? 1 : (width < 900 ? 2 : 3);
+                      final crossAxisCount = width < 500 ? 1 : (width < 800 ? 2 : 3);
                       const spacing = 16.0;
                       final totalSpacing = spacing * (crossAxisCount - 1);
                       final cardWidth = (width - totalSpacing) / crossAxisCount;
 
-                      return Wrap(
-                        spacing: spacing,
-                        runSpacing: spacing,
-                        children: plans.map((plan) {
-                          return SizedBox(
-                            width: cardWidth,
-                            child: PlanCard(
-                              plan: plan,
-                              onPurchase: () => _navigateToPurchase(plan),
+                      // Build rows with IntrinsicHeight for equal card heights
+                      final List<Widget> rows = [];
+                      for (var i = 0; i < plans.length; i += crossAxisCount) {
+                        final rowPlans = plans.sublist(
+                          i,
+                          (i + crossAxisCount).clamp(0, plans.length),
+                        );
+                        rows.add(
+                          IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for (var j = 0; j < rowPlans.length; j++) ...[
+                                  if (j > 0) const SizedBox(width: spacing),
+                                  SizedBox(
+                                    width: cardWidth,
+                                    child: PlanCard(
+                                      plan: rowPlans[j],
+                                      onPurchase: () => _navigateToPurchase(rowPlans[j]),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
-                          );
-                        }).toList(),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        children: [
+                          for (var i = 0; i < rows.length; i++) ...[
+                            if (i > 0) const SizedBox(height: spacing),
+                            rows[i],
+                          ],
+                        ],
                       );
                     },
                   ),

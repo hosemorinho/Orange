@@ -596,8 +596,61 @@ extension SetupControllerExt on AppController {
         .update((state) => state.copyWith(mode: mode));
     if (mode == Mode.global) {
       updateCurrentGroupName(GroupName.GLOBAL.name);
+      _ensureGlobalProxySelection();
+    } else if (mode == Mode.rule) {
+      _ensureRuleGroupSelection();
     }
     addCheckIp();
+  }
+
+  void _ensureGlobalProxySelection() {
+    final groups = _ref.read(groupsProvider);
+    if (groups.isEmpty) return;
+
+    final globalGroup = groups.firstWhere(
+      (g) => g.name == GroupName.GLOBAL.name,
+      orElse: () => groups.first,
+    );
+    if (globalGroup.all.isEmpty) return;
+
+    final selectedMap = _ref.read(selectedMapProvider);
+    final currentSelected = selectedMap[globalGroup.name];
+
+    // If a valid proxy is already selected, just push it to the core
+    if (currentSelected != null && currentSelected.isNotEmpty) {
+      final exists = globalGroup.all.any((p) => p.name == currentSelected);
+      if (exists) {
+        changeProxyDebounce(globalGroup.name, currentSelected);
+        return;
+      }
+    }
+
+    // Auto-select first non-DIRECT/REJECT proxy
+    for (final proxy in globalGroup.all) {
+      final upper = proxy.name.toUpperCase();
+      if (upper != 'DIRECT' && upper != 'REJECT') {
+        updateCurrentSelectedMap(globalGroup.name, proxy.name);
+        changeProxyDebounce(globalGroup.name, proxy.name);
+        return;
+      }
+    }
+  }
+
+  void _ensureRuleGroupSelection() {
+    final currentGroupName = getCurrentGroupName();
+    if (currentGroupName != null &&
+        currentGroupName != GroupName.GLOBAL.name) {
+      return;
+    }
+
+    // Select the first visible non-GLOBAL group
+    final groups = _ref.read(groupsProvider);
+    for (final group in groups) {
+      if (group.hidden != true && group.name != GroupName.GLOBAL.name) {
+        updateCurrentGroupName(group.name);
+        return;
+      }
+    }
   }
 
   void autoApplyProfile() {
@@ -770,7 +823,15 @@ extension CoreControllerExt on AppController {
   Future<Result<bool>> _requestAdmin(bool enableTun) async {
     final realTunEnable = _ref.read(realTunEnableProvider);
     if (enableTun != realTunEnable && realTunEnable == false) {
+      commonPrint.log(
+        'TUN: requesting admin authorization',
+        logLevel: LogLevel.info,
+      );
       final code = await system.authorizeCore();
+      commonPrint.log(
+        'TUN: authorization result: $code',
+        logLevel: LogLevel.info,
+      );
       switch (code) {
         case AuthorizeCode.success:
           await restartCore();
@@ -778,7 +839,15 @@ extension CoreControllerExt on AppController {
         case AuthorizeCode.none:
           break;
         case AuthorizeCode.error:
+          commonPrint.log(
+            'TUN: admin authorization failed, disabling TUN',
+            logLevel: LogLevel.warning,
+          );
           enableTun = false;
+          // Revert TUN toggle in UI
+          _ref
+              .read(patchClashConfigProvider.notifier)
+              .update((state) => state.copyWith.tun(enable: false));
           break;
       }
     }

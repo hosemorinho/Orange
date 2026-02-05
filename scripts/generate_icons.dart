@@ -13,12 +13,34 @@ import 'package:path/path.dart' as path;
 class IconGenerator {
   final String projectRoot;
   final String tempDir;
-  late final String _magickCmd;
+  late String _magickCmd;
 
   IconGenerator(this.projectRoot)
       : tempDir = path.join(projectRoot, '.icon_temp') {
     // On Windows, use 'magick' command; on other platforms, use 'convert'
     _magickCmd = Platform.isWindows ? 'magick' : 'convert';
+  }
+
+  /// Find ImageMagick executable on Windows
+  Future<String?> _findImageMagickOnWindows() async {
+    // Check common installation paths
+    final programFiles = Platform.environment['ProgramFiles'] ?? r'C:\Program Files';
+    final programFilesX86 = Platform.environment['ProgramFiles(x86)'] ?? r'C:\Program Files (x86)';
+
+    for (final baseDir in [programFiles, programFilesX86]) {
+      final dir = Directory(baseDir);
+      if (!await dir.exists()) continue;
+
+      await for (final entity in dir.list()) {
+        if (entity is Directory && entity.path.contains('ImageMagick')) {
+          final magickExe = File(path.join(entity.path, 'magick.exe'));
+          if (await magickExe.exists()) {
+            return magickExe.path;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /// Icon sizes for each platform
@@ -87,6 +109,16 @@ class IconGenerator {
     final checkCmd = Platform.isWindows ? 'where' : 'which';
     final result = await Process.run(checkCmd, [_magickCmd]);
     if (result.exitCode != 0) {
+      // On Windows, try to find ImageMagick in common installation paths
+      if (Platform.isWindows) {
+        print('⚠️ magick not found in PATH, searching for ImageMagick installation...');
+        final magickPath = await _findImageMagickOnWindows();
+        if (magickPath != null) {
+          print('✅ Found ImageMagick at: $magickPath');
+          _magickCmd = magickPath;
+          return;
+        }
+      }
       throw 'ImageMagick is not installed. Please install it first:\n'
           '  Ubuntu/Debian: sudo apt install imagemagick\n'
           '  macOS: brew install imagemagick\n'

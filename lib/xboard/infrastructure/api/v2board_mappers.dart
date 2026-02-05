@@ -14,18 +14,18 @@ DomainUser mapUserInfo(Map<String, dynamic> json) {
     email: json['email'] as String? ?? '',
     uuid: json['uuid'] as String? ?? '',
     avatarUrl: json['avatar_url'] as String? ?? '',
-    planId: json['plan_id'] as int?,
-    transferLimit: json['transfer_enable'] as int? ?? 0,
-    uploadedBytes: json['u'] as int? ?? 0,
-    downloadedBytes: json['d'] as int? ?? 0,
-    balanceInCents: json['balance'] as int? ?? 0,
-    commissionBalanceInCents: json['commission_balance'] as int? ?? 0,
+    planId: (json['plan_id'] as num?)?.toInt(),
+    transferLimit: (json['transfer_enable'] as num?)?.toInt() ?? 0,
+    uploadedBytes: (json['u'] as num?)?.toInt() ?? 0,
+    downloadedBytes: (json['d'] as num?)?.toInt() ?? 0,
+    balanceInCents: (json['balance'] as num?)?.toInt() ?? 0,
+    commissionBalanceInCents: (json['commission_balance'] as num?)?.toInt() ?? 0,
     expiredAt: _parseTimestamp(json['expired_at']),
     lastLoginAt: _parseTimestamp(json['last_login_at']),
     createdAt: _parseTimestamp(json['created_at']),
-    banned: (json['banned'] as int? ?? 0) == 1,
-    remindExpire: (json['remind_expire'] as int? ?? 1) == 1,
-    remindTraffic: (json['remind_traffic'] as int? ?? 1) == 1,
+    banned: ((json['banned'] as num?)?.toInt() ?? 0) == 1,
+    remindExpire: ((json['remind_expire'] as num?)?.toInt() ?? 1) == 1,
+    remindTraffic: ((json['remind_traffic'] as num?)?.toInt() ?? 1) == 1,
     discount: json['discount'] != null ? (json['discount'] as num).toDouble() : null,
     commissionRate: json['commission_rate'] != null
         ? (json['commission_rate'] as num).toDouble() / 100.0
@@ -54,14 +54,14 @@ DomainSubscription mapSubscription(
     subscribeUrl: json['subscribe_url'] as String? ?? subscribeUrl,
     email: json['email'] as String? ?? '',
     uuid: json['uuid'] as String? ?? '',
-    planId: json['plan_id'] as int? ?? 0,
+    planId: (json['plan_id'] as num?)?.toInt() ?? 0,
     planName: json['plan']?['name'] as String?,
     token: token,
-    transferLimit: json['transfer_enable'] as int? ?? 0,
-    uploadedBytes: json['u'] as int? ?? 0,
-    downloadedBytes: json['d'] as int? ?? 0,
-    speedLimit: json['speed_limit'] as int?,
-    deviceLimit: json['device_limit'] as int?,
+    transferLimit: (json['transfer_enable'] as num?)?.toInt() ?? 0,
+    uploadedBytes: (json['u'] as num?)?.toInt() ?? 0,
+    downloadedBytes: (json['d'] as num?)?.toInt() ?? 0,
+    speedLimit: (json['speed_limit'] as num?)?.toInt(),
+    deviceLimit: (json['device_limit'] as num?)?.toInt(),
     expiredAt: _parseTimestamp(json['expired_at']),
     nextResetAt: _parseTimestamp(json['reset_day']),
   );
@@ -76,16 +76,16 @@ DomainSubscription mapSubscription(
 /// V2Board 价格以分（cents）为单位，需除以 100
 DomainPlan mapPlan(Map<String, dynamic> json) {
   return DomainPlan(
-    id: json['id'] as int? ?? 0,
+    id: (json['id'] as num?)?.toInt() ?? 0,
     name: json['name'] as String? ?? '',
-    groupId: json['group_id'] as int? ?? 0,
-    transferQuota: json['transfer_enable'] as int? ?? 0,
+    groupId: (json['group_id'] as num?)?.toInt() ?? 0,
+    transferQuota: (json['transfer_enable'] as num?)?.toInt() ?? 0,
     description: json['content'] as String?,
-    speedLimit: json['speed_limit'] as int?,
-    deviceLimit: json['device_limit'] as int?,
-    isVisible: (json['show'] as int? ?? 1) == 1,
-    renewable: (json['renew'] as int? ?? 1) == 1,
-    sort: json['sort'] as int?,
+    speedLimit: (json['speed_limit'] as num?)?.toInt(),
+    deviceLimit: (json['device_limit'] as num?)?.toInt(),
+    isVisible: ((json['show'] as num?)?.toInt() ?? 1) == 1,
+    renewable: ((json['renew'] as num?)?.toInt() ?? 1) == 1,
+    sort: (json['sort'] as num?)?.toInt(),
     onetimePrice: _centsToYuan(json['onetime_price']),
     monthlyPrice: _centsToYuan(json['month_price']),
     quarterlyPrice: _centsToYuan(json['quarter_price']),
@@ -109,10 +109,10 @@ DomainPlan mapPlan(Map<String, dynamic> json) {
 DomainOrder mapOrder(Map<String, dynamic> json) {
   return DomainOrder(
     tradeNo: json['trade_no'] as String? ?? '',
-    planId: json['plan_id'] as int? ?? 0,
+    planId: (json['plan_id'] as num?)?.toInt() ?? 0,
     period: json['period'] as String? ?? '',
     totalAmount: _centsToYuan(json['total_amount']) ?? 0.0,
-    status: OrderStatus.fromCode(json['status'] as int? ?? 0),
+    status: OrderStatus.fromCode((json['status'] as num?)?.toInt() ?? 0),
     planName: json['plan']?['name'] as String?,
     planContent: json['plan']?['content'] as String?,
     createdAt: _parseTimestamp(json['created_at']) ?? DateTime.now(),
@@ -122,11 +122,11 @@ DomainOrder mapOrder(Map<String, dynamic> json) {
     refundAmount: _centsToYuan(json['refund_amount']) ?? 0.0,
     discountAmount: _centsToYuan(json['discount_amount']) ?? 0.0,
     surplusAmount: _centsToYuan(json['surplus_amount']) ?? 0.0,
-    paymentId: json['payment_id'] as int?,
+    paymentId: (json['payment_id'] as num?)?.toInt(),
     paymentName: json['payment']?['name'] as String?,
-    couponId: json['coupon_id'] as int?,
+    couponId: (json['coupon_id'] as num?)?.toInt(),
     commissionStatus: json['commission_status'] != null
-      ? OrderCommissionStatus.fromCode(json['commission_status'] as int)
+      ? OrderCommissionStatus.fromCode((json['commission_status'] as num).toInt())
       : null,
     commissionBalance: _centsToYuan(json['commission_balance']) ?? 0.0,
   );
@@ -148,7 +148,7 @@ DomainPaymentMethod mapPaymentMethod(Map<String, dynamic> json) {
   }
 
   return DomainPaymentMethod(
-    id: json['id'] as int? ?? 0,
+    id: (json['id'] as num?)?.toInt() ?? 0,
     name: json['name'] as String? ?? '',
     iconUrl: json['icon'] as String?,
     feePercentage: feePercentage,
@@ -163,7 +163,7 @@ DomainPaymentMethod mapPaymentMethod(Map<String, dynamic> json) {
 /// V2Board /api/v1/user/notice/fetch → DomainNotice
 DomainNotice mapNotice(Map<String, dynamic> json) {
   return DomainNotice(
-    id: json['id'] as int? ?? 0,
+    id: (json['id'] as num?)?.toInt() ?? 0,
     title: json['title'] as String? ?? '',
     content: json['content'] as String? ?? '',
     imageUrls: _parseStringList(json['img_url']),
@@ -181,18 +181,18 @@ DomainNotice mapNotice(Map<String, dynamic> json) {
 DomainTicket mapTicket(Map<String, dynamic> json) {
   final messagesList = json['message'] as List<dynamic>? ?? [];
   return DomainTicket(
-    id: json['id'] as int? ?? 0,
+    id: (json['id'] as num?)?.toInt() ?? 0,
     subject: json['subject'] as String? ?? '',
-    priority: json['level'] as int? ?? 1,
-    status: TicketStatus.fromCode(json['status'] as int? ?? 0),
+    priority: (json['level'] as num?)?.toInt() ?? 1,
+    status: TicketStatus.fromCode((json['status'] as num?)?.toInt() ?? 0),
     messages: messagesList.map((m) {
       if (m is Map<String, dynamic>) {
         // V2Board API 返回 is_me 为 bool 类型
         final isMe = m['is_me'];
         return TicketMessage(
-          id: m['id'] as int? ?? 0,
+          id: (m['id'] as num?)?.toInt() ?? 0,
           content: m['message'] as String? ?? '',
-          isFromUser: isMe is bool ? isMe : (isMe as int? ?? 0) == 1,
+          isFromUser: isMe is bool ? isMe : ((isMe as num?)?.toInt() ?? 0) == 1,
           createdAt: _parseTimestamp(m['created_at']) ?? DateTime.now(),
         );
       }
@@ -225,11 +225,11 @@ Map<String, dynamic> mapGuestConfig(Map<String, dynamic> json) {
 DomainInviteCode mapInviteCode(Map<String, dynamic> json) {
   return DomainInviteCode(
     code: json['code'] as String? ?? '',
-    status: json['status'] as int? ?? 1,
+    status: (json['status'] as num?)?.toInt() ?? 1,
     commissionRate: (json['commission_rate'] as num?)?.toDouble() ?? 0.0,
-    commissionBalanceInCents: json['commission_balance'] as int? ?? 0,
-    registeredUsers: json['num'] as int? ?? 0,
-    pageViews: json['pv'] as int? ?? 0,
+    commissionBalanceInCents: (json['commission_balance'] as num?)?.toInt() ?? 0,
+    registeredUsers: (json['num'] as num?)?.toInt() ?? 0,
+    pageViews: (json['pv'] as num?)?.toInt() ?? 0,
     createdAt: _parseTimestamp(json['created_at']) ?? DateTime.now(),
   );
 }
@@ -244,11 +244,11 @@ DomainInviteCode mapInviteCode(Map<String, dynamic> json) {
 /// stat[4]: available commission (cents)
 DomainInviteStats mapInviteStats(List<dynamic> stat) {
   return DomainInviteStats(
-    registeredUsers: stat.isNotEmpty ? (stat[0] as int? ?? 0) : 0,
-    settledCommissionInCents: stat.length > 1 ? (stat[1] as int? ?? 0) : 0,
-    pendingCommissionInCents: stat.length > 2 ? (stat[2] as int? ?? 0) : 0,
+    registeredUsers: stat.isNotEmpty ? ((stat[0] as num?)?.toInt() ?? 0) : 0,
+    settledCommissionInCents: stat.length > 1 ? ((stat[1] as num?)?.toInt() ?? 0) : 0,
+    pendingCommissionInCents: stat.length > 2 ? ((stat[2] as num?)?.toInt() ?? 0) : 0,
     commissionRate: stat.length > 3 ? (stat[3] as num?)?.toDouble() ?? 0.0 : 0.0,
-    availableCommissionInCents: stat.length > 4 ? (stat[4] as int? ?? 0) : 0,
+    availableCommissionInCents: stat.length > 4 ? ((stat[4] as num?)?.toInt() ?? 0) : 0,
   );
 }
 

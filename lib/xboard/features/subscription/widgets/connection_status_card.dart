@@ -13,6 +13,7 @@ import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.d
 import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart';
 import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/widgets/text.dart';
 import 'package:intl/intl.dart';
 
 class ConnectionStatusCard extends ConsumerStatefulWidget {
@@ -250,7 +251,7 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Flexible(
-                  child: Text(
+                  child: EmojiText(
                     proxy.name,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface,

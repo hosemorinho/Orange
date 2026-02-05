@@ -16,6 +16,7 @@ import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dar
 import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/widgets/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -574,7 +575,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                   ),
                   const SizedBox(height: 8),
                   // Proxy name
-                  Text(
+                  EmojiText(
                     proxy.name,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -710,7 +711,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
             const SizedBox(width: 6),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 160),
-              child: Text(
+              child: EmojiText(
                 proxy.name,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurface,

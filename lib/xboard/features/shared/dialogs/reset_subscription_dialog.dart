@@ -4,75 +4,46 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
+import 'package:fl_clash/state.dart';
 
-class ResetSubscriptionDialog extends ConsumerStatefulWidget {
-  const ResetSubscriptionDialog({super.key});
+/// Shows a reset subscription confirmation dialog using FlClash's native globalState.showMessage.
+///
+/// Usage:
+/// ```dart
+/// await showResetSubscriptionDialog(context, ref);
+/// ```
+Future<void> showResetSubscriptionDialog(BuildContext context, WidgetRef ref) async {
+  final result = await globalState.showMessage(
+    context: context,
+    message: TextSpan(text: appLocalizations.xboardResetConfirmDesc),
+    title: appLocalizations.xboardResetConfirmTitle,
+    confirmText: appLocalizations.xboardConfirm,
+    cancelText: appLocalizations.cancel,
+  );
 
-  @override
-  ConsumerState<ResetSubscriptionDialog> createState() =>
-      _ResetSubscriptionDialogState();
+  if (result == true) {
+    await _handleReset(context, ref);
+  }
 }
 
-class _ResetSubscriptionDialogState
-    extends ConsumerState<ResetSubscriptionDialog> {
-  bool _isLoading = false;
+Future<void> _handleReset(BuildContext context, WidgetRef ref) async {
+  try {
+    final api = await ref.read(xboardSdkProvider.future);
+    await api.resetSecurity();
 
-  Future<void> _handleReset() async {
-    setState(() => _isLoading = true);
+    // Refresh user info to get new subscription URL
+    await ref.read(xboardUserProvider.notifier).refreshUserInfo();
 
-    try {
-      final api = await ref.read(xboardSdkProvider.future);
-      await api.resetSecurity();
-
-      // Refresh user info to get new subscription URL
-      await ref.read(xboardUserProvider.notifier).refreshUserInfo();
-
-      if (mounted) {
-        Navigator.of(context).pop();
-        XBoardNotification.showSuccess(
-          appLocalizations.xboardResetSubscriptionSuccess,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        XBoardNotification.showError(
-          '${appLocalizations.xboardResetSubscriptionError}: $e',
-        );
-      }
+    if (context.mounted) {
+      XBoardNotification.showSuccess(
+        appLocalizations.xboardResetSubscriptionSuccess,
+      );
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return AlertDialog(
-      title: Text(appLocalizations.xboardResetConfirmTitle),
-      content: Text(appLocalizations.xboardResetConfirmDesc),
-      actions: [
-        TextButton(
-          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: Text(appLocalizations.cancel),
-        ),
-        FilledButton(
-          onPressed: _isLoading ? null : _handleReset,
-          style: FilledButton.styleFrom(
-            backgroundColor: colorScheme.error,
-            foregroundColor: colorScheme.onError,
-          ),
-          child: _isLoading
-              ? SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: colorScheme.onError,
-                  ),
-                )
-              : Text(appLocalizations.xboardConfirm),
-        ),
-      ],
-    );
+  } catch (e) {
+    if (context.mounted) {
+      XBoardNotification.showError(
+        '${appLocalizations.xboardResetSubscriptionError}: $e',
+      );
+    }
   }
 }

@@ -195,10 +195,7 @@ class XBoardSettingsPage extends ConsumerWidget {
                         subtitle: appLocalizations.password,
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => const ChangePasswordDialog(),
-                          );
+                          showChangePasswordDialog(context, ref);
                         },
                       ),
                       _SettingDivider(),
@@ -208,11 +205,7 @@ class XBoardSettingsPage extends ConsumerWidget {
                         subtitle: appLocalizations.xboardResetSubscriptionDesc,
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) =>
-                                const ResetSubscriptionDialog(),
-                          );
+                          showResetSubscriptionDialog(context, ref);
                         },
                       ),
                     ],
@@ -291,10 +284,7 @@ class XBoardSettingsPage extends ConsumerWidget {
                   title: appLocalizations.switchTheme,
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const ThemeDialog(),
-                    );
+                    showThemeDialog(context, ref);
                   },
                 ),
               ),
@@ -306,10 +296,7 @@ class XBoardSettingsPage extends ConsumerWidget {
                   width: double.infinity,
                   child: FilledButton.tonal(
                     onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => const LogoutDialog(),
-                      );
+                      showLogoutDialog(context, ref);
                     },
                     style: FilledButton.styleFrom(
                       backgroundColor: colorScheme.errorContainer,

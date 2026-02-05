@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fl_clash/common/num.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'package:flutter/material.dart';
@@ -476,20 +477,8 @@ class SubscriptionUsageCard extends ConsumerWidget {
   }
   String _formatBytes(double bytes) {
     if (bytes < 0) return '0 B';
-    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    double size = bytes;
-    int unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-    if (size >= 100) {
-      return '${size.toStringAsFixed(0)} ${units[unitIndex]}';
-    } else if (size >= 10) {
-      return '${size.toStringAsFixed(1)} ${units[unitIndex]}';
-    } else {
-      return '${size.toStringAsFixed(2)} ${units[unitIndex]}';
-    }
+    final trafficShow = bytes.toInt().traffic;
+    return '${trafficShow.value} ${trafficShow.unit}';
   }
   int? _calculateRemainingDays() {
     DateTime? expiredAt;

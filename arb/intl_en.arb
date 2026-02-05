@@ -1537,5 +1537,27 @@
     }
   },
   "withdrawClosed": "Withdrawal is currently unavailable",
-  "withdrawing": "Submitting..."
+  "withdrawing": "Submitting...",
+  "xboardTunModeTitle": "TUN Mode",
+  "xboardTunModeDescription": "TUN mode is an advanced network proxy technology that enables more complete traffic proxying through a virtual network interface.",
+  "xboardTunFeatureFullTraffic": "Full Traffic Proxy",
+  "xboardTunFeatureFullTrafficDesc": "Captures network traffic from all apps without separate configuration",
+  "xboardTunFeatureTransparent": "Transparent Proxy",
+  "xboardTunFeatureTransparentDesc": "App-agnostic proxy mode with better compatibility",
+  "xboardTunFeaturePerformance": "Performance Optimization",
+  "xboardTunFeaturePerformanceDesc": "Reduces proxy layers and improves network access speed",
+  "xboardTunRecommendations": "Recommended Usage",
+  "xboardTunRecommendRule": "• Daily use: Rule + TUN (Smart routing, best performance)",
+  "xboardTunRecommendGlobal": "• Backup: Global + TUN (Use when rule mode has issues)",
+  "xboardTunLater": "Later",
+  "xboardProfileImportPreparing": "Preparing to import configuration",
+  "xboardProfileImportInProgress": "Importing configuration",
+  "xboardProfileImportSuccessTitle": "Configuration imported successfully",
+  "xboardProfileImportFailedTitle": "Configuration import failed",
+  "xboardProfileImportCancelTooltip": "Cancel import",
+  "xboardProfileImportCloseTooltip": "Close",
+  "xboardProfileImportSuccessDetail": "Configuration has been successfully imported and added to the configuration list",
+  "xboardProfileImportClearError": "Clear error",
+  "xboardProfileImportRetry": "Retry",
+  "xboardProfileImportConfirm": "OK"
 }

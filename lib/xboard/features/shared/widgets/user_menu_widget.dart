@@ -14,9 +14,9 @@ class UserMenuWidget extends ConsumerWidget {
       tooltip: appLocalizations.userCenter,
       onSelected: (value) {
         if (value == 'theme') {
-          _showThemeDialog(context);
+          showThemeDialog(context, ref);
         } else if (value == 'logout') {
-          _showLogoutDialog(context);
+          _showLogoutDialog(context, ref);
         }
       },
       itemBuilder: (BuildContext context) => [
@@ -45,17 +45,7 @@ class UserMenuWidget extends ConsumerWidget {
     );
   }
 
-  void _showThemeDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const ThemeDialog(),
-    );
-  }
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const LogoutDialog(),
-    );
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+    showLogoutDialog(context, ref);
   }
 }

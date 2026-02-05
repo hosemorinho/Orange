@@ -305,7 +305,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     PaymentWaitingManager.hide();
     if (!mounted) return null;
 
-    final selected = await PaymentMethodSelectorDialog.show(
+    final selected = await showPaymentMethodSelector(
       context,
       paymentMethods: methods,
     );

@@ -29,10 +29,6 @@ class PlanCard extends StatefulWidget {
 class _PlanCardState extends State<PlanCard> {
   bool _isHovered = false;
 
-  String _formatTraffic(double transferEnable) {
-    return PriceCalculator.formatTraffic(transferEnable);
-  }
-
   String _getLowestPrice(DomainPlan plan) {
     List<double> prices = [];
     if (plan.monthlyPrice != null) prices.add(plan.monthlyPrice!);
@@ -119,7 +115,7 @@ class _PlanCardState extends State<PlanCard> {
                     _buildFeatureItem(
                       context,
                       Icons.cloud_download_outlined,
-                      '${AppLocalizations.of(context).xboardTraffic}: ${_formatTraffic(plan.transferQuota.toDouble())}',
+                      '${AppLocalizations.of(context).xboardTraffic}: ${plan.formattedTraffic}',
                     ),
                     const SizedBox(height: 12),
 

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:fl_clash/common/num.dart';
 
 part 'generated/user.freezed.dart';
 part 'generated/user.g.dart';
@@ -111,20 +112,21 @@ abstract class DomainUser with _$DomainUser {
   /// 佣金余额（元）
   double get commissionBalanceInYuan => commissionBalanceInCents / 100.0;
 
-  /// 格式化流量显示
-  String formatBytes(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(2)} KB';
-    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
-    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+  /// 剩余流量（格式化）
+  String get remainingTraffic {
+    final trafficShow = remainingBytes.traffic;
+    return '${trafficShow.value} ${trafficShow.unit}';
   }
 
-  /// 剩余流量（格式化）
-  String get remainingTraffic => formatBytes(remainingBytes);
-
   /// 已用流量（格式化）
-  String get usedTraffic => formatBytes(totalUsedBytes);
+  String get usedTraffic {
+    final trafficShow = totalUsedBytes.traffic;
+    return '${trafficShow.value} ${trafficShow.unit}';
+  }
 
   /// 总流量（格式化）
-  String get totalTraffic => formatBytes(transferLimit);
+  String get totalTraffic {
+    final trafficShow = transferLimit.traffic;
+    return '${trafficShow.value} ${trafficShow.unit}';
+  }
 }

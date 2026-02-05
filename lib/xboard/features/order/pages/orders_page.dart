@@ -311,7 +311,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
         selectedMethod = paymentMethods.first;
       } else {
         if (!mounted) return;
-        selectedMethod = await PaymentMethodSelectorDialog.show(
+        selectedMethod = await showPaymentMethodSelector(
           context,
           paymentMethods: paymentMethods,
         );

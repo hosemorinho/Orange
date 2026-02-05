@@ -53,13 +53,5 @@ class PriceCalculator {
     if (price == null) return '-';
     return '¥${price.toStringAsFixed(2)}';
   }
-
-  /// 格式化流量显示
-  static String formatTraffic(double transferEnable) {
-    if (transferEnable >= 1024) {
-      return '${(transferEnable / 1024).toStringAsFixed(1)}TB';
-    }
-    return '${transferEnable.toStringAsFixed(0)}GB';
-  }
 }
 

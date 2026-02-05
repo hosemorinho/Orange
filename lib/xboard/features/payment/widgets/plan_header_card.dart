@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
-import '../utils/price_calculator.dart';
 
 /// 套餐信息头部卡片
 class PlanHeaderCard extends StatelessWidget {
@@ -16,7 +15,7 @@ class PlanHeaderCard extends StatelessWidget {
     if (plan.transferQuota == 0) {
       return AppLocalizations.of(context).xboardUnlimited;
     }
-    return PriceCalculator.formatTraffic(plan.transferQuota.toDouble());
+    return plan.formattedTraffic;
   }
 
   String _getSpeedLimitDisplay(BuildContext context) {

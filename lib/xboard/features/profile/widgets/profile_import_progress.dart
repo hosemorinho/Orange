@@ -2,6 +2,7 @@ import 'package:fl_clash/xboard/features/profile/providers/profile_import_provid
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/features/profile/profile.dart';
+import 'package:fl_clash/common/common.dart';
 class ProfileImportProgressCard extends ConsumerWidget {
   final VoidCallback? onRetry;
   final VoidCallback? onDismiss;
@@ -49,13 +50,13 @@ class ProfileImportProgressCard extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => notifier.cancelImport(),
-            tooltip: '取消导入',
+            tooltip: appLocalizations.xboardProfileImportCancelTooltip,
           ),
         if (notifier.hasError && onDismiss != null)
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: onDismiss,
-            tooltip: '关闭',
+            tooltip: appLocalizations.xboardProfileImportCloseTooltip,
           ),
       ],
     );
@@ -81,16 +82,16 @@ class ProfileImportProgressCard extends ConsumerWidget {
   String _getHeaderText(ImportState state) {
     switch (state.status) {
       case ImportStatus.idle:
-        return '准备导入配置';
+        return appLocalizations.xboardProfileImportPreparing;
       case ImportStatus.cleaning:
       case ImportStatus.downloading:
       case ImportStatus.validating:
       case ImportStatus.adding:
-        return '正在导入配置';
+        return appLocalizations.xboardProfileImportInProgress;
       case ImportStatus.success:
-        return '配置导入成功';
+        return appLocalizations.xboardProfileImportSuccessTitle;
       case ImportStatus.failed:
-        return '配置导入失败';
+        return appLocalizations.xboardProfileImportFailedTitle;
     }
   }
   Widget _buildContent(BuildContext context, ImportState state, ProfileImportNotifier notifier) {
@@ -142,7 +143,7 @@ class ProfileImportProgressCard extends ConsumerWidget {
             children: [
               TextButton(
                 onPressed: () => notifier.clearError(),
-                child: const Text('清除错误'),
+                child: Text(appLocalizations.xboardProfileImportClearError),
               ),
               const SizedBox(width: 8),
               if (notifier.canRetry)
@@ -152,7 +153,7 @@ class ProfileImportProgressCard extends ConsumerWidget {
                      onRetry?.call();
                    },
                   icon: const Icon(Icons.refresh),
-                  label: const Text('重试'),
+                  label: Text(appLocalizations.xboardProfileImportRetry),
                 ),
             ],
           ),
@@ -171,7 +172,7 @@ class ProfileImportProgressCard extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '配置已成功导入并添加到配置列表',
+                    appLocalizations.xboardProfileImportSuccessDetail,
                     style: TextStyle(color: Theme.of(context).colorScheme.onTertiaryContainer),
                   ),
                 ),
@@ -184,7 +185,7 @@ class ProfileImportProgressCard extends ConsumerWidget {
             children: [
               TextButton(
                 onPressed: () => notifier.clearState(),
-                child: const Text('确定'),
+                child: Text(appLocalizations.xboardProfileImportConfirm),
               ),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:fl_clash/common/num.dart';
 
 part 'generated/plan.freezed.dart';
 part 'generated/plan.g.dart';
@@ -169,13 +170,8 @@ abstract class DomainPlan with _$DomainPlan {
 
   /// 格式化流量显示
   String get formattedTraffic {
-    final gb = transferQuota / (1024 * 1024 * 1024);
-    if (gb < 1024) {
-      return '${gb.toStringAsFixed(0)} GB';
-    } else {
-      final tb = gb / 1024;
-      return '${tb.toStringAsFixed(2)} TB';
-    }
+    final trafficShow = transferQuota.traffic;
+    return '${trafficShow.value} ${trafficShow.unit}';
   }
 }
 

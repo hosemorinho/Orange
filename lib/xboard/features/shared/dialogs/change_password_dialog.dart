@@ -3,16 +3,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
+import 'package:fl_clash/widgets/dialog.dart';
 
-class ChangePasswordDialog extends ConsumerStatefulWidget {
-  const ChangePasswordDialog({super.key});
-
-  @override
-  ConsumerState<ChangePasswordDialog> createState() =>
-      _ChangePasswordDialogState();
+/// Shows a change password dialog using FlClash's CommonDialog.
+///
+/// Usage:
+/// ```dart
+/// await showChangePasswordDialog(context, ref);
+/// ```
+Future<void> showChangePasswordDialog(BuildContext context, WidgetRef ref) async {
+  return await showDialog<void>(
+    context: context,
+    builder: (context) => _ChangePasswordDialog(ref: ref),
+  );
 }
 
-class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
+class _ChangePasswordDialog extends StatefulWidget {
+  final WidgetRef ref;
+
+  const _ChangePasswordDialog({required this.ref});
+
+  @override
+  State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
   final _formKey = GlobalKey<FormState>();
   final _oldPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
@@ -33,7 +48,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
     setState(() => _isLoading = true);
 
     try {
-      final api = await ref.read(xboardSdkProvider.future);
+      final api = await widget.ref.read(xboardSdkProvider.future);
       await api.changePassword(
         _oldPasswordController.text,
         _newPasswordController.text,
@@ -59,12 +74,31 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return AlertDialog(
-      title: Text(appLocalizations.xboardChangePassword),
-      content: Form(
+    return CommonDialog(
+      title: appLocalizations.xboardChangePassword,
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+          child: Text(appLocalizations.cancel),
+        ),
+        FilledButton(
+          onPressed: _isLoading ? null : _handleChangePassword,
+          child: _isLoading
+              ? SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colorScheme.onPrimary,
+                  ),
+                )
+              : Text(appLocalizations.xboardConfirm),
+        ),
+      ],
+      child: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Wrap(
+          runSpacing: 16,
           children: [
             TextFormField(
               controller: _oldPasswordController,
@@ -89,7 +123,6 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
             TextFormField(
               controller: _newPasswordController,
               obscureText: _obscureNew,
@@ -119,25 +152,6 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: Text(appLocalizations.cancel),
-        ),
-        FilledButton(
-          onPressed: _isLoading ? null : _handleChangePassword,
-          child: _isLoading
-              ? SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: colorScheme.onPrimary,
-                  ),
-                )
-              : Text(appLocalizations.xboardConfirm),
-        ),
-      ],
     );
   }
 }

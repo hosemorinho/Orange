@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:fl_clash/common/common.dart';
+
 class TunIntroductionDialog extends StatelessWidget {
   const TunIntroductionDialog({super.key});
   static Future<bool?> show(BuildContext context) {
@@ -26,9 +28,9 @@ class TunIntroductionDialog extends StatelessWidget {
           size: 32,
         ),
       ),
-      title: const Text(
-        'TUN 模式',
-        style: TextStyle(
+      title: Text(
+        appLocalizations.xboardTunModeTitle,
+        style: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),
@@ -40,7 +42,7 @@ class TunIntroductionDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'TUN 模式是一种高级网络代理技术，通过虚拟网络接口实现更完整的流量代理。',
+              appLocalizations.xboardTunModeDescription,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
               ),
@@ -49,22 +51,22 @@ class TunIntroductionDialog extends StatelessWidget {
             _buildFeatureItem(
               context,
               Icons.network_check,
-              '全流量代理',
-              '捕获所有应用的网络流量，无需单独配置',
+              appLocalizations.xboardTunFeatureFullTraffic,
+              appLocalizations.xboardTunFeatureFullTrafficDesc,
             ),
             const SizedBox(height: 12),
             _buildFeatureItem(
               context,
               Icons.security,
-              '透明代理',
-              '应用无感知的代理模式，兼容性更好',
+              appLocalizations.xboardTunFeatureTransparent,
+              appLocalizations.xboardTunFeatureTransparentDesc,
             ),
             const SizedBox(height: 12),
             _buildFeatureItem(
               context,
               Icons.speed,
-              '性能优化',
-              '减少代理层级，提升网络访问速度',
+              appLocalizations.xboardTunFeaturePerformance,
+              appLocalizations.xboardTunFeaturePerformanceDesc,
             ),
             const SizedBox(height: 16),
             Container(
@@ -85,7 +87,7 @@ class TunIntroductionDialog extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '推荐使用方式',
+                        appLocalizations.xboardTunRecommendations,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: Theme.of(context).colorScheme.secondary,
@@ -95,14 +97,14 @@ class TunIntroductionDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '• 日常使用：规则 + TUN（智能分流，性能最佳）',
+                    appLocalizations.xboardTunRecommendRule,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '• 备用方案：全局 + TUN（如规则模式异常时使用）',
+                    appLocalizations.xboardTunRecommendGlobal,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                     ),
@@ -117,7 +119,7 @@ class TunIntroductionDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(
-            '稍后再说',
+            appLocalizations.xboardTunLater,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
@@ -129,7 +131,7 @@ class TunIntroductionDialog extends StatelessWidget {
             backgroundColor: Theme.of(context).colorScheme.tertiary,
             foregroundColor: Theme.of(context).colorScheme.onTertiary,
           ),
-          child: const Text('开启 TUN'),
+          child: Text(appLocalizations.xboardEnableTun),
         ),
       ],
     );

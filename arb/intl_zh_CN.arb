@@ -1538,5 +1538,27 @@
     }
   },
   "withdrawClosed": "提现功能暂未开放",
-  "withdrawing": "正在提交..."
+  "withdrawing": "正在提交...",
+  "xboardTunModeTitle": "TUN 模式",
+  "xboardTunModeDescription": "TUN 模式是一种高级网络代理技术，通过虚拟网络接口实现更完整的流量代理。",
+  "xboardTunFeatureFullTraffic": "全流量代理",
+  "xboardTunFeatureFullTrafficDesc": "捕获所有应用的网络流量，无需单独配置",
+  "xboardTunFeatureTransparent": "透明代理",
+  "xboardTunFeatureTransparentDesc": "应用无感知的代理模式，兼容性更好",
+  "xboardTunFeaturePerformance": "性能优化",
+  "xboardTunFeaturePerformanceDesc": "减少代理层级，提升网络访问速度",
+  "xboardTunRecommendations": "推荐使用方式",
+  "xboardTunRecommendRule": "• 日常使用：规则 + TUN（智能分流，性能最佳）",
+  "xboardTunRecommendGlobal": "• 备用方案：全局 + TUN（如规则模式异常时使用）",
+  "xboardTunLater": "稍后再说",
+  "xboardProfileImportPreparing": "准备导入配置",
+  "xboardProfileImportInProgress": "正在导入配置",
+  "xboardProfileImportSuccessTitle": "配置导入成功",
+  "xboardProfileImportFailedTitle": "配置导入失败",
+  "xboardProfileImportCancelTooltip": "取消导入",
+  "xboardProfileImportCloseTooltip": "关闭",
+  "xboardProfileImportSuccessDetail": "配置已成功导入并添加到配置列表",
+  "xboardProfileImportClearError": "清除错误",
+  "xboardProfileImportRetry": "重试",
+  "xboardProfileImportConfirm": "确定"
 }

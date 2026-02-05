@@ -3,83 +3,66 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/providers/providers.dart';
 
-class ThemeDialog extends ConsumerWidget {
-  const ThemeDialog({super.key});
+/// Shows a theme selection dialog using FlClash's native UI patterns.
+///
+/// Usage:
+/// ```dart
+/// final result = await showThemeDialog(context, ref);
+/// ```
+Future<void> showThemeDialog(BuildContext context, WidgetRef ref) async {
+  final currentThemeMode = ref.read(themeSettingProvider.select((state) => state.themeMode));
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final currentThemeMode = ref.read(themeSettingProvider.select((state) => state.themeMode));
+  final result = await showDialog<ThemeMode>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(appLocalizations.selectTheme),
+        contentPadding: EdgeInsets.zero,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: ThemeMode.values.map((mode) {
+            final IconData icon;
+            final String label;
+            switch (mode) {
+              case ThemeMode.system:
+                icon = Icons.auto_mode;
+                label = appLocalizations.auto;
+                break;
+              case ThemeMode.light:
+                icon = Icons.light_mode;
+                label = appLocalizations.light;
+                break;
+              case ThemeMode.dark:
+                icon = Icons.dark_mode;
+                label = appLocalizations.dark;
+                break;
+            }
 
-    return AlertDialog(
-      title: Text(appLocalizations.selectTheme),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          RadioListTile<ThemeMode>(
-            title: Row(
-              children: [
-                const Icon(Icons.auto_mode),
-                const SizedBox(width: 8),
-                Text(appLocalizations.auto),
-              ],
-            ),
-            value: ThemeMode.system,
-            groupValue: currentThemeMode,
-            onChanged: (value) {
-              if (value != null) {
-                ref.read(themeSettingProvider.notifier).update(
-                  (state) => state.copyWith(themeMode: value),
-                );
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          RadioListTile<ThemeMode>(
-            title: Row(
-              children: [
-                const Icon(Icons.light_mode),
-                const SizedBox(width: 8),
-                Text(appLocalizations.light),
-              ],
-            ),
-            value: ThemeMode.light,
-            groupValue: currentThemeMode,
-            onChanged: (value) {
-              if (value != null) {
-                ref.read(themeSettingProvider.notifier).update(
-                  (state) => state.copyWith(themeMode: value),
-                );
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          RadioListTile<ThemeMode>(
-            title: Row(
-              children: [
-                const Icon(Icons.dark_mode),
-                const SizedBox(width: 8),
-                Text(appLocalizations.dark),
-              ],
-            ),
-            value: ThemeMode.dark,
-            groupValue: currentThemeMode,
-            onChanged: (value) {
-              if (value != null) {
-                ref.read(themeSettingProvider.notifier).update(
-                  (state) => state.copyWith(themeMode: value),
-                );
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(appLocalizations.cancel),
+            return RadioListTile<ThemeMode>(
+              value: mode,
+              groupValue: currentThemeMode,
+              onChanged: (value) {
+                if (value != null) {
+                  Navigator.of(context).pop(value);
+                }
+              },
+              title: Row(
+                children: [
+                  Icon(icon),
+                  const SizedBox(width: 12),
+                  Text(label),
+                ],
+              ),
+            );
+          }).toList(),
         ),
-      ],
+      );
+    },
+  );
+
+  if (result != null && result != currentThemeMode) {
+    ref.read(themeSettingProvider.notifier).update(
+      (state) => state.copyWith(themeMode: result),
     );
   }
 }

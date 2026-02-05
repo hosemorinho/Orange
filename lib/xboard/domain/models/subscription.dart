@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:fl_clash/common/num.dart';
 
 part 'generated/subscription.freezed.dart';
 part 'generated/subscription.g.dart';
@@ -95,28 +96,33 @@ extension DomainSubscriptionX on DomainSubscription {
     return days != null && days <= 7 && days > 0;
   }
 
-  /// 格式化流量显示
-  String formatBytes(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(2)} KB';
-    if (bytes < 1024 * 1024 * 1024) {
-      return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
-    }
-    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+  /// 剩余流量（格式化）
+  String get formattedRemainingTraffic {
+    final trafficShow = remainingBytes.traffic;
+    return '${trafficShow.value} ${trafficShow.unit}';
   }
 
-  /// 剩余流量（格式化）
-  String get formattedRemainingTraffic => formatBytes(remainingBytes);
-
   /// 已用流量（格式化）
-  String get formattedUsedTraffic => formatBytes(totalUsedBytes);
+  String get formattedUsedTraffic {
+    final trafficShow = totalUsedBytes.traffic;
+    return '${trafficShow.value} ${trafficShow.unit}';
+  }
 
   /// 总流量（格式化）
-  String get formattedTotalTraffic => formatBytes(transferLimit);
+  String get formattedTotalTraffic {
+    final trafficShow = transferLimit.traffic;
+    return '${trafficShow.value} ${trafficShow.unit}';
+  }
 
   /// 上传流量（格式化）
-  String get formattedUploadedTraffic => formatBytes(uploadedBytes);
+  String get formattedUploadedTraffic {
+    final trafficShow = uploadedBytes.traffic;
+    return '${trafficShow.value} ${trafficShow.unit}';
+  }
 
   /// 下载流量（格式化）
-  String get formattedDownloadedTraffic => formatBytes(downloadedBytes);
+  String get formattedDownloadedTraffic {
+    final trafficShow = downloadedBytes.traffic;
+    return '${trafficShow.value} ${trafficShow.unit}';
+  }
 }

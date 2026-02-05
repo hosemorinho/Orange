@@ -93,7 +93,7 @@ class PlanHeaderCard extends StatelessWidget {
                 _buildCompactInfo(
                   context,
                   Icons.devices,
-                  AppLocalizations.of(context).xboardUnlimited,
+                  AppLocalizations.of(context).xboardUnlimitedDevices,
                 ),
             ],
           ),

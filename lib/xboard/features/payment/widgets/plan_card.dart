@@ -136,7 +136,7 @@ class _PlanCardState extends State<PlanCard> {
                           _buildFeatureTag(
                             context,
                             Icons.devices,
-                            AppLocalizations.of(context).xboardUnlimited,
+                            AppLocalizations.of(context).xboardUnlimitedDevices,
                           ),
                       ],
                     ),

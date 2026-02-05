@@ -13,9 +13,13 @@ import 'package:path/path.dart' as path;
 class IconGenerator {
   final String projectRoot;
   final String tempDir;
+  late final String _magickCmd;
 
   IconGenerator(this.projectRoot)
-      : tempDir = path.join(projectRoot, '.icon_temp');
+      : tempDir = path.join(projectRoot, '.icon_temp') {
+    // On Windows, use 'magick' command; on other platforms, use 'convert'
+    _magickCmd = Platform.isWindows ? 'magick' : 'convert';
+  }
 
   /// Icon sizes for each platform
   static const Map<String, List<int>> macOSSizes = {
@@ -80,7 +84,8 @@ class IconGenerator {
   }
 
   Future<void> _checkImageMagick() async {
-    final result = await Process.run('which', ['convert']);
+    final checkCmd = Platform.isWindows ? 'where' : 'which';
+    final result = await Process.run(checkCmd, [_magickCmd]);
     if (result.exitCode != 0) {
       throw 'ImageMagick is not installed. Please install it first:\n'
           '  Ubuntu/Debian: sudo apt install imagemagick\n'
@@ -180,7 +185,7 @@ class IconGenerator {
   }
 
   Future<void> _resizePng(String input, String output, int size) async {
-    await _exec('convert', [
+    await _exec(_magickCmd, [
       input,
       '-resize',
       '${size}x$size',
@@ -195,7 +200,7 @@ class IconGenerator {
   }
 
   Future<void> _resizeWebp(String input, String output, int size) async {
-    await _exec('convert', [
+    await _exec(_magickCmd, [
       input,
       '-resize',
       '${size}x$size',
@@ -216,7 +221,7 @@ class IconGenerator {
     final maskPath = path.join(tempDir, 'mask_$size.png');
 
     // Create circular mask
-    await _exec('convert', [
+    await _exec(_magickCmd, [
       '-size',
       '${size}x$size',
       'xc:none',
@@ -232,7 +237,7 @@ class IconGenerator {
     await _resizePng(input, resizedPath, size);
 
     // Apply circular mask
-    await _exec('convert', [
+    await _exec(_magickCmd, [
       resizedPath,
       maskPath,
       '-alpha',
@@ -257,7 +262,7 @@ class IconGenerator {
       tempPngs.add(tempPath);
     }
 
-    await _exec('convert', [...tempPngs, output]);
+    await _exec(_magickCmd, [...tempPngs, output]);
   }
 }
 

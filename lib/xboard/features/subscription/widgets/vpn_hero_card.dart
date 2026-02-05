@@ -13,6 +13,7 @@ import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart'
 import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/tun_introduction_dialog.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
+import 'package:fl_clash/xboard/features/subscription/services/subscription_status_service.dart';
 import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/l10n/l10n.dart';

@@ -112,6 +112,8 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         ),
         centerTitle: false,
         actions: [
+          const CoreStatusIndicator(),
+          const SizedBox(width: 4),
           const LanguageSelector(),
           _buildNoticeIconButton(),
         ],
@@ -169,6 +171,8 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
+                                const CoreStatusIndicator(),
+                                const SizedBox(width: 8),
                                 const LanguageSelector(),
                                 const SizedBox(width: 4),
                                 _buildNoticeIconButton(),

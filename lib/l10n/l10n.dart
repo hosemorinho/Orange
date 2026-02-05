@@ -10973,6 +10973,221 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `TUN Mode`
+  String get xboardTunModeTitle {
+    return Intl.message(
+      'TUN Mode',
+      name: 'xboardTunModeTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `TUN mode is an advanced network proxy technology that enables more complete traffic proxying through a virtual network interface.`
+  String get xboardTunModeDescription {
+    return Intl.message(
+      'TUN mode is an advanced network proxy technology that enables more complete traffic proxying through a virtual network interface.',
+      name: 'xboardTunModeDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Full Traffic Proxy`
+  String get xboardTunFeatureFullTraffic {
+    return Intl.message(
+      'Full Traffic Proxy',
+      name: 'xboardTunFeatureFullTraffic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Captures network traffic from all apps without separate configuration`
+  String get xboardTunFeatureFullTrafficDesc {
+    return Intl.message(
+      'Captures network traffic from all apps without separate configuration',
+      name: 'xboardTunFeatureFullTrafficDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Transparent Proxy`
+  String get xboardTunFeatureTransparent {
+    return Intl.message(
+      'Transparent Proxy',
+      name: 'xboardTunFeatureTransparent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `App-agnostic proxy mode with better compatibility`
+  String get xboardTunFeatureTransparentDesc {
+    return Intl.message(
+      'App-agnostic proxy mode with better compatibility',
+      name: 'xboardTunFeatureTransparentDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Performance Optimization`
+  String get xboardTunFeaturePerformance {
+    return Intl.message(
+      'Performance Optimization',
+      name: 'xboardTunFeaturePerformance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reduces proxy layers and improves network access speed`
+  String get xboardTunFeaturePerformanceDesc {
+    return Intl.message(
+      'Reduces proxy layers and improves network access speed',
+      name: 'xboardTunFeaturePerformanceDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recommended Usage`
+  String get xboardTunRecommendations {
+    return Intl.message(
+      'Recommended Usage',
+      name: 'xboardTunRecommendations',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `• Daily use: Rule + TUN (Smart routing, best performance)`
+  String get xboardTunRecommendRule {
+    return Intl.message(
+      '• Daily use: Rule + TUN (Smart routing, best performance)',
+      name: 'xboardTunRecommendRule',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `• Backup: Global + TUN (Use when rule mode has issues)`
+  String get xboardTunRecommendGlobal {
+    return Intl.message(
+      '• Backup: Global + TUN (Use when rule mode has issues)',
+      name: 'xboardTunRecommendGlobal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Later`
+  String get xboardTunLater {
+    return Intl.message('Later', name: 'xboardTunLater', desc: '', args: []);
+  }
+
+  /// `Preparing to import configuration`
+  String get xboardProfileImportPreparing {
+    return Intl.message(
+      'Preparing to import configuration',
+      name: 'xboardProfileImportPreparing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Importing configuration`
+  String get xboardProfileImportInProgress {
+    return Intl.message(
+      'Importing configuration',
+      name: 'xboardProfileImportInProgress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration imported successfully`
+  String get xboardProfileImportSuccessTitle {
+    return Intl.message(
+      'Configuration imported successfully',
+      name: 'xboardProfileImportSuccessTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration import failed`
+  String get xboardProfileImportFailedTitle {
+    return Intl.message(
+      'Configuration import failed',
+      name: 'xboardProfileImportFailedTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel import`
+  String get xboardProfileImportCancelTooltip {
+    return Intl.message(
+      'Cancel import',
+      name: 'xboardProfileImportCancelTooltip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Close`
+  String get xboardProfileImportCloseTooltip {
+    return Intl.message(
+      'Close',
+      name: 'xboardProfileImportCloseTooltip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration has been successfully imported and added to the configuration list`
+  String get xboardProfileImportSuccessDetail {
+    return Intl.message(
+      'Configuration has been successfully imported and added to the configuration list',
+      name: 'xboardProfileImportSuccessDetail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear error`
+  String get xboardProfileImportClearError {
+    return Intl.message(
+      'Clear error',
+      name: 'xboardProfileImportClearError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retry`
+  String get xboardProfileImportRetry {
+    return Intl.message(
+      'Retry',
+      name: 'xboardProfileImportRetry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `OK`
+  String get xboardProfileImportConfirm {
+    return Intl.message(
+      'OK',
+      name: 'xboardProfileImportConfirm',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

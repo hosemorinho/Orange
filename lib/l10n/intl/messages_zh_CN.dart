@@ -1577,6 +1577,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardProcessingOrders": MessageLookupByLibrary.simpleMessage("开通中"),
     "xboardProfessionalSupport": MessageLookupByLibrary.simpleMessage("专业客服"),
     "xboardProfile": MessageLookupByLibrary.simpleMessage("配置文件"),
+    "xboardProfileImportCancelTooltip": MessageLookupByLibrary.simpleMessage(
+      "取消导入",
+    ),
+    "xboardProfileImportClearError": MessageLookupByLibrary.simpleMessage(
+      "清除错误",
+    ),
+    "xboardProfileImportCloseTooltip": MessageLookupByLibrary.simpleMessage(
+      "关闭",
+    ),
+    "xboardProfileImportConfirm": MessageLookupByLibrary.simpleMessage("确定"),
+    "xboardProfileImportFailedTitle": MessageLookupByLibrary.simpleMessage(
+      "配置导入失败",
+    ),
+    "xboardProfileImportInProgress": MessageLookupByLibrary.simpleMessage(
+      "正在导入配置",
+    ),
+    "xboardProfileImportPreparing": MessageLookupByLibrary.simpleMessage(
+      "准备导入配置",
+    ),
+    "xboardProfileImportRetry": MessageLookupByLibrary.simpleMessage("重试"),
+    "xboardProfileImportSuccessDetail": MessageLookupByLibrary.simpleMessage(
+      "配置已成功导入并添加到配置列表",
+    ),
+    "xboardProfileImportSuccessTitle": MessageLookupByLibrary.simpleMessage(
+      "配置导入成功",
+    ),
     "xboardProtectNetworkPrivacy": MessageLookupByLibrary.simpleMessage(
       "保护您的网络隐私",
     ),
@@ -1759,6 +1785,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTrafficUsage": MessageLookupByLibrary.simpleMessage("流量使用"),
     "xboardTrafficUsedUp": MessageLookupByLibrary.simpleMessage("流量已用完"),
     "xboardTunEnabled": MessageLookupByLibrary.simpleMessage("TUN已启用"),
+    "xboardTunFeatureFullTraffic": MessageLookupByLibrary.simpleMessage(
+      "全流量代理",
+    ),
+    "xboardTunFeatureFullTrafficDesc": MessageLookupByLibrary.simpleMessage(
+      "捕获所有应用的网络流量，无需单独配置",
+    ),
+    "xboardTunFeaturePerformance": MessageLookupByLibrary.simpleMessage("性能优化"),
+    "xboardTunFeaturePerformanceDesc": MessageLookupByLibrary.simpleMessage(
+      "减少代理层级，提升网络访问速度",
+    ),
+    "xboardTunFeatureTransparent": MessageLookupByLibrary.simpleMessage("透明代理"),
+    "xboardTunFeatureTransparentDesc": MessageLookupByLibrary.simpleMessage(
+      "应用无感知的代理模式，兼容性更好",
+    ),
+    "xboardTunLater": MessageLookupByLibrary.simpleMessage("稍后再说"),
+    "xboardTunModeDescription": MessageLookupByLibrary.simpleMessage(
+      "TUN 模式是一种高级网络代理技术，通过虚拟网络接口实现更完整的流量代理。",
+    ),
+    "xboardTunModeTitle": MessageLookupByLibrary.simpleMessage("TUN 模式"),
+    "xboardTunRecommendGlobal": MessageLookupByLibrary.simpleMessage(
+      "• 备用方案：全局 + TUN（如规则模式异常时使用）",
+    ),
+    "xboardTunRecommendRule": MessageLookupByLibrary.simpleMessage(
+      "• 日常使用：规则 + TUN（智能分流，性能最佳）",
+    ),
+    "xboardTunRecommendations": MessageLookupByLibrary.simpleMessage("推荐使用方式"),
     "xboardTwelveMonthCycle": MessageLookupByLibrary.simpleMessage("12个月周期"),
     "xboardTwentyFourMonthCycle": MessageLookupByLibrary.simpleMessage(
       "24个月周期",

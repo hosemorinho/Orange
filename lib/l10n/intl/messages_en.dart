@@ -2280,6 +2280,32 @@ class MessageLookup extends MessageLookupByLibrary {
       "Professional support",
     ),
     "xboardProfile": MessageLookupByLibrary.simpleMessage("Profile"),
+    "xboardProfileImportCancelTooltip": MessageLookupByLibrary.simpleMessage(
+      "Cancel import",
+    ),
+    "xboardProfileImportClearError": MessageLookupByLibrary.simpleMessage(
+      "Clear error",
+    ),
+    "xboardProfileImportCloseTooltip": MessageLookupByLibrary.simpleMessage(
+      "Close",
+    ),
+    "xboardProfileImportConfirm": MessageLookupByLibrary.simpleMessage("OK"),
+    "xboardProfileImportFailedTitle": MessageLookupByLibrary.simpleMessage(
+      "Configuration import failed",
+    ),
+    "xboardProfileImportInProgress": MessageLookupByLibrary.simpleMessage(
+      "Importing configuration",
+    ),
+    "xboardProfileImportPreparing": MessageLookupByLibrary.simpleMessage(
+      "Preparing to import configuration",
+    ),
+    "xboardProfileImportRetry": MessageLookupByLibrary.simpleMessage("Retry"),
+    "xboardProfileImportSuccessDetail": MessageLookupByLibrary.simpleMessage(
+      "Configuration has been successfully imported and added to the configuration list",
+    ),
+    "xboardProfileImportSuccessTitle": MessageLookupByLibrary.simpleMessage(
+      "Configuration imported successfully",
+    ),
     "xboardProtectNetworkPrivacy": MessageLookupByLibrary.simpleMessage(
       "Protect your network privacy",
     ),
@@ -2572,6 +2598,38 @@ class MessageLookup extends MessageLookupByLibrary {
       "Traffic used up",
     ),
     "xboardTunEnabled": MessageLookupByLibrary.simpleMessage("TUN enabled"),
+    "xboardTunFeatureFullTraffic": MessageLookupByLibrary.simpleMessage(
+      "Full Traffic Proxy",
+    ),
+    "xboardTunFeatureFullTrafficDesc": MessageLookupByLibrary.simpleMessage(
+      "Captures network traffic from all apps without separate configuration",
+    ),
+    "xboardTunFeaturePerformance": MessageLookupByLibrary.simpleMessage(
+      "Performance Optimization",
+    ),
+    "xboardTunFeaturePerformanceDesc": MessageLookupByLibrary.simpleMessage(
+      "Reduces proxy layers and improves network access speed",
+    ),
+    "xboardTunFeatureTransparent": MessageLookupByLibrary.simpleMessage(
+      "Transparent Proxy",
+    ),
+    "xboardTunFeatureTransparentDesc": MessageLookupByLibrary.simpleMessage(
+      "App-agnostic proxy mode with better compatibility",
+    ),
+    "xboardTunLater": MessageLookupByLibrary.simpleMessage("Later"),
+    "xboardTunModeDescription": MessageLookupByLibrary.simpleMessage(
+      "TUN mode is an advanced network proxy technology that enables more complete traffic proxying through a virtual network interface.",
+    ),
+    "xboardTunModeTitle": MessageLookupByLibrary.simpleMessage("TUN Mode"),
+    "xboardTunRecommendGlobal": MessageLookupByLibrary.simpleMessage(
+      "• Backup: Global + TUN (Use when rule mode has issues)",
+    ),
+    "xboardTunRecommendRule": MessageLookupByLibrary.simpleMessage(
+      "• Daily use: Rule + TUN (Smart routing, best performance)",
+    ),
+    "xboardTunRecommendations": MessageLookupByLibrary.simpleMessage(
+      "Recommended Usage",
+    ),
     "xboardTwelveMonthCycle": MessageLookupByLibrary.simpleMessage(
       "12-month cycle",
     ),

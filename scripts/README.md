@@ -1,4 +1,59 @@
-# Android Package Refactoring Scripts
+# Build Scripts
+
+Orange 项目的构建和配置脚本。
+
+---
+
+## 图标生成脚本
+
+### `generate_icons.dart`
+**自动生成多平台应用图标**
+
+从一个 PNG 源图标自动生成所有平台所需的图标文件。
+
+**依赖:**
+- Dart SDK
+- ImageMagick (`convert` 命令)
+
+**用法:**
+```bash
+# 直接传入 URL
+dart scripts/generate_icons.dart https://example.com/icon.png
+
+# 通过环境变量
+export APP_ICON_URL="https://example.com/icon.png"
+dart scripts/generate_icons.dart
+```
+
+**CI/CD 配置:**
+
+在 GitHub Secrets 中设置 `APP_ICON_URL`，或在手动触发时输入图标 URL。
+
+```yaml
+# .github/workflows/build.yaml 已自动支持
+env:
+  APP_ICON_URL: ${{ secrets.APP_ICON_URL }}
+```
+
+**生成的图标:**
+
+| 平台 | 文件 | 尺寸 |
+|------|------|------|
+| Windows | `windows/runner/resources/app_icon.ico` | 256x256 (多尺寸嵌入) |
+| macOS | `macos/.../app_icon_*.png` | 16-1024px |
+| Android | `android/.../ic_launcher*.webp` | mdpi-xxxhdpi |
+| Android | `android/.../ic_launcher-playstore.png` | 512x512 |
+| 通用 | `assets/images/icon.png` | 550x550 |
+| 通用 | `assets/images/icon.ico` | 256x256 |
+
+**源图标要求:**
+- 格式: PNG (支持透明)
+- 尺寸: 最小 1024x1024 (推荐)
+- 形状: 正方形
+
+---
+
+## Android 包名重构脚本
 
 这些脚本用于将 Android 项目的包名从 `com.follow.clash` 重构为可配置的包名。
 

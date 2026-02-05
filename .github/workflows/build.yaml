@@ -21,10 +21,15 @@ on:
         description: 'Override API_BASE_URL'
         required: false
         default: ''
+      icon_url:
+        description: 'Custom app icon URL (PNG, min 1024x1024)'
+        required: false
+        default: ''
 
 env:
   IS_STABLE: ${{ github.event_name == 'release' }}
   API_BASE_URL: ${{ inputs.api_url || secrets.API_BASE_URL || '' }}
+  APP_ICON_URL: ${{ inputs.icon_url || secrets.APP_ICON_URL || '' }}
 
 jobs:
   codegen:
@@ -194,6 +199,27 @@ jobs:
         run: |
           chmod +x scripts/setup_android_config.sh
           bash scripts/setup_android_config.sh
+
+      - name: Install ImageMagick
+        if: env.APP_ICON_URL != ''
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt-get update && sudo apt-get install -y imagemagick
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew install imagemagick
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            choco install imagemagick -y
+          fi
+
+      - name: Generate Custom Icons
+        if: env.APP_ICON_URL != ''
+        shell: bash
+        env:
+          APP_ICON_URL: ${{ env.APP_ICON_URL }}
+        run: |
+          echo "🎨 Generating custom icons from: $APP_ICON_URL"
+          dart scripts/generate_icons.dart "$APP_ICON_URL"
 
       - name: Mask API URL
         if: env.API_BASE_URL != ''

@@ -1,5 +1,6 @@
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/xboard/features/subscription/widgets/flat_node_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -125,7 +126,7 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
+                            child: EmojiText(
                               proxy.name,
                               style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w600,

@@ -10,6 +10,7 @@ import 'package:fl_clash/widgets/input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_clash/xboard/features/shared/dialogs/theme_dialog.dart';
 
 import '../widgets/bypass_domain_card.dart';
 import '../widgets/lan_sharing_widgets.dart';
@@ -273,6 +274,28 @@ class XBoardSettingsPage extends ConsumerWidget {
                     const SizedBox(height: 16),
                     const LanInfoCard(),
                   ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Appearance Section
+              XBSectionTitle(
+                title: appLocalizations.xboardAppearance,
+                icon: Icons.palette_outlined,
+              ),
+              const SizedBox(height: 8),
+              XBDashboardCard(
+                padding: EdgeInsets.zero,
+                child: _SettingTile(
+                  icon: Icons.brightness_6,
+                  title: appLocalizations.switchTheme,
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const ThemeDialog(),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 32),

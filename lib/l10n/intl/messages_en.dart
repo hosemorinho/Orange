@@ -1993,6 +1993,7 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage(
           "Network connection failed, please check network settings and retry",
         ),
+    "xboardAppearance": MessageLookupByLibrary.simpleMessage("Appearance"),
     "xboardNetworkSettings": MessageLookupByLibrary.simpleMessage(
       "Network Settings",
     ),

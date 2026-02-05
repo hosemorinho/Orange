@@ -28,10 +28,10 @@ class AdaptiveShellLayout extends ConsumerWidget {
         context.go('/support');
         break;
       case 3:
-        context.go('/settings');
+        context.go('/invite');
         break;
       case 4:
-        context.go('/invite');
+        context.go('/settings');
         break;
     }
   }
@@ -42,8 +42,8 @@ class AdaptiveShellLayout extends ConsumerWidget {
     if (location == '/') return 0;
     if (location.startsWith('/plans')) return 1;
     if (location.startsWith('/support')) return 2;
-    if (location.startsWith('/settings')) return 3;
-    if (location.startsWith('/invite')) return 4;
+    if (location.startsWith('/invite')) return 3;
+    if (location.startsWith('/settings')) return 4;
     return 0;
   }
 

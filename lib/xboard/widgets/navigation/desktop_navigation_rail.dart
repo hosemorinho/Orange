@@ -1,5 +1,4 @@
 import 'package:fl_clash/l10n/l10n.dart';
-import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -44,26 +43,8 @@ class DesktopNavigationRail extends ConsumerWidget {
             child: _buildNavigationItems(context, colorScheme),
           ),
 
-          // 底部功能区
-          _buildBottomActions(colorScheme),
+          const SizedBox(height: 16),
         ],
-      ),
-    );
-  }
-
-  /// 分隔线
-  Widget _buildDivider(ColorScheme colorScheme) {
-    return Container(
-      width: 40,
-      height: 1,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.transparent,
-            colorScheme.outline.withValues(alpha: 0.3),
-            Colors.transparent,
-          ],
-        ),
       ),
     );
   }
@@ -117,31 +98,19 @@ class DesktopNavigationRail extends ConsumerWidget {
           label: Text(appLocalizations.xboardTickets),
         ),
         NavigationRailDestination(
-          icon: const Icon(Icons.settings_outlined),
-          selectedIcon: const Icon(Icons.settings),
-          label: Text(appLocalizations.xboardSettings),
-        ),
-        NavigationRailDestination(
           icon: const Icon(Icons.people_outline),
           selectedIcon: const Icon(Icons.people),
           label: Text(appLocalizations.xboardInvite),
+        ),
+        NavigationRailDestination(
+          icon: const Icon(Icons.settings_outlined),
+          selectedIcon: const Icon(Icons.settings),
+          label: Text(appLocalizations.xboardSettings),
         ),
       ],
       onDestinationSelected: onDestinationSelected,
     );
   }
 
-  /// 底部功能区
-  Widget _buildBottomActions(ColorScheme colorScheme) {
-    return Column(
-      children: [
-        const SizedBox(height: 8),
-        _buildDivider(colorScheme),
-        const SizedBox(height: 16),
-        const UserMenuWidget(),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
 }
 

@@ -1112,6 +1112,7 @@
   "xboardSearchNode": "搜索节点",
   "xboardSettings": "设置",
   "xboardNetworkSettings": "网络设置",
+  "xboardAppearance": "外观",
   "xboardBypassDomain": "排除域名/IP",
   "xboardBypassDomainDesc": "添加不走代理的域名和IP段",
   "xboardBypassDomainCount": "已添加 {count} 项规则",

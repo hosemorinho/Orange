@@ -65,19 +65,6 @@ final List<RouteBase> routes = [
           ],
         ),
 
-        // 设置页面分支
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/settings',
-              name: 'settings',
-              pageBuilder: (context, state) => const NoTransitionPage(
-                child: XBoardSettingsPage(),
-              ),
-            ),
-          ],
-        ),
-
         // 邀请页面分支
         StatefulShellBranch(
           routes: [
@@ -86,6 +73,19 @@ final List<RouteBase> routes = [
               name: 'invite',
               pageBuilder: (context, state) => const NoTransitionPage(
                 child: InvitePage(),
+              ),
+            ),
+          ],
+        ),
+
+        // 设置页面分支（放在最后）
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/settings',
+              name: 'settings',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: XBoardSettingsPage(),
               ),
             ),
           ],

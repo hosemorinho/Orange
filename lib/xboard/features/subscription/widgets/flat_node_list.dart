@@ -9,6 +9,7 @@ import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/views/proxies/common.dart' as proxies_common;
 import 'package:fl_clash/xboard/features/shared/utils/node_tag_parser.dart';
 
@@ -289,7 +290,7 @@ class _FlatNodeCard extends ConsumerWidget {
           Icons.dns,
           color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
         ),
-        title: Text(
+        title: EmojiText(
           proxy.name,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

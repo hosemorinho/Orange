@@ -938,9 +938,9 @@ class NoticePopupDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 头部：图标和标题
+              // 头部：标题
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
                 decoration: BoxDecoration(
                   color: isDark
                       ? Theme.of(context).colorScheme.surfaceContainer
@@ -949,47 +949,21 @@ class NoticePopupDialog extends StatelessWidget {
                     top: Radius.circular(28),
                   ),
                 ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Theme.of(context).colorScheme.primary,
-                            Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
-                          ],
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.campaign_rounded,
-                        size: 32,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
+                child: Text(
+                    notice.title ?? '重要通知',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      notice.title ?? '重要通知',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                    textAlign: TextAlign.center,
+                  ),
               ),
 
-              // 内容区域
-              Container(
-                constraints: const BoxConstraints(maxHeight: 400),
+              // 内容区域（自适应高度，可滚动）
+              Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  physics: const ClampingScrollPhysics(),
                   child: _buildNoticeContent(context, notice),
                 ),
               ),

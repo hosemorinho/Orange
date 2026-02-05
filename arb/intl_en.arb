@@ -1111,6 +1111,7 @@
   "xboardSearchNode": "Search nodes",
   "xboardSettings": "Settings",
   "xboardNetworkSettings": "Network Settings",
+  "xboardAppearance": "Appearance",
   "xboardBypassDomain": "Bypass Domain/IP",
   "xboardBypassDomainDesc": "Add domains and IPs for direct connection",
   "xboardBypassDomainCount": "{count} rules configured",

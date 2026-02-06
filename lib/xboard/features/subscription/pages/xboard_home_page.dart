@@ -59,12 +59,16 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
     ref.listenManual(profileImportProvider, (previous, next) {
       // 从导入中变为完成（成功或失败）
       if (previous?.isImporting == true && !next.isImporting && !_hasCheckedSubscriptionStatus) {
-        _hasCheckedSubscriptionStatus = true;
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            subscriptionStatusChecker.checkSubscriptionStatusOnStartup(context, ref);
-          }
-        });
+        // Only trigger check if import actually ran (not rejected as duplicate)
+        final actuallyRan = next.lastResult != null;
+        if (actuallyRan) {
+          _hasCheckedSubscriptionStatus = true;
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              subscriptionStatusChecker.checkSubscriptionStatusOnStartup(context, ref);
+            }
+          });
+        }
       }
     });
     
@@ -243,15 +247,28 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
   }
 
   /// 等待订阅导入完成后再检查订阅状态（备用方案）
-  /// 如果3秒后还没有触发导入完成监听器，则主动检查
+  /// 如果3秒后还没有触发导入完成监听器，则等待导入完成后再检查
   void _waitForSubscriptionImportThenCheck() async {
     await Future.delayed(const Duration(seconds: 3));
-    
+
     // 如果已经通过监听器检查过了，就不再检查
     if (_hasCheckedSubscriptionStatus) {
       return;
     }
-    
+
+    // If import is still in progress, wait for it (up to 30 more seconds)
+    final importState = ref.read(profileImportProvider);
+    if (importState.isImporting) {
+      for (int i = 0; i < 30; i++) {
+        await Future.delayed(const Duration(seconds: 1));
+        if (!mounted) return;
+        if (_hasCheckedSubscriptionStatus) return;
+        final current = ref.read(profileImportProvider);
+        if (!current.isImporting) break;
+      }
+    }
+
+    if (_hasCheckedSubscriptionStatus) return;
     _hasCheckedSubscriptionStatus = true;
     if (mounted) {
       subscriptionStatusChecker.checkSubscriptionStatusOnStartup(context, ref);

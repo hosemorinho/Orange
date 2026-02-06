@@ -162,15 +162,19 @@ class XBoardProfileImportService {
       _logger.info('✅ 已设置为当前配置: ${profile.label ?? profile.id}');
       
       // 3. 使用 silence 模式直接应用配置（新路由系统中 homeScaffoldKey 不可用）
-      // needSetupProvider 的监听器会触发 handleChangeProfile，但因为 commonScaffoldState 
+      // needSetupProvider 的监听器会触发 handleChangeProfile，但因为 commonScaffoldState
       // 未 mounted 会失败，所以我们在这里手动用 silence 模式触发
-      _logger.info('📋 使用 silence 模式应用配置...');
-      try {
-        await appController.applyProfile(silence: true);
-        _logger.info('✅ 配置应用成功');
-      } catch (e) {
-        _logger.error('❌ 配置应用失败', e);
-        // 不抛出异常，因为配置已经保存了
+      if (appController.isAttach) {
+        _logger.info('使用 silence 模式应用配置...');
+        try {
+          await appController.applyProfile(silence: true);
+          _logger.info('配置应用成功');
+        } catch (e) {
+          _logger.error('配置应用失败', e);
+          // 不抛出异常，因为配置已经保存了
+        }
+      } else {
+        _logger.info('appController 未就绪，跳过立即应用（配置已保存，后续 attach 时会加载）');
       }
       
       _logger.info('配置添加成功: ${profile.label ?? profile.id}');

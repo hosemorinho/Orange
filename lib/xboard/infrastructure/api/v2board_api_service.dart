@@ -361,6 +361,14 @@ class V2BoardApiService {
     });
   }
 
+  /// 验证优惠券
+  Future<Map<String, dynamic>> checkCoupon(String code, int planId) async {
+    return await _authPost('/api/v1/user/coupon/check', data: {
+      'code': code,
+      'plan_id': planId,
+    });
+  }
+
   // ================================================================
   // Tickets（工单）
   // ================================================================

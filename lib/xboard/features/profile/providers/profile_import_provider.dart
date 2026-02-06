@@ -11,7 +11,13 @@ class ProfileImportNotifier extends Notifier<ImportState> {
   
   Future<bool> importSubscription(String url, {bool forceRefresh = false}) async {
     _logger.info('开始导入订阅: $url, forceRefresh: $forceRefresh');
-    
+
+    // Skip if already importing (avoid double import conflict)
+    if (state.isImporting && !forceRefresh) {
+      _logger.info('导入已在进行中，跳过重复请求');
+      return false;
+    }
+
     state = state.copyWith(
       status: ImportStatus.downloading,
       isImporting: true,

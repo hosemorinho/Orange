@@ -11,11 +11,14 @@ import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/payment/providers/xboard_payment_provider.dart';
 import 'package:fl_clash/xboard/adapter/state/payment_state.dart';
+import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import '../widgets/payment_waiting_overlay.dart';
 import '../widgets/payment_method_selector_dialog.dart';
+import '../widgets/coupon_input_section.dart';
 import '../widgets/plan_header_card.dart';
 import '../widgets/period_selector.dart';
 import '../widgets/price_summary_card.dart';
+import '../utils/price_calculator.dart';
 import '../models/payment_step.dart';
 
 // 初始化文件级日志器
@@ -46,6 +49,15 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   double? _userBalance;
   bool _isLoadingBalance = false;
 
+  // 优惠券状态
+  final TextEditingController _couponController = TextEditingController();
+  bool _isCouponValidating = false;
+  bool? _isCouponValid;          // null=未验证, true=有效, false=无效
+  String? _couponErrorMessage;
+  int? _couponType;              // 1=固定金额(分), 2=百分比
+  int? _couponValue;
+  String? _validatedCouponCode;  // 验证通过的代码（传给下单接口）
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +73,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       }
       _loadUserBalance();
     });
+  }
+
+  @override
+  void dispose() {
+    _couponController.dispose();
+    super.dispose();
   }
 
   // ========== 数据加载 ==========
@@ -160,6 +178,70 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     return selectedPeriod['price']?.toDouble() ?? 0.0;
   }
 
+  // ========== 优惠券 ==========
+
+  Future<void> _validateCoupon() async {
+    final code = _couponController.text.trim();
+    if (code.isEmpty) return;
+
+    setState(() {
+      _isCouponValidating = true;
+      _isCouponValid = null;
+      _couponErrorMessage = null;
+    });
+
+    try {
+      final api = await ref.read(xboardSdkProvider.future);
+      final json = await api.checkCoupon(code, widget.plan.id);
+      final data = json['data'];
+
+      if (data is Map<String, dynamic>) {
+        final type = data['type'] as int?;
+        final value = data['value'] as int?;
+
+        if (type == 1 || type == 2) {
+          setState(() {
+            _isCouponValid = true;
+            _couponType = type;
+            _couponValue = value;
+            _validatedCouponCode = code;
+          });
+        } else {
+          setState(() {
+            _isCouponValid = false;
+            _couponErrorMessage = AppLocalizations.of(context).xboardUnsupportedCouponType;
+          });
+        }
+      } else {
+        setState(() {
+          _isCouponValid = false;
+          _couponErrorMessage = AppLocalizations.of(context).xboardInvalidOrExpiredCoupon;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isCouponValid = false;
+        _couponErrorMessage = e.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isCouponValidating = false);
+      }
+    }
+  }
+
+  void _onCouponChanged() {
+    if (_isCouponValid != null) {
+      setState(() {
+        _isCouponValid = null;
+        _couponErrorMessage = null;
+        _couponType = null;
+        _couponValue = null;
+        _validatedCouponCode = null;
+      });
+    }
+  }
+
   // ========== 购买流程 ==========
 
   Future<void> _proceedToPurchase() async {
@@ -186,6 +268,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       tradeNo = await paymentNotifier.createOrder(
         planId: widget.plan.id,
         period: _selectedPeriod!,
+        couponCode: _validatedCouponCode,
       );
 
       if (tradeNo == null) {
@@ -196,8 +279,10 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       _logger.debug('[购买] 订单创建成功: $tradeNo');
       PaymentWaitingManager.updateTradeNo(tradeNo);
 
-      // 计算实付金额
-      final displayFinalPrice = _getCurrentPrice();
+      // 计算实付金额（使用优惠后的价格）
+      final displayFinalPrice = _couponType != null
+          ? PriceCalculator.calculateFinalPrice(_getCurrentPrice(), _couponType, _couponValue)
+          : _getCurrentPrice();
       final balanceToUse = _userBalance != null && _userBalance! > 0
           ? (_userBalance! > displayFinalPrice ? displayFinalPrice : _userBalance!)
           : 0.0;
@@ -486,6 +571,8 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
           flex: 7,
           child: Column(
             children: [
+              _buildCouponCard(context, colorScheme),
+              const SizedBox(height: 16),
               _buildPaymentDetailsCard(context, currentPrice, colorScheme),
               const SizedBox(height: 16),
               _buildActionButtons(context, colorScheme),
@@ -510,10 +597,38 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         const SizedBox(height: 16),
         _buildPeriodSelectorCard(context, periods, colorScheme),
         const SizedBox(height: 16),
+        _buildCouponCard(context, colorScheme),
+        const SizedBox(height: 16),
         _buildPaymentDetailsCard(context, currentPrice, colorScheme),
         const SizedBox(height: 16),
         _buildActionButtons(context, colorScheme),
       ],
+    );
+  }
+
+  // Coupon card
+  Widget _buildCouponCard(BuildContext context, ColorScheme colorScheme) {
+    final currentPrice = _getCurrentPrice();
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: CouponInputSection(
+        controller: _couponController,
+        isValidating: _isCouponValidating,
+        isValid: _isCouponValid,
+        errorMessage: _couponErrorMessage,
+        discountAmount: _couponType != null
+            ? PriceCalculator.calculateDiscountAmount(currentPrice, _couponType, _couponValue)
+            : null,
+        onValidate: _validateCoupon,
+        onChanged: _onCouponChanged,
+      ),
     );
   }
 
@@ -564,6 +679,8 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       child: PeriodSelector(
         periods: periods,
         selectedPeriod: _selectedPeriod,
+        couponType: _couponType,
+        couponValue: _couponValue,
         onPeriodSelected: (period) {
           setState(() {
             _selectedPeriod = period;
@@ -604,8 +721,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
           if (_selectedPeriod != null)
             PriceSummaryCard(
               originalPrice: currentPrice,
-              finalPrice: null,
-              discountAmount: null,
+              finalPrice: _couponType != null
+                  ? PriceCalculator.calculateFinalPrice(currentPrice, _couponType, _couponValue)
+                  : null,
+              discountAmount: _couponType != null
+                  ? PriceCalculator.calculateDiscountAmount(currentPrice, _couponType, _couponValue)
+                  : null,
               userBalance: _userBalance,
             ),
         ],

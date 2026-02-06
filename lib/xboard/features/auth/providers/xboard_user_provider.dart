@@ -152,8 +152,14 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       ref.read(subscriptionInfoProvider.notifier).state = subscriptionData;
 
       if (subscriptionData.subscribeUrl.isNotEmpty) {
-        _logger.info('[后台验证] 开始自动导入订阅配置: ${subscriptionData.subscribeUrl}');
-        ref.read(profileImportProvider.notifier).importSubscription(subscriptionData.subscribeUrl);
+        // Only import if no import is currently in progress (avoid conflicting with quickAuth import)
+        final importState = ref.read(profileImportProvider);
+        if (importState.isImporting) {
+          _logger.info('[后台验证] 订阅导入正在进行中，跳过重复导入');
+        } else {
+          _logger.info('[后台验证] 开始自动导入订阅配置: ${subscriptionData.subscribeUrl}');
+          ref.read(profileImportProvider.notifier).importSubscription(subscriptionData.subscribeUrl);
+        }
       } else {
         _logger.info('[后台验证] 订阅URL为空，跳过配置导入');
       }

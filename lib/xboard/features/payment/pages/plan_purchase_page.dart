@@ -109,7 +109,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
   Future<void> _checkPlanConflict() async {
     final subscriptionAsync = ref.read(getSubscriptionProvider);
-    final subscription = subscriptionAsync.valueOrNull;
+    final subscription = subscriptionAsync.value;
     if (subscription == null) return;
 
     final isSamePlan = subscription.planId == widget.plan.id;

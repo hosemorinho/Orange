@@ -13,6 +13,7 @@ import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart'
 import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/tun_introduction_dialog.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
+import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_status_service.dart';
 import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
@@ -353,6 +354,13 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         patchClashConfigProvider.select((state) => state.tun.enable));
 
     if (groups.isEmpty) {
+      // 如果订阅正在导入中，显示加载状态而非"无可用节点"
+      final isImporting = ref.watch(
+        profileImportProvider.select((state) => state.isImporting),
+      );
+      if (isImporting) {
+        return _buildLoadingState(context);
+      }
       return _buildEmptyState(context);
     }
 
@@ -1034,6 +1042,42 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       delayValue: delayState,
       onTap: () => autoLatencyService.testProxy(proxy, forceTest: true),
       isCompact: true,
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            AppLocalizations.of(context).xboardImportingSubscription,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

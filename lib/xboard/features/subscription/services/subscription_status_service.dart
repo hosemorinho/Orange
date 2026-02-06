@@ -36,6 +36,7 @@ class SubscriptionStatusService {
     required UserAuthState userState,
     fl_models.SubscriptionInfo? profileSubscriptionInfo,
     bool isRefreshing = false,
+    bool hasActiveSubscription = false,
   }) {
     // 🔧 DEBUG: 强制显示过期提醒对话框，方便调试
     const bool debugForceExpired = false;
@@ -61,8 +62,9 @@ class SubscriptionStatusService {
     
     // 只使用 profileSubscriptionInfo 作为数据源
     if (profileSubscriptionInfo == null) {
-      // 如果正在刷新订阅，返回"刷新中"状态而非"无订阅"，避免 UI 短暂显示购买订阅
-      if (isRefreshing) {
+      // 如果正在刷新订阅，或者 XBoard API 表明用户有有效订阅（只是 Clash 核心还没解析完），
+      // 返回"正常"状态，避免 UI 短暂显示购买订阅
+      if (isRefreshing || hasActiveSubscription) {
         return SubscriptionStatusResult(
           type: SubscriptionStatusType.valid,
           messageBuilder: (context) => AppLocalizations.of(context).subscriptionValid,

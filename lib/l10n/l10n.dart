@@ -5799,6 +5799,16 @@ class AppLocalizations {
     );
   }
 
+  /// `Loading subscription...`
+  String get xboardImportingSubscription {
+    return Intl.message(
+      'Loading subscription...',
+      name: 'xboardImportingSubscription',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Click to setup nodes`
   String get xboardClickToSetupNodes {
     return Intl.message(

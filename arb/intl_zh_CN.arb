@@ -706,6 +706,7 @@
   "xboardProxyModeDirectDescription": "所有流量都直接连接，不使用代理",
   "xboardTunEnabled": "TUN已启用",
   "xboardNoAvailableNodes": "无可用节点",
+  "xboardImportingSubscription": "正在加载订阅配置...",
   "xboardClickToSetupNodes": "点击设置节点",
   "xboardProxy": "代理",
   "xboardSwitch": "切换",

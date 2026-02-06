@@ -2009,6 +2009,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "New version found",
     ),
     "xboardNext": MessageLookupByLibrary.simpleMessage("Next"),
+    "xboardImportingSubscription": MessageLookupByLibrary.simpleMessage(
+      "Loading subscription...",
+    ),
     "xboardNoAvailableNodes": MessageLookupByLibrary.simpleMessage(
       "No available nodes",
     ),

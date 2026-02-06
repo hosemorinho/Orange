@@ -1396,6 +1396,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNewPassword": MessageLookupByLibrary.simpleMessage("新密码"),
     "xboardNewVersionFound": MessageLookupByLibrary.simpleMessage("发现新版本"),
     "xboardNext": MessageLookupByLibrary.simpleMessage("下一条"),
+    "xboardImportingSubscription":
+        MessageLookupByLibrary.simpleMessage("正在加载订阅配置..."),
     "xboardNoAvailableNodes": MessageLookupByLibrary.simpleMessage("无可用节点"),
     "xboardNoAvailablePlan": MessageLookupByLibrary.simpleMessage("无可用套餐"),
     "xboardNoAvailablePlans": MessageLookupByLibrary.simpleMessage("暂无可用套餐"),

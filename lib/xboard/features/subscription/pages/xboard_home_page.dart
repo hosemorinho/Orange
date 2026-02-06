@@ -63,11 +63,9 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         final actuallyRan = next.lastResult != null;
         if (actuallyRan) {
           _hasCheckedSubscriptionStatus = true;
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted) {
-              subscriptionStatusChecker.checkSubscriptionStatusOnStartup(context, ref);
-            }
-          });
+          // 等待 Clash 核心解析完 profile（groups 非空）后再检查订阅状态，
+          // 否则 profileSubscriptionInfo 可能还是 null，会误判为"无订阅"
+          _waitForGroupsThenCheckStatus();
         }
       }
     });
@@ -246,6 +244,21 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
     );
   }
 
+  /// 等待 Clash 核心解析完成（groups 非空）后再检查订阅状态
+  /// 避免 profileSubscriptionInfo 还是 null 时误判为"无订阅"
+  void _waitForGroupsThenCheckStatus() async {
+    // 等待 groups 非空（Clash 核心解析完 YAML），最多等 15 秒
+    for (int i = 0; i < 30; i++) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (!mounted) return;
+      final groups = ref.read(groupsProvider);
+      if (groups.isNotEmpty) break;
+    }
+    if (mounted) {
+      subscriptionStatusChecker.checkSubscriptionStatusOnStartup(context, ref);
+    }
+  }
+
   /// 等待订阅导入完成后再检查订阅状态（备用方案）
   /// 如果3秒后还没有触发导入完成监听器，则等待导入完成后再检查
   void _waitForSubscriptionImportThenCheck() async {
@@ -271,7 +284,8 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
     if (_hasCheckedSubscriptionStatus) return;
     _hasCheckedSubscriptionStatus = true;
     if (mounted) {
-      subscriptionStatusChecker.checkSubscriptionStatusOnStartup(context, ref);
+      // 同样等待 groups 加载完成后再检查
+      _waitForGroupsThenCheckStatus();
     }
   }
   

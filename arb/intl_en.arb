@@ -701,6 +701,7 @@
   "xboardProxyModeDirectDescription": "All traffic connects directly without proxy",
   "xboardTunEnabled": "TUN enabled",
   "xboardNoAvailableNodes": "No available nodes",
+  "xboardImportingSubscription": "Loading subscription...",
   "xboardClickToSetupNodes": "Click to setup nodes",
   "xboardProxy": "Proxy",
   "xboardSwitch": "Switch",

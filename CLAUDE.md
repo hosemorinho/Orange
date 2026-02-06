@@ -224,6 +224,85 @@ Two modes:
 
 ## Change Log (Recent)
 
+### 2026-02-06: API_TEXT_DOMAIN Integration & Theme Default Update
+
+**DNS TXT Resolution with Dynamic Configuration**:
+- Added comprehensive API configuration resolution via encrypted DNS TXT records
+- Implemented DoH (DNS-over-HTTPS) resolver using Alibaba Cloud DNS (223.5.5.5 / 223.6.6.6)
+- Added CryptoJS-compatible AES-256-CBC decryptor with EVP_BytesToKey key derivation
+- Supports encrypted JSON config with `crisp` and `hosts` fields
+- No new package dependencies required (uses existing `crypto` + `encrypt` packages)
+
+**Domain Racing Integration**:
+- Integrated TXT resolution into domain status service with 3-path logic:
+  - **PATH 1**: `API_TEXT_DOMAIN` → resolve TXT → race (resolved hosts + `API_BASE_URL`)
+  - **PATH 2**: `API_BASE_URL` only → direct use (existing behavior)
+  - **PATH 3**: neither → config file racing (existing behavior)
+- Added `XBoardConfig.setLastRacingResult()` for external racing result storage
+- Automatic fallback to `API_BASE_URL` or config file if TXT resolution fails
+
+**Dynamic Crisp Chat Integration**:
+- Added `crisp_config.dart` with `effectiveCrispWebsiteId` getter
+- Priority: `CRISP_WEBSITE_ID` env var > TXT-resolved value > none
+- Updated `crisp_chat_service.dart` and `crisp_chat_button.dart` to use dynamic ID
+- Button auto-rebuilds after TXT resolution completes (watches `initializationProvider`)
+
+**GitHub Actions Workflow Fix**:
+- Fixed missing environment variables in build workflow
+- Added `API_TEXT_DOMAIN` and `CRISP_WEBSITE_ID` to env propagation
+- Added `workflow_dispatch` inputs for manual override on manual triggers
+- Now properly passes all configured secrets to build process
+
+**Theme Default Mode**:
+- Changed default theme mode from `ThemeMode.dark` to `ThemeMode.system`
+- App now follows system light/dark mode automatically by default
+- Users can still manually select light/dark/auto in settings
+
+**New Files** (4):
+- `lib/xboard/infrastructure/network/doh_txt_resolver.dart` (222 lines)
+- `lib/xboard/infrastructure/network/cryptojs_aes_decryptor.dart` (111 lines)
+- `lib/xboard/infrastructure/network/api_text_resolver.dart` (153 lines)
+- `lib/xboard/features/crisp/crisp_config.dart` (24 lines)
+
+**Modified Files** (9):
+- `lib/common/constant.dart` - Added `apiTextDomain` constant
+- `lib/xboard/features/domain_status/services/domain_status_service.dart` - Core TXT integration
+- `lib/xboard/config/xboard_config.dart` - Added `setLastRacingResult()` setter
+- `lib/xboard/features/crisp/crisp_chat_service.dart` - Dynamic Crisp ID
+- `lib/xboard/features/crisp/crisp_chat_button.dart` - Dynamic Crisp ID + rebuild watch
+- `lib/xboard/infrastructure/network/network.dart` - Export new modules
+- `lib/xboard/xboard.dart` - Export crisp_config
+- `setup.dart` - Support `API_TEXT_DOMAIN` and `CRISP_WEBSITE_ID` in env.json
+- `.github/workflows/build.yaml` - Fix env var propagation
+- `lib/models/config.dart` - Default theme mode to system
+
+**Configuration Usage**:
+```bash
+# Via GitHub Secrets (recommended for CI/CD)
+# Set in repo Settings → Secrets and variables → Actions:
+# - CRISP_WEBSITE_ID=your-crisp-id
+# - API_TEXT_DOMAIN=txt.example.com
+
+# Via command line
+dart setup.dart android --arch arm64 \
+  --dart-define=API_TEXT_DOMAIN=txt.example.com \
+  --dart-define=CRISP_WEBSITE_ID=your-crisp-id
+```
+
+**TXT Record Format** (encrypted with AES, password = `appName`):
+```json
+{
+  "crisp": "your-crisp-website-id",
+  "hosts": ["https://api1.example.com", "https://api2.example.com"]
+}
+```
+
+**Commits**:
+- `b5e5d56` - feat: add API_TEXT_DOMAIN support with DNS TXT resolution and dynamic Crisp integration
+- `[pending]` - feat: change default theme mode to system (auto light/dark)
+
+---
+
 ### 2026-02-01: Theme System & UI Refactor
 
 **Theme Changes**:

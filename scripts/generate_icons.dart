@@ -81,6 +81,16 @@ class IconGenerator {
     'mipmap-xxxhdpi': 192,
   };
 
+  /// Adaptive icon foreground sizes per density (108dp canvas)
+  /// Icon content occupies inner 72dp; outer 18dp each side is safe zone.
+  static const Map<String, Map<String, int>> adaptiveForegroundSizes = {
+    'drawable-mdpi':    {'canvas': 108, 'icon': 72},
+    'drawable-hdpi':    {'canvas': 162, 'icon': 108},
+    'drawable-xhdpi':   {'canvas': 216, 'icon': 144},
+    'drawable-xxhdpi':  {'canvas': 324, 'icon': 216},
+    'drawable-xxxhdpi': {'canvas': 432, 'icon': 288},
+  };
+
   Future<void> run(String iconUrl) async {
     print('🎨 Starting icon generation...');
     print('📥 Icon URL: $iconUrl');
@@ -221,10 +231,11 @@ class IconGenerator {
     final androidResDir =
         path.join(projectRoot, 'android', 'app', 'src', 'main', 'res');
 
-    // Remove adaptive icon files that override bitmap mipmap icons on API 26+
-    // The anydpi-v26 qualifier has higher priority than density-specific mipmaps,
-    // so the vector foreground would always be shown instead of the custom icon.
-    await _removeAdaptiveIconFiles(androidResDir);
+    // Replace the default vector foreground with custom icon PNGs.
+    // This makes adaptive icons (app icon + splash screen) all use the custom logo.
+    // The mipmap-anydpi-v26/ XML files are kept — they reference
+    // @drawable/ic_launcher_foreground which now resolves to the new PNGs.
+    await _replaceAdaptiveForeground(sourcePath, androidResDir);
 
     // Generate Play Store icon (512x512)
     final playStorePath =
@@ -250,22 +261,43 @@ class IconGenerator {
     print('✅ Android icons generated');
   }
 
-  /// Remove adaptive icon XML files so bitmap mipmaps take priority.
-  /// Note: drawable/ic_launcher_foreground.xml is kept because it's referenced
-  /// by the splash screen theme in values-v27/ and values-night-v27/.
-  Future<void> _removeAdaptiveIconFiles(String androidResDir) async {
-    final filesToRemove = [
-      path.join(androidResDir, 'mipmap-anydpi-v26', 'ic_launcher.xml'),
-      path.join(androidResDir, 'mipmap-anydpi-v26', 'ic_launcher_round.xml'),
-    ];
-
-    for (final filePath in filesToRemove) {
-      final file = File(filePath);
-      if (await file.exists()) {
-        await file.delete();
-        print('  🗑️ Removed $filePath');
-      }
+  /// Replace the default vector foreground with density-specific PNGs of the custom icon.
+  ///
+  /// Adaptive icon canvas is 108dp (icon content in inner 72dp, 18dp safe zone each side).
+  /// Generates PNGs for each density so @drawable/ic_launcher_foreground resolves to them.
+  Future<void> _replaceAdaptiveForeground(String sourcePath, String androidResDir) async {
+    // Delete the original vector foreground
+    final vectorPath = path.join(androidResDir, 'drawable', 'ic_launcher_foreground.xml');
+    final vectorFile = File(vectorPath);
+    if (await vectorFile.exists()) {
+      await vectorFile.delete();
+      print('  🗑️ Removed old vector foreground: $vectorPath');
     }
+
+    // Generate foreground PNGs for each density
+    for (final entry in adaptiveForegroundSizes.entries) {
+      final drawableDir = path.join(androidResDir, entry.key);
+      final dir = Directory(drawableDir);
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+
+      final canvasSize = entry.value['canvas']!;
+      final iconSize = entry.value['icon']!;
+      final outputPath = path.join(drawableDir, 'ic_launcher_foreground.png');
+
+      // Resize icon to inner area, then center on transparent canvas
+      await _exec(_magickCmd, [
+        sourcePath,
+        '-resize', '${iconSize}x$iconSize',
+        '-background', 'none',
+        '-gravity', 'center',
+        '-extent', '${canvasSize}x$canvasSize',
+        outputPath,
+      ]);
+    }
+
+    print('  ✅ Adaptive icon foreground PNGs generated');
   }
 
   Future<void> _generateAssetIcons(String sourcePath) async {

@@ -231,7 +231,7 @@ abstract class Dns with _$Dns {
     @Default(true) @JsonKey(name: 'use-system-hosts') bool useSystemHosts,
     @Default(false) @JsonKey(name: 'respect-rules') bool respectRules,
     @Default(true) bool ipv6,
-    @Default(['223.5.5.5'])
+    @Default(['223.5.5.5', '223.6.6.6'])
     @JsonKey(name: 'default-nameserver')
     List<String> defaultNameserver,
     @Default(DnsMode.fakeIp)
@@ -253,7 +253,7 @@ abstract class Dns with _$Dns {
     @Default(['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'])
     List<String> nameserver,
     @Default(['tls://8.8.4.4', 'tls://1.1.1.1']) List<String> fallback,
-    @Default(['https://223.5.5.5/dns-query'])
+    @Default(['https://223.5.5.5/dns-query', 'https://223.6.6.6/dns-query'])
     @JsonKey(name: 'proxy-server-nameserver')
     List<String> proxyServerNameserver,
     @Default(FallbackFilter())

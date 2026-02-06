@@ -1854,6 +1854,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardImportingConfiguration": MessageLookupByLibrary.simpleMessage(
       "Importing configuration",
     ),
+    "xboardImportingSubscription": MessageLookupByLibrary.simpleMessage(
+      "Loading subscription...",
+    ),
     "xboardInactive": MessageLookupByLibrary.simpleMessage("Inactive"),
     "xboardInitializationComplete": MessageLookupByLibrary.simpleMessage(
       "Initialization complete",
@@ -2009,9 +2012,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "New version found",
     ),
     "xboardNext": MessageLookupByLibrary.simpleMessage("Next"),
-    "xboardImportingSubscription": MessageLookupByLibrary.simpleMessage(
-      "Loading subscription...",
-    ),
     "xboardNoAvailableNodes": MessageLookupByLibrary.simpleMessage(
       "No available nodes",
     ),

@@ -1558,5 +1558,18 @@
   "xboardProfileImportSuccessDetail": "配置已成功导入并添加到配置列表",
   "xboardProfileImportClearError": "清除错误",
   "xboardProfileImportRetry": "重试",
-  "xboardProfileImportConfirm": "确定"
+  "xboardProfileImportConfirm": "确定",
+  "xboardPlanConflictTitle": "订阅套餐变更提示",
+  "xboardPlanConflictMessage": "您正在购买不同的订阅套餐。系统将对您当前套餐的剩余价值进行回收，并按多退少补原则进行结算。",
+  "xboardContinuePurchase": "继续购买",
+  "xboardConfirmOrder": "确认订单",
+  "xboardPaymentSummary": "支付详情",
+  "xboardBasePrice": "原价",
+  "xboardCouponDiscount": "优惠码折扣",
+  "xboardProcessingFee": "手续费",
+  "xboardConfirmAndPay": "确认并支付",
+  "xboardFixedFee": "固定",
+  "xboardPercentFee": "比例",
+  "xboardResetTrafficDescription": "重置已用流量",
+  "xboardPaymentMethod": "支付方式"
 }

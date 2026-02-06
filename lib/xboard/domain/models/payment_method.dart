@@ -18,6 +18,9 @@ abstract class DomainPaymentMethod with _$DomainPaymentMethod {
     
     /// 手续费百分比（0-100）
     @Default(0.0) double feePercentage,
+
+    /// 固定手续费（元）
+    @Default(0.0) double feeFixed,
     
     /// 是否可用
     @Default(true) bool isAvailable,
@@ -47,16 +50,16 @@ extension DomainPaymentMethodX on DomainPaymentMethod {
   // ========== 业务逻辑 ==========
 
   /// 是否有手续费
-  bool get hasFee => feePercentage > 0;
-
-  /// 计算实际支付金额（含手续费）
-  double calculateTotalAmount(double baseAmount) {
-    return baseAmount * (1 + feePercentage / 100);
-  }
+  bool get hasFee => feePercentage > 0 || feeFixed > 0;
 
   /// 计算手续费
   double calculateFee(double baseAmount) {
-    return baseAmount * (feePercentage / 100);
+    return feeFixed + (baseAmount * feePercentage / 100);
+  }
+
+  /// 计算实际支付金额（含手续费）
+  double calculateTotalAmount(double baseAmount) {
+    return baseAmount + calculateFee(baseAmount);
   }
 
   /// 是否在金额范围内

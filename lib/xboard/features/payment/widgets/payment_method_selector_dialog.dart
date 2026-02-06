@@ -49,6 +49,17 @@ class _PaymentMethodSelectorDialogState extends State<_PaymentMethodSelectorDial
     _selectedMethod = widget.selectedMethod;
   }
 
+  String _formatFeeText(DomainPaymentMethod method) {
+    final parts = <String>[];
+    if (method.feeFixed > 0) {
+      parts.add('${appLocalizations.xboardFixedFee}: ¥${method.feeFixed.toStringAsFixed(2)}');
+    }
+    if (method.feePercentage > 0) {
+      parts.add('${appLocalizations.xboardPercentFee}: ${method.feePercentage.toStringAsFixed(1)}%');
+    }
+    return parts.join(' + ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -95,9 +106,9 @@ class _PaymentMethodSelectorDialogState extends State<_PaymentMethodSelectorDial
                 color: isSelected ? colorScheme.primary : null,
               ),
             ),
-            subtitle: method.feePercentage > 0
+            subtitle: method.hasFee
                 ? Text(
-                    '${appLocalizations.xboardHandlingFee}: ${method.feePercentage.toStringAsFixed(1)}%',
+                    _formatFeeText(method),
                     style: TextStyle(
                       fontSize: 12,
                       color: colorScheme.onSurfaceVariant,

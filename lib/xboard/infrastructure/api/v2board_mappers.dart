@@ -147,11 +147,22 @@ DomainPaymentMethod mapPaymentMethod(Map<String, dynamic> json) {
     feePercentage = double.tryParse(rawFee) ?? 0.0;
   }
 
+  // handling_fee_fixed: V2Board stores in cents, convert to yuan
+  final rawFixedFee = json['handling_fee_fixed'];
+  double feeFixed = 0.0;
+  if (rawFixedFee is num) {
+    feeFixed = rawFixedFee.toDouble();
+  } else if (rawFixedFee is String) {
+    feeFixed = double.tryParse(rawFixedFee) ?? 0.0;
+  }
+  feeFixed = feeFixed / 100.0;
+
   return DomainPaymentMethod(
     id: (json['id'] as num?)?.toInt() ?? 0,
     name: json['name'] as String? ?? '',
     iconUrl: json['icon'] as String?,
     feePercentage: feePercentage,
+    feeFixed: feeFixed,
     isAvailable: true,
   );
 }

@@ -18,8 +18,11 @@ import '../widgets/coupon_input_section.dart';
 import '../widgets/plan_header_card.dart';
 import '../widgets/period_selector.dart';
 import '../widgets/price_summary_card.dart';
+import '../widgets/plan_conflict_dialog.dart';
+import '../widgets/order_confirm_dialog.dart';
 import '../utils/price_calculator.dart';
 import '../models/payment_step.dart';
+import 'package:fl_clash/xboard/adapter/state/subscription_state.dart';
 
 // 初始化文件级日志器
 final _logger = FileLogger('plan_purchase_page.dart');
@@ -64,7 +67,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     // 确保 PaymentProvider 被初始化，以便开始加载支付方式
     ref.read(xboardPaymentProvider);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final periods = _getAvailablePeriods(context);
       if (periods.isNotEmpty && _selectedPeriod == null) {
         setState(() {
@@ -72,6 +75,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         });
       }
       _loadUserBalance();
+
+      // Check plan conflict: warn if buying a different plan while active
+      await _checkPlanConflict();
     });
   }
 
@@ -99,6 +105,43 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         setState(() => _isLoadingBalance = false);
       }
     }
+  }
+
+  Future<void> _checkPlanConflict() async {
+    final subscriptionAsync = ref.read(getSubscriptionProvider);
+    final subscription = subscriptionAsync.valueOrNull;
+    if (subscription == null) return;
+
+    final isSamePlan = subscription.planId == widget.plan.id;
+    if (isSamePlan) return;
+
+    final hasActive = _isSubscriptionActive(subscription);
+    if (!hasActive) return;
+
+    if (!mounted) return;
+    final shouldContinue = await PlanConflictDialog.show(context);
+    if (!shouldContinue && mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  bool _isSubscriptionActive(DomainSubscription sub) {
+    if (sub.expiredAt == null) {
+      // No expiry → check if has remaining traffic
+      return sub.transferLimit > sub.totalUsedBytes;
+    } else {
+      return !sub.isExpired;
+    }
+  }
+
+  String _getSelectedPeriodLabel() {
+    if (_selectedPeriod == null) return '';
+    final periods = _getAvailablePeriods(context);
+    final selected = periods.firstWhere(
+      (p) => p['period'] == _selectedPeriod,
+      orElse: () => {},
+    );
+    return (selected['label'] as String?) ?? '';
   }
 
   List<Map<String, dynamic>> _getAvailablePeriods(BuildContext context) {
@@ -162,6 +205,14 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         'label': l10n.xboardOneTimePayment,
         'price': plan.onetimePrice!,
         'description': l10n.xboardBuyoutPlan,
+      });
+    }
+    if (plan.resetPrice != null && plan.resetPrice! > 0) {
+      periods.add({
+        'period': 'reset_price',
+        'label': l10n.xboardResetTraffic,
+        'price': plan.resetPrice!,
+        'description': l10n.xboardResetTrafficDescription,
       });
     }
 
@@ -331,7 +382,32 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         if (selectedMethod == null) return;
       }
 
-      // 提交支付
+      // Show order confirmation dialog
+      final basePrice = _getCurrentPrice();
+      final couponDiscount = _couponType != null
+          ? PriceCalculator.calculateDiscountAmount(basePrice, _couponType, _couponValue)
+          : null;
+      final priceAfterCoupon = _couponType != null
+          ? PriceCalculator.calculateFinalPrice(basePrice, _couponType, _couponValue)
+          : basePrice;
+      final fee = selectedMethod.calculateFee(priceAfterCoupon);
+      final totalBeforeBalance = priceAfterCoupon + fee;
+
+      PaymentWaitingManager.hide();
+      if (!mounted) return;
+      final confirmed = await OrderConfirmDialog.show(
+        context,
+        plan: widget.plan,
+        periodLabel: _getSelectedPeriodLabel(),
+        basePrice: basePrice,
+        couponDiscount: couponDiscount,
+        paymentMethod: selectedMethod,
+        totalAmount: totalBeforeBalance,
+      );
+      if (!confirmed) return;
+
+      // Resume payment waiting and submit
+      if (mounted) _showPaymentWaiting(tradeNo);
       await _submitPayment(tradeNo, selectedMethod);
     } catch (e) {
       _logger.error('购买流程出错: $e');

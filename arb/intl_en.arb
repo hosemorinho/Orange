@@ -1557,5 +1557,18 @@
   "xboardProfileImportSuccessDetail": "Configuration has been successfully imported and added to the configuration list",
   "xboardProfileImportClearError": "Clear error",
   "xboardProfileImportRetry": "Retry",
-  "xboardProfileImportConfirm": "OK"
+  "xboardProfileImportConfirm": "OK",
+  "xboardPlanConflictTitle": "Subscription Plan Notice",
+  "xboardPlanConflictMessage": "You are purchasing a different subscription plan. The system will recycle the value of your current subscription with price adjustment (refund or supplement).",
+  "xboardContinuePurchase": "Continue Purchase",
+  "xboardConfirmOrder": "Confirm Order",
+  "xboardPaymentSummary": "Payment Summary",
+  "xboardBasePrice": "Base price",
+  "xboardCouponDiscount": "Coupon discount",
+  "xboardProcessingFee": "Processing fee",
+  "xboardConfirmAndPay": "Confirm & Pay",
+  "xboardFixedFee": "Fixed",
+  "xboardPercentFee": "Percent",
+  "xboardResetTrafficDescription": "Reset traffic usage",
+  "xboardPaymentMethod": "Payment Method"
 }

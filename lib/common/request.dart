@@ -24,7 +24,9 @@ class Request {
       createHttpClient: () {
         final client = HttpClient();
         client.findProxy = (Uri uri) {
-          client.userAgent = appController.ua;
+          if (appController.isAttach) {
+            client.userAgent = appController.ua;
+          }
           return FlClashHttpOverrides.handleFindProxy(uri);
         };
         return client;

@@ -161,9 +161,16 @@ class XBoardProfileImportService {
       currentProfileIdNotifier.value = profile.id;
       _logger.info('✅ 已设置为当前配置: ${profile.label ?? profile.id}');
       
-      // 3. 使用 silence 模式直接应用配置（新路由系统中 homeScaffoldKey 不可用）
-      // needSetupProvider 的监听器会触发 handleChangeProfile，但因为 commonScaffoldState
-      // 未 mounted 会失败，所以我们在这里手动用 silence 模式触发
+      // 3. 等待 appController 就绪后应用配置
+      // 在安卓上，profile 导入可能在 attach() 之前完成（Clash 核心初始化较慢），
+      // 此时需要等待 attach 完成后再 apply，否则 groups 永远为空
+      if (!appController.isAttach) {
+        _logger.info('appController 未就绪，等待 attach...');
+        for (int i = 0; i < 60; i++) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (appController.isAttach) break;
+        }
+      }
       if (appController.isAttach) {
         _logger.info('使用 silence 模式应用配置...');
         try {
@@ -174,7 +181,7 @@ class XBoardProfileImportService {
           // 不抛出异常，因为配置已经保存了
         }
       } else {
-        _logger.info('appController 未就绪，跳过立即应用（配置已保存，后续 attach 时会加载）');
+        _logger.info('appController 等待超时，跳过应用（配置已保存，后续 attach 时会加载）');
       }
       
       _logger.info('配置添加成功: ${profile.label ?? profile.id}');

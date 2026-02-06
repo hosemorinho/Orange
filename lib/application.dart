@@ -87,12 +87,7 @@ class ApplicationState extends ConsumerState<Application> {
       // 快速认证独立运行，不被 Clash 核心初始化阻塞
       _performQuickAuthWithDomainService();
 
-      final currentContext = globalState.navigatorKey.currentContext;
-      if (currentContext != null) {
-        await appController.attach(currentContext, ref);
-      } else {
-        exit(0);
-      }
+      await _attachWithRetry();
 
       _autoUpdateProfilesTask();
       app?.initShortcuts();
@@ -102,30 +97,53 @@ class ApplicationState extends ConsumerState<Application> {
     });
   }
 
+  /// Attach appController with retry when navigator context is not yet available
+  Future<void> _attachWithRetry() async {
+    for (int i = 0; i < 5; i++) {
+      final currentContext = globalState.navigatorKey.currentContext;
+      if (currentContext != null) {
+        await appController.attach(currentContext, ref);
+        return;
+      }
+      debugPrint('[Application] Navigator context is null, retry ${i + 1}/5...');
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    debugPrint('[Application] Navigator context still null after retries, force exit');
+    exit(0);
+  }
+
   /// 使用新域名服务架构进行快速认证检查
   void _performQuickAuthWithDomainService() {
     Future.microtask(() async {
       try {
         debugPrint('[Application] 开始快速认证检查...');
 
-        await Future.any([
-          Future(() async {
-            while (true) {
-              await Future.delayed(const Duration(milliseconds: 200));
-              final current = ref.read(initializationProvider);
-              if (current.isReady || current.isFailed) {
-                debugPrint('[Application] 初始化状态: ${current.status}');
-                debugPrint('[Application] 错误信息: ${current.errorMessage}');
-                break;
-              }
+        // Use Completer + listen instead of busy-wait polling
+        final completer = Completer<void>();
+
+        // Listen for initialization state changes
+        final sub = ref.listenManual(
+          initializationProvider,
+          (previous, current) {
+            if ((current.isReady || current.isFailed) && !completer.isCompleted) {
+              debugPrint('[Application] 初始化状态: ${current.status}');
+              debugPrint('[Application] 错误信息: ${current.errorMessage}');
+              completer.complete();
             }
-          }),
-          Future.delayed(const Duration(seconds: 30), () {
+          },
+          fireImmediately: true,
+        );
+
+        // Wait for init or timeout
+        await completer.future.timeout(
+          const Duration(seconds: 30),
+          onTimeout: () {
             debugPrint('[Application] 初始化等待超时（30秒），继续执行 quickAuth');
-            final current = ref.read(initializationProvider);
-            debugPrint('[Application] 超时时的初始化状态: ${current.status}');
-          }),
-        ]);
+          },
+        );
+        sub.close();
+
+        if (!mounted) return;
 
         final userNotifier = ref.read(xboardUserProvider.notifier);
         await userNotifier.quickAuth();
@@ -133,6 +151,7 @@ class ApplicationState extends ConsumerState<Application> {
         debugPrint('[Application] 快速认证检查完成');
       } catch (e) {
         debugPrint('[Application] 快速认证检查失败: $e');
+        if (!mounted) return;
         final userNotifier = ref.read(xboardUserProvider.notifier);
         userNotifier.forceInitialized();
       }

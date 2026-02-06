@@ -28,15 +28,34 @@ class DohTxtResolver {
   ///
   /// [domain] Domain name to query
   ///
-  /// Returns the first TXT record value or null if resolution fails
+  /// Returns the first TXT record value or null if resolution fails.
+  /// Races all DoH servers and returns the first **non-null** result.
   static Future<String?> resolveTxt(String domain) async {
     _logger.info('[DoH] 开始解析 TXT 记录: $domain (使用 ${_dohServers.length} 个 DoH 服务器竞速)');
 
-    // Race all DoH servers (Alibaba + Cloudflare)
-    final futures = _dohServers.map((server) => _queryServer(server, domain));
-
     try {
-      final result = await Future.any(futures).timeout(_timeout);
+      final completer = Completer<String?>();
+      var remaining = _dohServers.length;
+
+      for (final server in _dohServers) {
+        _queryServer(server, domain).then((result) {
+          if (result != null && !completer.isCompleted) {
+            completer.complete(result);
+          } else {
+            remaining--;
+            if (remaining <= 0 && !completer.isCompleted) {
+              completer.complete(null);
+            }
+          }
+        }).catchError((e) {
+          remaining--;
+          if (remaining <= 0 && !completer.isCompleted) {
+            completer.complete(null);
+          }
+        });
+      }
+
+      final result = await completer.future.timeout(_timeout);
       if (result != null) {
         _logger.info('[DoH] TXT 解析成功: ${result.length} 字符');
       } else {
@@ -163,17 +182,21 @@ class DohTxtResolver {
       int offset = 12;
 
       // Skip question section
-      // Read domain name labels until null terminator
+      // Read domain name labels until null terminator or compressed pointer
+      bool compressed = false;
       while (offset < response.length && response[offset] != 0) {
         final labelLen = response[offset];
         if (labelLen >= 0xC0) {
-          // Compressed pointer (2 bytes)
+          // Compressed pointer (2 bytes) — no null terminator follows
           offset += 2;
+          compressed = true;
           break;
         }
         offset += labelLen + 1;
       }
-      offset++; // Skip null terminator
+      if (!compressed) {
+        offset++; // Skip null terminator (only when not compressed)
+      }
       offset += 4; // Skip QTYPE (2) + QCLASS (2)
 
       // Parse answer section

@@ -87,7 +87,9 @@ object State {
             if (flutterEngine != null) {
                 return
             }
-            GlobalState.application.showToast(sharedState.stopTip)
+            if (GlobalState.isInitialized) {
+                GlobalState.application.showToast(sharedState.stopTip)
+            }
             handleStopService()
         }
     }
@@ -107,6 +109,10 @@ object State {
         GlobalState.launch {
             runLock.withLock {
                 if (runStateFlow.value != RunState.STOP) {
+                    return@launch
+                }
+                if (!GlobalState.isInitialized) {
+                    GlobalState.log("startServiceWithPref: application not initialized yet")
                     return@launch
                 }
                 sharedState = GlobalState.application.sharedState

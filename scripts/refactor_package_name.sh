@@ -98,12 +98,6 @@ while IFS= read -r file; do
     update_file_content "$file"
 done < <(find "$ANDROID_DIR" -name "AndroidManifest.xml" -type f)
 
-# Update google-services.json if exists
-if [ -f "$ANDROID_DIR/app/google-services.json" ]; then
-    echo -e "${YELLOW}  → Updating google-services.json...${NC}"
-    update_file_content "$ANDROID_DIR/app/google-services.json"
-fi
-
 echo ""
 echo -e "${GREEN}Step 3: Renaming package directories...${NC}"
 

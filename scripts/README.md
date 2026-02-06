@@ -201,7 +201,6 @@ done
    - `*.gradle.kts` - Gradle 构建脚本
    - `AndroidManifest.xml` - Android 清单文件
    - `strings.xml` - 字符串资源
-   - `google-services.json` - Firebase 配置
 
 3. **目录结构:**
    - `src/main/java/com/follow/clash/` → `src/main/java/新/包/路径/`
@@ -216,7 +215,6 @@ done
 2. **测试**: 重构后务必测试编译：`flutter build apk`
 3. **Git**: 在提交前检查 `git diff` 确保更改正确
 4. **一次性**: 包名重构应该只做一次，之后使用新包名
-5. **Firebase**: 如果使用 Firebase，需要手动更新 `google-services.json`
 
 ## 故障排除
 

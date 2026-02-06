@@ -13,7 +13,6 @@ import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart'
 import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/tun_introduction_dialog.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
-import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_status_service.dart';
 import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
@@ -343,6 +342,11 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       profilesProvider.select((state) => state.isNotEmpty),
     );
     if (!hasProfile) {
+      // 用户已登录但 profile 还没加载到 provider（数据库 stream 延迟），显示加载状态
+      final userState = ref.watch(xboardUserProvider);
+      if (userState.isAuthenticated) {
+        return _buildLoadingState(context);
+      }
       return const SizedBox.shrink();
     }
 
@@ -354,14 +358,8 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         patchClashConfigProvider.select((state) => state.tun.enable));
 
     if (groups.isEmpty) {
-      // 如果订阅正在导入中，显示加载状态而非"无可用节点"
-      final isImporting = ref.watch(
-        profileImportProvider.select((state) => state.isImporting),
-      );
-      if (isImporting) {
-        return _buildLoadingState(context);
-      }
-      return _buildEmptyState(context);
+      // profile 已存在但 Clash 内核还没解析完（groups 为空），显示加载状态
+      return _buildLoadingState(context);
     }
 
     final (:group, :proxy) = resolveCurrentNode(

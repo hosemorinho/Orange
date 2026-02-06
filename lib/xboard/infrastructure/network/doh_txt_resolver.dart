@@ -67,9 +67,9 @@ class DohTxtResolver {
       final uri = Uri.parse('https://$serverIp/dns-query?dns=$base64url');
 
       // Direct IP connection with certificate bypass
-      client = HttpClient()
-        ..badCertificateCallback = (cert, host, port) => true
-        ..connectionTimeout = _timeout;
+      client = HttpClient();
+      client.badCertificateCallback = (cert, host, port) => true;
+      client.connectionTimeout = _timeout;
 
       final request = await client.getUrl(uri);
       request.headers.set(HttpHeaders.acceptHeader, 'application/dns-message');

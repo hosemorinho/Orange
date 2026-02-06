@@ -71,15 +71,17 @@ Future<T> retry<T>({
   required bool Function(T res) retryIf,
   Duration delay = midDuration,
 }) async {
-  int attempts = 0;
-  while (attempts < maxAttempts) {
-    final res = await task();
-    if (!retryIf(res) || attempts >= maxAttempts) {
+  late T res;
+  for (int i = 0; i < maxAttempts; i++) {
+    res = await task();
+    if (!retryIf(res)) {
       return res;
     }
-    attempts++;
+    if (i < maxAttempts - 1) {
+      await Future.delayed(delay);
+    }
   }
-  throw 'retry error';
+  return res;
 }
 
 final debouncer = Debouncer();

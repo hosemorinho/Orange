@@ -229,7 +229,7 @@ _Dns _$DnsFromJson(Map<String, dynamic> json) => _Dns(
       (json['proxy-server-nameserver'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList() ??
-      const ['https://doh.pub/dns-query'],
+      const ['https://223.5.5.5/dns-query'],
   fallbackFilter: json['fallback-filter'] == null
       ? const FallbackFilter()
       : FallbackFilter.fromJson(

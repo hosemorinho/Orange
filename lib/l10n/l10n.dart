@@ -11163,6 +11163,131 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Subscription Plan Notice`
+  String get xboardPlanConflictTitle {
+    return Intl.message(
+      'Subscription Plan Notice',
+      name: 'xboardPlanConflictTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You are purchasing a different subscription plan. The system will recycle the value of your current subscription with price adjustment (refund or supplement).`
+  String get xboardPlanConflictMessage {
+    return Intl.message(
+      'You are purchasing a different subscription plan. The system will recycle the value of your current subscription with price adjustment (refund or supplement).',
+      name: 'xboardPlanConflictMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Continue Purchase`
+  String get xboardContinuePurchase {
+    return Intl.message(
+      'Continue Purchase',
+      name: 'xboardContinuePurchase',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm Order`
+  String get xboardConfirmOrder {
+    return Intl.message(
+      'Confirm Order',
+      name: 'xboardConfirmOrder',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Payment Summary`
+  String get xboardPaymentSummary {
+    return Intl.message(
+      'Payment Summary',
+      name: 'xboardPaymentSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Base price`
+  String get xboardBasePrice {
+    return Intl.message(
+      'Base price',
+      name: 'xboardBasePrice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Coupon discount`
+  String get xboardCouponDiscount {
+    return Intl.message(
+      'Coupon discount',
+      name: 'xboardCouponDiscount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Processing fee`
+  String get xboardProcessingFee {
+    return Intl.message(
+      'Processing fee',
+      name: 'xboardProcessingFee',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm & Pay`
+  String get xboardConfirmAndPay {
+    return Intl.message(
+      'Confirm & Pay',
+      name: 'xboardConfirmAndPay',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fixed`
+  String get xboardFixedFee {
+    return Intl.message('Fixed', name: 'xboardFixedFee', desc: '', args: []);
+  }
+
+  /// `Percent`
+  String get xboardPercentFee {
+    return Intl.message(
+      'Percent',
+      name: 'xboardPercentFee',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset traffic usage`
+  String get xboardResetTrafficDescription {
+    return Intl.message(
+      'Reset traffic usage',
+      name: 'xboardResetTrafficDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Payment Method`
+  String get xboardPaymentMethod {
+    return Intl.message(
+      'Payment Method',
+      name: 'xboardPaymentMethod',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

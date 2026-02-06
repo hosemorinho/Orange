@@ -1005,6 +1005,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardBalancePaymentFailed": MessageLookupByLibrary.simpleMessage(
       "余额支付未成功",
     ),
+    "xboardBasePrice": MessageLookupByLibrary.simpleMessage("原价"),
     "xboardBrowsePlans": MessageLookupByLibrary.simpleMessage("浏览可用套餐"),
     "xboardBrowsePlansButton": MessageLookupByLibrary.simpleMessage("浏览套餐"),
     "xboardBrowserNotOpenedNote": MessageLookupByLibrary.simpleMessage(
@@ -1115,6 +1116,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardConfigurationError": MessageLookupByLibrary.simpleMessage("配置错误"),
     "xboardConfirm": MessageLookupByLibrary.simpleMessage("确认"),
     "xboardConfirmAction": MessageLookupByLibrary.simpleMessage("确定"),
+    "xboardConfirmAndPay": MessageLookupByLibrary.simpleMessage("确认并支付"),
+    "xboardConfirmOrder": MessageLookupByLibrary.simpleMessage("确认订单"),
     "xboardConfirmPassword": MessageLookupByLibrary.simpleMessage("确认密码"),
     "xboardConfirmPurchase": MessageLookupByLibrary.simpleMessage("确认购买"),
     "xboardCongratulationsSubscriptionActivated":
@@ -1126,6 +1129,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardConnectionTimeout": MessageLookupByLibrary.simpleMessage(
       "连接超时，请检查网络连接",
     ),
+    "xboardContinuePurchase": MessageLookupByLibrary.simpleMessage("继续购买"),
     "xboardContinueToPayment": MessageLookupByLibrary.simpleMessage("继续支付"),
     "xboardCopied": MessageLookupByLibrary.simpleMessage("已复制"),
     "xboardCopyCode": MessageLookupByLibrary.simpleMessage("复制码"),
@@ -1136,6 +1140,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCopySubscriptionLinkAbove": MessageLookupByLibrary.simpleMessage(
       "复制上方的订阅链接",
     ),
+    "xboardCouponDiscount": MessageLookupByLibrary.simpleMessage("优惠码折扣"),
     "xboardCouponExpired": MessageLookupByLibrary.simpleMessage("优惠券已过期"),
     "xboardCouponNotYetActive": MessageLookupByLibrary.simpleMessage("优惠券尚未生效"),
     "xboardCouponOptional": MessageLookupByLibrary.simpleMessage("优惠券（可选）"),
@@ -1213,6 +1218,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardFirstStartupNote": MessageLookupByLibrary.simpleMessage(
       "首次启动可能需要一些时间\n请耐心等待...",
     ),
+    "xboardFixedFee": MessageLookupByLibrary.simpleMessage("固定"),
     "xboardForceUpdate": MessageLookupByLibrary.simpleMessage("强制更新"),
     "xboardForgotPassword": MessageLookupByLibrary.simpleMessage("忘记密码"),
     "xboardGetSupport": MessageLookupByLibrary.simpleMessage("获取技术支持"),
@@ -1514,6 +1520,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentLinkCopiedToClipboard": MessageLookupByLibrary.simpleMessage(
       "支付链接已复制到剪贴板",
     ),
+    "xboardPaymentMethod": MessageLookupByLibrary.simpleMessage("支付方式"),
     "xboardPaymentMethodVerified": MessageLookupByLibrary.simpleMessage(
       "支付方式验证通过",
     ),
@@ -1534,10 +1541,16 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage("已在浏览器中打开支付页面，完成支付后请返回应用"),
     "xboardPaymentSuccess": MessageLookupByLibrary.simpleMessage("支付成功"),
     "xboardPaymentSuccessful": MessageLookupByLibrary.simpleMessage("🎉 支付成功！"),
+    "xboardPaymentSummary": MessageLookupByLibrary.simpleMessage("支付详情"),
     "xboardPending": MessageLookupByLibrary.simpleMessage("待处理"),
     "xboardPendingCommission": MessageLookupByLibrary.simpleMessage("待确认佣金"),
     "xboardPendingOrders": MessageLookupByLibrary.simpleMessage("待支付"),
+    "xboardPercentFee": MessageLookupByLibrary.simpleMessage("比例"),
     "xboardPeriod": MessageLookupByLibrary.simpleMessage("周期"),
+    "xboardPlanConflictMessage": MessageLookupByLibrary.simpleMessage(
+      "您正在购买不同的订阅套餐。系统将对您当前套餐的剩余价值进行回收，并按多退少补原则进行结算。",
+    ),
+    "xboardPlanConflictTitle": MessageLookupByLibrary.simpleMessage("订阅套餐变更提示"),
     "xboardPlanInfo": MessageLookupByLibrary.simpleMessage("套餐信息"),
     "xboardPlanNotFound": MessageLookupByLibrary.simpleMessage("套餐不存在"),
     "xboardPlanPeriodHalfYearly": MessageLookupByLibrary.simpleMessage("半年付"),
@@ -1568,6 +1581,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPriority": MessageLookupByLibrary.simpleMessage("优先级"),
     "xboardPriorityLabel": MessageLookupByLibrary.simpleMessage("优先级"),
     "xboardProcessing": MessageLookupByLibrary.simpleMessage("处理中..."),
+    "xboardProcessingFee": MessageLookupByLibrary.simpleMessage("手续费"),
     "xboardProcessingOrders": MessageLookupByLibrary.simpleMessage("开通中"),
     "xboardProfessionalSupport": MessageLookupByLibrary.simpleMessage("专业客服"),
     "xboardProfile": MessageLookupByLibrary.simpleMessage("配置文件"),
@@ -1679,6 +1693,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "订阅重置成功，请重新导入订阅",
     ),
     "xboardResetTraffic": MessageLookupByLibrary.simpleMessage("重置流量"),
+    "xboardResetTrafficDescription": MessageLookupByLibrary.simpleMessage(
+      "重置已用流量",
+    ),
     "xboardResetting": MessageLookupByLibrary.simpleMessage("重置中..."),
     "xboardRetry": MessageLookupByLibrary.simpleMessage("重试"),
     "xboardRetryAttemptFailed": m53,

@@ -1463,6 +1463,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardBalancePaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Balance payment failed",
     ),
+    "xboardBasePrice": MessageLookupByLibrary.simpleMessage("Base price"),
     "xboardBrowsePlans": MessageLookupByLibrary.simpleMessage(
       "Browse available plans",
     ),
@@ -1608,6 +1609,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardConfirm": MessageLookupByLibrary.simpleMessage("Confirm"),
     "xboardConfirmAction": MessageLookupByLibrary.simpleMessage("Confirm"),
+    "xboardConfirmAndPay": MessageLookupByLibrary.simpleMessage(
+      "Confirm & Pay",
+    ),
+    "xboardConfirmOrder": MessageLookupByLibrary.simpleMessage("Confirm Order"),
     "xboardConfirmPassword": MessageLookupByLibrary.simpleMessage(
       "Confirm Password",
     ),
@@ -1625,6 +1630,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardConnectionTimeout": MessageLookupByLibrary.simpleMessage(
       "Connection timeout, please check network connection",
     ),
+    "xboardContinuePurchase": MessageLookupByLibrary.simpleMessage(
+      "Continue Purchase",
+    ),
     "xboardContinueToPayment": MessageLookupByLibrary.simpleMessage(
       "Continue to Payment",
     ),
@@ -1636,6 +1644,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCopyPaymentLink": MessageLookupByLibrary.simpleMessage("Copy Link"),
     "xboardCopySubscriptionLinkAbove": MessageLookupByLibrary.simpleMessage(
       "Copy the subscription link above",
+    ),
+    "xboardCouponDiscount": MessageLookupByLibrary.simpleMessage(
+      "Coupon discount",
     ),
     "xboardCouponExpired": MessageLookupByLibrary.simpleMessage(
       "Coupon expired",
@@ -1752,6 +1763,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardFirstStartupNote": MessageLookupByLibrary.simpleMessage(
       "First startup may take some time\nPlease be patient...",
     ),
+    "xboardFixedFee": MessageLookupByLibrary.simpleMessage("Fixed"),
     "xboardForceUpdate": MessageLookupByLibrary.simpleMessage("Force update"),
     "xboardForgotPassword": MessageLookupByLibrary.simpleMessage(
       "Forgot Password",
@@ -2183,6 +2195,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentLinkCopiedToClipboard": MessageLookupByLibrary.simpleMessage(
       "Payment link copied to clipboard",
     ),
+    "xboardPaymentMethod": MessageLookupByLibrary.simpleMessage(
+      "Payment Method",
+    ),
     "xboardPaymentMethodVerified": MessageLookupByLibrary.simpleMessage(
       "Payment method verified",
     ),
@@ -2213,12 +2228,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentSuccessful": MessageLookupByLibrary.simpleMessage(
       "🎉 Payment successful!",
     ),
+    "xboardPaymentSummary": MessageLookupByLibrary.simpleMessage(
+      "Payment Summary",
+    ),
     "xboardPending": MessageLookupByLibrary.simpleMessage("Pending"),
     "xboardPendingCommission": MessageLookupByLibrary.simpleMessage(
       "Pending Commission",
     ),
     "xboardPendingOrders": MessageLookupByLibrary.simpleMessage("Pending"),
+    "xboardPercentFee": MessageLookupByLibrary.simpleMessage("Percent"),
     "xboardPeriod": MessageLookupByLibrary.simpleMessage("Period"),
+    "xboardPlanConflictMessage": MessageLookupByLibrary.simpleMessage(
+      "You are purchasing a different subscription plan. The system will recycle the value of your current subscription with price adjustment (refund or supplement).",
+    ),
+    "xboardPlanConflictTitle": MessageLookupByLibrary.simpleMessage(
+      "Subscription Plan Notice",
+    ),
     "xboardPlanInfo": MessageLookupByLibrary.simpleMessage("Plan Information"),
     "xboardPlanNotFound": MessageLookupByLibrary.simpleMessage(
       "Plan not found",
@@ -2267,6 +2292,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPriority": MessageLookupByLibrary.simpleMessage("Priority"),
     "xboardPriorityLabel": MessageLookupByLibrary.simpleMessage("Priority"),
     "xboardProcessing": MessageLookupByLibrary.simpleMessage("Processing..."),
+    "xboardProcessingFee": MessageLookupByLibrary.simpleMessage(
+      "Processing fee",
+    ),
     "xboardProcessingOrders": MessageLookupByLibrary.simpleMessage(
       "Processing",
     ),
@@ -2420,6 +2448,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Subscription reset successfully. Please re-import.",
     ),
     "xboardResetTraffic": MessageLookupByLibrary.simpleMessage("Reset traffic"),
+    "xboardResetTrafficDescription": MessageLookupByLibrary.simpleMessage(
+      "Reset traffic usage",
+    ),
     "xboardResetting": MessageLookupByLibrary.simpleMessage("Resetting..."),
     "xboardRetry": MessageLookupByLibrary.simpleMessage("Retry"),
     "xboardRetryAttemptFailed": m53,

@@ -19,7 +19,8 @@ mixin _$DomainPaymentMethod {
  int get id;/// 支付方式名称
  String get name;/// 图标 URL
  String? get iconUrl;/// 手续费百分比（0-100）
- double get feePercentage;/// 是否可用
+ double get feePercentage;/// 固定手续费（元）
+ double get feeFixed;/// 是否可用
  bool get isAvailable;/// 描述
  String? get description;/// 最小金额（元）
  double? get minAmount;/// 最大金额（元）
@@ -38,16 +39,16 @@ $DomainPaymentMethodCopyWith<DomainPaymentMethod> get copyWith => _$DomainPaymen
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DomainPaymentMethod&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.feePercentage, feePercentage) || other.feePercentage == feePercentage)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.description, description) || other.description == description)&&(identical(other.minAmount, minAmount) || other.minAmount == minAmount)&&(identical(other.maxAmount, maxAmount) || other.maxAmount == maxAmount)&&const DeepCollectionEquality().equals(other.config, config)&&const DeepCollectionEquality().equals(other.metadata, metadata));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DomainPaymentMethod&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.feePercentage, feePercentage) || other.feePercentage == feePercentage)&&(identical(other.feeFixed, feeFixed) || other.feeFixed == feeFixed)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.description, description) || other.description == description)&&(identical(other.minAmount, minAmount) || other.minAmount == minAmount)&&(identical(other.maxAmount, maxAmount) || other.maxAmount == maxAmount)&&const DeepCollectionEquality().equals(other.config, config)&&const DeepCollectionEquality().equals(other.metadata, metadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,iconUrl,feePercentage,isAvailable,description,minAmount,maxAmount,const DeepCollectionEquality().hash(config),const DeepCollectionEquality().hash(metadata));
+int get hashCode => Object.hash(runtimeType,id,name,iconUrl,feePercentage,feeFixed,isAvailable,description,minAmount,maxAmount,const DeepCollectionEquality().hash(config),const DeepCollectionEquality().hash(metadata));
 
 @override
 String toString() {
-  return 'DomainPaymentMethod(id: $id, name: $name, iconUrl: $iconUrl, feePercentage: $feePercentage, isAvailable: $isAvailable, description: $description, minAmount: $minAmount, maxAmount: $maxAmount, config: $config, metadata: $metadata)';
+  return 'DomainPaymentMethod(id: $id, name: $name, iconUrl: $iconUrl, feePercentage: $feePercentage, feeFixed: $feeFixed, isAvailable: $isAvailable, description: $description, minAmount: $minAmount, maxAmount: $maxAmount, config: $config, metadata: $metadata)';
 }
 
 
@@ -58,7 +59,7 @@ abstract mixin class $DomainPaymentMethodCopyWith<$Res>  {
   factory $DomainPaymentMethodCopyWith(DomainPaymentMethod value, $Res Function(DomainPaymentMethod) _then) = _$DomainPaymentMethodCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, String? iconUrl, double feePercentage, bool isAvailable, String? description, double? minAmount, double? maxAmount, Map<String, dynamic> config, Map<String, dynamic> metadata
+ int id, String name, String? iconUrl, double feePercentage, double feeFixed, bool isAvailable, String? description, double? minAmount, double? maxAmount, Map<String, dynamic> config, Map<String, dynamic> metadata
 });
 
 
@@ -75,12 +76,13 @@ class _$DomainPaymentMethodCopyWithImpl<$Res>
 
 /// Create a copy of DomainPaymentMethod
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? iconUrl = freezed,Object? feePercentage = null,Object? isAvailable = null,Object? description = freezed,Object? minAmount = freezed,Object? maxAmount = freezed,Object? config = null,Object? metadata = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? iconUrl = freezed,Object? feePercentage = null,Object? feeFixed = null,Object? isAvailable = null,Object? description = freezed,Object? minAmount = freezed,Object? maxAmount = freezed,Object? config = null,Object? metadata = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,iconUrl: freezed == iconUrl ? _self.iconUrl : iconUrl // ignore: cast_nullable_to_non_nullable
 as String?,feePercentage: null == feePercentage ? _self.feePercentage : feePercentage // ignore: cast_nullable_to_non_nullable
+as double,feeFixed: null == feeFixed ? _self.feeFixed : feeFixed // ignore: cast_nullable_to_non_nullable
 as double,isAvailable: null == isAvailable ? _self.isAvailable : isAvailable // ignore: cast_nullable_to_non_nullable
 as bool,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,minAmount: freezed == minAmount ? _self.minAmount : minAmount // ignore: cast_nullable_to_non_nullable
@@ -172,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  String? iconUrl,  double feePercentage,  bool isAvailable,  String? description,  double? minAmount,  double? maxAmount,  Map<String, dynamic> config,  Map<String, dynamic> metadata)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  String? iconUrl,  double feePercentage,  double feeFixed,  bool isAvailable,  String? description,  double? minAmount,  double? maxAmount,  Map<String, dynamic> config,  Map<String, dynamic> metadata)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DomainPaymentMethod() when $default != null:
-return $default(_that.id,_that.name,_that.iconUrl,_that.feePercentage,_that.isAvailable,_that.description,_that.minAmount,_that.maxAmount,_that.config,_that.metadata);case _:
+return $default(_that.id,_that.name,_that.iconUrl,_that.feePercentage,_that.feeFixed,_that.isAvailable,_that.description,_that.minAmount,_that.maxAmount,_that.config,_that.metadata);case _:
   return orElse();
 
 }
@@ -193,10 +195,10 @@ return $default(_that.id,_that.name,_that.iconUrl,_that.feePercentage,_that.isAv
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  String? iconUrl,  double feePercentage,  bool isAvailable,  String? description,  double? minAmount,  double? maxAmount,  Map<String, dynamic> config,  Map<String, dynamic> metadata)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  String? iconUrl,  double feePercentage,  double feeFixed,  bool isAvailable,  String? description,  double? minAmount,  double? maxAmount,  Map<String, dynamic> config,  Map<String, dynamic> metadata)  $default,) {final _that = this;
 switch (_that) {
 case _DomainPaymentMethod():
-return $default(_that.id,_that.name,_that.iconUrl,_that.feePercentage,_that.isAvailable,_that.description,_that.minAmount,_that.maxAmount,_that.config,_that.metadata);case _:
+return $default(_that.id,_that.name,_that.iconUrl,_that.feePercentage,_that.feeFixed,_that.isAvailable,_that.description,_that.minAmount,_that.maxAmount,_that.config,_that.metadata);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -213,10 +215,10 @@ return $default(_that.id,_that.name,_that.iconUrl,_that.feePercentage,_that.isAv
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  String? iconUrl,  double feePercentage,  bool isAvailable,  String? description,  double? minAmount,  double? maxAmount,  Map<String, dynamic> config,  Map<String, dynamic> metadata)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  String? iconUrl,  double feePercentage,  double feeFixed,  bool isAvailable,  String? description,  double? minAmount,  double? maxAmount,  Map<String, dynamic> config,  Map<String, dynamic> metadata)?  $default,) {final _that = this;
 switch (_that) {
 case _DomainPaymentMethod() when $default != null:
-return $default(_that.id,_that.name,_that.iconUrl,_that.feePercentage,_that.isAvailable,_that.description,_that.minAmount,_that.maxAmount,_that.config,_that.metadata);case _:
+return $default(_that.id,_that.name,_that.iconUrl,_that.feePercentage,_that.feeFixed,_that.isAvailable,_that.description,_that.minAmount,_that.maxAmount,_that.config,_that.metadata);case _:
   return null;
 
 }
@@ -228,7 +230,7 @@ return $default(_that.id,_that.name,_that.iconUrl,_that.feePercentage,_that.isAv
 @JsonSerializable()
 
 class _DomainPaymentMethod implements DomainPaymentMethod {
-  const _DomainPaymentMethod({required this.id, required this.name, this.iconUrl, this.feePercentage = 0.0, this.isAvailable = true, this.description, this.minAmount, this.maxAmount, final  Map<String, dynamic> config = const {}, final  Map<String, dynamic> metadata = const {}}): _config = config,_metadata = metadata;
+  const _DomainPaymentMethod({required this.id, required this.name, this.iconUrl, this.feePercentage = 0.0, this.feeFixed = 0.0, this.isAvailable = true, this.description, this.minAmount, this.maxAmount, final  Map<String, dynamic> config = const {}, final  Map<String, dynamic> metadata = const {}}): _config = config,_metadata = metadata;
   factory _DomainPaymentMethod.fromJson(Map<String, dynamic> json) => _$DomainPaymentMethodFromJson(json);
 
 /// 支付方式 ID
@@ -239,6 +241,8 @@ class _DomainPaymentMethod implements DomainPaymentMethod {
 @override final  String? iconUrl;
 /// 手续费百分比（0-100）
 @override@JsonKey() final  double feePercentage;
+/// 固定手续费（元）
+@override@JsonKey() final  double feeFixed;
 /// 是否可用
 @override@JsonKey() final  bool isAvailable;
 /// 描述
@@ -279,16 +283,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DomainPaymentMethod&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.feePercentage, feePercentage) || other.feePercentage == feePercentage)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.description, description) || other.description == description)&&(identical(other.minAmount, minAmount) || other.minAmount == minAmount)&&(identical(other.maxAmount, maxAmount) || other.maxAmount == maxAmount)&&const DeepCollectionEquality().equals(other._config, _config)&&const DeepCollectionEquality().equals(other._metadata, _metadata));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DomainPaymentMethod&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.feePercentage, feePercentage) || other.feePercentage == feePercentage)&&(identical(other.feeFixed, feeFixed) || other.feeFixed == feeFixed)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.description, description) || other.description == description)&&(identical(other.minAmount, minAmount) || other.minAmount == minAmount)&&(identical(other.maxAmount, maxAmount) || other.maxAmount == maxAmount)&&const DeepCollectionEquality().equals(other._config, _config)&&const DeepCollectionEquality().equals(other._metadata, _metadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,iconUrl,feePercentage,isAvailable,description,minAmount,maxAmount,const DeepCollectionEquality().hash(_config),const DeepCollectionEquality().hash(_metadata));
+int get hashCode => Object.hash(runtimeType,id,name,iconUrl,feePercentage,feeFixed,isAvailable,description,minAmount,maxAmount,const DeepCollectionEquality().hash(_config),const DeepCollectionEquality().hash(_metadata));
 
 @override
 String toString() {
-  return 'DomainPaymentMethod(id: $id, name: $name, iconUrl: $iconUrl, feePercentage: $feePercentage, isAvailable: $isAvailable, description: $description, minAmount: $minAmount, maxAmount: $maxAmount, config: $config, metadata: $metadata)';
+  return 'DomainPaymentMethod(id: $id, name: $name, iconUrl: $iconUrl, feePercentage: $feePercentage, feeFixed: $feeFixed, isAvailable: $isAvailable, description: $description, minAmount: $minAmount, maxAmount: $maxAmount, config: $config, metadata: $metadata)';
 }
 
 
@@ -299,7 +303,7 @@ abstract mixin class _$DomainPaymentMethodCopyWith<$Res> implements $DomainPayme
   factory _$DomainPaymentMethodCopyWith(_DomainPaymentMethod value, $Res Function(_DomainPaymentMethod) _then) = __$DomainPaymentMethodCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, String? iconUrl, double feePercentage, bool isAvailable, String? description, double? minAmount, double? maxAmount, Map<String, dynamic> config, Map<String, dynamic> metadata
+ int id, String name, String? iconUrl, double feePercentage, double feeFixed, bool isAvailable, String? description, double? minAmount, double? maxAmount, Map<String, dynamic> config, Map<String, dynamic> metadata
 });
 
 
@@ -316,12 +320,13 @@ class __$DomainPaymentMethodCopyWithImpl<$Res>
 
 /// Create a copy of DomainPaymentMethod
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? iconUrl = freezed,Object? feePercentage = null,Object? isAvailable = null,Object? description = freezed,Object? minAmount = freezed,Object? maxAmount = freezed,Object? config = null,Object? metadata = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? iconUrl = freezed,Object? feePercentage = null,Object? feeFixed = null,Object? isAvailable = null,Object? description = freezed,Object? minAmount = freezed,Object? maxAmount = freezed,Object? config = null,Object? metadata = null,}) {
   return _then(_DomainPaymentMethod(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,iconUrl: freezed == iconUrl ? _self.iconUrl : iconUrl // ignore: cast_nullable_to_non_nullable
 as String?,feePercentage: null == feePercentage ? _self.feePercentage : feePercentage // ignore: cast_nullable_to_non_nullable
+as double,feeFixed: null == feeFixed ? _self.feeFixed : feeFixed // ignore: cast_nullable_to_non_nullable
 as double,isAvailable: null == isAvailable ? _self.isAvailable : isAvailable // ignore: cast_nullable_to_non_nullable
 as bool,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,minAmount: freezed == minAmount ? _self.minAmount : minAmount // ignore: cast_nullable_to_non_nullable

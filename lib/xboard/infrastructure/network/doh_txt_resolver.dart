@@ -84,7 +84,10 @@ class DohTxtResolver {
 
       final responseBytes = await response.fold<BytesBuilder>(
         BytesBuilder(),
-        (builder, chunk) => builder..add(chunk),
+        (builder, chunk) {
+          builder.add(chunk);
+          return builder;
+        },
       ).then((builder) => builder.takeBytes());
 
       final txtValue = _parseDnsResponse(responseBytes);

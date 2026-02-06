@@ -210,6 +210,11 @@ jobs:
           chmod +x scripts/setup_android_config.sh
           bash scripts/setup_android_config.sh
 
+      - name: Install appdmg
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: npm install -g appdmg
+
       - name: Install ImageMagick
         if: env.APP_ICON_URL != ''
         shell: bash

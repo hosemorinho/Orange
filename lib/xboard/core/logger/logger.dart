@@ -7,9 +7,11 @@ export 'logger_interface.dart';
 export 'console_logger.dart';
 export 'disk_logger.dart';
 export 'file_logger.dart';
+export 'log_sanitizer.dart';
 
 import 'logger_interface.dart';
 import 'console_logger.dart';
+import 'log_sanitizer.dart';
 
 /// XBoard 日志管理器
 ///
@@ -35,19 +37,35 @@ class XBoardLogger {
   // 便捷方法
 
   static void debug(String message, [Object? error, StackTrace? stackTrace]) {
-    _instance.debug(message, error, stackTrace);
+    _instance.debug(
+      LogSanitizer.sanitize(message),
+      error != null ? LogSanitizer.sanitize(error.toString()) : null,
+      stackTrace,
+    );
   }
 
   static void info(String message, [Object? error, StackTrace? stackTrace]) {
-    _instance.info(message, error, stackTrace);
+    _instance.info(
+      LogSanitizer.sanitize(message),
+      error != null ? LogSanitizer.sanitize(error.toString()) : null,
+      stackTrace,
+    );
   }
 
   static void warning(String message, [Object? error, StackTrace? stackTrace]) {
-    _instance.warning(message, error, stackTrace);
+    _instance.warning(
+      LogSanitizer.sanitize(message),
+      error != null ? LogSanitizer.sanitize(error.toString()) : null,
+      stackTrace,
+    );
   }
 
   static void error(String message, [Object? error, StackTrace? stackTrace]) {
-    _instance.error(message, error, stackTrace);
+    _instance.error(
+      LogSanitizer.sanitize(message),
+      error != null ? LogSanitizer.sanitize(error.toString()) : null,
+      stackTrace,
+    );
   }
 }
 

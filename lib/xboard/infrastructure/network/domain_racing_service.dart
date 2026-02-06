@@ -223,6 +223,10 @@ class DomainRacingService {
         _logger.info('[域名竞速] 域名 #$index 使用默认HttpClient [$connectionType]');
       }
 
+      // Bypass FlClashHttpOverrides proxy to avoid LateInitializationError
+      // (appController._ref is not yet initialized during early startup)
+      client.findProxy = (uri) => 'DIRECT';
+
       // 如果使用代理，配置 SOCKS5 代理
       if (useProxy && proxyUrl != null) {
         final proxyConfig = _parseProxyConfig(proxyUrl);

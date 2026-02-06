@@ -221,6 +221,11 @@ class IconGenerator {
     final androidResDir =
         path.join(projectRoot, 'android', 'app', 'src', 'main', 'res');
 
+    // Remove adaptive icon files that override bitmap mipmap icons on API 26+
+    // The anydpi-v26 qualifier has higher priority than density-specific mipmaps,
+    // so the vector foreground would always be shown instead of the custom icon.
+    await _removeAdaptiveIconFiles(androidResDir);
+
     // Generate Play Store icon (512x512)
     final playStorePath =
         path.join(projectRoot, 'android', 'app', 'src', 'main', 'ic_launcher-playstore.png');
@@ -243,6 +248,23 @@ class IconGenerator {
     }
 
     print('✅ Android icons generated');
+  }
+
+  /// Remove adaptive icon XML files and vector foreground so bitmap mipmaps take priority
+  Future<void> _removeAdaptiveIconFiles(String androidResDir) async {
+    final filesToRemove = [
+      path.join(androidResDir, 'mipmap-anydpi-v26', 'ic_launcher.xml'),
+      path.join(androidResDir, 'mipmap-anydpi-v26', 'ic_launcher_round.xml'),
+      path.join(androidResDir, 'drawable', 'ic_launcher_foreground.xml'),
+    ];
+
+    for (final filePath in filesToRemove) {
+      final file = File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+        print('  🗑️ Removed $filePath');
+      }
+    }
   }
 
   Future<void> _generateAssetIcons(String sourcePath) async {

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fl_clash/xboard/features/crisp/crisp_chat_button.dart';
 import 'package:fl_clash/xboard/widgets/navigation/desktop_navigation_rail.dart';
 import 'package:fl_clash/xboard/widgets/navigation/mobile_navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -60,13 +61,23 @@ class AdaptiveShellLayout extends ConsumerWidget {
             onDestinationSelected: (index) => _onDestinationSelected(context, index),
           ),
           Expanded(
-            child: child,
+            child: Stack(
+              children: [
+                child,
+                const Positioned(
+                  right: 16,
+                  bottom: 16,
+                  child: CrispChatButton(),
+                ),
+              ],
+            ),
           ),
         ],
       );
     } else {
       return Scaffold(
         body: child,
+        floatingActionButton: const CrispChatButton(),
         bottomNavigationBar: MobileNavigationBar(
           selectedIndex: currentIndex,
           onDestinationSelected: (index) => _onDestinationSelected(context, index),

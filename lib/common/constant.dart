@@ -14,6 +14,8 @@ const _envPackageName = String.fromEnvironment('APP_PACKAGE_NAME');
 const _envApiBaseUrl = String.fromEnvironment('API_BASE_URL');
 const _envThemeColor = String.fromEnvironment('THEME_COLOR');
 const _envAppName = String.fromEnvironment('APP_NAME');
+const _envCrispWebsiteId = String.fromEnvironment('CRISP_WEBSITE_ID');
+const crispWebsiteId = _envCrispWebsiteId;
 
 const appName = _envAppName == '' ? 'Orange' : _envAppName;
 const appNameEn = appName;

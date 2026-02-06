@@ -31,7 +31,7 @@ class _HotKeyManagerState extends ConsumerState<HotKeyManager> {
   _handleHotKeyAction(HotAction action) async {
     switch (action) {
       case HotAction.mode:
-        appController.updateMode();
+        await appController.updateMode();
       case HotAction.start:
         appController.updateStart();
       case HotAction.view:

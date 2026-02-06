@@ -127,14 +127,14 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
 
   // --- Mode change logic (ported from XBoardOutboundMode) ---
 
-  void _handleModeChange(Mode modeOption) {
+  Future<void> _handleModeChange(Mode modeOption) async {
     _logger.debug('[VpnHeroCard] Mode change to: $modeOption');
     final currentMode =
         ref.read(patchClashConfigProvider.select((state) => state.mode));
     if (currentMode != modeOption) {
       _syncNodeSelectionOnModeChange(from: currentMode, to: modeOption);
     }
-    appController.changeMode(modeOption);
+    await appController.changeMode(modeOption);
     if (modeOption == Mode.global) {
       Future.delayed(const Duration(milliseconds: 100), () {
         _ensureValidProxyForGlobalMode();
@@ -190,6 +190,12 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           GroupName.GLOBAL.name,
           resolved.proxy!.name,
         );
+        // Push selection to core immediately (short debounce for mode switch)
+        appController.changeProxyDebounce(
+          GroupName.GLOBAL.name,
+          resolved.proxy!.name,
+          duration: const Duration(milliseconds: 100),
+        );
       }
     } else if (from == Mode.global && to == Mode.rule) {
       final globalGroup = groups.firstWhere(
@@ -215,6 +221,12 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
             appController.updateCurrentSelectedMap(
               ruleGroup.name,
               globalSelected,
+            );
+            // Push selection to core immediately (short debounce for mode switch)
+            appController.changeProxyDebounce(
+              ruleGroup.name,
+              globalSelected,
+              duration: const Duration(milliseconds: 100),
             );
           }
         }
@@ -256,6 +268,12 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       appController.updateCurrentSelectedMap(
         globalGroup.name,
         validProxy.name,
+      );
+      // Push selection to core immediately (short debounce for mode switch)
+      appController.changeProxyDebounce(
+        globalGroup.name,
+        validProxy.name,
+        duration: const Duration(milliseconds: 100),
       );
     }
   }

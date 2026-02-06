@@ -39,11 +39,11 @@ class OutboundMode extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 12, bottom: 12),
                 child: RadioGroup<Mode>(
                   groupValue: mode,
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     if (value == null) {
                       return;
                     }
-                    appController.changeMode(value);
+                    await appController.changeMode(value);
                   },
                   child: LayoutBuilder(
                     builder: (_, constraints) {
@@ -67,8 +67,8 @@ class OutboundMode extends StatelessWidget {
                                 right: 16.ap,
                               ),
                               delegate: RadioDelegate(
-                                onTab: () {
-                                  appController.changeMode(item);
+                                onTab: () async {
+                                  await appController.changeMode(item);
                                 },
                                 value: item,
                               ),
@@ -159,11 +159,11 @@ class OutboundModeV2 extends StatelessWidget {
                           ),
                           padding: EdgeInsets.symmetric(horizontal: 0),
                           groupValue: mode,
-                          onValueChanged: (value) {
+                          onValueChanged: (value) async {
                             if (value == null) {
                               return;
                             }
-                            appController.changeMode(value);
+                            await appController.changeMode(value);
                           },
                           thumbColor: thumbColor,
                         ),

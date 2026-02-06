@@ -100,8 +100,8 @@ class Tray {
       menuItems.add(
         MenuItem.checkbox(
           label: Intl.message(mode.name),
-          onClick: (_) {
-            appController.changeMode(mode);
+          onClick: (_) async {
+            await appController.changeMode(mode);
           },
           checked: mode == trayState.mode,
         ),

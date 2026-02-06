@@ -356,14 +356,23 @@ extension ProxiesControllerExt on AppController {
     debouncer.call(FunctionTag.updateGroups, updateGroups, duration: duration);
   }
 
-  void changeProxyDebounce(String groupName, String proxyName) {
-    debouncer.call(FunctionTag.changeProxy, (
-      String groupName,
-      String proxyName,
-    ) async {
-      await changeProxy(groupName: groupName, proxyName: proxyName);
-      updateGroupsDebounce();
-    }, args: [groupName, proxyName]);
+  void changeProxyDebounce(
+    String groupName,
+    String proxyName, {
+    Duration? duration,
+  }) {
+    debouncer.call(
+      FunctionTag.changeProxy,
+      (
+        String groupName,
+        String proxyName,
+      ) async {
+        await changeProxy(groupName: groupName, proxyName: proxyName);
+        updateGroupsDebounce();
+      },
+      args: [groupName, proxyName],
+      duration: duration,
+    );
   }
 
   Future<void> updateGroups() async {
@@ -535,18 +544,22 @@ extension SetupControllerExt on AppController {
 
   Future<void> updateConfigDebounce() async {
     debouncer.call(FunctionTag.updateConfig, () async {
-      await safeRun(() async {
-        final updateParams = _ref.read(updateParamsProvider);
-        final res = await _requestAdmin(updateParams.tun.enable);
-        if (res.isError) {
-          return;
-        }
-        final realTunEnable = _ref.read(realTunEnableProvider);
-        final message = await coreController.updateConfig(
-          updateParams.copyWith.tun(enable: realTunEnable),
-        );
-        if (message.isNotEmpty) throw message;
-      });
+      await _updateConfigImmediate();
+    });
+  }
+
+  Future<void> _updateConfigImmediate() async {
+    await safeRun(() async {
+      final updateParams = _ref.read(updateParamsProvider);
+      final res = await _requestAdmin(updateParams.tun.enable);
+      if (res.isError) {
+        return;
+      }
+      final realTunEnable = _ref.read(realTunEnableProvider);
+      final message = await coreController.updateConfig(
+        updateParams.copyWith.tun(enable: realTunEnable),
+      );
+      if (message.isNotEmpty) throw message;
     });
   }
 
@@ -572,20 +585,24 @@ extension SetupControllerExt on AppController {
     }, args: [silence, force]);
   }
 
-  void changeMode(Mode mode) {
+  Future<void> changeMode(Mode mode) async {
     _ref
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
+
+    // Wait for config update to complete before changing proxy
+    await _updateConfigImmediate();
+
     if (mode == Mode.global) {
       updateCurrentGroupName(GroupName.GLOBAL.name);
-      _ensureGlobalProxySelection();
+      await _ensureGlobalProxySelection(immediate: true);
     } else if (mode == Mode.rule) {
-      _ensureRuleGroupSelection();
+      await _ensureRuleGroupSelection(immediate: true);
     }
     addCheckIp();
   }
 
-  void _ensureGlobalProxySelection() {
+  Future<void> _ensureGlobalProxySelection({bool immediate = false}) async {
     final groups = _ref.read(groupsProvider);
     if (groups.isEmpty) return;
 
@@ -602,7 +619,12 @@ extension SetupControllerExt on AppController {
     if (currentSelected != null && currentSelected.isNotEmpty) {
       final exists = globalGroup.all.any((p) => p.name == currentSelected);
       if (exists) {
-        changeProxyDebounce(globalGroup.name, currentSelected);
+        if (immediate) {
+          await changeProxy(groupName: globalGroup.name, proxyName: currentSelected);
+          updateGroupsDebounce();
+        } else {
+          changeProxyDebounce(globalGroup.name, currentSelected);
+        }
         return;
       }
     }
@@ -612,24 +634,68 @@ extension SetupControllerExt on AppController {
       final upper = proxy.name.toUpperCase();
       if (upper != 'DIRECT' && upper != 'REJECT') {
         updateCurrentSelectedMap(globalGroup.name, proxy.name);
-        changeProxyDebounce(globalGroup.name, proxy.name);
+        if (immediate) {
+          await changeProxy(groupName: globalGroup.name, proxyName: proxy.name);
+          updateGroupsDebounce();
+        } else {
+          changeProxyDebounce(globalGroup.name, proxy.name);
+        }
         return;
       }
     }
   }
 
-  void _ensureRuleGroupSelection() {
+  Future<void> _ensureRuleGroupSelection({bool immediate = false}) async {
     final currentGroupName = getCurrentGroupName();
+    final groups = _ref.read(groupsProvider);
+    final selectedMap = _ref.read(selectedMapProvider);
+
+    // If already on a non-GLOBAL group, push its current selection to core
     if (currentGroupName != null &&
         currentGroupName != GroupName.GLOBAL.name) {
+      final currentGroup = groups.firstWhere(
+        (g) => g.name == currentGroupName,
+        orElse: () => groups.first,
+      );
+      if (currentGroup.type == GroupType.Selector &&
+          currentGroup.all.isNotEmpty) {
+        final currentSelected = selectedMap[currentGroupName];
+        if (currentSelected != null && currentSelected.isNotEmpty) {
+          final exists = currentGroup.all.any((p) => p.name == currentSelected);
+          if (exists) {
+            if (immediate) {
+              await changeProxy(
+                  groupName: currentGroupName, proxyName: currentSelected);
+              updateGroupsDebounce();
+            } else {
+              changeProxyDebounce(currentGroupName, currentSelected);
+            }
+          }
+        }
+      }
       return;
     }
 
     // Select the first visible non-GLOBAL group
-    final groups = _ref.read(groupsProvider);
     for (final group in groups) {
       if (group.hidden != true && group.name != GroupName.GLOBAL.name) {
         updateCurrentGroupName(group.name);
+        // Also push its current selection if it's a Selector group
+        if (group.type == GroupType.Selector && group.all.isNotEmpty) {
+          final groupSelected = selectedMap[group.name];
+          if (groupSelected != null && groupSelected.isNotEmpty) {
+            final exists = group.all.any((p) => p.name == groupSelected);
+            if (exists) {
+              if (immediate) {
+                await changeProxy(
+                    groupName: group.name, proxyName: groupSelected);
+                updateGroupsDebounce();
+              } else {
+                changeProxyDebounce(group.name, groupSelected);
+              }
+            }
+          }
+        }
         return;
       }
     }
@@ -1101,15 +1167,15 @@ extension CommonControllerExt on AppController {
         .update((state) => state.copyWith(showTrayTitle: !state.showTrayTitle));
   }
 
-  void updateMode() {
-    _ref.read(patchClashConfigProvider.notifier).update((state) {
-      final index = Mode.values.indexWhere((item) => item == state.mode);
-      if (index == -1) {
-        return null;
-      }
-      final nextIndex = index + 1 > Mode.values.length - 1 ? 0 : index + 1;
-      return state.copyWith(mode: Mode.values[nextIndex]);
-    });
+  Future<void> updateMode() async {
+    final currentMode = _ref.read(patchClashConfigProvider.select((state) => state.mode));
+    final index = Mode.values.indexWhere((item) => item == currentMode);
+    if (index == -1) {
+      return;
+    }
+    final nextIndex = index + 1 > Mode.values.length - 1 ? 0 : index + 1;
+    final nextMode = Mode.values[nextIndex];
+    await changeMode(nextMode);
   }
 
   void updateRunTime() {

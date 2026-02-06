@@ -13,13 +13,13 @@ import 'package:fl_clash/l10n/l10n.dart';
 final _logger = FileLogger('xboard_outbound_mode.dart');
 class XBoardOutboundMode extends StatelessWidget {
   const XBoardOutboundMode({super.key});
-  void _handleModeChange(WidgetRef ref, Mode modeOption) {
+  Future<void> _handleModeChange(WidgetRef ref, Mode modeOption) async {
     _logger.debug('[XBoardOutboundMode] 切换模式到: $modeOption');
 
     // FlClash 核心的 changeMode 已经处理了所有切换逻辑：
     // - 全局模式: 更新 currentGroupName 为 GLOBAL + 确保节点选择
     // - 规则模式: 更新 currentGroupName 为第一个可见的非 GLOBAL 组
-    appController.changeMode(modeOption);
+    await appController.changeMode(modeOption);
   }
   Future<void> _handleTunToggle(BuildContext context, WidgetRef ref, bool selected) async {
     if (selected) {

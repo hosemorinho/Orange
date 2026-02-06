@@ -7,6 +7,7 @@ import 'package:fl_clash/xboard/config/xboard_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'application.dart';
 import 'common/common.dart';
@@ -16,19 +17,25 @@ Future<void> main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // 桌面平台启用磁盘日志（Windows release 无控制台）
-    if (system.isDesktop) {
-      try {
-        final logDir = await appPath.homeDirPath;
-        final diskLogger = await DiskLogger.init(logDir);
-        if (kReleaseMode) {
-          diskLogger.minLevel = LogLevel.info;
-        }
-        XBoardLogger.setLogger(diskLogger);
-        debugPrint('[Main] 磁盘日志已启用: $logDir/xboard.log');
-      } catch (e) {
-        debugPrint('[Main] 磁盘日志初始化失败: $e');
+    // 启用磁盘日志
+    try {
+      String logDir;
+      if (system.isDesktop) {
+        logDir = await appPath.homeDirPath;
+      } else {
+        // Android: 写到外部应用目录，文件管理器可见
+        // /sdcard/Android/data/包名/files/xboard.log
+        final extDir = await getExternalStorageDirectory();
+        logDir = extDir?.path ?? await appPath.homeDirPath;
       }
+      final diskLogger = await DiskLogger.init(logDir);
+      if (kReleaseMode) {
+        diskLogger.minLevel = LogLevel.info;
+      }
+      XBoardLogger.setLogger(diskLogger);
+      debugPrint('[Main] 磁盘日志已启用: $logDir/xboard.log');
+    } catch (e) {
+      debugPrint('[Main] 磁盘日志初始化失败: $e');
     }
 
     // 初始化XBoard配置模块

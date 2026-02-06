@@ -1,7 +1,11 @@
 /// DNS-over-HTTPS TXT Record Resolver
 ///
-/// Resolves DNS TXT records using Alibaba Cloud DoH servers (223.5.5.5 / 223.6.6.6)
-/// with direct connection bypassing proxy/TUN via RFC 8484 wire format.
+/// Resolves DNS TXT records using multiple DoH servers with direct IP connection:
+/// - Alibaba Cloud DNS: 223.5.5.5 / 223.6.6.6 (fast in China)
+/// - Cloudflare DNS: 1.1.1.1 / 1.0.0.1 (global backup)
+///
+/// All servers race concurrently, fastest response wins.
+/// Bypasses proxy/TUN via direct HTTPS connection using RFC 8484 wire format.
 library;
 
 import 'dart:async';
@@ -14,8 +18,10 @@ final _logger = FileLogger('doh_txt_resolver.dart');
 
 /// DoH TXT Resolver
 class DohTxtResolver {
-  /// Alibaba Cloud DoH servers (direct IP connection, bypass proxy)
-  static const _dohServers = ['223.5.5.5', '223.6.6.6'];
+  /// DoH servers (direct IP connection, bypass proxy)
+  /// - 223.5.5.5 / 223.6.6.6: Alibaba Cloud DNS (fast in China)
+  /// - 1.1.1.1 / 1.0.0.1: Cloudflare DNS (global backup)
+  static const _dohServers = ['223.5.5.5', '223.6.6.6', '1.1.1.1', '1.0.0.1'];
   static const _timeout = Duration(seconds: 5);
 
   /// Resolve TXT records for a domain
@@ -24,9 +30,9 @@ class DohTxtResolver {
   ///
   /// Returns the first TXT record value or null if resolution fails
   static Future<String?> resolveTxt(String domain) async {
-    _logger.info('[DoH] 开始解析 TXT 记录: $domain');
+    _logger.info('[DoH] 开始解析 TXT 记录: $domain (使用 ${_dohServers.length} 个 DoH 服务器竞速)');
 
-    // Race both DoH servers
+    // Race all DoH servers (Alibaba + Cloudflare)
     final futures = _dohServers.map((server) => _queryServer(server, domain));
 
     try {
@@ -38,7 +44,7 @@ class DohTxtResolver {
       }
       return result;
     } on TimeoutException {
-      _logger.error('[DoH] 所有 DoH 服务器超时');
+      _logger.error('[DoH] 所有 ${_dohServers.length} 个 DoH 服务器超时 (${_dohServers.join(", ")})');
       return null;
     } catch (e, stackTrace) {
       _logger.error('[DoH] TXT 解析失败', e, stackTrace);

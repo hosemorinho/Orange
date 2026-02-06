@@ -228,7 +228,10 @@ Two modes:
 
 **DNS TXT Resolution with Dynamic Configuration**:
 - Added comprehensive API configuration resolution via encrypted DNS TXT records
-- Implemented DoH (DNS-over-HTTPS) resolver using Alibaba Cloud DNS (223.5.5.5 / 223.6.6.6)
+- Implemented DoH (DNS-over-HTTPS) resolver with 4-server redundancy:
+  - Alibaba Cloud DNS: 223.5.5.5 / 223.6.6.6 (optimized for China)
+  - Cloudflare DNS: 1.1.1.1 / 1.0.0.1 (global backup)
+  - All servers race concurrently, fastest response wins
 - Added CryptoJS-compatible AES-256-CBC decryptor with EVP_BytesToKey key derivation
 - Supports encrypted JSON config with `crisp` and `hosts` fields
 - No new package dependencies required (uses existing `crypto` + `encrypt` packages)

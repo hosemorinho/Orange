@@ -250,12 +250,13 @@ class IconGenerator {
     print('✅ Android icons generated');
   }
 
-  /// Remove adaptive icon XML files and vector foreground so bitmap mipmaps take priority
+  /// Remove adaptive icon XML files so bitmap mipmaps take priority.
+  /// Note: drawable/ic_launcher_foreground.xml is kept because it's referenced
+  /// by the splash screen theme in values-v27/ and values-night-v27/.
   Future<void> _removeAdaptiveIconFiles(String androidResDir) async {
     final filesToRemove = [
       path.join(androidResDir, 'mipmap-anydpi-v26', 'ic_launcher.xml'),
       path.join(androidResDir, 'mipmap-anydpi-v26', 'ic_launcher_round.xml'),
-      path.join(androidResDir, 'drawable', 'ic_launcher_foreground.xml'),
     ];
 
     for (final filePath in filesToRemove) {

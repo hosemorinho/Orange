@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:flutter/services.dart';
@@ -121,7 +120,11 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     if (!mounted) return;
     final shouldContinue = await PlanConflictDialog.show(context);
     if (!shouldContinue && mounted) {
-      Navigator.of(context).pop();
+      if (widget.embedded) {
+        widget.onBack?.call();
+      } else if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
     }
   }
 
@@ -588,8 +591,6 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     final colorScheme = Theme.of(context).colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktopLayout = screenWidth > 900;
-    // 用于判断平台类型
-    final isPlatformDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     final content = Align(
       alignment: Alignment.topCenter,
@@ -611,9 +612,17 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       return content;
     }
 
-    // 移动端全屏或独立页面：带 AppBar 的 Scaffold
+    // 全屏或独立页面：带 AppBar 的 Scaffold（包含返回按钮）
     return Scaffold(
-      appBar: isPlatformDesktop ? null : AppBar(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
         title: Text(AppLocalizations.of(context).xboardPurchaseSubscription),
       ),
       body: content,

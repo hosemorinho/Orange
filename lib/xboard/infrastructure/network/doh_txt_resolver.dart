@@ -67,7 +67,9 @@ class DohTxtResolver {
       final uri = Uri.parse('https://$serverIp/dns-query?dns=$base64url');
 
       // Direct IP connection with certificate bypass
+      // Bypass FlClashHttpOverrides proxy (avoid accessing appController._ref before attach)
       client = HttpClient();
+      client.findProxy = (uri) => 'DIRECT';
       client.badCertificateCallback = (cert, host, port) => true;
       client.connectionTimeout = _timeout;
 

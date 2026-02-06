@@ -267,7 +267,10 @@ extension ProfilesControllerExt on AppController {
       final newProfile = await profile.update();
       _ref.read(profilesProvider.notifier).put(newProfile);
       if (profile.id == _ref.read(currentProfileIdProvider)) {
-        applyProfileDebounce(silence: true);
+        await applyProfile(silence: true);
+        // applyProfile 会调用 updateGroups，updateGroups 会读取 selectedMap
+        // 但 setupConfig 重置了 Clash 核心，所以需要重新发送选择到核心
+        await _applySelectedProxyToCore();
       }
     } finally {
       _ref.read(isUpdatingProvider(profile.updatingKey).notifier).value = false;
@@ -697,6 +700,43 @@ extension SetupControllerExt on AppController {
           }
         }
         return;
+      }
+    }
+  }
+
+  /// 将 Profile 中保存的节点选择应用到 Clash 核心
+  /// (setupConfig 会重置核心，但 selectedMap 保存在数据库中)
+  Future<void> _applySelectedProxyToCore() async {
+    final groups = _ref.read(groupsProvider);
+    if (groups.isEmpty) return;
+
+    final selectedMap = _ref.read(selectedMapProvider);
+    final currentMode = _ref.read(patchClashConfigProvider.select((state) => state.mode));
+    final currentGroupName = getCurrentGroupName();
+
+    // 根据当前模式确定要恢复的组
+    String? targetGroupName;
+    if (currentMode == Mode.global) {
+      targetGroupName = GroupName.GLOBAL.name;
+    } else if (currentMode == Mode.rule && currentGroupName != null) {
+      targetGroupName = currentGroupName;
+    }
+
+    if (targetGroupName == null) return;
+
+    final selectedProxy = selectedMap[targetGroupName];
+    if (selectedProxy != null && selectedProxy.isNotEmpty) {
+      final targetGroup = groups.firstWhere(
+        (g) => g.name == targetGroupName,
+        orElse: () => groups.first,
+      );
+
+      if (targetGroup.type == GroupType.Selector || targetGroup.name == GroupName.GLOBAL.name) {
+        final exists = targetGroup.all.any((p) => p.name == selectedProxy);
+        if (exists) {
+          commonPrint.log('应用保存的节点选择到核心: $targetGroupName -> $selectedProxy');
+          await changeProxy(groupName: targetGroupName, proxyName: selectedProxy);
+        }
       }
     }
   }

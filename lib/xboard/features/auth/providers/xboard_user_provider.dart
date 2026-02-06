@@ -451,19 +451,20 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
         subscriptionInfo: subscriptionData,
         isLoading: false,
       );
-      _logger.info('订阅信息已刷新');
+      _logger.info('订阅信息已刷新（仅更新流量/到期信息，不重新下载配置）');
 
-      // 触发订阅导入流程
-      if (subscriptionData?.subscribeUrl.isNotEmpty == true) {
-        _logger.info('[手动刷新] 开始导入订阅配置: ${subscriptionData!.subscribeUrl}');
-        _logger.info('[手动刷新] 使用强制刷新模式，跳过重复检测');
-        ref.read(profileImportProvider.notifier).importSubscription(
-          subscriptionData.subscribeUrl,
-          forceRefresh: true,
-        );
-      } else {
-        _logger.info('[手动刷新] 订阅链接为空，跳过导入');
-      }
+      // 注释掉自动导入流程，避免每5分钟重新下载配置导致节点重置
+      // 用户需要更新节点时可以手动点击「更新节点」按钮
+      // if (subscriptionData?.subscribeUrl.isNotEmpty == true) {
+      //   _logger.info('[手动刷新] 开始导入订阅配置: ${subscriptionData!.subscribeUrl}');
+      //   _logger.info('[手动刷新] 使用强制刷新模式，跳过重复检测');
+      //   ref.read(profileImportProvider.notifier).importSubscription(
+      //     subscriptionData.subscribeUrl,
+      //     forceRefresh: true,
+      //   );
+      // } else {
+      //   _logger.info('[手动刷新] 订阅链接为空，跳过导入');
+      // }
     } catch (e) {
       _logger.info('刷新订阅信息出错: $e');
       state = state.copyWith(

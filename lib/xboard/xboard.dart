@@ -45,6 +45,7 @@ export 'features/update_check/update_check.dart';
 export 'features/notice/notice.dart';
 
 // ========== Crisp 客服模块 ==========
+export 'features/crisp/crisp_config.dart';
 export 'features/crisp/crisp_chat_service.dart';
 export 'features/crisp/crisp_chat_button.dart';
 

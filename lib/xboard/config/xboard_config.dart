@@ -195,6 +195,11 @@ class XBoardConfig {
   
   /// 获取最后一次竞速结果
   static DomainRacingResult? get lastRacingResult => _lastRacingResult;
+
+  /// 设置竞速结果（供 domain_status_service 使用）
+  static void setLastRacingResult(DomainRacingResult result) {
+    _lastRacingResult = result;
+  }
   
   /// 重置模块
   static void reset() {

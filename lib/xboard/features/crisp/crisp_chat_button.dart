@@ -1,19 +1,24 @@
-import 'package:fl_clash/common/constant.dart';
 import 'package:fl_clash/xboard/adapter/state/plan_state.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
+import 'package:fl_clash/xboard/features/crisp/crisp_config.dart';
 import 'package:fl_clash/xboard/features/crisp/crisp_chat_service.dart';
+import 'package:fl_clash/xboard/features/initialization/providers/initialization_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Global floating action button that opens Crisp live chat.
 ///
-/// Only renders when [crispWebsiteId] is configured via `--dart-define`.
+/// Only renders when Crisp website ID is available (via `--dart-define` or TXT resolution).
+/// Watches initializationProvider to rebuild after TXT resolution completes.
 class CrispChatButton extends ConsumerWidget {
   const CrispChatButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (crispWebsiteId.isEmpty) return const SizedBox.shrink();
+    // Watch initialization to rebuild after TXT resolution
+    ref.watch(initializationProvider);
+
+    if (effectiveCrispWebsiteId.isEmpty) return const SizedBox.shrink();
 
     final colorScheme = Theme.of(context).colorScheme;
 

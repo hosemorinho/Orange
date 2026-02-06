@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:crisp_chat/crisp_chat.dart';
-import 'package:fl_clash/common/constant.dart';
+import 'package:fl_clash/xboard/features/crisp/crisp_config.dart';
 import 'package:fl_clash/xboard/domain/models/user.dart';
 import 'package:fl_clash/xboard/domain/models/plan.dart';
 import 'package:intl/intl.dart';
@@ -26,7 +26,7 @@ class CrispChatService {
     required DomainUser user,
     DomainPlan? plan,
   }) async {
-    if (crispWebsiteId.isEmpty) return;
+    if (effectiveCrispWebsiteId.isEmpty) return;
 
     if (_isNativePlatform) {
       await _openNativeChat(user: user, plan: plan);
@@ -37,7 +37,7 @@ class CrispChatService {
 
   /// Reset the Crisp session (call on logout).
   static Future<void> resetSession() async {
-    if (crispWebsiteId.isEmpty) return;
+    if (effectiveCrispWebsiteId.isEmpty) return;
     if (!_isNativePlatform) return;
 
     await FlutterCrispChat.resetCrispChatSession();
@@ -58,7 +58,7 @@ class CrispChatService {
     );
 
     final config = CrispConfig(
-      websiteID: crispWebsiteId,
+      websiteID: effectiveCrispWebsiteId,
       user: crispUser,
     );
 
@@ -118,7 +118,7 @@ class CrispChatService {
 
   static Future<void> _openWebChat() async {
     final uri = Uri.parse(
-      'https://go.crisp.chat/chat/embed/?website_id=$crispWebsiteId',
+      'https://go.crisp.chat/chat/embed/?website_id=$effectiveCrispWebsiteId',
     );
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

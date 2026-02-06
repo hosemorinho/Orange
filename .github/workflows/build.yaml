@@ -21,6 +21,14 @@ on:
         description: 'Override API_BASE_URL'
         required: false
         default: ''
+      api_text_domain:
+        description: 'DNS TXT domain for API config (e.g., txt.example.com)'
+        required: false
+        default: ''
+      crisp_website_id:
+        description: 'Crisp Chat website ID'
+        required: false
+        default: ''
       icon_url:
         description: 'Custom app icon URL (PNG, min 1024x1024)'
         required: false
@@ -29,7 +37,9 @@ on:
 env:
   IS_STABLE: ${{ github.event_name == 'release' }}
   API_BASE_URL: ${{ inputs.api_url || secrets.API_BASE_URL || '' }}
+  API_TEXT_DOMAIN: ${{ inputs.api_text_domain || secrets.API_TEXT_DOMAIN || '' }}
   APP_ICON_URL: ${{ inputs.icon_url || secrets.APP_ICON_URL || '' }}
+  CRISP_WEBSITE_ID: ${{ inputs.crisp_website_id || secrets.CRISP_WEBSITE_ID || '' }}
 
 jobs:
   codegen:
@@ -230,9 +240,11 @@ jobs:
         shell: bash
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
+          API_TEXT_DOMAIN: ${{ env.API_TEXT_DOMAIN }}
           APP_NAME: ${{ secrets.APP_NAME }}
           APP_PACKAGE_NAME: ${{ secrets.APP_PACKAGE_NAME }}
           THEME_COLOR: ${{ secrets.THEME_COLOR }}
+          CRISP_WEBSITE_ID: ${{ env.CRISP_WEBSITE_ID }}
         run: |
           dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }}
 

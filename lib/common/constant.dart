@@ -9,13 +9,26 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:flutter/material.dart';
 
-const appName = 'FlClash';
-const appHelperService = 'FlClashHelperService';
+// 环境变量配置（通过 --dart-define 传入）
+const _envPackageName = String.fromEnvironment('APP_PACKAGE_NAME');
+const _envApiBaseUrl = String.fromEnvironment('API_BASE_URL');
+const _envThemeColor = String.fromEnvironment('THEME_COLOR');
+const _envAppName = String.fromEnvironment('APP_NAME');
+const _envCrispWebsiteId = String.fromEnvironment('CRISP_WEBSITE_ID');
+const crispWebsiteId = _envCrispWebsiteId;
+const _envApiTextDomain = String.fromEnvironment('API_TEXT_DOMAIN');
+const apiTextDomain = _envApiTextDomain;
+
+const appName = _envAppName == '' ? 'FlClash' : _envAppName;
+const appNameEn = appName;
+final appHelperService = '${appName}HelperService';
 const coreName = 'clash.meta';
 const browserUa =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-const packageName = 'com.follow.clash';
-final unixSocketPath = '/tmp/FlClashSocket_${Random().nextInt(10000)}.sock';
+const packageName = _envPackageName == '' ? 'com.follow.clash' : _envPackageName;
+const apiBaseUrl = _envApiBaseUrl;
+const themeColorHex = _envThemeColor == '' ? '66558E' : _envThemeColor;
+final unixSocketPath = '/tmp/${appName}Socket_${Random().nextInt(10000)}.sock';
 const helperPort = 47890;
 const maxTextScale = 1.4;
 const minTextScale = 0.8;
@@ -99,7 +112,10 @@ const proxiesListStoreKey = PageStorageKey<String>('proxies_list');
 const toolsStoreKey = PageStorageKey<String>('tools');
 const profilesStoreKey = PageStorageKey<String>('profiles');
 
-const defaultPrimaryColor = 0XFFD8C0C3;
+const _palettePinkish = 0XFFD8C0C3;
+
+/// 默认主题色 = 环境变量 THEME_COLOR（运行时解析）
+final int defaultPrimaryColor = parseThemeColor();
 
 double getWidgetHeight(num lines) {
   final space = 14.mAp;
@@ -108,9 +124,18 @@ double getWidgetHeight(num lines) {
 
 const maxLength = 1000;
 
-final mainIsolate = 'FlClashMainIsolate';
+final mainIsolate = '${appName}MainIsolate';
 
-final serviceIsolate = 'FlClashServiceIsolate';
+final serviceIsolate = '${appName}ServiceIsolate';
+
+/// 解析环境变量中的主题色（hex 字符串 → int）
+int parseThemeColor() {
+  if (themeColorHex.isEmpty) return 0xFF66558E;
+  final hex = themeColorHex.replaceFirst('#', '');
+  final value = int.tryParse(hex, radix: 16);
+  if (value == null) return 0xFF66558E;
+  return hex.length <= 6 ? (0xFF000000 | value) : value;
+}
 
 const defaultPrimaryColors = [
   0xFF795548,
@@ -118,9 +143,19 @@ const defaultPrimaryColors = [
   0xFFFFFF00,
   0XFFBBC9CC,
   0XFFABD397,
-  defaultPrimaryColor,
+  _palettePinkish,
   0XFF665390,
 ];
+
+/// 包含环境变量配置色的调色盘（将 THEME_COLOR 插入首位）
+final List<int> configuredPrimaryColors = () {
+  final colors = List<int>.from(defaultPrimaryColors);
+  final envColor = defaultPrimaryColor;
+  if (!colors.contains(envColor)) {
+    colors.insert(0, envColor);
+  }
+  return colors;
+}();
 
 const scriptTemplate = '''
 const main = (config) => {

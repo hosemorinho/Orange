@@ -13,9 +13,12 @@ import 'package:fl_clash/state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'controller.dart';
-import 'pages/pages.dart';
+import 'xboard/xboard.dart';
+import 'package:fl_clash/xboard/router/app_router.dart' as xboard_router;
+import 'package:fl_clash/xboard/features/initialization/initialization.dart';
 
 class Application extends ConsumerStatefulWidget {
   const Application({super.key});
@@ -27,6 +30,7 @@ class Application extends ConsumerStatefulWidget {
 class ApplicationState extends ConsumerState<Application> {
   Timer? _autoUpdateProfilesTaskTimer;
   bool _preHasVpn = false;
+  late final GoRouter _router;
 
   final _pageTransitionsTheme = const PageTransitionsTheme(
     builders: <TargetPlatform, PageTransitionsBuilder>{
@@ -47,16 +51,140 @@ class ApplicationState extends ConsumerState<Application> {
   @override
   void initState() {
     super.initState();
+    _router = _createRouter();
+
+    // 监听用户状态变化，刷新路由
+    ref.listenManual(
+      xboardUserProvider.select((state) => state.isInitialized),
+      (previous, next) {
+        debugPrint('[Application] isInitialized 变化: $previous -> $next');
+        if (next) {
+          _router.refresh();
+        }
+      },
+      fireImmediately: false,
+    );
+
+    ref.listenManual(
+      xboardUserProvider.select((state) => state.isAuthenticated),
+      (previous, next) {
+        debugPrint('[Application] isAuthenticated 变化: $previous -> $next');
+        _router.refresh();
+      },
+      fireImmediately: false,
+    );
+
+    // 后台预热：统一初始化服务（不阻塞 UI）
+    Future.microtask(() async {
+      try {
+        await ref.read(initializationProvider.notifier).initialize();
+      } catch (e) {
+        debugPrint('[Application] 预热初始化失败: $e');
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      await _attachWithRetry();
+
+      // 核心已就绪，现在安全执行快速认证（可能触发订阅导入）
+      _performQuickAuthWithDomainService();
+
+      _autoUpdateProfilesTask();
+      app?.initShortcuts();
+
+      // 启动后检查更新
+      _checkForUpdates();
+    });
+  }
+
+  /// Attach appController with retry when navigator context is not yet available
+  Future<void> _attachWithRetry() async {
+    for (int i = 0; i < 5; i++) {
       final currentContext = globalState.navigatorKey.currentContext;
       if (currentContext != null) {
         await appController.attach(currentContext, ref);
-      } else {
-        exit(0);
+        return;
       }
-      _autoUpdateProfilesTask();
-      appController.initLink();
-      app?.initShortcuts();
+      debugPrint('[Application] Navigator context is null, retry ${i + 1}/5...');
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    debugPrint('[Application] Navigator context still null after retries, force exit');
+    exit(0);
+  }
+
+  /// 使用新域名服务架构进行快速认证检查
+  void _performQuickAuthWithDomainService() {
+    Future.microtask(() async {
+      try {
+        debugPrint('[Application] 开始快速认证检查...');
+
+        // Use Completer + listen instead of busy-wait polling
+        final completer = Completer<void>();
+
+        // Listen for initialization state changes
+        final sub = ref.listenManual(
+          initializationProvider,
+          (previous, current) {
+            if ((current.isReady || current.isFailed) && !completer.isCompleted) {
+              debugPrint('[Application] 初始化状态: ${current.status}');
+              debugPrint('[Application] 错误信息: ${current.errorMessage}');
+              completer.complete();
+            }
+          },
+          fireImmediately: true,
+        );
+
+        // Wait for init or timeout
+        await completer.future.timeout(
+          const Duration(seconds: 30),
+          onTimeout: () {
+            debugPrint('[Application] 初始化等待超时（30秒），继续执行 quickAuth');
+          },
+        );
+        sub.close();
+
+        if (!mounted) return;
+
+        final userNotifier = ref.read(xboardUserProvider.notifier);
+        await userNotifier.quickAuth();
+
+        debugPrint('[Application] 快速认证检查完成');
+      } catch (e) {
+        debugPrint('[Application] 快速认证检查失败: $e');
+        if (!mounted) return;
+        final userNotifier = ref.read(xboardUserProvider.notifier);
+        userNotifier.forceInitialized();
+      }
+    });
+  }
+
+  /// 检查应用更新
+  void _checkForUpdates() {
+    Future.delayed(const Duration(seconds: 5), () async {
+      try {
+        debugPrint('[Application] 开始自动检查更新...');
+        final updateNotifier = ref.read(updateCheckProvider.notifier);
+        await updateNotifier.checkForUpdates();
+
+        final updateState = ref.read(updateCheckProvider);
+        if (updateState.hasUpdate && mounted) {
+          final currentContext = globalState.navigatorKey.currentContext;
+          if (currentContext != null) {
+            debugPrint('[Application] 发现新版本，显示更新弹窗');
+            showDialog(
+              context: currentContext,
+              barrierDismissible: !updateState.forceUpdate,
+              builder: (context) => UpdateDialog(state: updateState),
+            );
+          }
+        } else if (updateState.error != null) {
+          debugPrint('[Application] 自动更新检查失败，忽略错误: ${updateState.error}');
+        } else {
+          debugPrint('[Application] 已是最新版本');
+        }
+      } catch (e) {
+        debugPrint('[Application] 自动更新检查异常: $e');
+      }
     });
   }
 
@@ -116,9 +244,8 @@ class ApplicationState extends ConsumerState<Application> {
           appSettingProvider.select((state) => state.locale),
         );
         final themeProps = ref.watch(themeSettingProvider);
-        return MaterialApp(
+        return MaterialApp.router(
           debugShowCheckedModeBanner: false,
-          navigatorKey: globalState.navigatorKey,
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
@@ -134,9 +261,10 @@ class ApplicationState extends ConsumerState<Application> {
               ),
             );
           },
+          routerConfig: _router,
           scrollBehavior: BaseScrollBehavior(),
           title: appName,
-          locale: utils.getLocaleForString(locale),
+          locale: utils.getLocaleForString(locale) ?? _getAutoLocale(),
           supportedLocales: AppLocalizations.delegate.supportedLocales,
           themeMode: themeProps.themeMode,
           theme: ThemeData(
@@ -155,16 +283,48 @@ class ApplicationState extends ConsumerState<Application> {
               primaryColor: themeProps.primaryColor,
             ).toPureBlack(themeProps.pureBlack),
           ),
-          home: child!,
         );
       },
-      child: const HomePage(),
+    );
+  }
+
+  Locale _getAutoLocale() {
+    final deviceLocale = WidgetsBinding.instance.platformDispatcher.locale;
+    return deviceLocale.languageCode.startsWith('zh')
+        ? const Locale('zh', 'CN')
+        : const Locale('en');
+  }
+
+  GoRouter _createRouter() {
+    return GoRouter(
+      navigatorKey: globalState.navigatorKey,
+      initialLocation: '/',
+      routes: xboard_router.routes,
+      redirect: (context, state) {
+        final userState = ref.read(xboardUserProvider);
+        final isAuthenticated = userState.isAuthenticated;
+        final isInitialized = userState.isInitialized;
+        final isLoginPage = state.uri.path == '/login';
+
+        if (!isInitialized) {
+          return '/loading';
+        }
+
+        if (!isAuthenticated && !isLoginPage) {
+          return '/login';
+        }
+
+        if (isAuthenticated && isLoginPage) {
+          return '/';
+        }
+
+        return null;
+      },
     );
   }
 
   @override
   Future<void> dispose() async {
-    linkManager.destroy();
     _autoUpdateProfilesTaskTimer?.cancel();
     await coreController.destroy();
     await appController.handleExit();

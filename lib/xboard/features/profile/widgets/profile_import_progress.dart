@@ -1,0 +1,251 @@
+import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_clash/xboard/features/profile/profile.dart';
+import 'package:fl_clash/common/common.dart';
+class ProfileImportProgressCard extends ConsumerWidget {
+  final VoidCallback? onRetry;
+  final VoidCallback? onDismiss;
+  const ProfileImportProgressCard({
+    super.key,
+    this.onRetry,
+    this.onDismiss,
+  });
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final importState = ref.watch(profileImportProvider);
+    final importNotifier = ref.read(profileImportProvider.notifier);
+    if (importState.status == ImportStatus.idle && !importNotifier.hasError) {
+      return const SizedBox.shrink();
+    }
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(context, importState, importNotifier),
+            const SizedBox(height: 12),
+            _buildContent(context, importState, importNotifier),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _buildHeader(BuildContext context, ImportState state, ProfileImportNotifier notifier) {
+    return Row(
+      children: [
+        _buildStatusIcon(context, state),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            _getHeaderText(state),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        if (state.isImporting)
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => notifier.cancelImport(),
+            tooltip: appLocalizations.xboardProfileImportCancelTooltip,
+          ),
+        if (notifier.hasError && onDismiss != null)
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: onDismiss,
+            tooltip: appLocalizations.xboardProfileImportCloseTooltip,
+          ),
+      ],
+    );
+  }
+  Widget _buildStatusIcon(BuildContext context, ImportState state) {
+    switch (state.status) {
+      case ImportStatus.idle:
+      case ImportStatus.cleaning:
+      case ImportStatus.downloading:
+      case ImportStatus.validating:
+      case ImportStatus.adding:
+        return const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        );
+      case ImportStatus.success:
+        return Icon(Icons.check_circle, color: Theme.of(context).colorScheme.tertiary, size: 20);
+      case ImportStatus.failed:
+        return Icon(Icons.error, color: Theme.of(context).colorScheme.error, size: 20);
+    }
+  }
+  String _getHeaderText(ImportState state) {
+    switch (state.status) {
+      case ImportStatus.idle:
+        return appLocalizations.xboardProfileImportPreparing;
+      case ImportStatus.cleaning:
+      case ImportStatus.downloading:
+      case ImportStatus.validating:
+      case ImportStatus.adding:
+        return appLocalizations.xboardProfileImportInProgress;
+      case ImportStatus.success:
+        return appLocalizations.xboardProfileImportSuccessTitle;
+      case ImportStatus.failed:
+        return appLocalizations.xboardProfileImportFailedTitle;
+    }
+  }
+  Widget _buildContent(BuildContext context, ImportState state, ProfileImportNotifier notifier) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (state.isImporting) ...[
+          LinearProgressIndicator(
+            value: state.progress,
+            backgroundColor: Theme.of(context).colorScheme.outlineVariant,
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (state.message != null) ...[
+          Text(
+            state.message!,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: _getMessageColor(context, state),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (notifier.hasError) ...[
+          if (state.errorTypeMessage != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning, color: Theme.of(context).colorScheme.error, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      state.errorTypeMessage!,
+                      style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => notifier.clearError(),
+                child: Text(appLocalizations.xboardProfileImportClearError),
+              ),
+              const SizedBox(width: 8),
+              if (notifier.canRetry)
+                                 ElevatedButton.icon(
+                   onPressed: () async {
+                     await notifier.retryLastImport();
+                     onRetry?.call();
+                   },
+                  icon: const Icon(Icons.refresh),
+                  label: Text(appLocalizations.xboardProfileImportRetry),
+                ),
+            ],
+          ),
+        ],
+        if (state.status == ImportStatus.success) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.tertiaryContainer,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: Theme.of(context).colorScheme.tertiary, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    appLocalizations.xboardProfileImportSuccessDetail,
+                    style: TextStyle(color: Theme.of(context).colorScheme.onTertiaryContainer),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => notifier.clearState(),
+                child: Text(appLocalizations.xboardProfileImportConfirm),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+  Color? _getMessageColor(BuildContext context, ImportState state) {
+    switch (state.status) {
+      case ImportStatus.failed:
+        return Theme.of(context).colorScheme.error;
+      case ImportStatus.success:
+        return Theme.of(context).colorScheme.tertiary;
+      default:
+        return Theme.of(context).textTheme.bodyMedium?.color;
+    }
+  }
+}
+class ImportStatusIndicator extends ConsumerWidget {
+  const ImportStatusIndicator({super.key});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isImporting = ref.watch(profileImportProvider.select((state) => state.isImporting));
+    final progress = ref.watch(profileImportProvider.select((state) => state.progress));
+    final statusText = ref.watch(profileImportProvider.select((state) => state.statusText));
+    if (!isImporting) {
+      return const SizedBox.shrink();
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            statusText,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '${(progress * 100).toInt()}%',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+} 

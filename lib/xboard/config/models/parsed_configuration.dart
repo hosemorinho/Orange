@@ -1,0 +1,139 @@
+import 'panel_configuration.dart';
+import 'proxy_info.dart';
+import 'update_info.dart';
+import 'subscription_info.dart';
+
+/// 解析后的配置数据
+///
+/// 包含所有类型的配置信息
+class ParsedConfiguration {
+  final String panelType;  // 面板类型：xboard 或 v2board
+  final PanelConfiguration panels;
+  final List<ProxyInfo> proxies;
+  final List<UpdateInfo> updates;
+  final SubscriptionInfo? subscription;
+  final DateTime parsedAt;
+  final String sourceHash;
+  final ConfigMetadata metadata;
+
+  const ParsedConfiguration({
+    required this.panelType,
+    required this.panels,
+    required this.proxies,
+    required this.updates,
+    this.subscription,
+    required this.parsedAt,
+    required this.sourceHash,
+    required this.metadata,
+  });
+
+  /// 从JSON创建配置
+  factory ParsedConfiguration.fromJson(
+    Map<String, dynamic> json,
+    String currentProvider,
+  ) {
+    // 读取面板类型，必填字段
+    final panelType = json['panelType'] as String?;
+    if (panelType == null || panelType.isEmpty) {
+      throw Exception('panelType is required in configuration');
+    }
+
+    final panelsData = json['panels'] as Map<String, dynamic>? ?? {};
+    final proxyList = json['proxy'] as List<dynamic>? ?? [];
+    final updateList = json['update'] as List<dynamic>? ?? [];
+    final subscriptionData = json['subscription'] as Map<String, dynamic>?;
+
+    return ParsedConfiguration(
+      panelType: panelType,  // 面板类型
+      panels: PanelConfiguration.fromJson(panelsData, currentProvider),
+      proxies: proxyList
+          .map((item) => ProxyInfo.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      updates: updateList
+          .map((item) => UpdateInfo.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      subscription: subscriptionData != null ? SubscriptionInfo.fromJson(subscriptionData) : null,
+      parsedAt: DateTime.now(),
+      sourceHash: json.hashCode.toString(),
+      metadata: ConfigMetadata.fromJson(json['metadata'] as Map<String, dynamic>? ?? {}),
+    );
+  }
+
+  /// 获取第一个可用的代理URL
+  String? get firstProxyUrl {
+    return proxies.isNotEmpty ? proxies.first.url : null;
+  }
+
+  /// 获取第一个可用的面板URL
+  String? get firstPanelUrl {
+    return panels.firstUrl;
+  }
+
+  /// 获取第一个可用的更新URL
+  String? get firstUpdateUrl {
+    return updates.isNotEmpty ? updates.first.url : null;
+  }
+
+  /// 获取第一个可用的订阅URL
+  String? get firstSubscriptionUrl {
+    return subscription?.firstUrl;
+  }
+
+  /// 构建订阅URL
+  String? buildSubscriptionUrl(String token, {bool preferEncrypt = true}) {
+    return subscription?.buildSubscriptionUrl(token);
+  }
+
+  /// 转换为JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'panels': panels.toJson(),
+      'proxy': proxies.map((e) => e.toJson()).toList(),
+      'update': updates.map((e) => e.toJson()).toList(),
+      if (subscription != null) 'subscription': subscription!.toJson(),
+      'parsedAt': parsedAt.toIso8601String(),
+      'sourceHash': sourceHash,
+      'metadata': metadata.toJson(),
+    };
+  }
+
+  @override
+  String toString() {
+    return 'ParsedConfiguration(panels: $panels, proxies: ${proxies.length}, '
+           'updates: ${updates.length}, '
+           'subscription: ${subscription != null ? subscription!.urls.length : 0})';
+  }
+}
+
+/// 配置元数据
+class ConfigMetadata {
+  final List<String> sources;
+  final DateTime lastUpdated;
+  final String version;
+  final Map<String, dynamic> statistics;
+
+  const ConfigMetadata({
+    required this.sources,
+    required this.lastUpdated,
+    required this.version,
+    required this.statistics,
+  });
+
+  factory ConfigMetadata.fromJson(Map<String, dynamic> json) {
+    return ConfigMetadata(
+      sources: (json['sources'] as List<dynamic>?)?.cast<String>() ?? [],
+      lastUpdated: DateTime.tryParse(json['lastUpdated'] as String? ?? '') ?? DateTime.now(),
+      version: json['version'] as String? ?? '1.0.0',
+      statistics: json['statistics'] as Map<String, dynamic>? ?? {},
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'sources': sources,
+      'lastUpdated': lastUpdated.toIso8601String(),
+      'version': version,
+      'statistics': statistics,
+    };
+  }
+}

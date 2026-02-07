@@ -1,0 +1,135 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'generated/ticket.freezed.dart';
+part 'generated/ticket.g.dart';
+
+/// 领域层：工单模型
+@freezed
+abstract class DomainTicket with _$DomainTicket {
+  const factory DomainTicket({
+    /// 工单 ID
+    required int id,
+    
+    /// 标题
+    required String subject,
+    
+    /// 优先级（低=0, 中=1, 高=2）
+    @Default(1) int priority,
+    
+    /// 状态
+    required TicketStatus status,
+    
+    /// 消息列表
+    @Default([]) List<TicketMessage> messages,
+    
+    /// 创建时间
+    required DateTime createdAt,
+    
+    /// 更新时间
+    DateTime? updatedAt,
+    
+    /// 关闭时间
+    DateTime? closedAt,
+    
+    /// 元数据
+    @Default({}) Map<String, dynamic> metadata,
+  }) = _DomainTicket;
+
+  factory DomainTicket.fromJson(Map<String, dynamic> json) => 
+    _$DomainTicketFromJson(json);
+}
+
+/// DomainTicket 扩展方法
+extension DomainTicketX on DomainTicket {
+  /// 优先级标签 key (需在 UI 层翻译)
+  String get priorityLabelKey {
+    switch (priority) {
+      case 0:
+        return 'xboardLowPriority';
+      case 1:
+        return 'xboardMediumPriority';
+      case 2:
+        return 'xboardHighPriority';
+      default:
+        return 'xboardUnknownPriority';
+    }
+  }
+
+  /// 是否已关闭（不能回复）
+  bool get isClosed => status == TicketStatus.closed;
+
+  /// 是否可以回复（未关闭）
+  bool get canReply => status == TicketStatus.pending;
+
+  /// 未读消息数
+  int get unreadCount {
+    return messages.where((m) => !m.isRead && !m.isFromUser).length;
+  }
+
+  /// 最后一条消息
+  TicketMessage? get lastMessage {
+    if (messages.isEmpty) return null;
+    return messages.last;
+  }
+}
+
+/// 工单状态枚举
+///
+/// V2Board API 状态定义：
+/// - 0: 待处理/进行中（可以回复）
+/// - 1: 已关闭（不能回复）
+enum TicketStatus {
+  /// 待处理/进行中
+  pending(0, 'xboardTicketStatusPending'),
+
+  /// 已关闭
+  closed(1, 'xboardTicketStatusClosed');
+
+  const TicketStatus(this.code, this.labelKey);
+
+  final int code;
+  final String labelKey; // Changed from label to labelKey for i18n
+
+  static TicketStatus fromCode(int code) {
+    return TicketStatus.values.firstWhere(
+      (status) => status.code == code,
+      orElse: () => TicketStatus.pending,
+    );
+  }
+}
+
+/// 工单消息模型
+@freezed
+abstract class TicketMessage with _$TicketMessage {
+  const factory TicketMessage({
+    /// 消息 ID
+    required int id,
+    
+    /// 消息内容
+    required String content,
+    
+    /// 是否来自用户
+    @Default(true) bool isFromUser,
+    
+    /// 是否已读
+    @Default(false) bool isRead,
+    
+    /// 附件列表
+    @Default([]) List<String> attachments,
+    
+    /// 创建时间
+    required DateTime createdAt,
+    
+    /// 元数据
+    @Default({}) Map<String, dynamic> metadata,
+  }) = _TicketMessage;
+
+  factory TicketMessage.fromJson(Map<String, dynamic> json) => 
+    _$TicketMessageFromJson(json);
+}
+
+/// TicketMessage 扩展方法
+extension TicketMessageX on TicketMessage {
+  /// 是否有附件
+  bool get hasAttachments => attachments.isNotEmpty;
+}

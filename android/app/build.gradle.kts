@@ -1,12 +1,11 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Base64
 import java.util.Properties
 
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
 }
 
 val localPropertiesFile = rootProject.file("local.properties")
@@ -23,6 +22,18 @@ val mKeyPassword: String? = localProperties.getProperty("keyPassword")
 val isRelease =
     mStoreFile.exists() && mStorePassword != null && mKeyAlias != null && mKeyPassword != null
 
+// 从 --dart-define 读取包名（Flutter 以 base64 编码传入）
+val dartDefines = (project.findProperty("dart-defines") as? String)
+    ?.split(",")
+    ?.mapNotNull { encoded ->
+        try {
+            val decoded = String(Base64.getDecoder().decode(encoded))
+            val parts = decoded.split("=", limit = 2)
+            if (parts.size == 2) parts[0] to parts[1] else null
+        } catch (_: Exception) { null }
+    }?.toMap() ?: emptyMap()
+
+val appPackageName = dartDefines["APP_PACKAGE_NAME"]?.takeIf { it.isNotEmpty() } ?: "com.follow.clash"
 
 android {
     namespace = "com.follow.clash"
@@ -37,7 +48,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.follow.clash"
+        applicationId = appPackageName
         minSdk = flutter.minSdkVersion
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = flutter.versionCode
@@ -103,7 +114,4 @@ dependencies {
     implementation(libs.smali.dexlib2) {
         exclude(group = "com.google.guava", module = "guava")
     }
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics.ndk)
-    implementation(libs.firebase.analytics)
 }

@@ -1,0 +1,51 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/xboard/features/shared/dialogs/theme_dialog.dart';
+import 'package:fl_clash/xboard/features/shared/dialogs/logout_dialog.dart';
+
+class UserMenuWidget extends ConsumerWidget {
+  const UserMenuWidget({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.person),
+      tooltip: appLocalizations.userCenter,
+      onSelected: (value) {
+        if (value == 'theme') {
+          showThemeDialog(context, ref);
+        } else if (value == 'logout') {
+          _showLogoutDialog(context, ref);
+        }
+      },
+      itemBuilder: (BuildContext context) => [
+        PopupMenuItem<String>(
+          value: 'theme',
+          child: Row(
+            children: [
+              const Icon(Icons.brightness_6),
+              const SizedBox(width: 8),
+              Text(appLocalizations.switchTheme),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          value: 'logout',
+          child: Row(
+            children: [
+              Icon(Icons.logout, color: Theme.of(context).colorScheme.error),
+              const SizedBox(width: 8),
+              Text(appLocalizations.logout, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+    showLogoutDialog(context, ref);
+  }
+}

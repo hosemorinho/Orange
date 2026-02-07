@@ -7,6 +7,7 @@ import 'package:fl_clash/providers/app.dart';
 import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/providers/state.dart';
 import 'package:fl_clash/state.dart';
+import 'package:fl_clash/xboard/core/logger/logger.dart' as xlog;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -73,6 +74,20 @@ class _CoreContainerState extends ConsumerState<CoreManager>
   @override
   void onLog(Log log) {
     ref.read(logsProvider.notifier).addLog(log);
+    // 同时写入 xboard.log
+    final msg = '[CORE] ${log.payload}';
+    switch (log.logLevel) {
+      case LogLevel.debug:
+        xlog.XBoardLogger.debug(msg);
+      case LogLevel.info:
+        xlog.XBoardLogger.info(msg);
+      case LogLevel.warning:
+        xlog.XBoardLogger.warning(msg);
+      case LogLevel.error:
+        xlog.XBoardLogger.error(msg);
+      case LogLevel.silent:
+        break;
+    }
     if (log.logLevel == LogLevel.error) {
       globalState.showNotifier(log.payload);
     }

@@ -1534,9 +1534,6 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardClose": MessageLookupByLibrary.simpleMessage("Close"),
     "xboardCloseTicket": MessageLookupByLibrary.simpleMessage("Close Ticket"),
-    "xboardCoreLoadFailed": MessageLookupByLibrary.simpleMessage(
-      "Failed to load config, core could not parse nodes",
-    ),
     "xboardCloseTicketConfirm": MessageLookupByLibrary.simpleMessage(
       "Are you sure you want to close this ticket? You won\'t be able to reply after closing.",
     ),
@@ -1647,6 +1644,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCopyPaymentLink": MessageLookupByLibrary.simpleMessage("Copy Link"),
     "xboardCopySubscriptionLinkAbove": MessageLookupByLibrary.simpleMessage(
       "Copy the subscription link above",
+    ),
+    "xboardCoreLoadFailed": MessageLookupByLibrary.simpleMessage(
+      "Failed to load config, core could not parse nodes",
     ),
     "xboardCouponDiscount": MessageLookupByLibrary.simpleMessage(
       "Coupon discount",

@@ -1059,9 +1059,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardClickToCopy": MessageLookupByLibrary.simpleMessage("点击复制"),
     "xboardClickToSetupNodes": MessageLookupByLibrary.simpleMessage("点击设置节点"),
     "xboardClose": MessageLookupByLibrary.simpleMessage("关闭"),
-    "xboardCoreLoadFailed": MessageLookupByLibrary.simpleMessage(
-      "配置加载失败，内核未能解析节点",
-    ),
     "xboardCloseTicket": MessageLookupByLibrary.simpleMessage("关闭工单"),
     "xboardCloseTicketConfirm": MessageLookupByLibrary.simpleMessage(
       "确定要关闭此工单吗？关闭后将无法继续回复。",
@@ -1142,6 +1139,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCopyPaymentLink": MessageLookupByLibrary.simpleMessage("复制链接"),
     "xboardCopySubscriptionLinkAbove": MessageLookupByLibrary.simpleMessage(
       "复制上方的订阅链接",
+    ),
+    "xboardCoreLoadFailed": MessageLookupByLibrary.simpleMessage(
+      "配置加载失败，内核未能解析节点",
     ),
     "xboardCouponDiscount": MessageLookupByLibrary.simpleMessage("优惠码折扣"),
     "xboardCouponExpired": MessageLookupByLibrary.simpleMessage("优惠券已过期"),

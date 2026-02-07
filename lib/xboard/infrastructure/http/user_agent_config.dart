@@ -8,6 +8,7 @@
 /// appName 由 --dart-define=APP_NAME 指定，自定义后 UA 自动更新。
 library;
 
+import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/state.dart';
 
 /// User-Agent 配置类

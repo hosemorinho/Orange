@@ -2,6 +2,8 @@
 ///
 /// 替代 flutter_xboard_sdk，直接使用 Dio HTTP 调用 V2Board API
 /// Auth header: `Authorization: {token}` (无 Bearer 前缀)
+import 'dart:async';
+
 import 'package:fl_clash/xboard/infrastructure/http/xboard_http_client.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:dio/dio.dart';
@@ -13,15 +15,23 @@ final _logger = FileLogger('v2board_api_service.dart');
 
 class V2BoardApiService {
   final XBoardHttpClient _http;
-  final String baseUrl;
+  String baseUrl;
+  final List<String> _allBaseUrls;
   String? _authToken;
 
   V2BoardApiService({
     required this.baseUrl,
     required XBoardHttpClient httpClient,
+    List<String>? allBaseUrls,
     String? authToken,
   })  : _http = httpClient,
+        _allBaseUrls = (allBaseUrls != null && allBaseUrls.length > 1)
+            ? allBaseUrls
+            : [baseUrl],
         _authToken = authToken;
+
+  /// 是否启用 GET 竞速（多域名时启用）
+  bool get _racingEnabled => _allBaseUrls.length > 1;
 
   // ========== Token 管理 ==========
 
@@ -57,7 +67,69 @@ class V2BoardApiService {
     );
   }
 
-  /// 统一的 POST 请求（带 auth）
+  // ========== GET 竞速 ==========
+
+  /// 向多域名并发 GET 请求，取第一个成功结果
+  Future<Map<String, dynamic>> _racingGet(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
+    final completer = Completer<Map<String, dynamic>>();
+    final cancelTokens = <CancelToken>[];
+    int failCount = 0;
+    final errors = <Object>[];
+
+    _logger.info('[Racing] GET $path → ${_allBaseUrls.length} domains');
+
+    for (final url in _allBaseUrls) {
+      final cancelToken = CancelToken();
+      cancelTokens.add(cancelToken);
+
+      _http.get<dynamic>(
+        '$url$path',
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      ).then((result) {
+        if (completer.isCompleted) return;
+        // _unwrapResult throws on failure — caught by catchError below
+        final data = _unwrapResult(result, path);
+        if (!completer.isCompleted) {
+          completer.complete(data);
+          _logger.info('[Racing] GET $path winner: $url');
+          for (final t in cancelTokens) {
+            if (!t.isCancelled) t.cancel();
+          }
+          _updateFastestUrl(url);
+        }
+      }).catchError((Object e) {
+        // Ignore cancelled requests (cancelled by a winning request)
+        if (cancelToken.isCancelled) return;
+        if (completer.isCompleted) return;
+        failCount++;
+        errors.add(e);
+        if (failCount == _allBaseUrls.length && !completer.isCompleted) {
+          _logger.warning('[Racing] GET $path all ${_allBaseUrls.length} domains failed');
+          completer.completeError(errors.first);
+        }
+      });
+    }
+
+    return completer.future;
+  }
+
+  /// 更新最优域名（供后续 POST 使用）
+  void _updateFastestUrl(String url) {
+    if (url != baseUrl) {
+      _logger.info('[Racing] Updating baseUrl: $baseUrl → $url');
+      baseUrl = url;
+    }
+  }
+
+  // ========== 请求方法 ==========
+
+  /// 统一的 POST 请求（带 auth）— 不竞速
   Future<Map<String, dynamic>> _authPost(
     String path, {
     Map<String, dynamic>? data,
@@ -72,11 +144,15 @@ class V2BoardApiService {
     return _unwrapResult(result, path);
   }
 
-  /// 统一的 GET 请求（带 auth）
+  /// 统一的 GET 请求（带 auth）— 多域名时竞速
   Future<Map<String, dynamic>> _authGet(
     String path, {
     Map<String, dynamic>? queryParameters,
   }) async {
+    if (_racingEnabled) {
+      return _racingGet(path,
+          queryParameters: queryParameters, options: _authOptions());
+    }
     final result = await _http.get<dynamic>(
       '$baseUrl$path',
       queryParameters: queryParameters,
@@ -85,7 +161,7 @@ class V2BoardApiService {
     return _unwrapResult(result, path);
   }
 
-  /// 统一的 POST 请求（无 auth，用于 passport/guest）
+  /// 统一的 POST 请求（无 auth，用于 passport/guest）— 不竞速
   Future<Map<String, dynamic>> _publicPost(
     String path, {
     Map<String, dynamic>? data,
@@ -97,11 +173,14 @@ class V2BoardApiService {
     return _unwrapResult(result, path);
   }
 
-  /// 统一的 GET 请求（无 auth，用于 guest）
+  /// 统一的 GET 请求（无 auth，用于 guest）— 多域名时竞速
   Future<Map<String, dynamic>> _publicGet(
     String path, {
     Map<String, dynamic>? queryParameters,
   }) async {
+    if (_racingEnabled) {
+      return _racingGet(path, queryParameters: queryParameters);
+    }
     final result = await _http.get<dynamic>(
       '$baseUrl$path',
       queryParameters: queryParameters,

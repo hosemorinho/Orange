@@ -54,18 +54,39 @@ Future<V2BoardApiService> xboardSdk(Ref ref) async {
       _logger.info('[SdkProvider] 使用代理: $proxyUrl');
     }
 
-    // 3. 创建 HTTP 客户端
+    // 3. 收集所有可用域名用于 GET 请求竞速
+    List<String> allUrls;
+    if (apiBaseUrl.isNotEmpty) {
+      // 环境变量模式：只有一个域名，不竞速
+      allUrls = [fastestUrl];
+    } else {
+      allUrls = XBoardConfig.allPanelUrls;
+      if (allUrls.isEmpty) {
+        allUrls = [fastestUrl];
+      }
+      // 确保 fastestUrl 排在第一位（优先尝试）
+      if (allUrls.contains(fastestUrl) && allUrls.first != fastestUrl) {
+        allUrls.remove(fastestUrl);
+        allUrls.insert(0, fastestUrl);
+      } else if (!allUrls.contains(fastestUrl)) {
+        allUrls.insert(0, fastestUrl);
+      }
+      _logger.info('[SdkProvider] GET 竞速域名列表: $allUrls');
+    }
+
+    // 4. 创建 HTTP 客户端
     final httpClient = XBoardHttpClient(
       baseUrl: fastestUrl,
     );
 
-    // 4. 创建 V2Board API Service
+    // 5. 创建 V2Board API Service
     final api = V2BoardApiService(
       baseUrl: fastestUrl,
       httpClient: httpClient,
+      allBaseUrls: allUrls,
     );
 
-    // 5. 加载已存储的 token
+    // 6. 加载已存储的 token
     await api.loadStoredToken();
     if (api.hasAuthToken) {
       _logger.info('[SdkProvider] 已加载存储的 token');

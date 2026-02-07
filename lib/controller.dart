@@ -401,6 +401,8 @@ extension ProxiesControllerExt on AppController {
           );
         },
         retryIf: (res) => res.isEmpty,
+        maxAttempts: 8,
+        delay: const Duration(seconds: 1),
       );
     } catch (e) {
       commonPrint.log('updateGroups error: $e');
@@ -861,48 +863,59 @@ extension SetupControllerExt on AppController {
       globalState.lastVpnState = _ref.read(vpnStateProvider);
       preferences.saveShareState(this.sharedState);
     }
-    final config = await getProfile(
-      setupState: setupState,
-      patchConfig: realPatchConfig,
-    );
+    // getProfile 通过 FFI 调用 Go 核心读取配置，Android IPC 可能瞬时超时，
+    // 所以加重试（3 次，间隔 1s）
+    Map<String, dynamic>? config;
+    for (int attempt = 1; attempt <= 3; attempt++) {
+      try {
+        config = await getProfile(
+          setupState: setupState,
+          patchConfig: realPatchConfig,
+        );
+        if (config.isNotEmpty) break;
+        commonPrint.log(
+          'getProfile attempt $attempt returned empty config',
+          logLevel: LogLevel.warning,
+        );
+      } catch (e) {
+        commonPrint.log(
+          'getProfile attempt $attempt failed: $e',
+          logLevel: LogLevel.error,
+        );
+        if (attempt == 3) rethrow;
+      }
+      await Future.delayed(const Duration(seconds: 1));
+    }
 
-    // Verify config is not empty before writing
-    if (config.isEmpty) {
+    if (config == null || config.isEmpty) {
       final profileId = setupState.profileId;
-      final profilePath = await appPath.getProfilePath(profileId.toString());
-      final configPath = await appPath.configFilePath;
-
-      // Log diagnostic info
-      commonPrint.log(
-        'ERROR: Failed to load profile config. Profile ID: $profileId, '
-        'Profile path: $profilePath, Config path: $configPath. '
-        'Clash core may not be initialized or the FFI call timed out.',
-        logLevel: LogLevel.error,
-      );
-
       throw Exception(
-        'Failed to load profile config from Clash core.\n'
-        'Profile: $profileId\n'
-        'Path: $profilePath\n'
-        'Please ensure:\n'
-        '1. Clash core is running\n'
-        '2. Profile file exists\n'
-        '3. Core FFI is initialized'
+        'Failed to load profile config after 3 attempts (profile: $profileId)',
       );
     }
 
     final configFilePath = await appPath.configFilePath;
     final yamlString = await encodeYamlTask(config);
     await File(configFilePath).safeWriteAsString(yamlString);
-    final message = await coreController.setupConfig(
-      setupState: setupState,
-      params: setupParams,
-      preloadInvoke: preloadInvoke,
-    );
-    if (message.isNotEmpty) {
-      throw message;
+
+    // setupConfig 同样可能因 Android IPC 问题超时，加重试
+    for (int attempt = 1; attempt <= 3; attempt++) {
+      final message = await coreController.setupConfig(
+        setupState: setupState,
+        params: setupParams,
+        preloadInvoke: attempt == 1 ? preloadInvoke : null,
+      );
+      if (message.isEmpty) {
+        addCheckIp();
+        return;
+      }
+      commonPrint.log(
+        'setupConfig attempt $attempt failed: $message',
+        logLevel: LogLevel.error,
+      );
+      if (attempt == 3) throw message;
+      await Future.delayed(const Duration(seconds: 1));
     }
-    addCheckIp();
   }
 }
 

@@ -173,7 +173,7 @@ abstract class CoreHandlerInterface with CoreInterface {
           method: ActionMethod.setupConfig,
           data: json.encode(setupParams),
         ) ??
-        '';
+        'setupConfig failed: core not ready or FFI call timed out';
   }
 
   @override
@@ -186,6 +186,12 @@ abstract class CoreHandlerInterface with CoreInterface {
     final data = await _invoke<Map<String, dynamic>>(
       method: ActionMethod.getProxies,
     );
+    if (data == null) {
+      commonPrint.log(
+        'getProxies: FFI returned null, core not ready or call timed out',
+        logLevel: LogLevel.error,
+      );
+    }
     return data != null
         ? ProxiesData.fromJson(data)
         : ProxiesData(proxies: {}, all: []);

@@ -29,9 +29,7 @@ Future<void> main() async {
         logDir = extDir?.path ?? await appPath.homeDirPath;
       }
       final diskLogger = await DiskLogger.init(logDir);
-      if (kReleaseMode) {
-        diskLogger.minLevel = LogLevel.info;
-      }
+      diskLogger.minLevel = LogLevel.debug;
       XBoardLogger.setLogger(diskLogger);
       debugPrint('[Main] 磁盘日志已启用: $logDir/xboard.log');
     } catch (e) {

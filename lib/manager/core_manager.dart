@@ -44,16 +44,8 @@ class _CoreContainerState extends ConsumerState<CoreManager>
         appController.updateConfigDebounce();
       }
     });
-    ref.listenManual(appSettingProvider.select((state) => state.openLogs), (
-      prev,
-      next,
-    ) {
-      if (next) {
-        coreController.startLog();
-      } else {
-        coreController.stopLog();
-      }
-    }, fireImmediately: true);
+    // 始终启动 Go 核心日志转发，确保日志写入 xboard.log
+    coreController.startLog();
   }
 
   @override

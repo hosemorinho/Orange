@@ -33,14 +33,18 @@ class DiskLogger implements LoggerInterface {
     final logger = DiskLogger._();
     logger._file = File('$logDir${Platform.pathSeparator}xboard.log');
     try {
+      // 确保目录存在
+      await logger._file.parent.create(recursive: true);
       // 每次启动清空旧日志
       await logger._file.writeAsString(
         '=== ${DateTime.now().toIso8601String()} ===\n',
         mode: FileMode.write,
       );
       logger._ready = true;
-    } catch (_) {
-      // 写文件失败时退化为纯控制台
+    } catch (e) {
+      // 写文件失败时退化为纯控制台，但打印错误方便排查
+      // ignore: avoid_print
+      print('[DiskLogger] init failed: $e (path: ${logger._file.path})');
     }
     _instance = logger;
     return logger;

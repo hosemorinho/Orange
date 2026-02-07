@@ -4,6 +4,7 @@ import com.follow.clash.RunState
 import com.follow.clash.Service
 import com.follow.clash.State
 import com.follow.clash.common.Components
+import com.follow.clash.common.GlobalState
 import com.follow.clash.invokeMethodOnMainThread
 import com.follow.clash.models.SharedState
 import com.google.gson.Gson
@@ -69,18 +70,22 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     private fun handleInvokeAction(call: MethodCall, result: MethodChannel.Result) {
         launch {
             val data = call.arguments<String>()!!
+            GlobalState.log("[ServicePlugin] invokeAction start: ${data.take(120)}")
             var responded = false
             Service.invokeAction(data) {
                 responded = true
+                GlobalState.log("[ServicePlugin] invokeAction callback fired, len=${it.length}")
                 result.success(it)
+            }.onSuccess {
+                if (!responded) {
+                    GlobalState.log("[ServicePlugin] invokeAction AIDL sent OK but callback not yet fired (async)")
+                }
             }.onFailure {
+                GlobalState.log("[ServicePlugin] invokeAction FAILED: ${it.message}")
                 if (!responded) {
                     result.success(null)
                 }
             }
-            // If invokeAction returned success but callback was never fired
-            // (e.g. Go core didn't respond), we can't help here — Dart-side
-            // timeout (3min) will handle it.
         }
     }
 
@@ -125,13 +130,17 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
 
     fun handleInit(result: MethodChannel.Result) {
+        GlobalState.log("[ServicePlugin] handleInit: Service.bind()")
         Service.bind()
         launch {
+            GlobalState.log("[ServicePlugin] handleInit: setEventListener start")
             Service.setEventListener {
                 handleSendEvent(it)
             }.onSuccess {
+                GlobalState.log("[ServicePlugin] handleInit: setEventListener OK")
                 result.success("")
             }.onFailure {
+                GlobalState.log("[ServicePlugin] handleInit: setEventListener FAILED: ${it.message}")
                 result.success(it.message)
             }
 

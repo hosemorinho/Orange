@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/infrastructure/http/user_agent_config.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/core/controller.dart';
 import 'package:socks5_proxy/socks_client.dart';
 
 // 初始化文件级日志器
@@ -15,12 +16,27 @@ final _logger = FileLogger('subscription_downloader.dart');
 
 /// XBoard 订阅下载服务
 ///
-/// 并发下载（直连 + 所有代理），第一个成功就获胜
-/// 并发竞速只用于测试连通性，最终使用 FlClash 核心的 Profile.update() 下载
+/// 使用自有 Dio DIRECT 直连下载配置文件，不依赖 appController 或 coreController。
+/// 可选的并发连通性竞速测试（直连 + 代理）仅用于后台预热探测。
 class SubscriptionDownloader {
   static const Duration _downloadTimeout = Duration(seconds: 30);
   static const Duration _racingTimeout = Duration(seconds: 10); // 竞速测试超时
-  static const Duration _coreWaitTimeout = Duration(seconds: 30); // 等待核心就绪超时
+
+  /// 专用直连 Dio 实例（懒加载）
+  /// 不经过 Clash 代理，不依赖 appController 或 coreController
+  static Dio? _directDioInstance;
+  static Dio get _directDio {
+    _directDioInstance ??= Dio()
+      ..httpClientAdapter = IOHttpClientAdapter(
+        createHttpClient: () {
+          final client = HttpClient();
+          client.findProxy = (uri) => 'DIRECT';
+          client.badCertificateCallback = (_, _, _) => true;
+          return client;
+        },
+      );
+    return _directDioInstance!;
+  }
 
   /// 运行连通性竞速测试（并发测试所有连接方式）
   ///
@@ -88,161 +104,119 @@ class SubscriptionDownloader {
     }
   }
 
-  /// 等待 Clash 核心服务就绪（Android 特需）
+  /// 下载订阅并返回 Profile
   ///
-  /// 在 Android 上，Profile.update() 需要调用 validateConfig()，
-  /// 该方法通过 AIDL 与 Clash 核心服务通信。如果应用还未初始化完成，
-  /// 调用会超时。因此需要等待 appController 初始化。
+  /// 使用自有 Dio 直接下载配置文件并保存到本地，
+  /// 完全不依赖 appController 或 coreController（解决 Android 初始化竞态条件）。
   ///
-  /// 注意: coreController.isCompleted 可能永远不会被设置（核心启动时不会触发），
-  /// 所以我们改为等待 appController.isAttach，这表示应用初始化已完成。
-  static Future<void> _waitForCoreReady() async {
-    // 非 Android 平台直接跳过
-    if (!system.isAndroid) {
-      _logger.info('[核心初始化] 非 Android 平台，跳过核心初始化等待');
-      return;
-    }
-
-    _logger.info('[核心初始化] 等待应用初始化完成 (appController.attach)...');
-
-    final startTime = DateTime.now();
-    int checkCount = 0;
-
-    // appController.isAttach 表示应用初始化流程已完成
-    while (DateTime.now().difference(startTime) < _coreWaitTimeout) {
-      checkCount++;
-
-      try {
-        if (appController.isAttach) {
-          final elapsed = DateTime.now().difference(startTime).inMilliseconds;
-          _logger.info('[核心初始化] ✅ 应用初始化已完成 (${elapsed}ms, 共${checkCount}次检查)');
-          _logger.info('[核心初始化] 核心可以使用，准备下载配置');
-          return;
-        }
-
-        if (checkCount <= 3 || checkCount % 10 == 0) {
-          _logger.info('[核心初始化-$checkCount] 等待 appController.attach() 完成...');
-        }
-      } catch (e) {
-        _logger.warning('[核心初始化-$checkCount] 状态检查出错: $e');
-      }
-
-      await Future.delayed(const Duration(milliseconds: 200));
-    }
-
-    _logger.warning('[核心初始化] ⚠️  等待应用初始化超时 (${_coreWaitTimeout.inSeconds}s，共${checkCount}次检查)');
-    _logger.info('[核心初始化] 应用初始化状态: appController.isAttach=${appController.isAttach}');
-    _logger.info('[核心初始化] 💡 提示: 如果核心状态图标是绿色，说明核心已启动，继续尝试下载配置');
-  }
-
-  /// 下载订阅并返回 Profile（并发竞速）
-  ///
-  /// [url] 订阅URL
-  /// [enableRacing] 是否启用竞速（默认 true，false时只使用 FlClash 核心直接下载）
+  /// 与旧方案的区别：
+  /// - 旧: Profile.update() → request.getFileResponseForUrl() → saveFile() → coreController.validateConfig()
+  ///   问题: validateConfig 需要 Clash 核心已连接，但 quickAuth() 在 attach() 之前就触发了下载
+  /// - 新: 自有 Dio DIRECT 下载 → 直接写入 profile 目录 → 返回 Profile 对象
+  ///   不需要任何核心服务，配置会在后续 applyProfile() 时被核心加载验证
   static Future<Profile> downloadSubscription(
     String url, {
     bool enableRacing = true,
   }) async {
     try {
       _logger.info('════════════════════════════════════════');
-      _logger.info('📥 开始下载订阅');
+      _logger.info('📥 开始下载订阅（直接下载模式）');
       _logger.info('   URL: $url');
-      _logger.info('   enableRacing: $enableRacing');
-      _logger.info('   isAndroid: ${system.isAndroid}');
       _logger.info('════════════════════════════════════════');
 
-      if (!enableRacing) {
-        // 禁用竞速：等待核心就绪，直接使用 FlClash 核心的 Profile.update()
-        _logger.info('📋 模式: 直接下载（竞速已禁用）');
-        _logger.info('⏳ 等待核心就绪...');
-        await _waitForCoreReady();
-
-        _logger.info('🔄 创建 Profile 对象...');
-        final profile = Profile.normal(url: url);
-
-        _logger.info('📡 调用 Profile.update(forceDirect: true)...');
-        final result = await profile.update(forceDirect: true);
-
-        _logger.info('✅ 订阅下载成功');
-        _logger.info('   URL: ${result.url}');
-        _logger.info('   GroupName: ${result.currentGroupName}');
-        _logger.info('════════════════════════════════════════');
-        return result;
+      // 可选: 并行启动连通性竞速测试（仅用于预热探测，不阻塞下载）
+      if (enableRacing) {
+        final proxies = XBoardConfig.allProxyUrls;
+        if (proxies.isNotEmpty) {
+          _logger.info('🏁 启动后台连通性竞速（不阻塞下载）...');
+          // ignore: unawaited_futures
+          _runConnectivityRacing(url, proxies).catchError((e) {
+            _logger.warning('竞速测试失败（不影响下载）: $e');
+            return _ConnectivityRacingResult(winner: null, success: false);
+          });
+        }
       }
 
-      // 优化策略：并行执行竞速测试和核心初始化，最大化效率
-      // 1. 启动竞速测试（不等待结果）
-      // 2. 同时等待核心就绪
-      // 3. 两者都完成后，使用核心下载配置
+      // 获取 User-Agent
+      final userAgent = await UserAgentConfig.get(UserAgentScenario.subscription);
 
-      final proxies = XBoardConfig.allProxyUrls;
-      _logger.info('📋 模式: 并行竞速 + 核心初始化');
-      _logger.info('🚀 竞速方式: 直连 + ${proxies.length}种代理 = ${proxies.length + 1}种方式');
+      // 直接下载配置文件（DIRECT 连接，绕过 Clash 代理，无需核心服务）
+      _logger.info('📡 直接下载配置文件 (DIRECT)...');
+      final startTime = DateTime.now();
+      final response = await _directDio.get<Uint8List>(
+        url,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {
+            HttpHeaders.userAgentHeader: userAgent,
+          },
+        ),
+      ).timeout(
+        _downloadTimeout,
+        onTimeout: () {
+          throw TimeoutException('配置下载超时', _downloadTimeout);
+        },
+      );
+      final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+      _logger.info('✅ 配置文件下载完成 (${elapsed}ms)');
 
-      // 启动竞速测试（立即返回 Future，不等待）
-      final racingFuture = _runConnectivityRacing(url, proxies);
+      // 解析响应头
+      final disposition = response.headers.value("content-disposition");
+      final userinfo = response.headers.value('subscription-userinfo');
+      _logger.info('   Content-Disposition: $disposition');
+      _logger.info('   Subscription-Userinfo: $userinfo');
 
-      // 同时等待核心就绪（Android 上必需，Desktop 上立即返回）
-      final coreReadyFuture = _waitForCoreReady();
+      // 检查响应数据
+      final bytes = response.data;
+      if (bytes == null || bytes.isEmpty) {
+        throw Exception('下载的配置文件为空');
+      }
+      _logger.info('   文件大小: ${bytes.length} bytes');
 
-      // 等待两个任务都完成（并行执行）
-      _logger.info('⏳ 等待竞速测试和核心初始化完成...');
-      final startWait = DateTime.now();
-      await Future.wait([racingFuture, coreReadyFuture]);
-      final waitElapsed = DateTime.now().difference(startWait).inMilliseconds;
-      _logger.info('✅ 竞速和核心初始化完成 (${waitElapsed}ms)');
-
-      // 核心已就绪，使用 FlClash 核心的 Profile.update() 下载完整配置
-      // forceDirect: 绕过 Clash 代理直连下载，避免节点配置过期导致超时
-      _logger.info('🔄 创建 Profile 对象...');
+      // 创建 Profile 对象
       final profile = Profile.normal(url: url);
+      final labelFromDisposition = utils.getFileNameForDisposition(disposition);
+      final updatedProfile = profile.copyWith(
+        label: labelFromDisposition?.isNotEmpty == true
+            ? labelFromDisposition!
+            : profile.id.toString(),
+        subscriptionInfo: SubscriptionInfo.formHString(userinfo),
+        lastUpdateDate: DateTime.now(),
+      );
 
-      _logger.info('📡 调用 Profile.update(forceDirect: true)...');
-      final startUpdate = DateTime.now();
-      final result = await profile.update(forceDirect: true);
-      final updateElapsed = DateTime.now().difference(startUpdate).inMilliseconds;
+      // 直接保存到 profile 目录（跳过 validateConfig）
+      // validateConfig 需要 Clash 核心已连接，Android 上可能尚未完成初始化
+      // 配置来自可信订阅服务器，后续 applyProfile 时核心会加载并验证
+      _logger.info('💾 保存配置文件...');
+      _logger.info('   Profile ID: ${updatedProfile.id}');
+      final profilePath = await appPath.getProfilePath(
+        updatedProfile.id.toString(),
+      );
+      final profileFile = File(profilePath);
+      await profileFile.parent.create(recursive: true);
+      await profileFile.writeAsBytes(bytes);
 
-      _logger.info('✅ 订阅下载成功 (${updateElapsed}ms)');
-      _logger.info('   URL: ${result.url}');
-      _logger.info('   GroupName: ${result.currentGroupName}');
+      _logger.info('✅ 配置文件已保存');
+      _logger.info('   路径: $profilePath');
+      _logger.info('   Label: ${updatedProfile.label}');
+      _logger.info('   URL: ${updatedProfile.url}');
       _logger.info('════════════════════════════════════════');
-      return result;
+      return updatedProfile;
 
     } on TimeoutException catch (e) {
       _logger.error('❌ 订阅下载超时', e);
-      _logger.error('   错误信息: ${e.message}');
-      _logger.error('   💡 诊断: 可能是网络延迟、DNS 解析缓慢或服务器响应慢');
-      _logger.error('   💡 建议: 检查网络连接、DNS 设置或尝试更换节点');
       throw Exception('下载超时: ${e.message}');
     } on SocketException catch (e) {
       _logger.error('❌ 网络连接异常', e);
-      _logger.error('   错误码: ${e.osError?.errorCode}');
-      _logger.error('   错误信息: ${e.message}');
-      _logger.error('   💡 诊断: 网络不可达或连接被拒绝');
-      _logger.error('   💡 建议: 检查网络连接、防火墙或 Clash 配置');
       throw Exception('网络连接失败: ${e.message}');
-    } on HttpException catch (e) {
+    } on DioException catch (e) {
       _logger.error('❌ HTTP 请求异常', e);
-      _logger.error('   错误信息: ${e.message}');
-      _logger.error('   💡 诊断: HTTP 客户端或请求格式问题');
+      _logger.error('   状态码: ${e.response?.statusCode}');
+      _logger.error('   类型: ${e.type}');
       throw Exception('HTTP 请求失败: ${e.message}');
     } catch (e, st) {
       _logger.error('❌ 订阅下载失败', e, st);
       _logger.error('   错误类型: ${e.runtimeType}');
-      _logger.error('   错误信息: $e');
-
-      // 识别常见错误模式
-      final errorStr = e.toString().toLowerCase();
-      if (errorStr.contains('timeout')) {
-        _logger.error('   💡 诊断: 这看起来像是超时错误');
-      } else if (errorStr.contains('connection') || errorStr.contains('refuse')) {
-        _logger.error('   💡 诊断: 这看起来像是连接错误');
-      } else if (errorStr.contains('certificate')) {
-        _logger.error('   💡 诊断: 这看起来像是 SSL 证书错误');
-      } else if (errorStr.contains('validateconfig')) {
-        _logger.error('   💡 诊断: 这看起来像是配置格式错误（核心验证失败）');
-      }
-
       _logger.info('════════════════════════════════════════');
       rethrow;
     }

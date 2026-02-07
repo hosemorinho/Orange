@@ -201,57 +201,37 @@ class XBoardProfileImportService {
       _logger.info('⏳ 添加配置到数据库...');
 
       // 1. 添加配置到列表
-      _logger.info('   [1/4] 调用 profilesProvider.put()...');
+      _logger.info('   [1/3] 调用 profilesProvider.put()...');
       _ref.read(profilesProvider.notifier).put(profile);
-      _logger.info('   [1/4] ✅ 配置已保存到数据库');
+      _logger.info('   [1/3] ✅ 配置已保存到数据库');
 
       // 2. 强制设置为当前配置（订阅导入是用户主动操作，应该立即生效）
-      _logger.info('   [2/4] 设置为当前配置 (ID: ${profile.id})...');
+      _logger.info('   [2/3] 设置为当前配置 (ID: ${profile.id})...');
       final currentProfileIdNotifier = _ref.read(currentProfileIdProvider.notifier);
       currentProfileIdNotifier.value = profile.id;
-      _logger.info('   [2/4] ✅ 已设置为当前配置');
+      _logger.info('   [2/3] ✅ 已设置为当前配置');
 
-      // 3. 等待 appController 就绪后应用配置
-      // 在安卓上，profile 导入可能在 attach() 之前完成（Clash 核心初始化较慢），
-      // 此时需要等待 attach 完成后再 apply，否则 groups 永远为空
-      _logger.info('   [3/4] 检查 appController 就绪状态...');
-      _logger.info('       appController.isAttach: ${appController.isAttach}');
-
-      if (!appController.isAttach) {
-        _logger.info('       ⏳ appController 未就绪，等待 attach()...');
-        int waitCount = 0;
-        for (int i = 0; i < 60; i++) {
-          await Future.delayed(const Duration(milliseconds: 500));
-          waitCount++;
-          if (appController.isAttach) {
-            _logger.info('       ✅ appController 已就绪 (等待了 ${waitCount * 500}ms)');
-            break;
-          }
-          if (i == 59) {
-            _logger.warning('       ❌ 等待 appController 超时 (${waitCount * 500}ms)');
-          }
-        }
-      }
-
-      _logger.info('   [3/4] 应用配置到 Clash 核心...');
+      // 3. 尝试应用配置到 Clash 核心（如果核心已就绪）
+      // 不阻塞等待：配置文件和数据库记录已保存，
+      // 如果 appController 尚未初始化（Android 初始化竞态），
+      // 配置会在后续 attach() → _init() 流程中被自动加载
+      _logger.info('   [3/3] 尝试应用配置到 Clash 核心...');
       if (appController.isAttach) {
         _logger.info('       appController 已就绪，调用 applyProfile(silence: true)...');
         try {
           await appController.applyProfile(silence: true);
-          _logger.info('   [3/4] ✅ 配置已应用到 Clash 核心');
+          _logger.info('   [3/3] ✅ 配置已应用到 Clash 核心');
         } catch (e, st) {
-          _logger.error('   [3/4] ❌ 应用配置失败', e, st);
-          _logger.info('       配置已保存，将在后续加载时应用');
-          // 不抛出异常，因为配置已经保存了
+          _logger.error('   [3/3] ❌ 应用配置失败（不影响导入结果）', e, st);
         }
       } else {
-        _logger.warning('   [3/4] ⚠️  appController 仍未就绪，配置已保存，将在后续 attach() 时加载');
+        _logger.info('   [3/3] appController 未就绪，跳过 applyProfile');
+        _logger.info('       配置已保存到数据库和文件，将在 attach() 完成后自动加载');
       }
 
-      _logger.info('   [4/4] 配置导入完成');
       _logger.info('✅ 配置添加成功');
       _logger.info('   配置ID: ${profile.id}');
-      _logger.info('   配置名: ${profile.label ?? "无"}');
+      _logger.info('   配置名: ${profile.label}');
       _logger.info('   URL: ${profile.url}');
     } catch (e, st) {
       _logger.error('❌ 添加配置失败', e, st);

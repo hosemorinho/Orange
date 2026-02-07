@@ -69,9 +69,18 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     private fun handleInvokeAction(call: MethodCall, result: MethodChannel.Result) {
         launch {
             val data = call.arguments<String>()!!
+            var responded = false
             Service.invokeAction(data) {
+                responded = true
                 result.success(it)
+            }.onFailure {
+                if (!responded) {
+                    result.success(null)
+                }
             }
+            // If invokeAction returned success but callback was never fired
+            // (e.g. Go core didn't respond), we can't help here — Dart-side
+            // timeout (3min) will handle it.
         }
     }
 

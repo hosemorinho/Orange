@@ -198,58 +198,63 @@ class XBoardProfileImportService {
 
   Future<void> _addProfile(Profile profile) async {
     try {
-      _logger.info('⏳ 添加配置到数据库...');
+      _logger.info('添加配置到数据库...');
 
       // 1. 添加配置到列表
-      _logger.info('   [1/3] 调用 profilesProvider.put()...');
       _ref.read(profilesProvider.notifier).put(profile);
-      _logger.info('   [1/3] ✅ 配置已保存到数据库');
+      _logger.info('配置已保存到数据库 (ID: ${profile.id})');
 
       // 2. 强制设置为当前配置（订阅导入是用户主动操作，应该立即生效）
-      _logger.info('   [2/3] 设置为当前配置 (ID: ${profile.id})...');
-      final currentProfileIdNotifier = _ref.read(currentProfileIdProvider.notifier);
-      currentProfileIdNotifier.value = profile.id;
-      _logger.info('   [2/3] ✅ 已设置为当前配置');
+      _ref.read(currentProfileIdProvider.notifier).value = profile.id;
+      _logger.info('已设置为当前配置');
 
-      // 3. 尝试应用配置到 Clash 核心（如果核心已就绪）
-      // 使用 force: true 确保配置一定被应用，避免 needSetup() 误判跳过
-      _logger.info('   [3/3] 尝试应用配置到 Clash 核心...');
-      if (appController.isAttach) {
-        _logger.info('       appController 已就绪，调用 applyProfile(silence: true, force: true)...');
-        try {
-          await appController.applyProfile(silence: true, force: true);
-          _logger.info('   [3/3] ✅ 配置已应用到 Clash 核心');
-        } catch (e, st) {
-          _logger.error('   [3/3] ❌ applyProfile 失败: $e', e, st);
-        }
-
-        // 验证 groups 是否加载成功，如果为空则尝试直接 updateGroups
-        final groups = _ref.read(groupsProvider);
-        if (groups.isEmpty) {
-          _logger.warning('   ⚠️ applyProfile 后 groups 仍然为空，尝试直接 updateGroups...');
-          try {
-            await appController.updateGroups();
-            final retryGroups = _ref.read(groupsProvider);
-            _logger.info('   updateGroups 重试结果: ${retryGroups.length} 个 groups');
-          } catch (e) {
-            _logger.error('   ❌ updateGroups 重试也失败: $e');
-          }
-        } else {
-          _logger.info('   ✅ groups 已加载: ${groups.length} 个');
-        }
-      } else {
-        _logger.info('   [3/3] appController 未就绪，跳过 applyProfile');
-        _logger.info('       配置已保存到数据库和文件，将在 attach() 完成后自动加载');
+      // 3. 尝试应用配置到 Clash 核心
+      // 如果核心未就绪，跳过 applyProfile —— _initStatus() 会在核心初始化完成后自动加载当前配置
+      if (!appController.isAttach) {
+        _logger.info('appController 未就绪，配置将在核心初始化完成后由 _initStatus 自动加载');
+        return;
       }
 
-      _logger.info('✅ 配置添加成功');
-      _logger.info('   配置ID: ${profile.id}');
-      _logger.info('   配置名: ${profile.label}');
-      _logger.info('   URL: ${profile.url}');
+      // 核心已就绪，带重试的配置应用（解决 FFI 调用偶发超时问题）
+      await _applyProfileWithRetry();
+
+      _logger.info('配置添加完成 (ID: ${profile.id}, Label: ${profile.label})');
     } catch (e, st) {
-      _logger.error('❌ 添加配置失败', e, st);
+      _logger.error('添加配置失败', e, st);
       throw Exception('添加配置失败: $e');
     }
+  }
+
+  /// 带重试的配置应用
+  ///
+  /// getConfig FFI 调用可能因核心 IPC 瞬时问题而超时返回空配置，
+  /// 通过多次重试 + 退避间隔来提高成功率。
+  Future<void> _applyProfileWithRetry() async {
+    const maxAttempts = 3;
+    const retryDelay = Duration(seconds: 2);
+
+    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        _logger.info('应用配置到核心 (第 $attempt/$maxAttempts 次)...');
+        await appController.applyProfile(silence: true, force: true);
+
+        final groups = _ref.read(groupsProvider);
+        if (groups.isNotEmpty) {
+          _logger.info('配置应用成功，${groups.length} 个代理组已加载');
+          return;
+        }
+        _logger.warning('第 $attempt 次尝试后代理组仍为空');
+      } catch (e) {
+        _logger.warning('第 $attempt 次应用失败: $e');
+      }
+
+      if (attempt < maxAttempts) {
+        _logger.info('等待 ${retryDelay.inSeconds}s 后重试...');
+        await Future.delayed(retryDelay);
+      }
+    }
+
+    _logger.warning('$maxAttempts 次尝试均未成功加载代理组，配置已保存，用户可手动切换配置重试');
   }
   ImportErrorType _classifyError(dynamic error) {
     final errorString = error.toString().toLowerCase();

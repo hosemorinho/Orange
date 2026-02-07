@@ -868,7 +868,27 @@ extension SetupControllerExt on AppController {
 
     // Verify config is not empty before writing
     if (config.isEmpty) {
-      throw Exception('Profile config is empty - failed to load configuration from Clash core');
+      final profileId = setupState.profileId;
+      final profilePath = await appPath.getProfilePath(profileId.toString());
+      final configPath = await appPath.configFilePath;
+
+      // Log diagnostic info
+      commonPrint.log(
+        'ERROR: Failed to load profile config. Profile ID: $profileId, '
+        'Profile path: $profilePath, Config path: $configPath. '
+        'Clash core may not be initialized or the FFI call timed out.',
+        logLevel: LogLevel.error,
+      );
+
+      throw Exception(
+        'Failed to load profile config from Clash core.\n'
+        'Profile: $profileId\n'
+        'Path: $profilePath\n'
+        'Please ensure:\n'
+        '1. Clash core is running\n'
+        '2. Profile file exists\n'
+        '3. Core FFI is initialized'
+      );
     }
 
     final configFilePath = await appPath.configFilePath;

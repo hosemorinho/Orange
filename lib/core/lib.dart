@@ -56,10 +56,24 @@ class CoreLib extends CoreHandlerInterface {
     Duration? timeout,
   }) async {
     final id = '${method.name}#${utils.id}';
+    commonPrint.log(
+      'CoreLib.invoke: ${method.name} sending via AIDL (id=$id)',
+      logLevel: LogLevel.debug,
+    );
     final result = await service
         ?.invokeAction(Action(id: id, method: method, data: data))
-        .withTimeout(onTimeout: () => null);
+        .withTimeout(onTimeout: () {
+      commonPrint.log(
+        'CoreLib.invoke: ${method.name} TIMEOUT (3min) id=$id',
+        logLevel: LogLevel.error,
+      );
+      return null;
+    });
     if (result == null) {
+      commonPrint.log(
+        'CoreLib.invoke: ${method.name} returned null (id=$id)',
+        logLevel: LogLevel.error,
+      );
       return null;
     }
     return parasResult<T>(result);

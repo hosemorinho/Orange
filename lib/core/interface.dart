@@ -94,16 +94,17 @@ abstract class CoreHandlerInterface with CoreInterface {
       );
       return null;
     }
-    if (kDebugMode && watchExecution) {
-      commonPrint.log('Invoke ${method.name} ${DateTime.now()} $data');
-    }
+    commonPrint.log(
+      'Invoke ${method.name} start',
+      logLevel: LogLevel.debug,
+    );
 
     return await utils.handleWatch(
       function: () async {
         return await invoke<T>(method: method, data: data, timeout: timeout);
       },
       onWatch: (data, elapsedMilliseconds) {
-        commonPrint.log('Invoke ${method.name} ${elapsedMilliseconds}ms');
+        commonPrint.log('Invoke ${method.name} done ${elapsedMilliseconds}ms');
       },
     );
   }

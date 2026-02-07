@@ -83,6 +83,11 @@ extension InitControllerExt on AppController {
       return;
     }
     commonPrint.log('init status');
+    final currentProfileId = _ref.read(currentProfileIdProvider);
+    if (currentProfileId == null) {
+      commonPrint.log('init status: no profile yet, skip apply');
+      return;
+    }
     if (system.isAndroid) {
       await globalState.updateStartTime();
     }
@@ -928,7 +933,6 @@ extension CoreControllerExt on AppController {
     } else {
       await updateGroups();
     }
-    await applyProfile();
   }
 
   Future<void> _connectCore() async {

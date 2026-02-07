@@ -84,10 +84,10 @@ class ApplicationState extends ConsumerState<Application> {
     });
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      // 快速认证独立运行，不被 Clash 核心初始化阻塞
-      _performQuickAuthWithDomainService();
-
       await _attachWithRetry();
+
+      // 核心已就绪，现在安全执行快速认证（可能触发订阅导入）
+      _performQuickAuthWithDomainService();
 
       _autoUpdateProfilesTask();
       app?.initShortcuts();

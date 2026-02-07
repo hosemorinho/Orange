@@ -17,16 +17,12 @@ class CoreLib extends CoreHandlerInterface {
 
   @override
   Future<String> preload() async {
-    commonPrint.log('CoreLib.preload: service.init() start');
     final res = await service?.init();
-    commonPrint.log('CoreLib.preload: service.init() done, res="${res ?? "null"}"');
     if (res?.isEmpty != true) {
       return res ?? '';
     }
     _connectedCompleter.complete(true);
-    commonPrint.log('CoreLib.preload: syncState start');
     final syncRes = await service?.syncState(appController.sharedState);
-    commonPrint.log('CoreLib.preload: syncState done, res="${syncRes ?? "null"}"');
     return syncRes ?? '';
   }
 
@@ -56,24 +52,10 @@ class CoreLib extends CoreHandlerInterface {
     Duration? timeout,
   }) async {
     final id = '${method.name}#${utils.id}';
-    commonPrint.log(
-      'CoreLib.invoke: ${method.name} sending via AIDL (id=$id)',
-      logLevel: LogLevel.debug,
-    );
     final result = await service
         ?.invokeAction(Action(id: id, method: method, data: data))
-        .withTimeout(onTimeout: () {
-      commonPrint.log(
-        'CoreLib.invoke: ${method.name} TIMEOUT (3min) id=$id',
-        logLevel: LogLevel.error,
-      );
-      return null;
-    });
+        .withTimeout(onTimeout: () => null);
     if (result == null) {
-      commonPrint.log(
-        'CoreLib.invoke: ${method.name} returned null (id=$id)',
-        logLevel: LogLevel.error,
-      );
       return null;
     }
     return parasResult<T>(result);

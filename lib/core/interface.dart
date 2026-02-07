@@ -85,28 +85,8 @@ abstract class CoreHandlerInterface with CoreInterface {
     dynamic data,
     Duration? timeout,
   }) async {
-    try {
-      await completer.future.timeout(const Duration(seconds: 10));
-    } catch (e) {
-      commonPrint.log(
-        'Invoke pre ${method.name} timeout $e',
-        logLevel: LogLevel.error,
-      );
-      return null;
-    }
-    commonPrint.log(
-      'Invoke ${method.name} start',
-      logLevel: LogLevel.debug,
-    );
-
-    return await utils.handleWatch(
-      function: () async {
-        return await invoke<T>(method: method, data: data, timeout: timeout);
-      },
-      onWatch: (data, elapsedMilliseconds) {
-        commonPrint.log('Invoke ${method.name} done ${elapsedMilliseconds}ms');
-      },
-    );
+    await completer.future;
+    return invoke<T>(method: method, data: data, timeout: timeout);
   }
 
   Future<T?> invoke<T>({
@@ -164,8 +144,8 @@ abstract class CoreHandlerInterface with CoreInterface {
 
   @override
   Future<Result> getConfig(String path) async {
-    final res = await _invoke(method: ActionMethod.getConfig, data: path);
-    return res ?? Result.error('getConfig failed: core not ready or FFI call timed out (path: $path)');
+    return await _invoke(method: ActionMethod.getConfig, data: path) ??
+        Result<Map<String, dynamic>>.success({});
   }
 
   @override
@@ -174,7 +154,7 @@ abstract class CoreHandlerInterface with CoreInterface {
           method: ActionMethod.setupConfig,
           data: json.encode(setupParams),
         ) ??
-        'setupConfig failed: core not ready or FFI call timed out';
+        '';
   }
 
   @override
@@ -187,12 +167,6 @@ abstract class CoreHandlerInterface with CoreInterface {
     final data = await _invoke<Map<String, dynamic>>(
       method: ActionMethod.getProxies,
     );
-    if (data == null) {
-      commonPrint.log(
-        'getProxies: FFI returned null, core not ready or call timed out',
-        logLevel: LogLevel.error,
-      );
-    }
     return data != null
         ? ProxiesData.fromJson(data)
         : ProxiesData(proxies: {}, all: []);

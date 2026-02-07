@@ -99,11 +99,6 @@ jobs:
             choco install imagemagick -y --no-progress
           fi
 
-      - name: Generate Custom Icons
-        if: env.APP_ICON_URL != ''
-        shell: bash
-        run: dart scripts/generate_icons.dart "$APP_ICON_URL"
-
       - name: Setup Java
         if: matrix.platform == 'android'
         uses: actions/setup-java@v4
@@ -156,6 +151,11 @@ jobs:
         run: |
           flutter --version
           flutter pub get
+
+      - name: Generate Custom Icons
+        if: env.APP_ICON_URL != ''
+        shell: bash
+        run: dart scripts/generate_icons.dart "$APP_ICON_URL"
 
       - name: Generate XBoard Config
         shell: bash

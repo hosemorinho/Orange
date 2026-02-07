@@ -190,7 +190,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     if (currentMode != modeOption) {
       _syncNodeSelectionOnModeChange(from: currentMode, to: modeOption);
     }
-    await appController.changeMode(modeOption);
+    appController.changeMode(modeOption);
     if (modeOption == Mode.global) {
       Future.delayed(const Duration(milliseconds: 100), () {
         _ensureValidProxyForGlobalMode();
@@ -250,7 +250,6 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         appController.changeProxyDebounce(
           GroupName.GLOBAL.name,
           resolved.proxy!.name,
-          duration: const Duration(milliseconds: 100),
         );
       }
     } else if (from == Mode.global && to == Mode.rule) {

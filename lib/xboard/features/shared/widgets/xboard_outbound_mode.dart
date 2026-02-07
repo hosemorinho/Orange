@@ -19,7 +19,7 @@ class XBoardOutboundMode extends StatelessWidget {
     // FlClash 核心的 changeMode 已经处理了所有切换逻辑：
     // - 全局模式: 更新 currentGroupName 为 GLOBAL + 确保节点选择
     // - 规则模式: 更新 currentGroupName 为第一个可见的非 GLOBAL 组
-    await appController.changeMode(modeOption);
+    appController.changeMode(modeOption);
   }
   Future<void> _handleTunToggle(BuildContext context, WidgetRef ref, bool selected) async {
     if (selected) {

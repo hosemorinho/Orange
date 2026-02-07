@@ -56,9 +56,20 @@ extension InitControllerExt on AppController {
       window?.hide();
     }
     await _handleFailedPreference();
+
+    final sw = Stopwatch()..start();
+    commonPrint.log('_init: _connectCore start');
     await _connectCore();
+    commonPrint.log('_init: _connectCore done (${sw.elapsedMilliseconds}ms)');
+
+    commonPrint.log('_init: _initCore start');
     await _initCore();
+    commonPrint.log('_init: _initCore done (${sw.elapsedMilliseconds}ms)');
+
+    commonPrint.log('_init: _initStatus start');
     await _initStatus();
+    commonPrint.log('_init: _initStatus done (${sw.elapsedMilliseconds}ms)');
+
     _ref.read(initProvider.notifier).value = true;
 
     // 竞态修复：订阅导入可能在 _init() 期间完成，此时 fullSetup() 因
@@ -934,20 +945,26 @@ extension CoreControllerExt on AppController {
   Future<void> _initCore() async {
     final isInit = await coreController.isInit;
     final version = _ref.read(versionProvider);
+    commonPrint.log('_initCore: isInit=$isInit, version=$version');
     if (!isInit) {
+      commonPrint.log('_initCore: calling coreController.init()...');
       await coreController.init(version);
+      commonPrint.log('_initCore: coreController.init() done');
     } else {
+      commonPrint.log('_initCore: already init, calling updateGroups()');
       await updateGroups();
     }
   }
 
   Future<void> _connectCore() async {
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.connecting;
+    commonPrint.log('_connectCore: preload start');
     final result = await Future.wait([
       coreController.preload(),
       Future.delayed(Duration(milliseconds: 300)),
     ]);
     final String message = result[0];
+    commonPrint.log('_connectCore: preload done, message=${message.isEmpty ? "(empty=success)" : message}');
     if (message.isNotEmpty) {
       _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
       if (_context.mounted) {

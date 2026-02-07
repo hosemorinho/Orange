@@ -28,6 +28,7 @@ class XBoardProfileImportService {
     Function(ImportStatus, double, String?)? onProgress,
   }) async {
     if (_isImporting) {
+      _logger.warning('❌ 已有导入任务在进行，拒绝新的导入');
       return ImportResult.failure(
         errorMessage: '正在导入中，请稍候',
         errorType: ImportErrorType.unknownError,
@@ -36,34 +37,51 @@ class XBoardProfileImportService {
     _isImporting = true;
     final stopwatch = Stopwatch()..start();
     try {
-      _logger.info('开始导入订阅配置: $url');
-      
+      _logger.info('════════════════════════════════════════');
+      _logger.info('📥 开始导入订阅配置');
+      _logger.info('   URL: $url');
+      _logger.info('════════════════════════════════════════');
+
       // 1. 先下载并验证新配置（不删除旧配置）
+      _logger.info('[步骤 1/3] 下载并验证配置...');
       onProgress?.call(ImportStatus.downloading, 0.3, '下载配置文件');
       final profile = await _downloadAndValidateProfile(url);
+      _logger.info('[步骤 1/3] ✅ 配置下载成功');
       onProgress?.call(ImportStatus.validating, 0.6, '验证配置格式');
-      
+
       // 2. 下载成功后，再清理旧配置（避免 UI 闪烁显示"无订阅"）
+      _logger.info('[步骤 2/3] 清理旧配置...');
       onProgress?.call(ImportStatus.cleaning, 0.8, '替换旧的订阅配置');
       await _cleanOldUrlProfiles();
-      
+      _logger.info('[步骤 2/3] ✅ 旧配置清理完成');
+
       // 3. 添加新配置
+      _logger.info('[步骤 3/3] 添加新配置到数据库...');
       onProgress?.call(ImportStatus.adding, 0.9, '添加到配置列表');
       await _addProfile(profile);
-      
+      _logger.info('[步骤 3/3] ✅ 新配置添加成功');
+
       stopwatch.stop();
       onProgress?.call(ImportStatus.success, 1.0, '导入成功');
-      _logger.info('订阅配置导入成功，耗时: ${stopwatch.elapsedMilliseconds}ms');
+      _logger.info('════════════════════════════════════════');
+      _logger.info('✅ 订阅配置导入成功');
+      _logger.info('   总耗时: ${stopwatch.elapsedMilliseconds}ms');
+      _logger.info('   配置ID: ${profile.id}');
+      _logger.info('   配置名: ${profile.label ?? "无"}');
+      _logger.info('════════════════════════════════════════');
       return ImportResult.success(
         profile: profile,
         duration: stopwatch.elapsed,
       );
-    } catch (e) {
+    } catch (e, st) {
       stopwatch.stop();
-      _logger.error('订阅配置导入失败', e);
+      _logger.error('❌ 订阅配置导入失败', e, st);
+      _logger.error('   错误类型: ${e.runtimeType}');
+      _logger.error('   耗时: ${stopwatch.elapsedMilliseconds}ms');
       final errorType = _classifyError(e);
       final userMessage = _getUserFriendlyErrorMessage(e, errorType);
       onProgress?.call(ImportStatus.failed, 0.0, userMessage);
+      _logger.info('════════════════════════════════════════');
       return ImportResult.failure(
         errorMessage: userMessage,
         errorType: errorType,
@@ -102,50 +120,77 @@ class XBoardProfileImportService {
   }
   Future<void> _cleanOldUrlProfiles() async {
     try {
+      _logger.info('⏳ 清理旧配置...');
       final profiles = _ref.read(profilesProvider);
       final urlProfiles = profiles.where((profile) => profile.type == ProfileType.url).toList();
 
+      _logger.info('   找到 ${urlProfiles.length} 个旧的 URL 类型配置');
+
       for (final profile in urlProfiles) {
-        _logger.debug('删除旧的URL配置: ${profile.label ?? profile.id}');
+        _logger.info('   删除: ${profile.label ?? profile.id} (ID: ${profile.id})');
         _ref.read(profilesProvider.notifier).del(profile.id);
         // 删除实际的 yaml 配置文件和 providers 目录，避免文件堆积
-        await appController.clearEffect(profile.id);
+        try {
+          await appController.clearEffect(profile.id);
+          _logger.info('     ✅ 已清理本地文件');
+        } catch (e) {
+          _logger.warning('     ⚠️  清理本地文件失败: $e');
+        }
       }
 
-      _logger.info('清理了 ${urlProfiles.length} 个旧的URL配置');
-    } catch (e) {
-      _logger.warning('清理旧配置时出错', e);
+      _logger.info('✅ 清理完成 (清理了 ${urlProfiles.length} 个旧配置)');
+    } catch (e, st) {
+      _logger.error('❌ 清理旧配置出错', e, st);
       throw Exception('清理旧配置失败: $e');
     }
   }
   Future<Profile> _downloadAndValidateProfile(String url) async {
     try {
-      _logger.info('开始下载配置: $url');
-      
+      _logger.info('⏳ 开始下载配置...');
+      _logger.info('   URL: $url');
+      _logger.info('   超时: ${downloadTimeout.inSeconds}s');
+
       // 使用 XBoard 订阅下载服务
-      _logger.info('📄 使用 XBoard 订阅下载服务（并发竞速）');
+      _logger.info('📄 调用 SubscriptionDownloader.downloadSubscription()...');
+      final startTime = DateTime.now();
       final profile = await SubscriptionDownloader.downloadSubscription(
         url,
         enableRacing: true,
       ).timeout(
         downloadTimeout,
         onTimeout: () {
+          _logger.error('❌ 下载超时 (>${downloadTimeout.inSeconds}s)');
           throw TimeoutException('下载超时', downloadTimeout);
         },
       );
-      
-      _logger.info('配置下载和验证成功: ${profile.label ?? profile.id}');
+      final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+
+      _logger.info('✅ 配置下载和验证成功');
+      _logger.info('   耗时: ${elapsed}ms');
+      _logger.info('   配置ID: ${profile.id}');
+      _logger.info('   配置名: ${profile.label ?? "无"}');
+      _logger.info('   URL: ${profile.url}');
+      _logger.info('   类型: ${profile.type}');
+      _logger.info('   当前组: ${profile.currentGroupName ?? "未设置"}');
       return profile;
-      
+
     } on TimeoutException catch (e) {
+      _logger.error('❌ 下载超时异常', e);
       throw Exception('下载超时: ${e.message}');
     } on SocketException catch (e) {
+      _logger.error('❌ 网络连接异常', e);
       throw Exception('网络连接失败: ${e.message}');
     } on HttpException catch (e) {
+      _logger.error('❌ HTTP请求异常', e);
       throw Exception('HTTP请求失败: ${e.message}');
-    } catch (e) {
+    } catch (e, st) {
+      _logger.error('❌ 下载过程出错', e, st);
       if (e.toString().contains('validateConfig')) {
+        _logger.error('   错误原因: 配置格式验证失败（validateConfig）');
         throw Exception('配置文件格式错误: $e');
+      }
+      if (e.toString().contains('isAndroid') || e.toString().contains('Android')) {
+        _logger.error('   错误原因: Android 特定问题');
       }
       throw Exception('下载配置失败: $e');
     }
@@ -153,39 +198,63 @@ class XBoardProfileImportService {
 
   Future<void> _addProfile(Profile profile) async {
     try {
+      _logger.info('⏳ 添加配置到数据库...');
+
       // 1. 添加配置到列表
+      _logger.info('   [1/4] 调用 profilesProvider.put()...');
       _ref.read(profilesProvider.notifier).put(profile);
-      
+      _logger.info('   [1/4] ✅ 配置已保存到数据库');
+
       // 2. 强制设置为当前配置（订阅导入是用户主动操作，应该立即生效）
+      _logger.info('   [2/4] 设置为当前配置 (ID: ${profile.id})...');
       final currentProfileIdNotifier = _ref.read(currentProfileIdProvider.notifier);
       currentProfileIdNotifier.value = profile.id;
-      _logger.info('✅ 已设置为当前配置: ${profile.label ?? profile.id}');
-      
+      _logger.info('   [2/4] ✅ 已设置为当前配置');
+
       // 3. 等待 appController 就绪后应用配置
       // 在安卓上，profile 导入可能在 attach() 之前完成（Clash 核心初始化较慢），
       // 此时需要等待 attach 完成后再 apply，否则 groups 永远为空
+      _logger.info('   [3/4] 检查 appController 就绪状态...');
+      _logger.info('       appController.isAttach: ${appController.isAttach}');
+
       if (!appController.isAttach) {
-        _logger.info('appController 未就绪，等待 attach...');
+        _logger.info('       ⏳ appController 未就绪，等待 attach()...');
+        int waitCount = 0;
         for (int i = 0; i < 60; i++) {
           await Future.delayed(const Duration(milliseconds: 500));
-          if (appController.isAttach) break;
+          waitCount++;
+          if (appController.isAttach) {
+            _logger.info('       ✅ appController 已就绪 (等待了 ${waitCount * 500}ms)');
+            break;
+          }
+          if (i == 59) {
+            _logger.warning('       ❌ 等待 appController 超时 (${waitCount * 500}ms)');
+          }
         }
       }
+
+      _logger.info('   [3/4] 应用配置到 Clash 核心...');
       if (appController.isAttach) {
-        _logger.info('使用 silence 模式应用配置...');
+        _logger.info('       appController 已就绪，调用 applyProfile(silence: true)...');
         try {
           await appController.applyProfile(silence: true);
-          _logger.info('配置应用成功');
-        } catch (e) {
-          _logger.error('配置应用失败', e);
+          _logger.info('   [3/4] ✅ 配置已应用到 Clash 核心');
+        } catch (e, st) {
+          _logger.error('   [3/4] ❌ 应用配置失败', e, st);
+          _logger.info('       配置已保存，将在后续加载时应用');
           // 不抛出异常，因为配置已经保存了
         }
       } else {
-        _logger.info('appController 等待超时，跳过应用（配置已保存，后续 attach 时会加载）');
+        _logger.warning('   [3/4] ⚠️  appController 仍未就绪，配置已保存，将在后续 attach() 时加载');
       }
-      
-      _logger.info('配置添加成功: ${profile.label ?? profile.id}');
-    } catch (e) {
+
+      _logger.info('   [4/4] 配置导入完成');
+      _logger.info('✅ 配置添加成功');
+      _logger.info('   配置ID: ${profile.id}');
+      _logger.info('   配置名: ${profile.label ?? "无"}');
+      _logger.info('   URL: ${profile.url}');
+    } catch (e, st) {
+      _logger.error('❌ 添加配置失败', e, st);
       throw Exception('添加配置失败: $e');
     }
   }

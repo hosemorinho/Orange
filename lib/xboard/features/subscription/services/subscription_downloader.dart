@@ -29,7 +29,9 @@ class SubscriptionDownloader {
     String url,
     List<String> proxies,
   ) async {
-    _logger.info('开始连通性竞速测试 (${proxies.length + 1}种方式)');
+    _logger.info('🏁 开始连通性竞速测试');
+    _logger.info('   URL: $url');
+    _logger.info('   竞速方式: 直连 + ${proxies.length}个代理');
 
     final cancelTokens = <_CancelToken>[];
     final tasks = <Future<_ConnectivityTestResult>>[];
@@ -59,10 +61,11 @@ class SubscriptionDownloader {
       }
 
       // 等待第一个成功的连通性测试（忽略失败的）
+      _logger.info('⏳ 等待第一个成功响应...');
       final winner = await _waitForFirstSuccess(tasks);
 
       // 取消其他所有任务
-      _logger.info('🏆 ${winner.connectionType} 获胜！');
+      _logger.info('🏆 竞速获胜: ${winner.connectionType}');
       for (final token in cancelTokens) {
         token.cancel();
       }
@@ -71,13 +74,13 @@ class SubscriptionDownloader {
         winner: winner,
         success: true,
       );
-    } catch (e) {
+    } catch (e, st) {
       // 取消所有任务
       for (final token in cancelTokens) {
         token.cancel();
       }
 
-      _logger.warning('所有竞速测试失败', e);
+      _logger.warning('❌ 所有竞速测试失败', e, st);
       return _ConnectivityRacingResult(
         winner: null,
         success: false,
@@ -97,30 +100,39 @@ class SubscriptionDownloader {
   static Future<void> _waitForCoreReady() async {
     // 非 Android 平台直接跳过
     if (!system.isAndroid) {
+      _logger.info('[核心初始化] 非 Android 平台，跳过核心初始化等待');
       return;
     }
 
     _logger.info('[核心初始化] 等待 Clash 核心服务就绪...');
+    _logger.info('[核心初始化] 系统: ${system.os}, isAndroid: ${system.isAndroid}');
 
     final startTime = DateTime.now();
+    int checkCount = 0;
     while (DateTime.now().difference(startTime) < _coreWaitTimeout) {
+      checkCount++;
       // 必须先等 attach() 完成，否则 _connectCore() 尚未开始
       if (appController.isAttach) {
         try {
+          _logger.info('[核心初始化-$checkCount] appController.isAttach=true, coreController.isCompleted=${coreController.isCompleted}');
           if (coreController.isCompleted) {
             final elapsed = DateTime.now().difference(startTime).inMilliseconds;
-            _logger.info('[核心初始化] Clash 核心服务已就绪 (${elapsed}ms)');
+            _logger.info('[核心初始化] ✅ Clash 核心服务已就绪 (${elapsed}ms, 共${checkCount}次检查)');
             return;
           }
         } catch (e) {
-          _logger.debug('[核心初始化] 状态检查出错: $e');
+          _logger.info('[核心初始化-$checkCount] 状态检查出错: $e');
+        }
+      } else {
+        if (checkCount <= 3 || checkCount % 10 == 0) {
+          _logger.info('[核心初始化-$checkCount] 等待 appController.attach() 完成...');
         }
       }
 
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
-    _logger.warning('[核心初始化] 等待核心服务超时 (${_coreWaitTimeout.inSeconds}s)，尝试继续下载');
+    _logger.warning('[核心初始化] ❌ 等待核心服务超时 (${_coreWaitTimeout.inSeconds}s，共${checkCount}次检查)，尝试继续下载');
   }
 
   /// 下载订阅并返回 Profile（并发竞速）
@@ -132,14 +144,30 @@ class SubscriptionDownloader {
     bool enableRacing = true,
   }) async {
     try {
-      _logger.info('开始下载订阅: $url');
+      _logger.info('════════════════════════════════════════');
+      _logger.info('📥 开始下载订阅');
+      _logger.info('   URL: $url');
+      _logger.info('   enableRacing: $enableRacing');
+      _logger.info('   isAndroid: ${system.isAndroid}');
+      _logger.info('════════════════════════════════════════');
 
       if (!enableRacing) {
         // 禁用竞速：等待核心就绪，直接使用 FlClash 核心的 Profile.update()
-        _logger.info('竞速已禁用，等待核心就绪后下载');
+        _logger.info('📋 模式: 直接下载（竞速已禁用）');
+        _logger.info('⏳ 等待核心就绪...');
         await _waitForCoreReady();
+
+        _logger.info('🔄 创建 Profile 对象...');
         final profile = Profile.normal(url: url);
-        return await profile.update(forceDirect: true);
+
+        _logger.info('📡 调用 Profile.update(forceDirect: true)...');
+        final result = await profile.update(forceDirect: true);
+
+        _logger.info('✅ 订阅下载成功');
+        _logger.info('   ConfigUrl: ${result.configUrl}');
+        _logger.info('   GroupName: ${result.currentGroupName}');
+        _logger.info('════════════════════════════════════════');
+        return result;
       }
 
       // 优化策略：并行执行竞速测试和核心初始化，最大化效率
@@ -148,7 +176,8 @@ class SubscriptionDownloader {
       // 3. 两者都完成后，使用核心下载配置
 
       final proxies = XBoardConfig.allProxyUrls;
-      _logger.info('🚀 并行执行：竞速测试 (${proxies.length + 1}种方式) + 核心初始化');
+      _logger.info('📋 模式: 并行竞速 + 核心初始化');
+      _logger.info('🚀 竞速方式: 直连 + ${proxies.length}种代理 = ${proxies.length + 1}种方式');
 
       // 启动竞速测试（立即返回 Future，不等待）
       final racingFuture = _runConnectivityRacing(url, proxies);
@@ -157,25 +186,42 @@ class SubscriptionDownloader {
       final coreReadyFuture = _waitForCoreReady();
 
       // 等待两个任务都完成（并行执行）
+      _logger.info('⏳ 等待竞速测试和核心初始化完成...');
+      final startWait = DateTime.now();
       await Future.wait([racingFuture, coreReadyFuture]);
+      final waitElapsed = DateTime.now().difference(startWait).inMilliseconds;
+      _logger.info('✅ 竞速和核心初始化完成 (${waitElapsed}ms)');
 
       // 核心已就绪，使用 FlClash 核心的 Profile.update() 下载完整配置
       // forceDirect: 绕过 Clash 代理直连下载，避免节点配置过期导致超时
-      _logger.info('核心就绪，使用 FlClash 核心下载完整配置（直连）...');
+      _logger.info('🔄 创建 Profile 对象...');
       final profile = Profile.normal(url: url);
-      return await profile.update(forceDirect: true);
+
+      _logger.info('📡 调用 Profile.update(forceDirect: true)...');
+      final startUpdate = DateTime.now();
+      final result = await profile.update(forceDirect: true);
+      final updateElapsed = DateTime.now().difference(startUpdate).inMilliseconds;
+
+      _logger.info('✅ 订阅下载成功 (${updateElapsed}ms)');
+      _logger.info('   ConfigUrl: ${result.configUrl}');
+      _logger.info('   GroupName: ${result.currentGroupName}');
+      _logger.info('════════════════════════════════════════');
+      return result;
 
     } on TimeoutException catch (e) {
-      _logger.error('订阅下载超时', e);
+      _logger.error('❌ 订阅下载超时', e);
       throw Exception('下载超时: ${e.message}');
     } on SocketException catch (e) {
-      _logger.error('网络连接失败', e);
+      _logger.error('❌ 网络连接失败', e);
       throw Exception('网络连接失败: ${e.message}');
     } on HttpException catch (e) {
-      _logger.error('HTTP请求失败', e);
+      _logger.error('❌ HTTP请求失败', e);
       throw Exception('HTTP请求失败: ${e.message}');
-    } catch (e) {
-      _logger.error('订阅下载失败', e);
+    } catch (e, st) {
+      _logger.error('❌ 订阅下载失败', e, st);
+      _logger.error('   错误类型: ${e.runtimeType}');
+      _logger.error('   错误信息: $e');
+      _logger.info('════════════════════════════════════════');
       rethrow;
     }
   }

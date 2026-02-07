@@ -517,6 +517,37 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
     }
   }
 
+  /// Background refresh triggered by tab switch.
+  /// Does NOT set isLoading (won't block UI) and does NOT re-import subscription config.
+  Future<void> silentRefresh() async {
+    if (!state.isAuthenticated) return;
+    try {
+      _logger.info('[silentRefresh] 后台刷新用户数据...');
+
+      try {
+        ref.invalidate(getUserInfoProvider);
+        final userInfo = await ref.read(getUserInfoProvider.future);
+        await _storageService.saveDomainUser(userInfo);
+        ref.read(userInfoProvider.notifier).state = userInfo;
+      } catch (e) {
+        _logger.info('[silentRefresh] 刷新用户信息失败: $e');
+      }
+
+      try {
+        ref.invalidate(getSubscriptionProvider);
+        final sub = await ref.read(getSubscriptionProvider.future);
+        await _storageService.saveDomainSubscription(sub);
+        ref.read(subscriptionInfoProvider.notifier).state = sub;
+      } catch (e) {
+        _logger.info('[silentRefresh] 刷新订阅信息失败: $e');
+      }
+
+      _logger.info('[silentRefresh] 后台刷新完成');
+    } catch (e) {
+      _logger.info('[silentRefresh] 后台刷新异常: $e');
+    }
+  }
+
   String? get currentAuthToken => null; // Token管理已委托给API Service
   bool get isAuthenticated => state.isAuthenticated;
   String? get currentEmail => state.email;

@@ -32,7 +32,7 @@ class SubscriptionDownloader {
         // 禁用竞速：直接使用 FlClash 核心的 Profile.update()
         _logger.info('竞速已禁用，使用 FlClash 核心下载');
         final profile = Profile.normal(url: url);
-        return await profile.update();
+        return await profile.update(forceDirect: true);
       }
 
       // 启用竞速：测试连通性，选择最快的方式
@@ -76,11 +76,11 @@ class SubscriptionDownloader {
         }
 
         // 使用 FlClash 核心的 Profile.update() 下载完整配置
-        // 注意: Profile.update() 使用 Dio + Clash 代理路由，
-        // 而不是我们测试时使用的 SOCKS5 直连代理
-        _logger.info('使用 FlClash 核心下载完整配置...');
+        // forceDirect: 绕过 Clash 代理直连下载，避免 Clash 核心已启动
+        // 但节点配置过期时导致下载超时
+        _logger.info('使用 FlClash 核心下载完整配置（直连）...');
         final profile = Profile.normal(url: url);
-        return await profile.update();
+        return await profile.update(forceDirect: true);
 
       } catch (e) {
         // 取消所有任务
@@ -91,7 +91,7 @@ class SubscriptionDownloader {
         // 如果所有竞速任务都失败，回退到 FlClash 核心直接下载
         _logger.warning('所有竞速测试失败，回退到 FlClash 核心下载', e);
         final profile = Profile.normal(url: url);
-        return await profile.update();
+        return await profile.update(forceDirect: true);
       }
 
     } on TimeoutException catch (e) {
@@ -193,6 +193,8 @@ class SubscriptionDownloader {
       client = HttpClient();
       client.connectionTimeout = _racingTimeout;
       client.badCertificateCallback = (cert, host, port) => true;
+      // 绕过 FlClashHttpOverrides 代理，避免 Clash 核心已启动时流量被路由到过期节点
+      client.findProxy = (uri) => 'DIRECT';
 
       // 如果使用代理，配置 SOCKS5 代理
       if (useProxy && proxyUrl != null) {

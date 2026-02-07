@@ -210,8 +210,11 @@ extension ProfileExtension on Profile {
     return _getFile();
   }
 
-  Future<Profile> update() async {
-    final response = await request.getFileResponseForUrl(url);
+  Future<Profile> update({bool forceDirect = false}) async {
+    final response = await request.getFileResponseForUrl(
+      url,
+      forceDirect: forceDirect,
+    );
     final disposition = response.headers.value("content-disposition");
     final userinfo = response.headers.value('subscription-userinfo');
     return await copyWith(

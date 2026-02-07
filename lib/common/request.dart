@@ -15,6 +15,7 @@ import 'package:flutter/cupertino.dart';
 class Request {
   late final Dio dio;
   late final Dio _clashDio;
+  late final Dio _directDio;
   String? userAgent;
 
   Request() {
@@ -32,11 +33,24 @@ class Request {
         return client;
       },
     );
+    _directDio = Dio();
+    _directDio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.findProxy = (uri) => 'DIRECT';
+        client.badCertificateCallback = (_, _, _) => true;
+        return client;
+      },
+    );
   }
 
-  Future<Response<Uint8List>> getFileResponseForUrl(String url) async {
+  Future<Response<Uint8List>> getFileResponseForUrl(
+    String url, {
+    bool forceDirect = false,
+  }) async {
     try {
-      return await _clashDio.get<Uint8List>(
+      final client = forceDirect ? _directDio : _clashDio;
+      return await client.get<Uint8List>(
         url,
         options: Options(responseType: ResponseType.bytes),
       );

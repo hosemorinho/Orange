@@ -107,8 +107,16 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   }
 
   Future<void> _checkPlanConflict() async {
-    final subscriptionAsync = ref.read(getSubscriptionProvider);
-    final subscription = subscriptionAsync.value;
+    // Use cached subscription first (populated during login/quickAuth),
+    // fall back to awaiting the async provider if cache is empty.
+    var subscription = ref.read(subscriptionInfoProvider);
+    if (subscription == null) {
+      try {
+        subscription = await ref.read(getSubscriptionProvider.future);
+      } catch (_) {
+        return;
+      }
+    }
     if (subscription == null) return;
 
     final isSamePlan = subscription.planId == widget.plan.id;

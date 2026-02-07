@@ -90,9 +90,13 @@ class SubscriptionDownloader {
   /// 在 Android 上，Profile.update() 需要调用 validateConfig()，
   /// 该方法通过 AIDL 与 Clash 核心服务通信。如果服务未就绪，
   /// 调用会超时（10秒）。因此需要等待核心连接完成。
+  ///
+  /// 需要等待两个条件：
+  /// 1. appController.isAttach = true（attach() 已调用，初始化流程已开始）
+  /// 2. coreController.isCompleted = true（Service AIDL 连接已建立）
   static Future<void> _waitForCoreReady() async {
-    // 非 Android 平台或 appController 未就绪时跳过
-    if (!system.isAndroid || !appController.isAttach) {
+    // 非 Android 平台直接跳过
+    if (!system.isAndroid) {
       return;
     }
 
@@ -100,14 +104,12 @@ class SubscriptionDownloader {
 
     final startTime = DateTime.now();
     while (DateTime.now().difference(startTime) < _coreWaitTimeout) {
-      // 检查核心是否已连接（通过 coreController.isCompleted）
+      // 必须先等 attach() 完成，否则 _connectCore() 尚未开始
       if (appController.isAttach) {
-        // 使用全局的 coreController 检查初始化状态
         try {
-          final isCompleted = coreController.isCompleted;
-          if (isCompleted) {
+          if (coreController.isCompleted) {
             final elapsed = DateTime.now().difference(startTime).inMilliseconds;
-            _logger.info('✅ [核心初始化] Clash 核心服务已就绪 (${elapsed}ms)');
+            _logger.info('[核心初始化] Clash 核心服务已就绪 (${elapsed}ms)');
             return;
           }
         } catch (e) {
@@ -115,11 +117,10 @@ class SubscriptionDownloader {
         }
       }
 
-      // 等待一小段时间后重试
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
-    _logger.warning('⚠️ [核心初始化] 等待核心服务超时，尝试继续下载（可能失败）');
+    _logger.warning('[核心初始化] 等待核心服务超时 (${_coreWaitTimeout.inSeconds}s)，尝试继续下载');
   }
 
   /// 下载订阅并返回 Profile（并发竞速）
@@ -156,13 +157,11 @@ class SubscriptionDownloader {
       final coreReadyFuture = _waitForCoreReady();
 
       // 等待两个任务都完成（并行执行）
-      final results = await Future.wait([racingFuture, coreReadyFuture]);
-      final racingResult = results[0] as _ConnectivityRacingResult;
+      await Future.wait([racingFuture, coreReadyFuture]);
 
-      // 使用 FlClash 核心的 Profile.update() 下载完整配置
-      // forceDirect: 绕过 Clash 代理直连下载，避免 Clash 核心已启动
-      // 但节点配置过期时导致下载超时
-      _logger.info('使用 FlClash 核心下载完整配置（直连）...');
+      // 核心已就绪，使用 FlClash 核心的 Profile.update() 下载完整配置
+      // forceDirect: 绕过 Clash 代理直连下载，避免节点配置过期导致超时
+      _logger.info('核心就绪，使用 FlClash 核心下载完整配置（直连）...');
       final profile = Profile.normal(url: url);
       return await profile.update(forceDirect: true);
 

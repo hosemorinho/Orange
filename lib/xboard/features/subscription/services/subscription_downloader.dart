@@ -6,9 +6,9 @@ import 'package:dio/io.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';
 import 'package:fl_clash/xboard/core/core.dart';
-import 'package:fl_clash/xboard/infrastructure/http/user_agent_config.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/state.dart';
 import 'package:socks5_proxy/socks_client.dart';
 
 // 初始化文件级日志器
@@ -137,8 +137,10 @@ class SubscriptionDownloader {
         }
       }
 
-      // 获取 User-Agent
-      final userAgent = await UserAgentConfig.get(UserAgentScenario.subscription);
+      // 使用与 FlClash 一致的 User-Agent: "{appName}/v{version} clash-verge Platform/{os}"
+      // V2Board 识别 UA 中的 "clash-verge" 关键字，返回 Clash YAML 格式配置
+      final userAgent = globalState.packageInfo.ua;
+      _logger.info('   User-Agent: $userAgent');
 
       // 直接下载配置文件（DIRECT 连接，绕过 Clash 代理，无需核心服务）
       _logger.info('📡 直接下载配置文件 (DIRECT)...');
@@ -332,9 +334,8 @@ class SubscriptionDownloader {
         throw Exception('任务已取消');
       }
 
-      // 设置请求头
-      final userAgent = await UserAgentConfig.get(UserAgentScenario.subscription);
-      request.headers.set(HttpHeaders.userAgentHeader, userAgent);
+      // 设置请求头（与下载使用相同的 UA）
+      request.headers.set(HttpHeaders.userAgentHeader, globalState.packageInfo.ua);
 
       // 检查是否已取消
       if (cancelToken.isCancelled) {

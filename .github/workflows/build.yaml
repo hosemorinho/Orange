@@ -33,6 +33,10 @@ on:
         description: 'Override CRISP_WEBSITE_ID'
         required: false
         default: ''
+      app_icon_url:
+        description: 'Override APP_ICON_URL (PNG URL for auto icon generation)'
+        required: false
+        default: ''
 
 env:
   IS_STABLE: ${{ github.event_name == 'release' }}
@@ -42,6 +46,7 @@ env:
   THEME_COLOR: ${{ inputs.theme_color || secrets.THEME_COLOR || '' }}
   API_TEXT_DOMAIN: ${{ inputs.api_text_domain || secrets.API_TEXT_DOMAIN || '' }}
   CRISP_WEBSITE_ID: ${{ inputs.crisp_website_id || secrets.CRISP_WEBSITE_ID || '' }}
+  APP_ICON_URL: ${{ inputs.app_icon_url || secrets.APP_ICON_URL || '' }}
 
 jobs:
   build:
@@ -75,11 +80,27 @@ jobs:
           if [ -n "$THEME_COLOR" ]; then echo "::add-mask::$THEME_COLOR"; fi
           if [ -n "$API_TEXT_DOMAIN" ]; then echo "::add-mask::$API_TEXT_DOMAIN"; fi
           if [ -n "$CRISP_WEBSITE_ID" ]; then echo "::add-mask::$CRISP_WEBSITE_ID"; fi
+          if [ -n "$APP_ICON_URL" ]; then echo "::add-mask::$APP_ICON_URL"; fi
 
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Generate App Icons
+        if: env.APP_ICON_URL != ''
+        shell: bash
+        run: |
+          # Install ImageMagick based on platform
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick webp
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew install imagemagick webp
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            choco install imagemagick -y --no-progress
+          fi
+          chmod +x scripts/generate_icons.sh
+          bash scripts/generate_icons.sh "$APP_ICON_URL"
 
       - name: Setup Java
         if: matrix.platform == 'android'

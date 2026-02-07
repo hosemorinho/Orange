@@ -42,7 +42,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   Timer? _groupsRetryTimer;
   int _groupsRetryCount = 0;
   bool _groupsRetryExhausted = false;
-  static const int _maxGroupsRetries = 10;
+  static const int _maxGroupsRetries = 30;
 
   bool get _isDesktop =>
       Platform.isLinux || Platform.isWindows || Platform.isMacOS;
@@ -129,12 +129,12 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         if (mounted) setState(() {});
         return;
       }
-      // 每隔 3 次检查尝试重新应用配置
-      if (appController.isAttach && _groupsRetryCount % 3 == 1) {
-        _logger.info('🔄 第 $_groupsRetryCount 次重试: 尝试 applyProfile(force: true)...');
-        appController.applyProfile(silence: true, force: true).catchError((e) {
-          _logger.warning('   重试 applyProfile 失败: $e');
-        });
+      // 每隔 5 次检查尝试重新应用配置
+      if (appController.isAttach && _groupsRetryCount % 5 == 1) {
+        _logger.info('🔄 第 $_groupsRetryCount 次重试: 尝试 fullSetup()...');
+        appController.fullSetup();
+      } else if (!appController.isAttach) {
+        _logger.debug('   第 $_groupsRetryCount 次: appController 未就绪，等待核心初始化...');
       }
     });
   }

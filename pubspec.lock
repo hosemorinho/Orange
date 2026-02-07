@@ -285,10 +285,10 @@ packages:
     dependency: "direct main"
     description:
       name: crisp_chat
-      sha256: "63be64c416b5b44bb099bbd278b8de718714075e5ac9d444272dcf99e48eda3d"
+      sha256: "55d378b5218661886712ee16356316e9538a5214aced5c0bc95e196a1ae36e85"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.3"
+    version: "2.4.4"
   cross_file:
     dependency: transitive
     description:

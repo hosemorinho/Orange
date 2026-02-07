@@ -707,6 +707,8 @@
   "xboardTunEnabled": "TUN已启用",
   "xboardNoAvailableNodes": "无可用节点",
   "xboardImportingSubscription": "正在加载订阅配置...",
+  "xboardCoreLoadFailed": "配置加载失败，内核未能解析节点",
+  "xboardRetryLoadConfig": "重新加载",
   "xboardClickToSetupNodes": "点击设置节点",
   "xboardProxy": "代理",
   "xboardSwitch": "切换",

@@ -702,6 +702,8 @@
   "xboardTunEnabled": "TUN enabled",
   "xboardNoAvailableNodes": "No available nodes",
   "xboardImportingSubscription": "Loading subscription...",
+  "xboardCoreLoadFailed": "Failed to load config, core could not parse nodes",
+  "xboardRetryLoadConfig": "Retry",
   "xboardClickToSetupNodes": "Click to setup nodes",
   "xboardProxy": "Proxy",
   "xboardSwitch": "Switch",

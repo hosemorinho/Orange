@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:fl_clash/common/common.dart';
@@ -38,6 +39,10 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   late AnimationController _ringController;
   late Animation<double> _ringAnimation;
   bool _isStart = false;
+  Timer? _groupsRetryTimer;
+  int _groupsRetryCount = 0;
+  bool _groupsRetryExhausted = false;
+  static const int _maxGroupsRetries = 10;
 
   bool get _isDesktop =>
       Platform.isLinux || Platform.isWindows || Platform.isMacOS;
@@ -81,13 +86,64 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       },
       fireImmediately: true,
     );
+
+    // 当 profile 存在但 groups 为空时，自动重试加载
+    ref.listenManual(groupsProvider, (prev, next) {
+      if (next.isNotEmpty) {
+        _cancelGroupsRetry();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _groupsRetryTimer?.cancel();
     _iconController.dispose();
     _ringController.dispose();
     super.dispose();
+  }
+
+  /// 当 profile 存在但 groups 为空时，启动定时重试
+  void _startGroupsRetryIfNeeded() {
+    if (_groupsRetryTimer != null || _groupsRetryExhausted) return;
+    _groupsRetryCount = 0;
+    _logger.info('🔄 groups 为空但 profile 存在，启动重试加载...');
+    _groupsRetryTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        _groupsRetryTimer = null;
+        return;
+      }
+      _groupsRetryCount++;
+      final groups = ref.read(groupsProvider);
+      if (groups.isNotEmpty) {
+        _logger.info('✅ groups 加载成功 (第 $_groupsRetryCount 次检查)');
+        _cancelGroupsRetry();
+        return;
+      }
+      if (_groupsRetryCount > _maxGroupsRetries) {
+        _logger.warning('⚠️ groups 加载重试超过 $_maxGroupsRetries 次，停止重试');
+        _groupsRetryTimer?.cancel();
+        _groupsRetryTimer = null;
+        _groupsRetryExhausted = true;
+        if (mounted) setState(() {});
+        return;
+      }
+      // 每隔 3 次检查尝试重新应用配置
+      if (appController.isAttach && _groupsRetryCount % 3 == 1) {
+        _logger.info('🔄 第 $_groupsRetryCount 次重试: 尝试 applyProfile(force: true)...');
+        appController.applyProfile(silence: true, force: true).catchError((e) {
+          _logger.warning('   重试 applyProfile 失败: $e');
+        });
+      }
+    });
+  }
+
+  void _cancelGroupsRetry() {
+    _groupsRetryTimer?.cancel();
+    _groupsRetryTimer = null;
+    _groupsRetryCount = 0;
+    _groupsRetryExhausted = false;
   }
 
   void _handleSwitchStart() {
@@ -358,8 +414,16 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         patchClashConfigProvider.select((state) => state.tun.enable));
 
     if (groups.isEmpty) {
-      // profile 已存在但 Clash 内核还没解析完（groups 为空），显示加载状态
+      // profile 已存在但 Clash 内核还没解析完（groups 为空）
+      if (_groupsRetryExhausted) {
+        // 重试已用尽，显示错误状态并提供手动重试
+        return _buildCoreErrorState(context);
+      }
+      // 启动重试机制并显示加载状态
+      _startGroupsRetryIfNeeded();
       return _buildLoadingState(context);
+    } else {
+      _cancelGroupsRetry();
     }
 
     final (:group, :proxy) = resolveCurrentNode(
@@ -1072,6 +1136,55 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
             AppLocalizations.of(context).xboardImportingSubscription,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCoreErrorState(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colorScheme.error.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Icon(
+            Icons.sync_problem_outlined,
+            size: 36,
+            color: colorScheme.error,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            AppLocalizations.of(context).xboardCoreLoadFailed,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () {
+              setState(() {
+                _groupsRetryExhausted = false;
+              });
+              _startGroupsRetryIfNeeded();
+            },
+            icon: const Icon(Icons.refresh, size: 18),
+            label: Text(AppLocalizations.of(context).xboardRetryLoadConfig),
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
             ),
           ),
         ],

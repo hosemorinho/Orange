@@ -5809,6 +5809,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Failed to load config, core could not parse nodes`
+  String get xboardCoreLoadFailed {
+    return Intl.message(
+      'Failed to load config, core could not parse nodes',
+      name: 'xboardCoreLoadFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retry`
+  String get xboardRetryLoadConfig {
+    return Intl.message(
+      'Retry',
+      name: 'xboardRetryLoadConfig',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Click to setup nodes`
   String get xboardClickToSetupNodes {
     return Intl.message(

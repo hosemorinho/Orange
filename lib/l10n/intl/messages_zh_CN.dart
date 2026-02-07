@@ -1059,6 +1059,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardClickToCopy": MessageLookupByLibrary.simpleMessage("点击复制"),
     "xboardClickToSetupNodes": MessageLookupByLibrary.simpleMessage("点击设置节点"),
     "xboardClose": MessageLookupByLibrary.simpleMessage("关闭"),
+    "xboardCoreLoadFailed": MessageLookupByLibrary.simpleMessage(
+      "配置加载失败，内核未能解析节点",
+    ),
     "xboardCloseTicket": MessageLookupByLibrary.simpleMessage("关闭工单"),
     "xboardCloseTicketConfirm": MessageLookupByLibrary.simpleMessage(
       "确定要关闭此工单吗？关闭后将无法继续回复。",
@@ -1703,6 +1706,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardRetry": MessageLookupByLibrary.simpleMessage("重试"),
     "xboardRetryAttemptFailed": m53,
     "xboardRetryGet": MessageLookupByLibrary.simpleMessage("重新获取"),
+    "xboardRetryLoadConfig": MessageLookupByLibrary.simpleMessage("重新加载"),
     "xboardReturn": MessageLookupByLibrary.simpleMessage("返回"),
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. 支付完成后返回应用，系统将自动检测",

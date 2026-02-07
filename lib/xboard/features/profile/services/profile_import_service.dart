@@ -212,17 +212,30 @@ class XBoardProfileImportService {
       _logger.info('   [2/3] ✅ 已设置为当前配置');
 
       // 3. 尝试应用配置到 Clash 核心（如果核心已就绪）
-      // 不阻塞等待：配置文件和数据库记录已保存，
-      // 如果 appController 尚未初始化（Android 初始化竞态），
-      // 配置会在后续 attach() → _init() 流程中被自动加载
+      // 使用 force: true 确保配置一定被应用，避免 needSetup() 误判跳过
       _logger.info('   [3/3] 尝试应用配置到 Clash 核心...');
       if (appController.isAttach) {
-        _logger.info('       appController 已就绪，调用 applyProfile(silence: true)...');
+        _logger.info('       appController 已就绪，调用 applyProfile(silence: true, force: true)...');
         try {
-          await appController.applyProfile(silence: true);
+          await appController.applyProfile(silence: true, force: true);
           _logger.info('   [3/3] ✅ 配置已应用到 Clash 核心');
         } catch (e, st) {
-          _logger.error('   [3/3] ❌ 应用配置失败（不影响导入结果）', e, st);
+          _logger.error('   [3/3] ❌ applyProfile 失败: $e', e, st);
+        }
+
+        // 验证 groups 是否加载成功，如果为空则尝试直接 updateGroups
+        final groups = _ref.read(groupsProvider);
+        if (groups.isEmpty) {
+          _logger.warning('   ⚠️ applyProfile 后 groups 仍然为空，尝试直接 updateGroups...');
+          try {
+            await appController.updateGroups();
+            final retryGroups = _ref.read(groupsProvider);
+            _logger.info('   updateGroups 重试结果: ${retryGroups.length} 个 groups');
+          } catch (e) {
+            _logger.error('   ❌ updateGroups 重试也失败: $e');
+          }
+        } else {
+          _logger.info('   ✅ groups 已加载: ${groups.length} 个');
         }
       } else {
         _logger.info('   [3/3] appController 未就绪，跳过 applyProfile');

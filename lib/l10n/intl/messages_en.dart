@@ -1534,6 +1534,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardClose": MessageLookupByLibrary.simpleMessage("Close"),
     "xboardCloseTicket": MessageLookupByLibrary.simpleMessage("Close Ticket"),
+    "xboardCoreLoadFailed": MessageLookupByLibrary.simpleMessage(
+      "Failed to load config, core could not parse nodes",
+    ),
     "xboardCloseTicketConfirm": MessageLookupByLibrary.simpleMessage(
       "Are you sure you want to close this ticket? You won\'t be able to reply after closing.",
     ),
@@ -2458,6 +2461,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardRetry": MessageLookupByLibrary.simpleMessage("Retry"),
     "xboardRetryAttemptFailed": m53,
     "xboardRetryGet": MessageLookupByLibrary.simpleMessage("Retry"),
+    "xboardRetryLoadConfig": MessageLookupByLibrary.simpleMessage("Retry"),
     "xboardReturn": MessageLookupByLibrary.simpleMessage("Return"),
     "xboardReturnAfterPaymentAutoDetect": MessageLookupByLibrary.simpleMessage(
       "3. Return to app after payment, system will detect automatically",

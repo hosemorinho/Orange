@@ -87,20 +87,22 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Generate App Icons
+      - name: Install ImageMagick
         if: env.APP_ICON_URL != ''
         shell: bash
         run: |
-          # Install ImageMagick based on platform
           if [[ "$RUNNER_OS" == "Linux" ]]; then
-            sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick webp
+            sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            brew install imagemagick webp
+            brew install imagemagick
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
             choco install imagemagick -y --no-progress
           fi
-          chmod +x scripts/generate_icons.sh
-          bash scripts/generate_icons.sh "$APP_ICON_URL"
+
+      - name: Generate Custom Icons
+        if: env.APP_ICON_URL != ''
+        shell: bash
+        run: dart scripts/generate_icons.dart "$APP_ICON_URL"
 
       - name: Setup Java
         if: matrix.platform == 'android'
@@ -119,6 +121,16 @@ jobs:
             echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/local.properties
             echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/local.properties
           fi
+
+      - name: Setup Android Configuration
+        if: matrix.platform == 'android'
+        shell: bash
+        env:
+          APP_NAME: ${{ env.APP_NAME }}
+          APP_PACKAGE_NAME: ${{ env.APP_PACKAGE_NAME }}
+        run: |
+          chmod +x scripts/setup_android_config.sh
+          bash scripts/setup_android_config.sh
 
       - name: Setup Go
         uses: actions/setup-go@v5

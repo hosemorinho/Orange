@@ -928,6 +928,7 @@ extension CoreControllerExt on AppController {
     } else {
       await updateGroups();
     }
+    await applyProfile();
   }
 
   Future<void> _connectCore() async {

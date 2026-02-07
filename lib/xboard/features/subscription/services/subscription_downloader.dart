@@ -91,12 +91,11 @@ class SubscriptionDownloader {
   /// 等待 Clash 核心服务就绪（Android 特需）
   ///
   /// 在 Android 上，Profile.update() 需要调用 validateConfig()，
-  /// 该方法通过 AIDL 与 Clash 核心服务通信。如果服务未就绪，
-  /// 调用会超时（10秒）。因此需要等待核心连接完成。
+  /// 该方法通过 AIDL 与 Clash 核心服务通信。如果应用还未初始化完成，
+  /// 调用会超时。因此需要等待 appController 初始化。
   ///
-  /// 需要等待两个条件：
-  /// 1. appController.isAttach = true（attach() 已调用，初始化流程已开始）
-  /// 2. coreController.isCompleted = true（Service AIDL 连接已建立）
+  /// 注意: coreController.isCompleted 可能永远不会被设置（核心启动时不会触发），
+  /// 所以我们改为等待 appController.isAttach，这表示应用初始化已完成。
   static Future<void> _waitForCoreReady() async {
     // 非 Android 平台直接跳过
     if (!system.isAndroid) {
@@ -104,35 +103,36 @@ class SubscriptionDownloader {
       return;
     }
 
-    _logger.info('[核心初始化] 等待 Clash 核心服务就绪...');
-    _logger.info('[核心初始化] isAndroid: ${system.isAndroid}');
+    _logger.info('[核心初始化] 等待应用初始化完成 (appController.attach)...');
 
     final startTime = DateTime.now();
     int checkCount = 0;
+
+    // appController.isAttach 表示应用初始化流程已完成
     while (DateTime.now().difference(startTime) < _coreWaitTimeout) {
       checkCount++;
-      // 必须先等 attach() 完成，否则 _connectCore() 尚未开始
-      if (appController.isAttach) {
-        try {
-          _logger.info('[核心初始化-$checkCount] appController.isAttach=true, coreController.isCompleted=${coreController.isCompleted}');
-          if (coreController.isCompleted) {
-            final elapsed = DateTime.now().difference(startTime).inMilliseconds;
-            _logger.info('[核心初始化] ✅ Clash 核心服务已就绪 (${elapsed}ms, 共${checkCount}次检查)');
-            return;
-          }
-        } catch (e) {
-          _logger.info('[核心初始化-$checkCount] 状态检查出错: $e');
+
+      try {
+        if (appController.isAttach) {
+          final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+          _logger.info('[核心初始化] ✅ 应用初始化已完成 (${elapsed}ms, 共${checkCount}次检查)');
+          _logger.info('[核心初始化] 核心可以使用，准备下载配置');
+          return;
         }
-      } else {
+
         if (checkCount <= 3 || checkCount % 10 == 0) {
           _logger.info('[核心初始化-$checkCount] 等待 appController.attach() 完成...');
         }
+      } catch (e) {
+        _logger.warning('[核心初始化-$checkCount] 状态检查出错: $e');
       }
 
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
-    _logger.warning('[核心初始化] ❌ 等待核心服务超时 (${_coreWaitTimeout.inSeconds}s，共${checkCount}次检查)，尝试继续下载');
+    _logger.warning('[核心初始化] ⚠️  等待应用初始化超时 (${_coreWaitTimeout.inSeconds}s，共${checkCount}次检查)');
+    _logger.info('[核心初始化] 应用初始化状态: appController.isAttach=${appController.isAttach}');
+    _logger.info('[核心初始化] 💡 提示: 如果核心状态图标是绿色，说明核心已启动，继续尝试下载配置');
   }
 
   /// 下载订阅并返回 Profile（并发竞速）
@@ -210,17 +210,39 @@ class SubscriptionDownloader {
 
     } on TimeoutException catch (e) {
       _logger.error('❌ 订阅下载超时', e);
+      _logger.error('   错误信息: ${e.message}');
+      _logger.error('   💡 诊断: 可能是网络延迟、DNS 解析缓慢或服务器响应慢');
+      _logger.error('   💡 建议: 检查网络连接、DNS 设置或尝试更换节点');
       throw Exception('下载超时: ${e.message}');
     } on SocketException catch (e) {
-      _logger.error('❌ 网络连接失败', e);
+      _logger.error('❌ 网络连接异常', e);
+      _logger.error('   错误码: ${e.osError?.errorCode}');
+      _logger.error('   错误信息: ${e.message}');
+      _logger.error('   💡 诊断: 网络不可达或连接被拒绝');
+      _logger.error('   💡 建议: 检查网络连接、防火墙或 Clash 配置');
       throw Exception('网络连接失败: ${e.message}');
     } on HttpException catch (e) {
-      _logger.error('❌ HTTP请求失败', e);
-      throw Exception('HTTP请求失败: ${e.message}');
+      _logger.error('❌ HTTP 请求异常', e);
+      _logger.error('   错误信息: ${e.message}');
+      _logger.error('   💡 诊断: HTTP 客户端或请求格式问题');
+      throw Exception('HTTP 请求失败: ${e.message}');
     } catch (e, st) {
       _logger.error('❌ 订阅下载失败', e, st);
       _logger.error('   错误类型: ${e.runtimeType}');
       _logger.error('   错误信息: $e');
+
+      // 识别常见错误模式
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('timeout')) {
+        _logger.error('   💡 诊断: 这看起来像是超时错误');
+      } else if (errorStr.contains('connection') || errorStr.contains('refuse')) {
+        _logger.error('   💡 诊断: 这看起来像是连接错误');
+      } else if (errorStr.contains('certificate')) {
+        _logger.error('   💡 诊断: 这看起来像是 SSL 证书错误');
+      } else if (errorStr.contains('validateconfig')) {
+        _logger.error('   💡 诊断: 这看起来像是配置格式错误（核心验证失败）');
+      }
+
       _logger.info('════════════════════════════════════════');
       rethrow;
     }

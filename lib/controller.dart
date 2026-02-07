@@ -865,6 +865,12 @@ extension SetupControllerExt on AppController {
       setupState: setupState,
       patchConfig: realPatchConfig,
     );
+
+    // Verify config is not empty before writing
+    if (config.isEmpty) {
+      throw Exception('Profile config is empty - failed to load configuration from Clash core');
+    }
+
     final configFilePath = await appPath.configFilePath;
     final yamlString = await encodeYamlTask(config);
     await File(configFilePath).safeWriteAsString(yamlString);

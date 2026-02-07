@@ -8427,97 +8427,25 @@ class $XBoardDatabaseManager {
 
 mixin _$XBoardUsersDaoMixin on DatabaseAccessor<XBoardDatabase> {
   $XBoardUsersTable get xBoardUsers => attachedDatabase.xBoardUsers;
-  XBoardUsersDaoManager get managers => XBoardUsersDaoManager(this);
 }
-
-class XBoardUsersDaoManager {
-  final _$XBoardUsersDaoMixin _db;
-  XBoardUsersDaoManager(this._db);
-  $$XBoardUsersTableTableManager get xBoardUsers =>
-      $$XBoardUsersTableTableManager(_db.attachedDatabase, _db.xBoardUsers);
-}
-
 mixin _$XBoardSubscriptionsDaoMixin on DatabaseAccessor<XBoardDatabase> {
   $XBoardSubscriptionsTable get xBoardSubscriptions =>
       attachedDatabase.xBoardSubscriptions;
-  XBoardSubscriptionsDaoManager get managers =>
-      XBoardSubscriptionsDaoManager(this);
 }
-
-class XBoardSubscriptionsDaoManager {
-  final _$XBoardSubscriptionsDaoMixin _db;
-  XBoardSubscriptionsDaoManager(this._db);
-  $$XBoardSubscriptionsTableTableManager get xBoardSubscriptions =>
-      $$XBoardSubscriptionsTableTableManager(
-        _db.attachedDatabase,
-        _db.xBoardSubscriptions,
-      );
-}
-
 mixin _$XBoardPlansDaoMixin on DatabaseAccessor<XBoardDatabase> {
   $XBoardPlansTable get xBoardPlans => attachedDatabase.xBoardPlans;
-  XBoardPlansDaoManager get managers => XBoardPlansDaoManager(this);
 }
-
-class XBoardPlansDaoManager {
-  final _$XBoardPlansDaoMixin _db;
-  XBoardPlansDaoManager(this._db);
-  $$XBoardPlansTableTableManager get xBoardPlans =>
-      $$XBoardPlansTableTableManager(_db.attachedDatabase, _db.xBoardPlans);
-}
-
 mixin _$XBoardOrdersDaoMixin on DatabaseAccessor<XBoardDatabase> {
   $XBoardOrdersTable get xBoardOrders => attachedDatabase.xBoardOrders;
-  XBoardOrdersDaoManager get managers => XBoardOrdersDaoManager(this);
 }
-
-class XBoardOrdersDaoManager {
-  final _$XBoardOrdersDaoMixin _db;
-  XBoardOrdersDaoManager(this._db);
-  $$XBoardOrdersTableTableManager get xBoardOrders =>
-      $$XBoardOrdersTableTableManager(_db.attachedDatabase, _db.xBoardOrders);
-}
-
 mixin _$XBoardNoticeReadsDaoMixin on DatabaseAccessor<XBoardDatabase> {
   $XBoardNoticeReadsTable get xBoardNoticeReads =>
       attachedDatabase.xBoardNoticeReads;
-  XBoardNoticeReadsDaoManager get managers => XBoardNoticeReadsDaoManager(this);
 }
-
-class XBoardNoticeReadsDaoManager {
-  final _$XBoardNoticeReadsDaoMixin _db;
-  XBoardNoticeReadsDaoManager(this._db);
-  $$XBoardNoticeReadsTableTableManager get xBoardNoticeReads =>
-      $$XBoardNoticeReadsTableTableManager(
-        _db.attachedDatabase,
-        _db.xBoardNoticeReads,
-      );
-}
-
 mixin _$XBoardDomainsDaoMixin on DatabaseAccessor<XBoardDatabase> {
   $XBoardDomainsTable get xBoardDomains => attachedDatabase.xBoardDomains;
-  XBoardDomainsDaoManager get managers => XBoardDomainsDaoManager(this);
 }
-
-class XBoardDomainsDaoManager {
-  final _$XBoardDomainsDaoMixin _db;
-  XBoardDomainsDaoManager(this._db);
-  $$XBoardDomainsTableTableManager get xBoardDomains =>
-      $$XBoardDomainsTableTableManager(_db.attachedDatabase, _db.xBoardDomains);
-}
-
 mixin _$XBoardAuthTokensDaoMixin on DatabaseAccessor<XBoardDatabase> {
   $XBoardAuthTokensTable get xBoardAuthTokens =>
       attachedDatabase.xBoardAuthTokens;
-  XBoardAuthTokensDaoManager get managers => XBoardAuthTokensDaoManager(this);
-}
-
-class XBoardAuthTokensDaoManager {
-  final _$XBoardAuthTokensDaoMixin _db;
-  XBoardAuthTokensDaoManager(this._db);
-  $$XBoardAuthTokensTableTableManager get xBoardAuthTokens =>
-      $$XBoardAuthTokensTableTableManager(
-        _db.attachedDatabase,
-        _db.xBoardAuthTokens,
-      );
 }

@@ -105,7 +105,7 @@ class SubscriptionDownloader {
     }
 
     _logger.info('[核心初始化] 等待 Clash 核心服务就绪...');
-    _logger.info('[核心初始化] 系统: ${system.os}, isAndroid: ${system.isAndroid}');
+    _logger.info('[核心初始化] isAndroid: ${system.isAndroid}');
 
     final startTime = DateTime.now();
     int checkCount = 0;
@@ -164,7 +164,7 @@ class SubscriptionDownloader {
         final result = await profile.update(forceDirect: true);
 
         _logger.info('✅ 订阅下载成功');
-        _logger.info('   ConfigUrl: ${result.configUrl}');
+        _logger.info('   URL: ${result.url}');
         _logger.info('   GroupName: ${result.currentGroupName}');
         _logger.info('════════════════════════════════════════');
         return result;
@@ -203,7 +203,7 @@ class SubscriptionDownloader {
       final updateElapsed = DateTime.now().difference(startUpdate).inMilliseconds;
 
       _logger.info('✅ 订阅下载成功 (${updateElapsed}ms)');
-      _logger.info('   ConfigUrl: ${result.configUrl}');
+      _logger.info('   URL: ${result.url}');
       _logger.info('   GroupName: ${result.currentGroupName}');
       _logger.info('════════════════════════════════════════');
       return result;

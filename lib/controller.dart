@@ -79,8 +79,10 @@ extension InitControllerExt on AppController {
 
   Future<void> _initStatus() async {
     if (!globalState.needInitStatus) {
+      commonPrint.log('init status cancel');
       return;
     }
+    commonPrint.log('init status');
     if (system.isAndroid) {
       await globalState.updateStartTime();
     }
@@ -920,10 +922,12 @@ extension SetupControllerExt on AppController {
 extension CoreControllerExt on AppController {
   Future<void> _initCore() async {
     final isInit = await coreController.isInit;
+    final version = _ref.read(versionProvider);
     if (!isInit) {
-      await coreController.init(_ref.read(versionProvider));
+      await coreController.init(version);
+    } else {
+      await updateGroups();
     }
-    await applyProfile();
   }
 
   Future<void> _connectCore() async {
@@ -933,7 +937,6 @@ extension CoreControllerExt on AppController {
       Future.delayed(Duration(milliseconds: 300)),
     ]);
     final String message = result[0];
-    await Future.delayed(commonDuration);
     if (message.isNotEmpty) {
       _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
       if (_context.mounted) {

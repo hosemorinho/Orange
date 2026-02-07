@@ -85,8 +85,27 @@ abstract class CoreHandlerInterface with CoreInterface {
     dynamic data,
     Duration? timeout,
   }) async {
-    await completer.future;
-    return invoke<T>(method: method, data: data, timeout: timeout);
+    try {
+      await completer.future.timeout(const Duration(seconds: 10));
+    } catch (e) {
+      commonPrint.log(
+        'Invoke pre ${method.name} timeout $e',
+        logLevel: LogLevel.error,
+      );
+      return null;
+    }
+    if (kDebugMode && watchExecution) {
+      commonPrint.log('Invoke ${method.name} ${DateTime.now()} $data');
+    }
+
+    return await utils.handleWatch(
+      function: () async {
+        return await invoke<T>(method: method, data: data, timeout: timeout);
+      },
+      onWatch: (data, elapsedMilliseconds) {
+        commonPrint.log('Invoke ${method.name} ${elapsedMilliseconds}ms');
+      },
+    );
   }
 
   Future<T?> invoke<T>({
@@ -144,8 +163,8 @@ abstract class CoreHandlerInterface with CoreInterface {
 
   @override
   Future<Result> getConfig(String path) async {
-    return await _invoke(method: ActionMethod.getConfig, data: path) ??
-        Result<Map<String, dynamic>>.success({});
+    final res = await _invoke(method: ActionMethod.getConfig, data: path);
+    return res ?? Result.success({});
   }
 
   @override

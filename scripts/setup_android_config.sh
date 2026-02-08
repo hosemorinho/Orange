@@ -1,24 +1,24 @@
 #!/bin/bash
 # Setup Android Configuration from Environment Variables
 # Designed for CI/CD environments - non-interactive
+#
+# NOTE: Only the applicationId is changed (via dart-define in build.gradle.kts).
+# Source code package (com.follow.clash) is NEVER renamed — doing so breaks
+# JNI function names and find_class paths in native C++ code.
 
 set -e
 
 ANDROID_DIR="$(cd "$(dirname "$0")/.." && pwd)/android"
-OLD_PACKAGE="com.follow.clash"
-
-# Read configuration from environment or use defaults
-# Trim whitespace/newlines from environment variables (matching setup.dart behavior)
-NEW_PACKAGE=$(echo "${APP_PACKAGE_NAME:-com.follow.clash}" | tr -d '[:space:]')
 APP_NAME=$(echo "${APP_NAME:-FlClash}" | xargs)
+APP_PACKAGE_NAME=$(echo "${APP_PACKAGE_NAME:-com.follow.clash}" | tr -d '[:space:]')
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  Android Configuration Setup"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "Configuration:"
-echo "  APP_NAME: $APP_NAME"
-echo "  APP_PACKAGE_NAME: $NEW_PACKAGE"
+echo "  APP_NAME:         $APP_NAME"
+echo "  APP_PACKAGE_NAME: $APP_PACKAGE_NAME (applicationId only, source unchanged)"
 echo ""
 
 # Update strings.xml with app name
@@ -26,92 +26,24 @@ echo ""
 STRINGS_XML="$ANDROID_DIR/common/src/main/res/values/strings.xml"
 if [ -f "$STRINGS_XML" ]; then
     echo "Updating app name in strings.xml..."
-    # Replace any <string name="...">...</string> entry with the new app name
-    sed -i "s|<string name=\"FlClash\">.*</string>|<string name=\"$APP_NAME\">$APP_NAME</string>|g" "$STRINGS_XML"
-    # Also handle if it was already renamed in a previous run
-    sed -i "s|<string name=\"[^\"]*\">[^<]*</string>|<string name=\"$APP_NAME\">$APP_NAME</string>|g" "$STRINGS_XML"
+    sed -i "s|<string name=\"FlClash\">.*</string>|<string name=\"FlClash\">$APP_NAME</string>|g" "$STRINGS_XML"
     echo "✓ Updated app name in strings.xml"
 fi
 
 # Replace hardcoded "FlClash" brand strings in Android native code
 if [ "$APP_NAME" != "FlClash" ]; then
     echo "Replacing hardcoded brand strings..."
-    # Replace "FlClash" with APP_NAME in Kotlin/Java source files and manifests
     find "$ANDROID_DIR" -type f \( -name "*.kt" -o -name "*.java" -o -name "AndroidManifest.xml" \) \
         -exec sed -i "s|\"FlClash\"|\"$APP_NAME\"|g" {} +
     echo "✓ Replaced brand strings"
 fi
 
-# Only refactor package if it's different
-if [ "$OLD_PACKAGE" != "$NEW_PACKAGE" ]; then
+# applicationId is set via --dart-define=APP_PACKAGE_NAME in build.gradle.kts.
+# No source code renaming needed.
+if [ "$APP_PACKAGE_NAME" != "com.follow.clash" ]; then
     echo ""
-    echo "Package name change detected, refactoring..."
-    echo "  From: $OLD_PACKAGE"
-    echo "  To:   $NEW_PACKAGE"
-    echo ""
-
-    # Convert package names to paths
-    OLD_PATH="${OLD_PACKAGE//./\/}"
-    NEW_PATH="${NEW_PACKAGE//./\/}"
-
-    # Update all source files
-    echo "Updating source file contents..."
-    # Escape special characters for sed
-    OLD_PACKAGE_ESCAPED="${OLD_PACKAGE//./\\.}"
-    NEW_PACKAGE_ESCAPED=$(printf '%s\n' "$NEW_PACKAGE" | sed 's/[&/\]/\\&/g')
-    find "$ANDROID_DIR" -type f \( -name "*.kt" -o -name "*.java" -o -name "*.aidl" -o -name "*.kts" -o -name "AndroidManifest.xml" \) -exec sed -i "s|${OLD_PACKAGE_ESCAPED}|${NEW_PACKAGE_ESCAPED}|g" {} +
-    echo "✓ Updated source files"
-
-    # Move package directories
-    echo ""
-    echo "Renaming package directories..."
-    for module in app service common core; do
-        module_dir="$ANDROID_DIR/$module"
-        if [ ! -d "$module_dir" ]; then
-            continue
-        fi
-
-        for src_type in java kotlin aidl; do
-            base_dir="$module_dir/src/main/$src_type"
-            if [ ! -d "$base_dir" ]; then
-                continue
-            fi
-
-            old_dir="$base_dir/$OLD_PATH"
-            new_dir="$base_dir/$NEW_PATH"
-
-            if [ -d "$old_dir" ]; then
-                echo "  Moving: $module/src/main/$src_type/$OLD_PATH"
-                mkdir -p "$(dirname "$new_dir")"
-                mv "$old_dir" "$new_dir"
-
-                # Clean up empty directories
-                parent_dir="$(dirname "$old_dir")"
-                while [ "$parent_dir" != "$base_dir" ] && [ -d "$parent_dir" ] && [ -z "$(ls -A "$parent_dir")" ]; do
-                    rmdir "$parent_dir"
-                    parent_dir="$(dirname "$parent_dir")"
-                done
-            fi
-        done
-    done
-    echo "✓ Renamed package directories"
-
-    # Verify
-    remaining=$(grep -r "${OLD_PACKAGE}" "$ANDROID_DIR" --include="*.kt" --include="*.java" --include="*.aidl" --include="*.kts" --include="*.xml" 2>/dev/null | wc -l || echo 0)
-    new_refs=$(grep -r "${NEW_PACKAGE}" "$ANDROID_DIR" --include="*.kt" --include="*.java" --include="*.aidl" --include="*.kts" --include="*.xml" 2>/dev/null | wc -l || echo 0)
-
-    echo ""
-    echo "Verification:"
-    echo "  Remaining old refs: $remaining"
-    echo "  New package refs: $new_refs"
-
-    if [ "$remaining" -gt 0 ]; then
-        echo "⚠ Warning: Some old package references may remain"
-    else
-        echo "✓ Package refactoring completed successfully"
-    fi
-else
-    echo "Package name unchanged, skipping refactoring"
+    echo "Note: applicationId will be set to '$APP_PACKAGE_NAME' at build time via dart-define."
+    echo "      Source code package remains 'com.follow.clash' (no renaming needed)."
 fi
 
 echo ""

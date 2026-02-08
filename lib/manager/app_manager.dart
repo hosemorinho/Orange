@@ -69,7 +69,7 @@ class _AppStateManagerState extends ConsumerState<AppStateManager>
       render?.resume();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         appController.tryCheckIp();
-        if (system.isAndroid) {
+        if (system.isAndroid && appController.isAttach) {
           appController.tryStartCore();
         }
       });

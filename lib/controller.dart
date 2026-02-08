@@ -20,6 +20,7 @@ class AppController {
   late final BuildContext _context;
   late final WidgetRef _ref;
   bool isAttach = false;
+  bool _isApplyingProfile = false;
 
   static AppController? _instance;
 
@@ -56,8 +57,26 @@ extension InitControllerExt on AppController {
       window?.hide();
     }
     await _handleFailedPreference();
-    await _connectCore();
-    await _initCore();
+    final isConnected = await _connectCore();
+    if (!isConnected) {
+      commonPrint.log(
+        'init: connect core failed, skip initCore/initStatus and wait for restart',
+        logLevel: LogLevel.warning,
+      );
+      _ref.read(initProvider.notifier).value = true;
+      return;
+    }
+
+    final isCoreInitialized = await _initCore();
+    if (!isCoreInitialized) {
+      commonPrint.log(
+        'init: init core failed, skip initStatus and wait for restart',
+        logLevel: LogLevel.warning,
+      );
+      _ref.read(initProvider.notifier).value = true;
+      return;
+    }
+
     await _initStatus();
     _ref.read(initProvider.notifier).value = true;
 
@@ -65,7 +84,9 @@ extension InitControllerExt on AppController {
     // initProvider == false 被跳过。初始化完成后再次检查并补一次 fullSetup。
     final groups = _ref.read(groupsProvider);
     final profileId = _ref.read(currentProfileIdProvider);
-    if (groups.isEmpty && profileId != null) {
+    if (groups.isEmpty &&
+        profileId != null &&
+        _ref.read(coreStatusProvider) == CoreStatus.connected) {
       commonPrint.log(
         'post-init: groups empty but profile $profileId exists, triggering fullSetup',
       );
@@ -99,6 +120,12 @@ extension InitControllerExt on AppController {
       commonPrint.log('init status: no profile yet, skip apply');
       return;
     }
+
+    if (_ref.read(coreStatusProvider) != CoreStatus.connected) {
+      commonPrint.log('init status: core disconnected, skip apply');
+      return;
+    }
+
     if (system.isAndroid) {
       await globalState.updateStartTime();
     }
@@ -517,6 +544,13 @@ extension SetupControllerExt on AppController {
     if (!_ref.read(initProvider)) {
       return;
     }
+
+    if (_ref.read(coreStatusProvider) != CoreStatus.connected) {
+      commonPrint.log('fullSetup skip: core disconnected, try restart core');
+      tryStartCore();
+      return;
+    }
+
     _ref.read(delayDataSourceProvider.notifier).value = {};
     applyProfile(force: true);
     _ref.read(logsProvider.notifier).value = FixedList(500);
@@ -770,18 +804,34 @@ extension SetupControllerExt on AppController {
     bool force = false,
     VoidCallback? preloadInvoke,
   }) async {
-    if (!force && !await needSetup()) {
+    if (_isApplyingProfile) {
+      commonPrint.log('applyProfile skip: another apply is running');
       return;
     }
-    await loadingRun(
-      () async {
-        await _setupConfig(preloadInvoke);
-        await updateGroups();
-        await updateProviders();
-      },
-      silence: true,
-      tag: !silence ? LoadingTag.proxies : null,
-    );
+
+    if (_ref.read(coreStatusProvider) != CoreStatus.connected) {
+      commonPrint.log('applyProfile skip: core disconnected');
+      return;
+    }
+
+    _isApplyingProfile = true;
+    try {
+      if (!force && !await needSetup()) {
+        return;
+      }
+
+      await loadingRun(
+        () async {
+          await _setupConfig(preloadInvoke);
+          await updateGroups();
+          await updateProviders();
+        },
+        silence: true,
+        tag: !silence ? LoadingTag.proxies : null,
+      );
+    } finally {
+      _isApplyingProfile = false;
+    }
   }
 
   Future<Map<String, dynamic>> getProfile({
@@ -936,17 +986,22 @@ extension SetupControllerExt on AppController {
 }
 
 extension CoreControllerExt on AppController {
-  Future<void> _initCore() async {
+  Future<bool> _initCore() async {
     final isInit = await coreController.isInit;
     final version = _ref.read(versionProvider);
     if (!isInit) {
-      await coreController.init(version);
+      final initSuccess = await coreController.init(version);
+      if (!initSuccess) {
+        commonPrint.log('init core failed: coreController.init returned false');
+        return false;
+      }
     } else {
       await updateGroups();
     }
+    return true;
   }
 
-  Future<void> _connectCore() async {
+  Future<bool> _connectCore() async {
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.connecting;
     final result = await Future.wait([
       coreController.preload(),
@@ -958,9 +1013,10 @@ extension CoreControllerExt on AppController {
       if (_context.mounted) {
         _context.showNotifier(message);
       }
-      return;
+      return false;
     }
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.connected;
+    return true;
   }
 
   Future<Result<bool>> _requestAdmin(bool enableTun) async {
@@ -1001,8 +1057,14 @@ extension CoreControllerExt on AppController {
   Future<void> restartCore([bool start = false]) async {
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
     await coreController.shutdown(true);
-    await _connectCore();
-    await _initCore();
+    final isConnected = await _connectCore();
+    if (!isConnected) {
+      return;
+    }
+    final isCoreInitialized = await _initCore();
+    if (!isCoreInitialized) {
+      return;
+    }
     if (start || _ref.read(isStartProvider)) {
       await updateStatus(true, isInit: true);
     } else {

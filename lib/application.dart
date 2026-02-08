@@ -88,6 +88,11 @@ class ApplicationState extends ConsumerState<Application> {
 
       await _attachWithRetry();
 
+      // 如果初次 attach 时核心连接失败，启动后主动拉起一次恢复流程
+      if (appController.isAttach && system.isAndroid) {
+        unawaited(appController.tryStartCore());
+      }
+
       _autoUpdateProfilesTask();
       app?.initShortcuts();
 

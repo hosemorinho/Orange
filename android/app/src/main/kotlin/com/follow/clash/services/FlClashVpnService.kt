@@ -25,7 +25,7 @@ class FlClashVpnService : SystemVpnService(), BaseServiceInterface {
 
     private val uidPackageNameMap = mutableMapOf<Int, String>()
 
-    fun protect(fd: Int): Boolean {
+    override fun protect(fd: Int): Boolean {
         return super.protect(fd)
     }
 

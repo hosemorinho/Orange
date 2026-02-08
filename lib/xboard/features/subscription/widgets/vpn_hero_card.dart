@@ -1116,8 +1116,13 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
-            onPressed: () {
-              appController.fullSetup();
+            onPressed: () async {
+              _logger.info('手动重试加载配置：优先执行 xboardQuickSetup()');
+              final message = await appController.xboardQuickSetup();
+              if (message.isNotEmpty) {
+                _logger.warning('xboardQuickSetup 失败，回退 fullSetup(): $message');
+                appController.fullSetup();
+              }
             },
             icon: const Icon(Icons.refresh, size: 18),
             label: Text(AppLocalizations.of(context).xboardRetryLoadConfig),

@@ -88,7 +88,7 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
     debouncer.call(
       FunctionTag.updateStatus,
       () {
-        appController.updateStatus(_isStart);
+        appController.updateStatus(_isStart, isInit: !ref.read(initProvider));
       },
       duration: commonDuration,
     );

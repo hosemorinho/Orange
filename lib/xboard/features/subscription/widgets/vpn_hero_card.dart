@@ -100,7 +100,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     debouncer.call(
       FunctionTag.updateStatus,
       () {
-        appController.updateStatus(_isStart);
+        appController.updateStatus(_isStart, isInit: !ref.read(initProvider));
       },
       duration: commonDuration,
     );

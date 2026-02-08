@@ -56,7 +56,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
     debouncer.call(
       FunctionTag.updateStatus,
       () {
-        appController.updateStatus(isStart);
+        appController.updateStatus(isStart, isInit: !ref.read(initProvider));
       },
       duration: commonDuration,
     );
@@ -154,4 +154,4 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
       ),
     );
   }
-} 
+}

@@ -42,3 +42,6 @@ export 'result/result.dart';
 // ===== 导出工具函数 =====
 export 'utils/utils.dart';
 
+// ===== 导出核心桥接服务 =====
+export 'clash_core_bridge.dart';
+

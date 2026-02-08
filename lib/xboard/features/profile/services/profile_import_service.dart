@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -210,33 +208,12 @@ class XBoardProfileImportService {
       _ref.read(currentProfileIdProvider.notifier).value = profile.id;
       _logger.info('已设置为当前配置');
 
-      // 3. 尝试应用配置到 Clash 核心
+      // 3. 通过 ClashCoreBridge 应用配置到核心（绕过 safeRun，让错误自然传播）
       if (_ref.read(initProvider)) {
-        _logger.info('核心已就绪，先验证配置文件...');
-
-        // 3a. 先验证配置文件格式，避免 applyProfile 内部静默失败
-        final profilePath = await appPath.getProfilePath(profile.id.toString());
-        final validateResult = await coreController.validateConfig(profilePath);
-        if (validateResult.isNotEmpty) {
-          _logger.error('❌ 配置文件验证失败: $validateResult');
-          throw Exception('配置文件格式错误: $validateResult');
-        }
-        _logger.info('✅ 配置文件验证通过');
-
-        // 3b. 应用配置
-        _logger.info('应用配置到核心...');
-        await appController.applyProfile(silence: true, force: true);
-
-        // 3c. 检查 groups 是否加载成功，为空则尝试单独 updateGroups
-        final groups = _ref.read(groupsProvider);
-        if (groups.isEmpty) {
-          _logger.warning('⚠️ applyProfile 后 groups 为空，尝试单独 updateGroups...');
-          await appController.updateGroups();
-          final retryGroups = _ref.read(groupsProvider);
-          _logger.info('updateGroups 重试后 groups 数量: ${retryGroups.length}');
-        } else {
-          _logger.info('✅ groups 加载成功，数量: ${groups.length}');
-        }
+        _logger.info('核心已就绪，通过 ClashCoreBridge 应用配置...');
+        final bridge = _ref.read(clashCoreBridgeProvider);
+        final groups = await bridge.applyAndFetchGroups(profile);
+        _logger.info('✅ 配置应用成功，groups 数量: ${groups.length}');
       } else {
         _logger.info('核心尚未初始化完成，配置将在初始化完成后自动加载');
       }

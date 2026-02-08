@@ -56,8 +56,8 @@ class ServiceDelegate<T>(
         }
     }
 
-    suspend inline fun <R> useService(
-        timeoutMillis: Long = 5000, crossinline block: suspend (T) -> R
+    suspend fun <R> useService(
+        timeoutMillis: Long = 5000, block: suspend (T) -> R
     ): Result<R> {
         if (!_bindingState.get()) {
             bind()

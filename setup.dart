@@ -475,6 +475,10 @@ class BuildCommand extends Command {
     final apiTextDomain = (Platform.environment['API_TEXT_DOMAIN'] ?? '').trim();
     final appName = (Platform.environment['APP_NAME'] ?? '').trim();
     final appPackageName = (Platform.environment['APP_PACKAGE_NAME'] ?? '').trim();
+    final refactorAndroidPackage =
+        (Platform.environment['REFACTOR_ANDROID_PACKAGE'] ?? '').trim().toLowerCase();
+    final shouldExposePackageNameToDart =
+        target == Target.android && refactorAndroidPackage == 'true';
     final themeColor = (Platform.environment['THEME_COLOR'] ?? '').trim();
     final crispWebsiteId = (Platform.environment['CRISP_WEBSITE_ID'] ?? '').trim();
 
@@ -484,7 +488,8 @@ class BuildCommand extends Command {
       if (apiBaseUrl.isNotEmpty) 'API_BASE_URL': apiBaseUrl,
       if (apiTextDomain.isNotEmpty) 'API_TEXT_DOMAIN': apiTextDomain,
       if (appName.isNotEmpty) 'APP_NAME': appName,
-      if (appPackageName.isNotEmpty) 'APP_PACKAGE_NAME': appPackageName,
+      if (appPackageName.isNotEmpty && shouldExposePackageNameToDart)
+        'APP_PACKAGE_NAME': appPackageName,
       if (themeColor.isNotEmpty) 'THEME_COLOR': themeColor,
       if (crispWebsiteId.isNotEmpty) 'CRISP_WEBSITE_ID': crispWebsiteId,
     };

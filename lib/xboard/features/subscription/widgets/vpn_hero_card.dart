@@ -1127,14 +1127,16 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
               });
               _logger.info('手动重试加载配置：优先执行 xboardQuickSetup()');
               try {
-                final message = await appController.xboardQuickSetup();
-                if (message.isNotEmpty) {
-                  if (message.contains('another setup is running')) {
-                    _logger.info('当前已有 setup 在执行中，跳过 fallback fullSetup');
-                  } else {
-                    _logger.warning('xboardQuickSetup 失败，回退 fullSetup(): $message');
-                    appController.fullSetup();
-                  }
+                final quickSetupResult = await appController.xboardQuickSetup();
+                if (!quickSetupResult.isSuccess && quickSetupResult.shouldFallbackToFullSetup) {
+                  _logger.warning(
+                    'xboardQuickSetup 失败（${quickSetupResult.status.name}），回退 fullSetup(): ${quickSetupResult.message}',
+                  );
+                  appController.fullSetup();
+                } else if (!quickSetupResult.isSuccess) {
+                  _logger.info(
+                    'xboardQuickSetup 未执行回退（${quickSetupResult.status.name}）：${quickSetupResult.message}',
+                  );
                 }
               } finally {
                 if (mounted) {

@@ -40,6 +40,37 @@ class AppController {
   }
 }
 
+enum XboardQuickSetupStatus {
+  success,
+  busy,
+  notAttached,
+  coreDisconnected,
+  noCurrentProfile,
+  invalidArguments,
+  failed,
+}
+
+class XboardQuickSetupResult {
+  final XboardQuickSetupStatus status;
+  final String message;
+
+  const XboardQuickSetupResult({required this.status, this.message = ''});
+
+  bool get isSuccess => status == XboardQuickSetupStatus.success;
+
+  bool get shouldFallbackToFullSetup {
+    return switch (status) {
+      XboardQuickSetupStatus.success => false,
+      XboardQuickSetupStatus.busy => false,
+      XboardQuickSetupStatus.notAttached => false,
+      XboardQuickSetupStatus.noCurrentProfile => false,
+      XboardQuickSetupStatus.coreDisconnected => true,
+      XboardQuickSetupStatus.invalidArguments => true,
+      XboardQuickSetupStatus.failed => true,
+    };
+  }
+}
+
 extension InitControllerExt on AppController {
   Future<void> _init() async {
     FlutterError.onError = (details) {
@@ -555,11 +586,6 @@ extension SetupControllerExt on AppController {
       return;
     }
 
-    if (!isAttach) {
-      commonPrint.log('fullSetup skip: appController not attached yet');
-      return;
-    }
-
     if (coreStatus != CoreStatus.connected) {
       commonPrint.log('fullSetup skip: core disconnected, try restart core');
       tryStartCore();
@@ -859,7 +885,7 @@ extension SetupControllerExt on AppController {
     }
   }
 
-  Future<String> xboardQuickSetup() async {
+  Future<XboardQuickSetupResult> xboardQuickSetup() async {
     final coreStatus = _ref.read(coreStatusProvider);
     final currentProfileId = _ref.read(currentProfileIdProvider);
     commonPrint.log(
@@ -872,11 +898,21 @@ extension SetupControllerExt on AppController {
 
     if (!system.isAndroid) {
       await applyProfile(silence: true, force: true);
-      return '';
+      return const XboardQuickSetupResult(status: XboardQuickSetupStatus.success);
+    }
+
+    if (!isAttach) {
+      return const XboardQuickSetupResult(
+        status: XboardQuickSetupStatus.notAttached,
+        message: 'xboardQuickSetup skipped: appController not attached',
+      );
     }
 
     if (_isApplyingProfile || _isXboardQuickSetting) {
-      return 'xboardQuickSetup skipped: another setup is running';
+      return const XboardQuickSetupResult(
+        status: XboardQuickSetupStatus.busy,
+        message: 'xboardQuickSetup skipped: another setup is running',
+      );
     }
 
     if (coreStatus != CoreStatus.connected) {
@@ -884,22 +920,30 @@ extension SetupControllerExt on AppController {
       await tryStartCore();
       final nextStatus = _ref.read(coreStatusProvider);
       if (nextStatus != CoreStatus.connected) {
-        return 'xboardQuickSetup failed: core disconnected';
+        return const XboardQuickSetupResult(
+          status: XboardQuickSetupStatus.coreDisconnected,
+          message: 'xboardQuickSetup failed: core disconnected',
+        );
       }
     }
 
     final profile = _ref.read(currentProfileProvider);
     final profileId = profile?.id;
     if (profileId == null) {
-      return 'xboardQuickSetup failed: no current profile';
+      return const XboardQuickSetupResult(
+        status: XboardQuickSetupStatus.noCurrentProfile,
+        message: 'xboardQuickSetup failed: no current profile',
+      );
     }
 
     _isXboardQuickSetting = true;
-    String? fallbackMessage;
     try {
       final setupState = await _ref.read(setupStateProvider(profileId).future);
       if (setupState.profileId == null) {
-        return 'xboardQuickSetup failed: setupState has no profileId';
+        return const XboardQuickSetupResult(
+          status: XboardQuickSetupStatus.noCurrentProfile,
+          message: 'xboardQuickSetup failed: setupState has no profileId',
+        );
       }
 
       final initParams = InitParams(
@@ -914,27 +958,32 @@ extension SetupControllerExt on AppController {
 
       if (setupMessage.isNotEmpty) {
         commonPrint.log('xboardQuickSetup failed: $setupMessage');
-        fallbackMessage = setupMessage;
-      } else {
-        // quickSetup 成功后刷新状态
-        await updateGroups();
-        await updateProviders();
-        addCheckIp();
+        if (setupMessage.contains('invalid arguments')) {
+          return XboardQuickSetupResult(
+            status: XboardQuickSetupStatus.invalidArguments,
+            message: setupMessage,
+          );
+        }
+        return XboardQuickSetupResult(
+          status: XboardQuickSetupStatus.failed,
+          message: setupMessage,
+        );
       }
+
+      // quickSetup 成功后刷新状态
+      await updateGroups();
+      await updateProviders();
+      addCheckIp();
+      return const XboardQuickSetupResult(status: XboardQuickSetupStatus.success);
     } catch (e, s) {
       commonPrint.log('xboardQuickSetup exception: $e, $s', logLevel: LogLevel.error);
-      fallbackMessage = '$e';
+      return XboardQuickSetupResult(
+        status: XboardQuickSetupStatus.failed,
+        message: '$e',
+      );
     } finally {
       _isXboardQuickSetting = false;
     }
-
-    if (fallbackMessage != null && fallbackMessage.isNotEmpty) {
-      commonPrint.log('xboardQuickSetup fallback: applyProfile(force=true)');
-      await applyProfile(silence: true, force: true);
-      return fallbackMessage;
-    }
-
-    return '';
   }
 
   Future<Map<String, dynamic>> getProfile({

@@ -211,10 +211,16 @@ class XBoardProfileImportService {
       // 3. 尝试应用配置到 Clash 核心
       if (_ref.read(initProvider)) {
         _logger.info('核心已初始化，使用 xboardQuickSetup() 原子应用配置...');
-        final message = await appController.xboardQuickSetup();
-        if (message.isNotEmpty) {
-          _logger.warning('xboardQuickSetup 返回错误，回退到 fullSetup(): $message');
+        final quickSetupResult = await appController.xboardQuickSetup();
+        if (!quickSetupResult.isSuccess && quickSetupResult.shouldFallbackToFullSetup) {
+          _logger.warning(
+            'xboardQuickSetup 失败（${quickSetupResult.status.name}），回退 fullSetup(): ${quickSetupResult.message}',
+          );
           appController.fullSetup();
+        } else if (!quickSetupResult.isSuccess) {
+          _logger.info(
+            'xboardQuickSetup 未执行回退（${quickSetupResult.status.name}）：${quickSetupResult.message}',
+          );
         }
       } else {
         _logger.info('核心尚未初始化完成，配置将在初始化完成后自动加载');

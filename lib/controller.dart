@@ -510,7 +510,7 @@ extension SetupControllerExt on AppController {
           return;
         }
         await globalState.handleStart([updateRunTime, updateTraffic]);
-        final vpnOptions = sharedState.vpnOptions;
+        final vpnOptions = this.sharedState.vpnOptions;
         if (vpnOptions != null) {
           await service?.startVpn(vpnOptions);
         }
@@ -523,7 +523,7 @@ extension SetupControllerExt on AppController {
             await globalState.handleStart([updateRunTime, updateTraffic]);
           },
         );
-        final vpnOptions = sharedState.vpnOptions;
+        final vpnOptions = this.sharedState.vpnOptions;
         if (vpnOptions != null) {
           await service?.startVpn(vpnOptions);
         }

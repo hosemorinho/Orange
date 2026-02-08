@@ -27,6 +27,7 @@ class AppController {
   int _setupRequestSeq = 0;
   String? _activeSetupRequestId;
   String? _lastCoreReadyError;
+  _SetupDispatchRequest? _deferredSetupRequest;
   _SetupDispatchRequest? _queuedSetupRequest;
   Completer<void>? _queuedSetupCompleter;
   XboardQuickSetupResult _lastSetupDispatchResult = const XboardQuickSetupResult(
@@ -47,6 +48,7 @@ class AppController {
     _ref = ref;
     await _init();
     isAttach = true;
+    _flushDeferredSetupIfNeeded();
   }
 }
 
@@ -155,12 +157,27 @@ extension InitControllerExt on AppController {
 
     final isCoreInitialized = await _initCore();
     if (!isCoreInitialized) {
-      commonPrint.log(
-        'init: init core failed, skip initStatus and wait for restart',
-        logLevel: LogLevel.warning,
-      );
-      _ref.read(initProvider.notifier).value = true;
-      return;
+      if (system.isAndroid && _ref.read(currentProfileIdProvider) != null) {
+        commonPrint.log(
+          'init: init core failed, try recover by quickSetup with current profile',
+          logLevel: LogLevel.warning,
+        );
+        final quickSetupResult = await _xboardQuickSetupInternal(
+          allowCoreNotReady: true,
+        );
+        commonPrint.log(
+          'init: quickSetup recover result: ${quickSetupResult.status.name}, ${quickSetupResult.message}',
+          logLevel: quickSetupResult.isSuccess ? LogLevel.info : LogLevel.warning,
+        );
+      }
+      if (!_isCoreReady) {
+        commonPrint.log(
+          'init: init core failed, skip initStatus and wait for restart',
+          logLevel: LogLevel.warning,
+        );
+        _ref.read(initProvider.notifier).value = true;
+        return;
+      }
     }
 
     await _initStatus();
@@ -641,7 +658,7 @@ extension SetupControllerExt on AppController {
 
     final request = _newSetupDispatchRequest(
       trigger: 'fullSetup',
-      preferQuickSetup: false,
+      preferQuickSetup: system.isAndroid,
       force: true,
       silence: true,
       resetUiCaches: true,
@@ -913,10 +930,37 @@ extension SetupControllerExt on AppController {
     );
   }
 
+  void _flushDeferredSetupIfNeeded() {
+    final deferred = _deferredSetupRequest;
+    if (deferred == null) {
+      return;
+    }
+    _deferredSetupRequest = null;
+    commonPrint.log(
+      'setupDispatch flush deferred: requestId=${deferred.requestId}, '
+      'traceIds=${deferred.traceRequestIds}, trigger=${deferred.trigger}',
+    );
+    unawaited(_dispatchSetup(deferred));
+  }
+
   Future<XboardQuickSetupResult> _dispatchSetup(
     _SetupDispatchRequest request, {
     VoidCallback? preloadInvoke,
   }) async {
+    if (!isAttach) {
+      _deferredSetupRequest = (_deferredSetupRequest?.merge(request)) ?? request;
+      commonPrint.log(
+        'setupDispatch deferred(not attached): requestId=${request.requestId}, '
+        'deferredRequestId=${_deferredSetupRequest?.requestId}, '
+        'deferredTraceIds=${_deferredSetupRequest?.traceRequestIds}, '
+        'trigger=${request.trigger}',
+      );
+      return const XboardQuickSetupResult(
+        status: XboardQuickSetupStatus.notAttached,
+        message: 'setupDispatch deferred: appController not attached',
+      );
+    }
+
     if (_isDispatchingSetup) {
       _queuedSetupRequest = (_queuedSetupRequest?.merge(request)) ?? request;
       _queuedSetupCompleter ??= Completer<void>();

@@ -164,9 +164,17 @@ object State {
                     runStateFlow.tryEmit(RunState.PENDING)
                     val options = sharedState.vpnOptions ?: return@launch
                     appPlugin?.let {
-                        it.prepare(options.enable) {
-                            runTime = Service.startService(options, runTime)
-                            runStateFlow.tryEmit(RunState.START)
+                        it.prepare(options.enable) { granted ->
+                            if (!granted) {
+                                runStateFlow.tryEmit(RunState.STOP)
+                            } else {
+                                runTime = Service.startService(options, runTime)
+                                if (runTime != 0L) {
+                                    runStateFlow.tryEmit(RunState.START)
+                                } else {
+                                    runStateFlow.tryEmit(RunState.STOP)
+                                }
+                            }
                         }
                     } ?: run {
                         val intent = VpnService.prepare(GlobalState.application)
@@ -174,7 +182,11 @@ object State {
                             return@launch
                         }
                         runTime = Service.startService(options, runTime)
-                        runStateFlow.tryEmit(RunState.START)
+                        if (runTime != 0L) {
+                            runStateFlow.tryEmit(RunState.START)
+                        } else {
+                            runStateFlow.tryEmit(RunState.STOP)
+                        }
                     }
                 } finally {
                     if (runStateFlow.value == RunState.PENDING) {
@@ -204,6 +216,4 @@ object State {
         }
     }
 }
-
-
 

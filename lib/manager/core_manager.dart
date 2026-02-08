@@ -22,6 +22,8 @@ class CoreManager extends ConsumerStatefulWidget {
 
 class _CoreContainerState extends ConsumerState<CoreManager>
     with CoreEventListener {
+  DateTime? _lastCrashRecoveryAt;
+
   @override
   Widget build(BuildContext context) {
     return widget.child;
@@ -113,6 +115,15 @@ class _CoreContainerState extends ConsumerState<CoreManager>
       context.showNotifier(message);
     }
     await coreController.shutdown(false);
+
+    final now = DateTime.now();
+    final lastRecoveryAt = _lastCrashRecoveryAt;
+    final canTryRecover =
+        lastRecoveryAt == null || now.difference(lastRecoveryAt) > const Duration(seconds: 5);
+    if (canTryRecover) {
+      _lastCrashRecoveryAt = now;
+      unawaited(appController.tryStartCore(forceWhenNotReady: true));
+    }
     super.onCrash(message);
   }
 }

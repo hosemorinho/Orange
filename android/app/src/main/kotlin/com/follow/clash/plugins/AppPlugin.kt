@@ -25,7 +25,6 @@ import com.follow.clash.getPackageIconPath
 import com.follow.clash.models.Package
 import com.follow.clash.showToast
 import com.google.gson.Gson
-import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -50,11 +49,13 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
 
     private var activityRef: WeakReference<Activity>? = null
 
+    private var activityBinding: ActivityPluginBinding? = null
+
     private lateinit var channel: MethodChannel
 
     private lateinit var scope: CoroutineScope
 
-    private var vpnPrepareCallback: (suspend () -> Unit)? = null
+    private var vpnPrepareCallback: (suspend (Boolean) -> Unit)? = null
 
     private var requestNotificationCallback: (() -> Unit)? = null
 
@@ -276,25 +277,52 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
         requestNotificationCallback = null
     }
 
-    fun prepare(needPrepare: Boolean, callBack: (suspend () -> Unit)) {
+    fun prepare(needPrepare: Boolean, callBack: (suspend (Boolean) -> Unit)) {
         vpnPrepareCallback = callBack
         if (!needPrepare) {
-            invokeVpnPrepareCallback()
+            invokeVpnPrepareCallback(granted = true)
             return
         }
         val intent = VpnService.prepare(GlobalState.application)
         if (intent != null) {
-            activityRef?.get()?.startActivityForResult(intent, VPN_PERMISSION_REQUEST_CODE)
+            val activity = activityRef?.get()
+            if (activity == null) {
+                GlobalState.log("prepare vpn failed: activity is null")
+                GlobalState.application.showToast("Unable to request VPN permission")
+                invokeVpnPrepareCallback(granted = false)
+                return
+            }
+            try {
+                activity.startActivityForResult(intent, VPN_PERMISSION_REQUEST_CODE)
+            } catch (e: Exception) {
+                GlobalState.log("prepare vpn failed: ${e.message}")
+                GlobalState.application.showToast("Unable to request VPN permission")
+                invokeVpnPrepareCallback(granted = false)
+            }
             return
         }
-        invokeVpnPrepareCallback()
+        invokeVpnPrepareCallback(granted = true)
     }
 
-    fun invokeVpnPrepareCallback() {
+    fun invokeVpnPrepareCallback(granted: Boolean) {
         GlobalState.launch {
-            vpnPrepareCallback?.invoke()
+            vpnPrepareCallback?.invoke(granted)
             vpnPrepareCallback = null
         }
+    }
+
+    private fun attachActivity(binding: ActivityPluginBinding) {
+        activityBinding = binding
+        activityRef = WeakReference(binding.activity)
+        binding.addActivityResultListener(::onActivityResult)
+        binding.addRequestPermissionsResultListener(::onRequestPermissionsResultListener)
+    }
+
+    private fun detachActivity() {
+        activityBinding?.removeActivityResultListener(::onActivityResult)
+        activityBinding?.removeRequestPermissionsResultListener(::onRequestPermissionsResultListener)
+        activityBinding = null
+        activityRef = null
     }
 
 
@@ -379,29 +407,32 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        activityRef = WeakReference(binding.activity)
-        binding.addActivityResultListener(::onActivityResult)
-        binding.addRequestPermissionsResultListener(::onRequestPermissionsResultListener)
+        attachActivity(binding)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        activityRef = null
+        detachActivity()
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        activityRef = WeakReference(binding.activity)
+        attachActivity(binding)
     }
 
     override fun onDetachedFromActivity() {
         channel.invokeMethod("exit", null)
-        activityRef = null
+        detachActivity()
     }
 
     private fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
-        if (requestCode == VPN_PERMISSION_REQUEST_CODE) {
-            if (resultCode == FlutterActivity.RESULT_OK) {
-                invokeVpnPrepareCallback()
-            }
+        if (requestCode != VPN_PERMISSION_REQUEST_CODE) {
+            return false
+        }
+        if (resultCode == Activity.RESULT_OK) {
+            invokeVpnPrepareCallback(granted = true)
+        } else {
+            GlobalState.log("prepare vpn cancelled by user")
+            GlobalState.application.showToast("VPN permission denied")
+            invokeVpnPrepareCallback(granted = false)
         }
         return true
     }
@@ -409,9 +440,10 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
     private fun onRequestPermissionsResultListener(
         requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ): Boolean {
-        if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE) {
-            isBlockNotification = true
+        if (requestCode != NOTIFICATION_PERMISSION_REQUEST_CODE) {
+            return false
         }
+        isBlockNotification = true
         invokeRequestNotificationCallback()
         return true
     }

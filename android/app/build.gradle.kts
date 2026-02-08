@@ -14,10 +14,36 @@ val localProperties = Properties().apply {
     }
 }
 
+fun envOrProperty(envKey: String, vararg propertyKeys: String): String? {
+    val envValue = System.getenv(envKey)?.takeIf { it.isNotBlank() }
+    if (envValue != null) {
+        return envValue
+    }
+    for (propertyKey in propertyKeys) {
+        val propertyValue = localProperties.getProperty(propertyKey)?.takeIf { it.isNotBlank() }
+        if (propertyValue != null) {
+            return propertyValue
+        }
+    }
+    return null
+}
+
 val mStoreFile: File = file("keystore.jks")
-val mStorePassword: String? = localProperties.getProperty("storePassword")
-val mKeyAlias: String? = localProperties.getProperty("keyAlias")
-val mKeyPassword: String? = localProperties.getProperty("keyPassword")
+val mStorePassword: String? = envOrProperty(
+    "STORE_PASSWORD",
+    "storePassword",
+    "STORE_PASSWORD",
+)
+val mKeyAlias: String? = envOrProperty(
+    "KEY_ALIAS",
+    "keyAlias",
+    "KEY_ALIAS",
+)
+val mKeyPassword: String? = envOrProperty(
+    "KEY_PASSWORD",
+    "keyPassword",
+    "KEY_PASSWORD",
+)
 val isRelease =
     mStoreFile.exists() && mStorePassword != null && mKeyAlias != null && mKeyPassword != null
 

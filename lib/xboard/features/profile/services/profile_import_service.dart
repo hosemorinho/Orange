@@ -210,8 +210,8 @@ class XBoardProfileImportService {
 
       // 3. 尝试应用配置到 Clash 核心
       if (_ref.read(initProvider)) {
-        _logger.info('核心已就绪，直接应用配置...');
-        await appController.applyProfile(silence: true, force: true);
+        _logger.info('核心已初始化，触发 fullSetup() 走统一核心通信链路...');
+        appController.fullSetup();
       } else {
         _logger.info('核心尚未初始化完成，配置将在初始化完成后自动加载');
       }

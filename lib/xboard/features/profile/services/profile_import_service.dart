@@ -19,8 +19,6 @@ final xboardProfileImportServiceProvider = Provider<XBoardProfileImportService>(
 class XBoardProfileImportService {
   final Ref _ref;
   bool _isImporting = false;
-  bool _isWaitingControllerReady = false;
-  int? _pendingApplyProfileId;
   static const int maxRetries = 3;
   static const Duration retryDelay = Duration(seconds: 2);
   static const Duration downloadTimeout = Duration(seconds: 30);
@@ -211,111 +209,18 @@ class XBoardProfileImportService {
       _logger.info('已设置为当前配置');
 
       // 3. 尝试应用配置到 Clash 核心
-      // 如果核心未就绪，跳过 applyProfile —— _initStatus() 会在核心初始化完成后自动加载当前配置
-      if (!appController.isAttach) {
-        _logger.info('appController 未就绪，配置将在核心初始化完成后由 _initStatus 自动加载');
-        _scheduleApplyWhenControllerReady(profile.id);
-        return;
+      if (_ref.read(initProvider)) {
+        _logger.info('核心已就绪，直接应用配置...');
+        await appController.applyProfile(silence: true, force: true);
+      } else {
+        _logger.info('核心尚未初始化完成，配置将在初始化完成后自动加载');
       }
-
-      // 核心已就绪，带重试的配置应用（解决 FFI 调用偶发超时问题）
-      await _applyProfileWithRetry();
 
       _logger.info('配置添加完成 (ID: ${profile.id}, Label: ${profile.label})');
     } catch (e, st) {
       _logger.error('添加配置失败', e, st);
       throw Exception('添加配置失败: $e');
     }
-  }
-
-  void _scheduleApplyWhenControllerReady(int profileId) {
-    _pendingApplyProfileId = profileId;
-
-    if (_isWaitingControllerReady) {
-      _logger.debug('已有等待任务，更新待应用配置 ID: $profileId');
-      return;
-    }
-
-    _isWaitingControllerReady = true;
-    unawaited(_waitControllerReadyAndApplyPendingProfile());
-  }
-
-  Future<void> _waitControllerReadyAndApplyPendingProfile() async {
-    const maxWaitAttempts = 90;
-    const waitInterval = Duration(seconds: 2);
-
-    try {
-      for (int attempt = 1; attempt <= maxWaitAttempts; attempt++) {
-        final pendingProfileId = _pendingApplyProfileId;
-        if (pendingProfileId == null) {
-          return;
-        }
-
-        if (!appController.isAttach) {
-          if (attempt == 1 || attempt % 5 == 0) {
-            _logger.debug(
-              '等待 appController 就绪 (${attempt * waitInterval.inSeconds}s/${maxWaitAttempts * waitInterval.inSeconds}s)...',
-            );
-          }
-          await Future.delayed(waitInterval);
-          continue;
-        }
-
-        final currentProfileId = _ref.read(currentProfileIdProvider);
-        if (currentProfileId != pendingProfileId) {
-          _logger.info(
-            '当前配置已变更 (current: $currentProfileId, pending: $pendingProfileId)，跳过延迟应用',
-          );
-          _pendingApplyProfileId = null;
-          return;
-        }
-
-        _logger.info('appController 已就绪，开始自动应用待生效配置 (ID: $pendingProfileId)');
-        await _applyProfileWithRetry();
-        _pendingApplyProfileId = null;
-        return;
-      }
-
-      _logger.warning(
-        '等待 appController 就绪超时 (${maxWaitAttempts * waitInterval.inSeconds}s)，保留已导入配置，用户可手动切换触发加载',
-      );
-    } catch (e, st) {
-      _logger.error('延迟应用配置失败', e, st);
-    } finally {
-      _isWaitingControllerReady = false;
-    }
-  }
-
-  /// 带重试的配置应用
-  ///
-  /// getConfig FFI 调用可能因核心 IPC 瞬时问题而超时返回空配置，
-  /// 通过多次重试 + 退避间隔来提高成功率。
-  Future<void> _applyProfileWithRetry() async {
-    const maxAttempts = 3;
-    const retryDelay = Duration(seconds: 2);
-
-    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        _logger.info('应用配置到核心 (第 $attempt/$maxAttempts 次)...');
-        await appController.applyProfile(silence: true, force: true);
-
-        final groups = _ref.read(groupsProvider);
-        if (groups.isNotEmpty) {
-          _logger.info('配置应用成功，${groups.length} 个代理组已加载');
-          return;
-        }
-        _logger.warning('第 $attempt 次尝试后代理组仍为空');
-      } catch (e) {
-        _logger.warning('第 $attempt 次应用失败: $e');
-      }
-
-      if (attempt < maxAttempts) {
-        _logger.info('等待 ${retryDelay.inSeconds}s 后重试...');
-        await Future.delayed(retryDelay);
-      }
-    }
-
-    _logger.warning('$maxAttempts 次尝试均未成功加载代理组，配置已保存，用户可手动切换配置重试');
   }
   ImportErrorType _classifyError(dynamic error) {
     final errorString = error.toString().toLowerCase();

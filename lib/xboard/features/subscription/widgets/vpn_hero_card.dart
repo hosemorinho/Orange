@@ -38,6 +38,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   late AnimationController _ringController;
   late Animation<double> _ringAnimation;
   bool _isStart = false;
+  bool _isManualRetrying = false;
 
   bool get _isDesktop =>
       Platform.isLinux || Platform.isWindows || Platform.isMacOS;
@@ -1117,11 +1118,30 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () async {
+              if (_isManualRetrying) {
+                _logger.info('手动重试进行中，忽略重复点击');
+                return;
+              }
+              setState(() {
+                _isManualRetrying = true;
+              });
               _logger.info('手动重试加载配置：优先执行 xboardQuickSetup()');
-              final message = await appController.xboardQuickSetup();
-              if (message.isNotEmpty) {
-                _logger.warning('xboardQuickSetup 失败，回退 fullSetup(): $message');
-                appController.fullSetup();
+              try {
+                final message = await appController.xboardQuickSetup();
+                if (message.isNotEmpty) {
+                  if (message.contains('another setup is running')) {
+                    _logger.info('当前已有 setup 在执行中，跳过 fallback fullSetup');
+                  } else {
+                    _logger.warning('xboardQuickSetup 失败，回退 fullSetup(): $message');
+                    appController.fullSetup();
+                  }
+                }
+              } finally {
+                if (mounted) {
+                  setState(() {
+                    _isManualRetrying = false;
+                  });
+                }
               }
             },
             icon: const Icon(Icons.refresh, size: 18),

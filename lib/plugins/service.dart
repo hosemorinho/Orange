@@ -71,7 +71,7 @@ class Service {
     };
     return await methodChannel.invokeMethod<String>(
       'quickSetup',
-      json.encode(payload),
+      payload,
     );
   }
 

@@ -19,11 +19,6 @@ import kotlinx.coroutines.sync.withPermit
 
 class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
-    data class QuickSetupPayload(
-        val initParamsString: String,
-        val setupParamsString: String,
-    )
-
     private lateinit var flutterMethodChannel: MethodChannel
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -92,20 +87,26 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     private fun handleQuickSetup(call: MethodCall, result: MethodChannel.Result) {
         launch {
-            val data = call.arguments<String>()!!
-            val payload = runCatching {
-                Gson().fromJson(data, QuickSetupPayload::class.java)
-            }.getOrNull()
+            val payloadMap = when (val args = call.arguments) {
+                is Map<*, *> -> args
+                is String -> runCatching {
+                    Gson().fromJson(args, Map::class.java) as? Map<*, *>
+                }.getOrNull()
+                else -> null
+            }
 
-            if (payload == null || payload.initParamsString.isEmpty() || payload.setupParamsString.isEmpty()) {
+            val initParamsString = payloadMap?.get("initParamsString")?.toString().orEmpty()
+            val setupParamsString = payloadMap?.get("setupParamsString")?.toString().orEmpty()
+
+            if (initParamsString.isEmpty() || setupParamsString.isEmpty()) {
                 result.success("quickSetup invalid arguments")
                 return@launch
             }
 
             var responded = false
             Service.quickSetup(
-                initParamsString = payload.initParamsString,
-                setupParamsString = payload.setupParamsString,
+                initParamsString = initParamsString,
+                setupParamsString = setupParamsString,
                 onStarted = null,
                 onResult = {
                     responded = true

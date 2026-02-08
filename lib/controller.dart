@@ -555,6 +555,11 @@ extension SetupControllerExt on AppController {
       return;
     }
 
+    if (!isAttach) {
+      commonPrint.log('fullSetup skip: appController not attached yet');
+      return;
+    }
+
     if (coreStatus != CoreStatus.connected) {
       commonPrint.log('fullSetup skip: core disconnected, try restart core');
       tryStartCore();

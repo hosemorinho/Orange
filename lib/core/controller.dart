@@ -101,6 +101,20 @@ class CoreController {
     return res;
   }
 
+  Future<String> quickSetup({
+    required InitParams initParams,
+    required SetupParams setupParams,
+  }) async {
+    if (!system.isAndroid) {
+      return 'quickSetup is only available on Android';
+    }
+    final lib = coreLib;
+    if (lib == null) {
+      return 'quickSetup failed: core lib unavailable';
+    }
+    return await lib.quickSetup(initParams: initParams, setupParams: setupParams);
+  }
+
   Future<List<Group>> getProxiesGroups({
     required ProxiesSortType sortType,
     required DelayMap delayMap,

@@ -19,6 +19,11 @@ import kotlinx.coroutines.sync.withPermit
 
 class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
+    data class QuickSetupPayload(
+        val initParamsString: String,
+        val setupParamsString: String,
+    )
+
     private lateinit var flutterMethodChannel: MethodChannel
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -43,6 +48,10 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
         "invokeAction" -> {
             handleInvokeAction(call, result)
+        }
+
+        "quickSetup" -> {
+            handleQuickSetup(call, result)
         }
 
         "getRunTime" -> {
@@ -74,6 +83,35 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                 responded = true
                 result.success(it)
             }.onFailure {
+                if (!responded) {
+                    result.success(null)
+                }
+            }
+        }
+    }
+
+    private fun handleQuickSetup(call: MethodCall, result: MethodChannel.Result) {
+        launch {
+            val data = call.arguments<String>()!!
+            val payload = runCatching {
+                Gson().fromJson(data, QuickSetupPayload::class.java)
+            }.getOrNull()
+
+            if (payload == null || payload.initParamsString.isEmpty() || payload.setupParamsString.isEmpty()) {
+                result.success("quickSetup invalid arguments")
+                return@launch
+            }
+
+            var responded = false
+            Service.quickSetup(
+                initParamsString = payload.initParamsString,
+                setupParamsString = payload.setupParamsString,
+                onStarted = null,
+                onResult = {
+                    responded = true
+                    result.success(it)
+                }
+            ).onFailure {
                 if (!responded) {
                     result.success(null)
                 }

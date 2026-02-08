@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
@@ -63,6 +64,19 @@ class CoreLib extends CoreHandlerInterface {
 
   @override
   Completer get completer => _connectedCompleter;
+
+  Future<String> quickSetup({
+    required InitParams initParams,
+    required SetupParams setupParams,
+  }) async {
+    final result = await service
+        ?.quickSetup(
+          initParamsString: json.encode(initParams),
+          setupParamsString: json.encode(setupParams),
+        )
+        .withTimeout(onTimeout: () => null);
+    return result ?? 'quickSetup failed: core not ready or FFI call timed out';
+  }
 }
 
 CoreLib? get coreLib => system.isAndroid ? CoreLib() : null;

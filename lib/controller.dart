@@ -21,6 +21,7 @@ class AppController {
   late final WidgetRef _ref;
   bool isAttach = false;
   bool _isApplyingProfile = false;
+  bool _isXboardQuickSetting = false;
 
   static AppController? _instance;
 
@@ -823,7 +824,7 @@ extension SetupControllerExt on AppController {
       'force=$force, silence=$silence',
     );
 
-    if (_isApplyingProfile) {
+    if (_isApplyingProfile || _isXboardQuickSetting) {
       commonPrint.log('applyProfile skip: another apply is running');
       return;
     }
@@ -851,6 +852,84 @@ extension SetupControllerExt on AppController {
     } finally {
       _isApplyingProfile = false;
     }
+  }
+
+  Future<String> xboardQuickSetup() async {
+    final coreStatus = _ref.read(coreStatusProvider);
+    final currentProfileId = _ref.read(currentProfileIdProvider);
+    commonPrint.log(
+      'xboardQuickSetup entry: coreStatus=$coreStatus, '
+      'isAttach=$isAttach, '
+      'isApplyingProfile=$_isApplyingProfile, '
+      'isXboardQuickSetting=$_isXboardQuickSetting, '
+      'currentProfileId=$currentProfileId',
+    );
+
+    if (!system.isAndroid) {
+      await applyProfile(silence: true, force: true);
+      return '';
+    }
+
+    if (_isApplyingProfile || _isXboardQuickSetting) {
+      return 'xboardQuickSetup skipped: another setup is running';
+    }
+
+    if (coreStatus != CoreStatus.connected) {
+      commonPrint.log('xboardQuickSetup: core disconnected, try restart core');
+      await tryStartCore();
+      final nextStatus = _ref.read(coreStatusProvider);
+      if (nextStatus != CoreStatus.connected) {
+        return 'xboardQuickSetup failed: core disconnected';
+      }
+    }
+
+    final profile = _ref.read(currentProfileProvider);
+    final profileId = profile?.id;
+    if (profileId == null) {
+      return 'xboardQuickSetup failed: no current profile';
+    }
+
+    _isXboardQuickSetting = true;
+    String? fallbackMessage;
+    try {
+      final setupState = await _ref.read(setupStateProvider(profileId).future);
+      if (setupState.profileId == null) {
+        return 'xboardQuickSetup failed: setupState has no profileId';
+      }
+
+      final initParams = InitParams(
+        homeDir: await appPath.homeDirPath,
+        version: _ref.read(versionProvider),
+      );
+
+      final setupMessage = await coreController.quickSetup(
+        initParams: initParams,
+        setupParams: setupParams,
+      );
+
+      if (setupMessage.isNotEmpty) {
+        commonPrint.log('xboardQuickSetup failed: $setupMessage');
+        fallbackMessage = setupMessage;
+      } else {
+        // quickSetup 成功后刷新状态
+        await updateGroups();
+        await updateProviders();
+        addCheckIp();
+      }
+    } catch (e, s) {
+      commonPrint.log('xboardQuickSetup exception: $e, $s', logLevel: LogLevel.error);
+      fallbackMessage = '$e';
+    } finally {
+      _isXboardQuickSetting = false;
+    }
+
+    if (fallbackMessage != null && fallbackMessage.isNotEmpty) {
+      commonPrint.log('xboardQuickSetup fallback: applyProfile(force=true)');
+      await applyProfile(silence: true, force: true);
+      return fallbackMessage;
+    }
+
+    return '';
   }
 
   Future<Map<String, dynamic>> getProfile({

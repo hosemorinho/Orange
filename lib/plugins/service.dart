@@ -61,6 +61,20 @@ class Service {
     return ActionResult.fromJson(dataJson);
   }
 
+  Future<String?> quickSetup({
+    required String initParamsString,
+    required String setupParamsString,
+  }) async {
+    final payload = {
+      'initParamsString': initParamsString,
+      'setupParamsString': setupParamsString,
+    };
+    return await methodChannel.invokeMethod<String>(
+      'quickSetup',
+      json.encode(payload),
+    );
+  }
+
   Future<bool> start() async {
     return await methodChannel.invokeMethod<bool>('start') ?? false;
   }

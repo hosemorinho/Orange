@@ -1,5 +1,7 @@
 package com.follow.clash.plugins
 
+import android.os.Handler
+import android.os.Looper
 import com.follow.clash.GlobalState
 import com.follow.clash.RunState
 import com.follow.clash.core.Core
@@ -9,6 +11,7 @@ import io.flutter.plugin.common.MethodChannel
 
 class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private lateinit var channel: MethodChannel
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "service")
@@ -31,13 +34,13 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         "invokeAction" -> {
             val data = call.arguments as String
             Core.invokeAction(data) { actionResult ->
-                result.success(actionResult)
+                mainHandler.post { result.success(actionResult) }
             }
         }
 
         "setEventListener" -> {
             Core.callSetEventListener { eventData ->
-                channel.invokeMethod("event", eventData)
+                mainHandler.post { channel.invokeMethod("event", eventData) }
             }
             result.success(true)
         }
@@ -51,7 +54,7 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             val initParams = call.argument<String>("initParams")!!
             val setupParams = call.argument<String>("setupParams")!!
             Core.quickSetup(initParams, setupParams) { setupResult ->
-                result.success(setupResult)
+                mainHandler.post { result.success(setupResult) }
             }
         }
 

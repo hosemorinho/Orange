@@ -54,7 +54,7 @@ class ServiceDelegate<T>(
     }
 
     suspend inline fun <R> useService(
-        timeoutMillis: Long = 5000, crossinline block: suspend (T) -> R
+        timeoutMillis: Long = 15000, crossinline block: suspend (T) -> R
     ): Result<R> {
         return runCatching {
             withTimeout(timeoutMillis) {

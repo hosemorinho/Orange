@@ -541,11 +541,20 @@ extension ProxiesControllerExt on AppController {
 
 extension SetupControllerExt on AppController {
   void fullSetup() {
+    final coreStatus = _ref.read(coreStatusProvider);
+    final currentProfileId = _ref.read(currentProfileIdProvider);
+    commonPrint.log(
+      'fullSetup entry: coreStatus=$coreStatus, '
+      'isAttach=$isAttach, '
+      'isApplyingProfile=$_isApplyingProfile, '
+      'currentProfileId=$currentProfileId',
+    );
+
     if (!_ref.read(initProvider)) {
       return;
     }
 
-    if (_ref.read(coreStatusProvider) != CoreStatus.connected) {
+    if (coreStatus != CoreStatus.connected) {
       commonPrint.log('fullSetup skip: core disconnected, try restart core');
       tryStartCore();
       return;
@@ -804,12 +813,22 @@ extension SetupControllerExt on AppController {
     bool force = false,
     VoidCallback? preloadInvoke,
   }) async {
+    final coreStatus = _ref.read(coreStatusProvider);
+    final currentProfileId = _ref.read(currentProfileIdProvider);
+    commonPrint.log(
+      'applyProfile entry: coreStatus=$coreStatus, '
+      'isAttach=$isAttach, '
+      'isApplyingProfile=$_isApplyingProfile, '
+      'currentProfileId=$currentProfileId, '
+      'force=$force, silence=$silence',
+    );
+
     if (_isApplyingProfile) {
       commonPrint.log('applyProfile skip: another apply is running');
       return;
     }
 
-    if (_ref.read(coreStatusProvider) != CoreStatus.connected) {
+    if (coreStatus != CoreStatus.connected) {
       commonPrint.log('applyProfile skip: core disconnected');
       return;
     }

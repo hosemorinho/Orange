@@ -1060,6 +1060,29 @@ extension SetupControllerExt on AppController {
     }
 
     if (request.preferQuickSetup && system.isAndroid) {
+      if (!_isCoreReady && _ref.read(coreStatusProvider) == CoreStatus.connected) {
+        final initResult = await _initCore();
+        commonPrint.log(
+          'setupDispatch: requestId=${request.requestId}, '
+          'initCore before quickSetup => $initResult, coreReady=$_isCoreReady',
+          logLevel: initResult ? LogLevel.info : LogLevel.warning,
+        );
+      }
+
+      final preloadMessage = await coreController.preload();
+      if (preloadMessage.isEmpty) {
+        commonPrint.log(
+          'setupDispatch: requestId=${request.requestId}, '
+          'preload before quickSetup success',
+        );
+      } else {
+        commonPrint.log(
+          'setupDispatch: requestId=${request.requestId}, '
+          'preload before quickSetup failed: $preloadMessage',
+          logLevel: LogLevel.warning,
+        );
+      }
+
       if (_ref.read(coreStatusProvider) != CoreStatus.connected) {
         commonPrint.log(
           'setupDispatch: requestId=${request.requestId}, core disconnected, try restart before quickSetup',

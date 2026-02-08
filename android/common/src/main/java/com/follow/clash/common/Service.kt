@@ -39,7 +39,10 @@ class ServiceDelegate<T>(
         }
     }
 
-    fun bind() {
+    fun bind(forceRebind: Boolean = false) {
+        if (forceRebind && _bindingState.get()) {
+            unbind()
+        }
         if (_bindingState.compareAndSet(false, true)) {
             job?.cancel()
             job = null
@@ -56,6 +59,9 @@ class ServiceDelegate<T>(
     suspend inline fun <R> useService(
         timeoutMillis: Long = 5000, crossinline block: suspend (T) -> R
     ): Result<R> {
+        if (!_bindingState.get()) {
+            bind()
+        }
         return runCatching {
             withTimeout(timeoutMillis) {
                 val state = serviceState.filterNotNull().first()

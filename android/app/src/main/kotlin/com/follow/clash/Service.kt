@@ -13,6 +13,7 @@ import com.follow.clash.service.IVoidInterface
 import com.follow.clash.service.RemoteService
 import com.follow.clash.service.models.NotificationParams
 import com.follow.clash.service.models.VpnOptions
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -29,13 +30,14 @@ object Service {
     var onServiceDisconnected: ((String) -> Unit)? = null
 
     private fun handleServiceDisconnected(message: String) {
+        GlobalState.log("Service disconnected: $message")
         onServiceDisconnected?.let {
             it(message)
         }
     }
 
-    fun bind() {
-        delegate.bind()
+    fun bind(forceRebind: Boolean = false) {
+        delegate.bind(forceRebind)
     }
 
     fun unbind() {
@@ -68,8 +70,10 @@ object Service {
         onStarted: (() -> Unit)?,
         onResult: ((result: String) -> Unit)?,
     ): Result<Unit> {
+        bind(forceRebind = false)
         val res = mutableListOf<ByteArray>()
-        return delegate.useService {
+        val resultDeferred = CompletableDeferred<String>()
+        return delegate.useService(timeoutMillis = 15000) {
             it.quickSetup(
                 initParamsString,
                 setupParamsString,
@@ -80,8 +84,8 @@ object Service {
                         res.add(result ?: byteArrayOf())
                         ack?.onAck()
                         if (isSuccess) {
-                            onResult?.let { cb ->
-                                cb(res.formatString())
+                            if (!resultDeferred.isCompleted) {
+                                resultDeferred.complete(res.formatString())
                             }
                         }
                     }
@@ -94,6 +98,8 @@ object Service {
                     }
                 }
             )
+            val message = resultDeferred.await()
+            onResult?.invoke(message)
         }
     }
 

@@ -4,6 +4,7 @@ import com.follow.clash.RunState
 import com.follow.clash.Service
 import com.follow.clash.State
 import com.follow.clash.common.Components
+import com.follow.clash.common.GlobalState
 import com.follow.clash.invokeMethodOnMainThread
 import com.follow.clash.models.SharedState
 import com.google.gson.Gson
@@ -103,7 +104,12 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                 return@launch
             }
 
+            GlobalState.log(
+                "ServicePlugin.quickSetup: initLen=${initParamsString.length}, setupLen=${setupParamsString.length}"
+            )
+
             var responded = false
+            Service.bind(forceRebind = false)
             Service.quickSetup(
                 initParamsString = initParamsString,
                 setupParamsString = setupParamsString,
@@ -113,8 +119,11 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     result.success(it)
                 }
             ).onFailure {
+                GlobalState.log("ServicePlugin.quickSetup failed: ${it.message}")
                 if (!responded) {
-                    result.success(null)
+                    val message = it.message?.takeIf { msg -> msg.isNotEmpty() }
+                        ?: "quickSetup failed: android service unavailable"
+                    result.success(message)
                 }
             }
         }

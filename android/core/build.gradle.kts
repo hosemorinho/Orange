@@ -57,13 +57,25 @@ dependencies {
 val copyNativeLibs by tasks.register<Copy>("copyNativeLibs") {
     doFirst {
         delete("src/main/jniLibs")
+        delete("src/main/cpp/includes")
     }
     from("../../libclash/android")
     into("src/main/jniLibs")
 
     doLast {
-        val includesDir = file("src/main/jniLibs/includes")
+        // Move .h files from each ABI directory to cpp/includes/{ABI}/
+        val jniLibsDir = file("src/main/jniLibs")
         val targetDir = file("src/main/cpp/includes")
+        jniLibsDir.listFiles()?.filter { it.isDirectory }?.forEach { abiDir ->
+            abiDir.listFiles()?.filter { it.extension == "h" }?.forEach { headerFile ->
+                val destDir = File(targetDir, abiDir.name)
+                destDir.mkdirs()
+                headerFile.copyTo(File(destDir, headerFile.name), overwrite = true)
+                headerFile.delete()
+            }
+        }
+        // Also handle legacy includes/ subdirectory layout
+        val includesDir = file("src/main/jniLibs/includes")
         if (includesDir.exists()) {
             copy {
                 from(includesDir)

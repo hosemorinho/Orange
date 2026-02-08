@@ -74,20 +74,27 @@ class ApplicationState extends ConsumerState<Application> {
       fireImmediately: false,
     );
 
-    // 后台预热：统一初始化服务（不阻塞 UI）
+    // 后台预热：统一初始化服务 + 快速认证（不阻塞 UI）
     Future.microtask(() async {
       try {
         await ref.read(initializationProvider.notifier).initialize();
       } catch (e) {
         debugPrint('[Application] 预热初始化失败: $e');
       }
+      // 初始化完成后立即执行快速认证，不依赖 attach
+      try {
+        debugPrint('[Application] 开始快速认证检查...');
+        final userNotifier = ref.read(xboardUserProvider.notifier);
+        await userNotifier.quickAuth();
+        debugPrint('[Application] 快速认证检查完成');
+      } catch (e) {
+        debugPrint('[Application] 快速认证检查失败: $e');
+        ref.read(xboardUserProvider.notifier).forceInitialized();
+      }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       await _attachWithRetry();
-
-      // 核心已就绪，现在安全执行快速认证（可能触发订阅导入）
-      _performQuickAuthWithDomainService();
 
       _autoUpdateProfilesTask();
       app?.initShortcuts();
@@ -110,52 +117,6 @@ class ApplicationState extends ConsumerState<Application> {
     }
     debugPrint('[Application] Navigator context still null after retries, force exit');
     exit(0);
-  }
-
-  /// 使用新域名服务架构进行快速认证检查
-  void _performQuickAuthWithDomainService() {
-    Future.microtask(() async {
-      try {
-        debugPrint('[Application] 开始快速认证检查...');
-
-        // Use Completer + listen instead of busy-wait polling
-        final completer = Completer<void>();
-
-        // Listen for initialization state changes
-        final sub = ref.listenManual(
-          initializationProvider,
-          (previous, current) {
-            if ((current.isReady || current.isFailed) && !completer.isCompleted) {
-              debugPrint('[Application] 初始化状态: ${current.status}');
-              debugPrint('[Application] 错误信息: ${current.errorMessage}');
-              completer.complete();
-            }
-          },
-          fireImmediately: true,
-        );
-
-        // Wait for init or timeout
-        await completer.future.timeout(
-          const Duration(seconds: 30),
-          onTimeout: () {
-            debugPrint('[Application] 初始化等待超时（30秒），继续执行 quickAuth');
-          },
-        );
-        sub.close();
-
-        if (!mounted) return;
-
-        final userNotifier = ref.read(xboardUserProvider.notifier);
-        await userNotifier.quickAuth();
-
-        debugPrint('[Application] 快速认证检查完成');
-      } catch (e) {
-        debugPrint('[Application] 快速认证检查失败: $e');
-        if (!mounted) return;
-        final userNotifier = ref.read(xboardUserProvider.notifier);
-        userNotifier.forceInitialized();
-      }
-    });
   }
 
   /// 检查应用更新

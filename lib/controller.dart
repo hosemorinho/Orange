@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/plugins/app.dart';
+import 'package:fl_clash/plugins/service.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/dialog.dart';
@@ -509,6 +510,10 @@ extension SetupControllerExt on AppController {
           return;
         }
         await globalState.handleStart([updateRunTime, updateTraffic]);
+        final vpnOptions = sharedState.vpnOptions;
+        if (vpnOptions != null) {
+          await service?.startVpn(vpnOptions);
+        }
         applyProfileDebounce(force: true, silence: true);
       } else {
         globalState.needInitStatus = false;
@@ -518,8 +523,13 @@ extension SetupControllerExt on AppController {
             await globalState.handleStart([updateRunTime, updateTraffic]);
           },
         );
+        final vpnOptions = sharedState.vpnOptions;
+        if (vpnOptions != null) {
+          await service?.startVpn(vpnOptions);
+        }
       }
     } else {
+      await service?.stopVpn();
       await globalState.handleStop();
       coreController.resetTraffic();
       _ref.read(trafficsProvider.notifier).clear();

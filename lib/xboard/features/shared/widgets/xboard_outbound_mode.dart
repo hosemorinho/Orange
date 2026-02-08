@@ -84,6 +84,7 @@ class XBoardOutboundMode extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: SegmentedButton<Mode>(
+                  showSelectedIcon: false,
                   segments: [
                     ButtonSegment(
                       value: Mode.rule,

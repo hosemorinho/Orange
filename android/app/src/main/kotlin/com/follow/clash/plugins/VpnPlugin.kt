@@ -29,6 +29,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.InetSocketAddress
 
 class VpnPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
@@ -69,15 +70,28 @@ class VpnPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             val options = Gson().fromJson(data, VpnOptions::class.java)
 
             if (options.enable) {
-                startVpnService(options)
+                val appPlugin = GlobalState.getCurrentAppPlugin()
+                if (appPlugin != null) {
+                    withContext(Dispatchers.Main) {
+                        appPlugin.prepare(true) {
+                            startVpnService(options)
+                        }
+                    }
+                } else {
+                    startVpnService(options)
+                }
             } else {
                 startCommonService()
             }
 
-            result.success(true)
+            withContext(Dispatchers.Main) {
+                result.success(true)
+            }
         } catch (e: Exception) {
             GlobalState.log("VpnPlugin handleStart error: $e")
-            result.success(false)
+            withContext(Dispatchers.Main) {
+                result.success(false)
+            }
         }
     }
 
@@ -177,10 +191,14 @@ class VpnPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             }
             serviceConnection = null
             GlobalState.runStateFlow.tryEmit(RunState.STOP)
-            result.success(true)
+            withContext(Dispatchers.Main) {
+                result.success(true)
+            }
         } catch (e: Exception) {
             GlobalState.log("VpnPlugin handleStop error: $e")
-            result.success(false)
+            withContext(Dispatchers.Main) {
+                result.success(false)
+            }
         }
     }
 

@@ -74,6 +74,15 @@ val copyNativeLibs by tasks.register<Copy>("copyNativeLibs") {
                 headerFile.delete()
             }
         }
+        // Copy bride.h from core/ to each ABI include directory
+        val brideHeader = file("../../core/bride.h")
+        if (brideHeader.exists()) {
+            jniLibsDir.listFiles()?.filter { it.isDirectory }?.forEach { abiDir ->
+                val destDir = File(targetDir, abiDir.name)
+                destDir.mkdirs()
+                brideHeader.copyTo(File(destDir, brideHeader.name), overwrite = true)
+            }
+        }
         // Also handle legacy includes/ subdirectory layout
         val includesDir = file("src/main/jniLibs/includes")
         if (includesDir.exists()) {

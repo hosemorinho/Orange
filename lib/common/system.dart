@@ -66,7 +66,7 @@ class System {
 
   Future<AuthorizeCode> authorizeCore() async {
     if (system.isAndroid) {
-      return AuthorizeCode.error;
+      return AuthorizeCode.none;
     }
     final corePath = appPath.corePath.replaceAll(' ', '\\\\ ');
     final isAdmin = await checkIsAdmin();

@@ -11,6 +11,7 @@ OLD_PACKAGE="com.follow.clash"
 # Trim whitespace/newlines from environment variables (matching setup.dart behavior)
 NEW_PACKAGE=$(echo "${APP_PACKAGE_NAME:-com.follow.clash}" | tr -d '[:space:]')
 APP_NAME=$(echo "${APP_NAME:-Orange}" | xargs)
+REFACTOR_ANDROID_PACKAGE=$(echo "${REFACTOR_ANDROID_PACKAGE:-false}" | tr '[:upper:]' '[:lower:]')
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  Android Configuration Setup"
@@ -19,7 +20,18 @@ echo ""
 echo "Configuration:"
 echo "  APP_NAME: $APP_NAME"
 echo "  APP_PACKAGE_NAME: $NEW_PACKAGE"
+echo "  REFACTOR_ANDROID_PACKAGE: $REFACTOR_ANDROID_PACKAGE"
 echo ""
+
+# Update Android applicationId only (recommended default behavior)
+APP_BUILD_GRADLE="$ANDROID_DIR/app/build.gradle.kts"
+if [ -f "$APP_BUILD_GRADLE" ]; then
+    echo "Updating applicationId in app/build.gradle.kts..."
+    sed -i -E "s|applicationId\s*=\s*\"[^\"]+\"|applicationId = \"$NEW_PACKAGE\"|g" "$APP_BUILD_GRADLE"
+    echo "✓ Updated applicationId to $NEW_PACKAGE"
+else
+    echo "⚠ app/build.gradle.kts not found, skipped applicationId update"
+fi
 
 # Update strings.xml with app name
 STRINGS_XML="$ANDROID_DIR/app/src/main/res/values/strings.xml"
@@ -30,8 +42,9 @@ if [ -f "$STRINGS_XML" ]; then
     echo "✓ Updated app name in strings.xml"
 fi
 
-# Only refactor package if it's different
-if [ "$OLD_PACKAGE" != "$NEW_PACKAGE" ]; then
+# Full package refactor is opt-in and disabled by default.
+# This keeps native package paths/JNI/AIDL/method channels stable.
+if [ "$REFACTOR_ANDROID_PACKAGE" = "true" ] && [ "$OLD_PACKAGE" != "$NEW_PACKAGE" ]; then
     echo ""
     echo "Package name change detected, refactoring..."
     echo "  From: $OLD_PACKAGE"
@@ -99,10 +112,22 @@ if [ "$OLD_PACKAGE" != "$NEW_PACKAGE" ]; then
         echo "✓ Package refactoring completed successfully"
     fi
 else
-    echo "Package name unchanged, skipping refactoring"
+    echo "Skipping full package refactoring (applicationId-only mode)"
 fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✓ Android configuration setup completed"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Sanity check for JNI binding consistency
+if [ "$REFACTOR_ANDROID_PACKAGE" = "true" ] && [ "$OLD_PACKAGE" != "$NEW_PACKAGE" ]; then
+    CORE_CPP="$ANDROID_DIR/core/src/main/cpp/core.cpp"
+    NEW_PACKAGE_JNI="${NEW_PACKAGE//./_}"
+    if [ -f "$CORE_CPP" ]; then
+        if ! grep -q "Java_${NEW_PACKAGE_JNI}_core_Core_" "$CORE_CPP"; then
+            echo "✗ JNI symbols not updated correctly in core.cpp"
+            exit 1
+        fi
+    fi
+fi

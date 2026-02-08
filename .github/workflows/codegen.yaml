@@ -1,4 +1,4 @@
-name: Code Generation
+name: Codegen Build
 
 on:
   push:
@@ -19,7 +19,7 @@ on:
       - 'build.yaml'
 
 jobs:
-  generate:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -41,11 +41,10 @@ jobs:
       - name: Get Dependencies
         run: flutter pub get
 
-      - name: Generate Localization Files
-        run: flutter pub run intl_utils:generate
-
-      - name: Generate Code (Freezed, Riverpod, JSON)
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Build Generated Outputs
+        run: |
+          flutter pub run intl_utils:generate
+          dart run build_runner build --delete-conflicting-outputs
 
       - name: Verify Code Generation Success
         id: verify
@@ -57,8 +56,16 @@ jobs:
             echo "has_changes=true" >> $GITHUB_OUTPUT
             echo "⚠️ Files changed:"
             git status --porcelain
+
+            # Detect non-generated changes for PR comments
+            if [[ -n "$(git status --porcelain | grep -vE '\\.g\\.dart$|\\.freezed\\.dart$' || true)" ]]; then
+              echo "has_non_generated_changes=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_non_generated_changes=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "has_non_generated_changes=false" >> $GITHUB_OUTPUT
             echo "✅ No changes detected"
           fi
 

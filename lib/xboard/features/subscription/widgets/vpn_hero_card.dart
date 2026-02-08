@@ -281,7 +281,6 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
             appController.changeProxyDebounce(
               ruleGroup.name,
               globalSelected,
-              duration: const Duration(milliseconds: 100),
             );
           }
         }
@@ -328,7 +327,6 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       appController.changeProxyDebounce(
         globalGroup.name,
         validProxy.name,
-        duration: const Duration(milliseconds: 100),
       );
     }
   }

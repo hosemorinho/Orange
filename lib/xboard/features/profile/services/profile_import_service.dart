@@ -130,8 +130,14 @@ class XBoardProfileImportService {
         _logger.info('   删除: ${profile.label ?? profile.id} (ID: ${profile.id})');
         _ref.read(profilesProvider.notifier).del(profile.id);
         // 删除实际的 yaml 配置文件和 providers 目录，避免文件堆积
+        // 加超时保护，防止 clearEffect 内部 IPC 调用卡住阻塞整个导入流程
         try {
-          await appController.clearEffect(profile.id);
+          await appController.clearEffect(profile.id).timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              _logger.warning('     ⚠️  清理本地文件超时(5s)，跳过');
+            },
+          );
           _logger.info('     ✅ 已清理本地文件');
         } catch (e) {
           _logger.warning('     ⚠️  清理本地文件失败: $e');

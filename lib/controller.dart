@@ -26,6 +26,7 @@ class AppController {
   bool _isDispatchingSetup = false;
   int _setupRequestSeq = 0;
   String? _activeSetupRequestId;
+  String? _lastCoreReadyError;
   _SetupDispatchRequest? _queuedSetupRequest;
   Completer<void>? _queuedSetupCompleter;
   XboardQuickSetupResult _lastSetupDispatchResult = const XboardQuickSetupResult(
@@ -1014,6 +1015,31 @@ extension SetupControllerExt on AppController {
       );
     }
 
+    if (request.preferQuickSetup && system.isAndroid) {
+      if (_ref.read(coreStatusProvider) != CoreStatus.connected) {
+        commonPrint.log(
+          'setupDispatch: requestId=${request.requestId}, core disconnected, try restart before quickSetup',
+        );
+        await tryStartCore(skipPostSetup: true);
+      }
+
+      if (_ref.read(coreStatusProvider) == CoreStatus.connected) {
+        final quickSetupResult = await _xboardQuickSetupInternal(
+          allowCoreNotReady: true,
+        );
+        if (quickSetupResult.isSuccess) {
+          return quickSetupResult;
+        }
+        if (!quickSetupResult.shouldFallbackToFullSetup) {
+          return quickSetupResult;
+        }
+        commonPrint.log(
+          'setupDispatch: requestId=${request.requestId}, quickSetup fallback to applyProfile '
+          '(${quickSetupResult.status.name}): ${quickSetupResult.message}',
+        );
+      }
+    }
+
     if (_ref.read(coreStatusProvider) != CoreStatus.connected || !_isCoreReady) {
       commonPrint.log(
         'setupDispatch: requestId=${request.requestId}, core not ready, try restart core',
@@ -1022,9 +1048,12 @@ extension SetupControllerExt on AppController {
     }
 
     if (_ref.read(coreStatusProvider) != CoreStatus.connected || !_isCoreReady) {
-      return const XboardQuickSetupResult(
+      final reason = _lastCoreReadyError;
+      return XboardQuickSetupResult(
         status: XboardQuickSetupStatus.coreDisconnected,
-        message: 'setupDispatch failed: core not ready',
+        message: reason?.isNotEmpty == true
+            ? 'setupDispatch failed: core not ready ($reason)'
+            : 'setupDispatch failed: core not ready',
       );
     }
 
@@ -1032,20 +1061,6 @@ extension SetupControllerExt on AppController {
       _ref.read(delayDataSourceProvider.notifier).value = {};
       _ref.read(logsProvider.notifier).value = FixedList(500);
       _ref.read(requestsProvider.notifier).value = FixedList(500);
-    }
-
-    if (request.preferQuickSetup && system.isAndroid) {
-      final quickSetupResult = await _xboardQuickSetupInternal();
-      if (quickSetupResult.isSuccess) {
-        return quickSetupResult;
-      }
-      if (!quickSetupResult.shouldFallbackToFullSetup) {
-        return quickSetupResult;
-      }
-      commonPrint.log(
-        'setupDispatch: requestId=${request.requestId}, quickSetup fallback to applyProfile '
-        '(${quickSetupResult.status.name}): ${quickSetupResult.message}',
-      );
     }
 
     await _applyProfileInternal(
@@ -1093,7 +1108,9 @@ extension SetupControllerExt on AppController {
     }
   }
 
-  Future<XboardQuickSetupResult> _xboardQuickSetupInternal() async {
+  Future<XboardQuickSetupResult> _xboardQuickSetupInternal({
+    bool allowCoreNotReady = false,
+  }) async {
     if (!system.isAndroid) {
       return const XboardQuickSetupResult(status: XboardQuickSetupStatus.success);
     }
@@ -1105,7 +1122,8 @@ extension SetupControllerExt on AppController {
       );
     }
 
-    if (_ref.read(coreStatusProvider) != CoreStatus.connected || !_isCoreReady) {
+    if (_ref.read(coreStatusProvider) != CoreStatus.connected ||
+        (!_isCoreReady && !allowCoreNotReady)) {
       return const XboardQuickSetupResult(
         status: XboardQuickSetupStatus.coreDisconnected,
         message: 'xboardQuickSetup failed: core disconnected',
@@ -1155,6 +1173,7 @@ extension SetupControllerExt on AppController {
         );
       }
 
+      _setCoreReady(true, reason: 'quickSetup success');
       await updateGroups();
       await updateProviders();
       addCheckIp();
@@ -1378,6 +1397,12 @@ extension SetupControllerExt on AppController {
 
 extension CoreControllerExt on AppController {
   void _setCoreReady(bool value, {String? reason}) {
+    if (value) {
+      _lastCoreReadyError = null;
+    } else if (reason != null && reason.isNotEmpty) {
+      _lastCoreReadyError = reason;
+    }
+
     if (_isCoreReady == value) {
       return;
     }

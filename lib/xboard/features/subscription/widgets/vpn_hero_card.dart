@@ -20,7 +20,6 @@ import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/widgets/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 final _logger = FileLogger('vpn_hero_card.dart');
 
@@ -42,6 +41,18 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
 
   bool get _isDesktop =>
       Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+
+  Mode _displayMode(Mode mode) {
+    return mode == Mode.direct ? Mode.rule : mode;
+  }
+
+  String _modeLabel(BuildContext context, Mode mode) {
+    return switch (mode) {
+      Mode.rule => appLocalizations.rule,
+      Mode.global => appLocalizations.global,
+      Mode.direct => appLocalizations.direct,
+    };
+  }
 
   @override
   void initState() {
@@ -836,27 +847,29 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     Mode mode,
     bool tunEnabled,
   ) {
+    final displayMode = _displayMode(mode);
     return Row(
       children: [
         Flexible(
           child: SegmentedButton<Mode>(
+            showSelectedIcon: false,
             segments: [
               ButtonSegment(
                 value: Mode.rule,
                 label: Text(
-                  Intl.message(Mode.rule.name),
+                  _modeLabel(context, Mode.rule),
                   style: const TextStyle(fontSize: 12),
                 ),
               ),
               ButtonSegment(
                 value: Mode.global,
                 label: Text(
-                  Intl.message(Mode.global.name),
+                  _modeLabel(context, Mode.global),
                   style: const TextStyle(fontSize: 12),
                 ),
               ),
             ],
-            selected: {mode == Mode.direct ? Mode.rule : mode},
+            selected: {displayMode},
             onSelectionChanged: (selected) {
               _handleModeChange(selected.first);
             },
@@ -978,60 +991,76 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     Mode mode,
     bool tunEnabled,
   ) {
-    return Row(
+    final displayMode = _displayMode(mode);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Flexible(
-          child: SegmentedButton<Mode>(
-            segments: [
-              ButtonSegment(
-                value: Mode.rule,
-                label: Text(
-                  Intl.message(Mode.rule.name),
-                  style: const TextStyle(fontSize: 12),
+        Wrap(
+          alignment: WrapAlignment.start,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            SizedBox(
+              width: 190,
+              child: SegmentedButton<Mode>(
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(
+                    value: Mode.rule,
+                    label: Text(
+                      _modeLabel(context, Mode.rule),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                  ButtonSegment(
+                    value: Mode.global,
+                    label: Text(
+                      _modeLabel(context, Mode.global),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+                selected: {displayMode},
+                onSelectionChanged: (selected) {
+                  _handleModeChange(selected.first);
+                },
+                style: ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ),
-              ButtonSegment(
-                value: Mode.global,
-                label: Text(
-                  Intl.message(Mode.global.name),
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ),
-            ],
-            selected: {mode == Mode.direct ? Mode.rule : mode},
-            onSelectionChanged: (selected) {
-              _handleModeChange(selected.first);
-            },
-            style: ButtonStyle(
+            ),
+            FilterChip(
+              label: const Text('TUN', style: TextStyle(fontSize: 12)),
+              selected: tunEnabled,
+              onSelected: (selected) {
+                _handleTunToggle(selected);
+              },
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              selectedColor: colorScheme.tertiaryContainer,
+              checkmarkColor: colorScheme.onTertiaryContainer,
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: _navigateToProxies,
+            icon: const Icon(Icons.swap_horiz, size: 16),
+            label: Text(
+              AppLocalizations.of(context).xboardSwitchNode,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12),
+            ),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               visualDensity: VisualDensity.compact,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        FilterChip(
-          label: const Text('TUN', style: TextStyle(fontSize: 12)),
-          selected: tunEnabled,
-          onSelected: (selected) {
-            _handleTunToggle(selected);
-          },
-          visualDensity: VisualDensity.compact,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          selectedColor: colorScheme.tertiaryContainer,
-          checkmarkColor: colorScheme.onTertiaryContainer,
-        ),
-        const Spacer(),
-        TextButton.icon(
-          onPressed: _navigateToProxies,
-          icon: const Icon(Icons.swap_horiz, size: 16),
-          label: Text(
-            AppLocalizations.of(context).xboardSwitchNode,
-            style: const TextStyle(fontSize: 12),
-          ),
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            visualDensity: VisualDensity.compact,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
       ],

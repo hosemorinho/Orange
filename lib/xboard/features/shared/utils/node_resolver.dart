@@ -15,12 +15,14 @@ import 'package:fl_clash/models/models.dart';
 
   Group? currentGroup;
 
-  if (mode == Mode.global) {
+  final effectiveMode = mode == Mode.direct ? Mode.rule : mode;
+
+  if (effectiveMode == Mode.global) {
     currentGroup = groups.firstWhere(
       (group) => group.name == GroupName.GLOBAL.name,
       orElse: () => groups.first,
     );
-  } else if (mode == Mode.rule) {
+  } else if (effectiveMode == Mode.rule) {
     for (final group in groups) {
       if (group.hidden == true) continue;
       if (group.name == GroupName.GLOBAL.name) continue;

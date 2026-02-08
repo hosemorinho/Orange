@@ -3,7 +3,6 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'tun_introduction_dialog.dart';
@@ -13,6 +12,19 @@ import 'package:fl_clash/l10n/l10n.dart';
 final _logger = FileLogger('xboard_outbound_mode.dart');
 class XBoardOutboundMode extends StatelessWidget {
   const XBoardOutboundMode({super.key});
+
+  Mode _displayMode(Mode mode) {
+    return mode == Mode.direct ? Mode.rule : mode;
+  }
+
+  String _modeLabel(BuildContext context, Mode mode) {
+    return switch (mode) {
+      Mode.rule => AppLocalizations.of(context).rule,
+      Mode.global => AppLocalizations.of(context).global,
+      Mode.direct => AppLocalizations.of(context).direct,
+    };
+  }
+
   Future<void> _handleModeChange(WidgetRef ref, Mode modeOption) async {
     _logger.debug('[XBoardOutboundMode] 切换模式到: $modeOption');
 
@@ -54,6 +66,7 @@ class XBoardOutboundMode extends StatelessWidget {
     return Consumer(
       builder: (context, ref, child) {
         final mode = ref.watch(patchClashConfigProvider.select((state) => state.mode));
+        final displayMode = _displayMode(mode);
         final tunEnabled = ref.watch(patchClashConfigProvider.select((state) => state.tun.enable));
         return Container(
           decoration: BoxDecoration(
@@ -84,19 +97,20 @@ class XBoardOutboundMode extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: SegmentedButton<Mode>(
+                  showSelectedIcon: false,
                   segments: [
                     ButtonSegment(
                       value: Mode.rule,
-                      label: Text(Intl.message(Mode.rule.name)),
+                      label: Text(_modeLabel(context, Mode.rule)),
                       icon: const Icon(Icons.alt_route, size: 16),
                     ),
                     ButtonSegment(
                       value: Mode.global,
-                      label: Text(Intl.message(Mode.global.name)),
+                      label: Text(_modeLabel(context, Mode.global)),
                       icon: const Icon(Icons.public, size: 16),
                     ),
                   ],
-                  selected: {mode == Mode.direct ? Mode.rule : mode},
+                  selected: {displayMode},
                   onSelectionChanged: (selected) {
                     _handleModeChange(ref, selected.first);
                   },

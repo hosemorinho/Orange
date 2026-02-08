@@ -50,6 +50,28 @@ if [ "$OLD_PACKAGE" != "$NEW_PACKAGE" ]; then
     find "$ANDROID_DIR" -type f \( -name "*.kt" -o -name "*.java" -o -name "*.aidl" -o -name "*.kts" -o -name "AndroidManifest.xml" \) -exec sed -i "s|${OLD_PACKAGE_ESCAPED}|${NEW_PACKAGE_ESCAPED}|g" {} +
     echo "✓ Updated source files"
 
+    # NOTE:
+    # android/core/src/main/cpp/core.cpp contains hard-coded JNI symbol names
+    # (Java_com_follow_clash_core_...) and class paths (com/follow/clash/core/*).
+    # When package is refactored, these native bindings must be updated too,
+    # otherwise Core.invokeAction / quickSetup can throw UnsatisfiedLinkError at
+    # runtime and lead to remote service disconnects.
+    echo "Synchronizing core JNI symbols..."
+    CORE_CPP="$ANDROID_DIR/core/src/main/cpp/core.cpp"
+    if [ -f "$CORE_CPP" ]; then
+        OLD_PACKAGE_JNI="${OLD_PACKAGE//./_}"
+        NEW_PACKAGE_JNI="${NEW_PACKAGE//./_}"
+        OLD_PACKAGE_SLASH="${OLD_PACKAGE//./\/}"
+        NEW_PACKAGE_SLASH="${NEW_PACKAGE//./\/}"
+
+        sed -i "s|Java_${OLD_PACKAGE_JNI}_core_Core_|Java_${NEW_PACKAGE_JNI}_core_Core_|g" "$CORE_CPP"
+        sed -i "s|${OLD_PACKAGE_SLASH}/core/TunInterface|${NEW_PACKAGE_SLASH}/core/TunInterface|g" "$CORE_CPP"
+        sed -i "s|${OLD_PACKAGE_SLASH}/core/InvokeInterface|${NEW_PACKAGE_SLASH}/core/InvokeInterface|g" "$CORE_CPP"
+        echo "✓ Synchronized JNI symbols in core.cpp"
+    else
+        echo "⚠ core.cpp not found, skipped JNI symbol synchronization"
+    fi
+
     # Move package directories
     echo ""
     echo "Renaming package directories..."
@@ -106,3 +128,15 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✓ Android configuration setup completed"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Sanity check for JNI binding consistency
+if [ "$OLD_PACKAGE" != "$NEW_PACKAGE" ]; then
+    CORE_CPP="$ANDROID_DIR/core/src/main/cpp/core.cpp"
+    NEW_PACKAGE_JNI="${NEW_PACKAGE//./_}"
+    if [ -f "$CORE_CPP" ]; then
+        if ! grep -q "Java_${NEW_PACKAGE_JNI}_core_Core_" "$CORE_CPP"; then
+            echo "✗ JNI symbols not updated correctly in core.cpp"
+            exit 1
+        fi
+    fi
+fi

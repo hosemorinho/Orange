@@ -98,6 +98,23 @@ while IFS= read -r file; do
     update_file_content "$file"
 done < <(find "$ANDROID_DIR" -name "AndroidManifest.xml" -type f)
 
+# Update JNI symbols in core.cpp
+echo -e "${YELLOW}  → Updating JNI symbols in core.cpp...${NC}"
+CORE_CPP="$ANDROID_DIR/core/src/main/cpp/core.cpp"
+if [ -f "$CORE_CPP" ]; then
+    OLD_PACKAGE_JNI="${OLD_PACKAGE//./_}"
+    NEW_PACKAGE_JNI="${NEW_PACKAGE//./_}"
+    OLD_PACKAGE_SLASH="${OLD_PACKAGE//./\/}"
+    NEW_PACKAGE_SLASH="${NEW_PACKAGE//./\/}"
+
+    sed -i "s|Java_${OLD_PACKAGE_JNI}_core_Core_|Java_${NEW_PACKAGE_JNI}_core_Core_|g" "$CORE_CPP"
+    sed -i "s|${OLD_PACKAGE_SLASH}/core/TunInterface|${NEW_PACKAGE_SLASH}/core/TunInterface|g" "$CORE_CPP"
+    sed -i "s|${OLD_PACKAGE_SLASH}/core/InvokeInterface|${NEW_PACKAGE_SLASH}/core/InvokeInterface|g" "$CORE_CPP"
+    echo -e "  ${GREEN}✓${NC} Updated JNI symbols in core.cpp"
+else
+    echo -e "  ${YELLOW}⚠${NC} core.cpp not found, skipped JNI symbol update"
+fi
+
 echo ""
 echo -e "${GREEN}Step 3: Renaming package directories...${NC}"
 

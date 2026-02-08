@@ -19,6 +19,8 @@ final xboardProfileImportServiceProvider = Provider<XBoardProfileImportService>(
 class XBoardProfileImportService {
   final Ref _ref;
   bool _isImporting = false;
+  bool _isWaitingControllerReady = false;
+  int? _pendingApplyProfileId;
   static const int maxRetries = 3;
   static const Duration retryDelay = Duration(seconds: 2);
   static const Duration downloadTimeout = Duration(seconds: 30);
@@ -212,6 +214,7 @@ class XBoardProfileImportService {
       // 如果核心未就绪，跳过 applyProfile —— _initStatus() 会在核心初始化完成后自动加载当前配置
       if (!appController.isAttach) {
         _logger.info('appController 未就绪，配置将在核心初始化完成后由 _initStatus 自动加载');
+        _scheduleApplyWhenControllerReady(profile.id);
         return;
       }
 
@@ -222,6 +225,64 @@ class XBoardProfileImportService {
     } catch (e, st) {
       _logger.error('添加配置失败', e, st);
       throw Exception('添加配置失败: $e');
+    }
+  }
+
+  void _scheduleApplyWhenControllerReady(int profileId) {
+    _pendingApplyProfileId = profileId;
+
+    if (_isWaitingControllerReady) {
+      _logger.debug('已有等待任务，更新待应用配置 ID: $profileId');
+      return;
+    }
+
+    _isWaitingControllerReady = true;
+    unawaited(_waitControllerReadyAndApplyPendingProfile());
+  }
+
+  Future<void> _waitControllerReadyAndApplyPendingProfile() async {
+    const maxWaitAttempts = 90;
+    const waitInterval = Duration(seconds: 2);
+
+    try {
+      for (int attempt = 1; attempt <= maxWaitAttempts; attempt++) {
+        final pendingProfileId = _pendingApplyProfileId;
+        if (pendingProfileId == null) {
+          return;
+        }
+
+        if (!appController.isAttach) {
+          if (attempt == 1 || attempt % 5 == 0) {
+            _logger.debug(
+              '等待 appController 就绪 (${attempt * waitInterval.inSeconds}s/${maxWaitAttempts * waitInterval.inSeconds}s)...',
+            );
+          }
+          await Future.delayed(waitInterval);
+          continue;
+        }
+
+        final currentProfileId = _ref.read(currentProfileIdProvider);
+        if (currentProfileId != pendingProfileId) {
+          _logger.info(
+            '当前配置已变更 (current: $currentProfileId, pending: $pendingProfileId)，跳过延迟应用',
+          );
+          _pendingApplyProfileId = null;
+          return;
+        }
+
+        _logger.info('appController 已就绪，开始自动应用待生效配置 (ID: $pendingProfileId)');
+        await _applyProfileWithRetry();
+        _pendingApplyProfileId = null;
+        return;
+      }
+
+      _logger.warning(
+        '等待 appController 就绪超时 (${maxWaitAttempts * waitInterval.inSeconds}s)，保留已导入配置，用户可手动切换触发加载',
+      );
+    } catch (e, st) {
+      _logger.error('延迟应用配置失败', e, st);
+    } finally {
+      _isWaitingControllerReady = false;
     }
   }
 

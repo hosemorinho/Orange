@@ -41,8 +41,10 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   bool _isStart = false;
   Timer? _groupsRetryTimer;
   int _groupsRetryCount = 0;
+  int _controllerWaitCount = 0;
   bool _groupsRetryExhausted = false;
   static const int _maxGroupsRetries = 30;
+  static const int _maxControllerWaits = 90;
 
   bool get _isDesktop =>
       Platform.isLinux || Platform.isWindows || Platform.isMacOS;
@@ -107,6 +109,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   void _startGroupsRetryIfNeeded() {
     if (_groupsRetryTimer != null || _groupsRetryExhausted) return;
     _groupsRetryCount = 0;
+    _controllerWaitCount = 0;
     _logger.info('🔄 groups 为空但 profile 存在，启动重试加载...');
     _groupsRetryTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       if (!mounted) {
@@ -114,14 +117,31 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         _groupsRetryTimer = null;
         return;
       }
-      _groupsRetryCount++;
       final groups = ref.read(groupsProvider);
       if (groups.isNotEmpty) {
-        _logger.info('✅ groups 加载成功 (第 $_groupsRetryCount 次检查)');
+        _logger.info('✅ groups 加载成功 (重试 $_groupsRetryCount 次)');
         _cancelGroupsRetry();
         return;
       }
-      if (_groupsRetryCount > _maxGroupsRetries) {
+
+      if (!appController.isAttach) {
+        _controllerWaitCount++;
+        if (_controllerWaitCount % 5 == 1) {
+          _logger.debug(
+            '   等待核心初始化中...(${_controllerWaitCount * 2}s)，暂不计入 groups 重试次数',
+          );
+        }
+        if (_controllerWaitCount >= _maxControllerWaits) {
+          _logger.warning('⚠️ 核心初始化等待超过 ${_maxControllerWaits * 2}s，停止重试');
+          _groupsRetryTimer?.cancel();
+          _groupsRetryTimer = null;
+          _groupsRetryExhausted = true;
+          if (mounted) setState(() {});
+        }
+        return;
+      }
+
+      if (_groupsRetryCount >= _maxGroupsRetries) {
         _logger.warning('⚠️ groups 加载重试超过 $_maxGroupsRetries 次，停止重试');
         _groupsRetryTimer?.cancel();
         _groupsRetryTimer = null;
@@ -129,12 +149,12 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         if (mounted) setState(() {});
         return;
       }
+
+      _groupsRetryCount++;
       // 每隔 5 次检查尝试重新应用配置
-      if (appController.isAttach && _groupsRetryCount % 5 == 1) {
+      if (_groupsRetryCount % 5 == 1) {
         _logger.info('🔄 第 $_groupsRetryCount 次重试: 尝试 fullSetup()...');
         appController.fullSetup();
-      } else if (!appController.isAttach) {
-        _logger.debug('   第 $_groupsRetryCount 次: appController 未就绪，等待核心初始化...');
       }
     });
   }
@@ -143,6 +163,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     _groupsRetryTimer?.cancel();
     _groupsRetryTimer = null;
     _groupsRetryCount = 0;
+    _controllerWaitCount = 0;
     _groupsRetryExhausted = false;
   }
 

@@ -16,11 +16,11 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
+import com.follow.clash.FlClashApplication
+import com.follow.clash.GlobalState
 import com.follow.clash.R
-import com.follow.clash.common.Components
-import com.follow.clash.common.GlobalState
-import com.follow.clash.common.QuickAction
-import com.follow.clash.common.quickIntent
+import com.follow.clash.extensions.QuickAction
+import com.follow.clash.extensions.getActionIntent
 import com.follow.clash.getPackageIconPath
 import com.follow.clash.models.Package
 import com.follow.clash.showToast
@@ -66,7 +66,7 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
         "com.android.vending",
         "com.microsoft",
         "com.apple",
-        "com.zhiliaoapp.musically", // Banned by China
+        "com.zhiliaoapp.musically",
     )
 
     private val chinaAppPrefixList = listOf(
@@ -170,35 +170,32 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
                 result.success("")
                 return@launch
             }
-            val path = GlobalState.application.packageManager.getPackageIconPath(packageName)
+            val path = FlClashApplication.getAppContext().packageManager.getPackageIconPath(packageName)
             result.success(path)
         }
     }
 
     private fun initShortcuts(label: String) {
-        val shortcut = with(ShortcutInfoCompat.Builder(GlobalState.application, "toggle")) {
+        val context = FlClashApplication.getAppContext()
+        val shortcut = with(ShortcutInfoCompat.Builder(context, "toggle")) {
             setShortLabel(label)
             setIcon(
-                IconCompat.createWithResource(
-                    GlobalState.application,
-                    R.mipmap.ic_launcher_round,
-                )
+                IconCompat.createWithResource(context, R.mipmap.ic_launcher_round)
             )
-            setIntent(QuickAction.TOGGLE.quickIntent)
+            setIntent(getActionIntent(context.packageName, QuickAction.TOGGLE))
             build()
         }
-        ShortcutManagerCompat.setDynamicShortcuts(
-            GlobalState.application, listOf(shortcut)
-        )
+        ShortcutManagerCompat.setDynamicShortcuts(context, listOf(shortcut))
     }
 
     private fun tip(message: String?) {
-        GlobalState.application.showToast(message)
+        showToast(message)
     }
 
     @Suppress("DEPRECATION")
     private fun updateExcludeFromRecents(value: Boolean?) {
-        val am = getSystemService(GlobalState.application, ActivityManager::class.java)
+        val context = FlClashApplication.getAppContext()
+        val am = getSystemService(context, ActivityManager::class.java)
         val task = am?.appTasks?.firstOrNull {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 it.taskInfo.taskId == activityRef?.get()?.taskId
@@ -216,11 +213,12 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
 
 
     private fun getPackages(): List<Package> {
-        val packageManager = GlobalState.application.packageManager
+        val context = FlClashApplication.getAppContext()
+        val packageManager = context.packageManager
         if (packages.isNotEmpty()) return packages
         packageManager?.getInstalledPackages(PackageManager.GET_META_DATA or PackageManager.GET_PERMISSIONS)
             ?.filter {
-                it.packageName != GlobalState.application.packageName && it.packageName != "android"
+                it.packageName != context.packageName && it.packageName != "android"
             }?.map {
                 Package(
                     packageName = it.packageName,
@@ -251,7 +249,7 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
         requestNotificationCallback = callBack
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val permission = ContextCompat.checkSelfPermission(
-                GlobalState.application, Manifest.permission.POST_NOTIFICATIONS
+                FlClashApplication.getAppContext(), Manifest.permission.POST_NOTIFICATIONS
             )
             if (permission == PackageManager.PERMISSION_GRANTED || isBlockNotification) {
                 invokeRequestNotificationCallback()
@@ -268,7 +266,6 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
         } else {
             invokeRequestNotificationCallback()
         }
-
     }
 
     fun invokeRequestNotificationCallback() {
@@ -282,7 +279,7 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
             invokeVpnPrepareCallback()
             return
         }
-        val intent = VpnService.prepare(GlobalState.application)
+        val intent = VpnService.prepare(FlClashApplication.getAppContext())
         if (intent != null) {
             activityRef?.get()?.startActivityForResult(intent, VPN_PERMISSION_REQUEST_CODE)
             return
@@ -300,7 +297,8 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
 
     @Suppress("DEPRECATION")
     private fun isChinaPackage(packageName: String): Boolean {
-        val packageManager = GlobalState.application.packageManager ?: return false
+        val context = FlClashApplication.getAppContext()
+        val packageManager = context.packageManager ?: return false
         skipPrefixList.forEach {
             if (packageName == it || packageName.startsWith("$it.")) return false
         }
@@ -368,8 +366,7 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         scope = CoroutineScope(Dispatchers.Default)
-        channel =
-            MethodChannel(flutterPluginBinding.binaryMessenger, "${Components.PACKAGE_NAME}/app")
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "app")
         channel.setMethodCallHandler(this)
     }
 

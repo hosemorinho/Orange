@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/models/models.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 abstract mixin class ServiceListener {
@@ -16,10 +14,8 @@ abstract mixin class ServiceListener {
 class Service {
   static Service? _instance;
   late MethodChannel methodChannel;
-  ReceivePort? receiver;
 
-  final ObserverList<ServiceListener> _listeners =
-      ObserverList<ServiceListener>();
+  final List<ServiceListener> _listeners = [];
 
   factory Service() {
     _instance ??= Service._internal();
@@ -27,26 +23,40 @@ class Service {
   }
 
   Service._internal() {
-    methodChannel = const MethodChannel('$packageName/service');
+    methodChannel = const MethodChannel('service');
     methodChannel.setMethodCallHandler((call) async {
       switch (call.method) {
         case 'event':
-          final data = call.arguments as String? ?? '';
-          final result = ActionResult.fromJson(json.decode(data));
-          for (final listener in _listeners) {
-            listener.onServiceEvent(CoreEvent.fromJson(result.data));
-          }
-          break;
-        case 'crash':
-          final message = call.arguments as String? ?? '';
-          for (final listener in _listeners) {
-            listener.onServiceCrash(message);
+          final eventData = call.arguments as String?;
+          if (eventData != null) {
+            try {
+              final resultJson = json.decode(eventData);
+              final actionResult = ActionResult.fromJson(resultJson);
+              if (actionResult.data != null) {
+                final event = CoreEvent.fromJson(
+                  actionResult.data is Map<String, dynamic>
+                      ? actionResult.data
+                      : json.decode(actionResult.data.toString()),
+                );
+                for (final listener in _listeners) {
+                  listener.onServiceEvent(event);
+                }
+              }
+            } catch (_) {}
           }
           break;
         default:
           throw MissingPluginException();
       }
     });
+  }
+
+  Future<String> init() async {
+    return await methodChannel.invokeMethod<String>('init') ?? '';
+  }
+
+  Future<bool> destroy() async {
+    return await methodChannel.invokeMethod<bool>('destroy') ?? true;
   }
 
   Future<ActionResult?> invokeAction(Action action) async {
@@ -57,44 +67,36 @@ class Service {
     if (data == null) {
       return null;
     }
-    final dataJson = await data.commonToJSON<dynamic>();
+    final dataJson = json.decode(data);
     return ActionResult.fromJson(dataJson);
   }
 
-  Future<bool> start() async {
-    return await methodChannel.invokeMethod<bool>('start') ?? false;
+  Future<bool> setEventListener() async {
+    return await methodChannel.invokeMethod<bool>('setEventListener') ?? false;
   }
 
-  Future<bool> stop() async {
-    return await methodChannel.invokeMethod<bool>('stop') ?? false;
+  Future<bool> removeEventListener() async {
+    return await methodChannel.invokeMethod<bool>('removeEventListener') ??
+        false;
   }
 
-  Future<String> init() async {
-    return await methodChannel.invokeMethod<String>('init') ?? '';
+  Future<String?> quickSetup(String initParams, String setupParams) async {
+    return await methodChannel.invokeMethod<String>('quickSetup', {
+      'initParams': initParams,
+      'setupParams': setupParams,
+    });
   }
 
-  Future<String> syncState(SharedState state) async {
-    return await methodChannel.invokeMethod<String>(
-          'syncState',
-          json.encode(state),
+  Future<bool> startVpn(VpnOptions options) async {
+    return await methodChannel.invokeMethod<bool>(
+          'startVpn',
+          json.encode(options),
         ) ??
-        '';
+        false;
   }
 
-  Future<bool> shutdown() async {
-    return await methodChannel.invokeMethod<bool>('shutdown') ?? true;
-  }
-
-  Future<DateTime?> getRunTime() async {
-    final ms = await methodChannel.invokeMethod<int>('getRunTime') ?? 0;
-    if (ms == 0) {
-      return null;
-    }
-    return DateTime.fromMillisecondsSinceEpoch(ms);
-  }
-
-  bool get hasListeners {
-    return _listeners.isNotEmpty;
+  Future<bool> stopVpn() async {
+    return await methodChannel.invokeMethod<bool>('stopVpn') ?? false;
   }
 
   void addListener(ServiceListener listener) {

@@ -2,35 +2,18 @@ package com.follow.clash
 
 import android.app.Activity
 import android.os.Bundle
-import com.follow.clash.common.QuickAction
-import com.follow.clash.common.action
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import com.follow.clash.extensions.QuickAction
+import com.follow.clash.extensions.wrapAction
 
-class TempActivity : Activity(),
-    CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
+class TempActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        when (intent.action) {
-            QuickAction.START.action -> {
-                launch {
-                    State.handleStartServiceAction()
-                }
-            }
-
-            QuickAction.STOP.action -> {
-                launch {
-                    State.handleStopServiceAction()
-                }
-            }
-
-            QuickAction.TOGGLE.action -> {
-                launch {
-                    State.handleToggleAction()
-                }
-            }
+        val action = wrapAction(applicationContext.packageName, intent.action)
+        when (action) {
+            QuickAction.START -> GlobalState.handleToggle()
+            QuickAction.STOP -> GlobalState.handleToggle()
+            QuickAction.TOGGLE -> GlobalState.handleToggle()
+            null -> {}
         }
         finish()
     }

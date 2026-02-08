@@ -1,19 +1,14 @@
 package com.follow.clash
 
 import android.os.Bundle
-import com.follow.clash.common.GlobalState
 import com.follow.clash.plugins.AppPlugin
 import com.follow.clash.plugins.ServicePlugin
 import com.follow.clash.plugins.TilePlugin
+import com.follow.clash.plugins.VpnPlugin
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 
-class MainActivity : FlutterActivity(),
-    CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
+class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,18 +16,16 @@ class MainActivity : FlutterActivity(),
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        Service.bind()
         flutterEngine.plugins.add(AppPlugin())
         flutterEngine.plugins.add(ServicePlugin())
         flutterEngine.plugins.add(TilePlugin())
-        State.flutterEngine = flutterEngine
+        flutterEngine.plugins.add(VpnPlugin())
+        GlobalState.flutterEngine = flutterEngine
     }
 
     override fun onDestroy() {
-        GlobalState.launch {
-            Service.setEventListener(null)
-        }
-        State.flutterEngine = null
+        GlobalState.flutterEngine = null
+        GlobalState.runStateFlow.tryEmit(RunState.STOP)
         super.onDestroy()
     }
 }

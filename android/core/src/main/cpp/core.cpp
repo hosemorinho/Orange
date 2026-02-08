@@ -22,18 +22,6 @@ Java_com_follow_clash_core_Core_stopTun(JNIEnv *env, jobject thiz) {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_follow_clash_core_Core_forceGC(JNIEnv *env, jobject thiz) {
-    forceGC();
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_follow_clash_core_Core_updateDNS(JNIEnv *env, jobject thiz, jstring dns) {
-    updateDns(get_string(dns));
-}
-
-extern "C"
-JNIEXPORT void JNICALL
 Java_com_follow_clash_core_Core_invokeAction(JNIEnv *env, jobject thiz, jstring data, jobject cb) {
     const auto interface = new_global(cb);
     invokeAction(interface, get_string(data));
@@ -51,31 +39,12 @@ Java_com_follow_clash_core_Core_setEventListener(JNIEnv *env, jobject thiz, jobj
 }
 
 extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_follow_clash_core_Core_getTraffic(JNIEnv *env, jobject thiz,
-                                           const jboolean only_statistics_proxy) {
-    return new_string(getTraffic(only_statistics_proxy));
-}
-
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_follow_clash_core_Core_getTotalTraffic(JNIEnv *env, jobject thiz,
-                                                const jboolean only_statistics_proxy) {
-    return new_string(getTotalTraffic(only_statistics_proxy));
-}
-
-extern "C"
 JNIEXPORT void JNICALL
-Java_com_follow_clash_core_Core_suspended(JNIEnv *env, jobject thiz, jboolean suspended) {
-    suspend(suspended);
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_follow_clash_core_Core_quickSetup(JNIEnv *env, jobject thiz, jstring init_params_string,
-                                           jstring setup_params_string, jobject cb) {
+Java_com_follow_clash_core_Core_quickSetup(JNIEnv *env, jobject thiz,
+                                           jstring init_params, jstring setup_params,
+                                           jobject cb) {
     const auto interface = new_global(cb);
-    quickSetup(interface, get_string(init_params_string), get_string(setup_params_string));
+    quickSetup(interface, get_string(init_params), get_string(setup_params));
 }
 
 
@@ -143,7 +112,6 @@ JNI_OnLoad(JavaVM *vm, void *) {
     m_invoke_interface_result = find_method(c_invoke_interface, "onResult",
                                             "(Ljava/lang/String;)V");
 
-
     protect_func = &call_tun_interface_protect_impl;
     resolve_process_func = &call_tun_interface_resolve_process_impl;
     result_func = &call_invoke_interface_result_impl;
@@ -171,38 +139,13 @@ Java_com_follow_clash_core_Core_invokeAction(JNIEnv *env, jobject thiz, jstring 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_follow_clash_core_Core_forceGC(JNIEnv *env, jobject thiz) {
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_follow_clash_core_Core_updateDNS(JNIEnv *env, jobject thiz, jstring dns) {
-}
-
-extern "C"
-JNIEXPORT void JNICALL
 Java_com_follow_clash_core_Core_setEventListener(JNIEnv *env, jobject thiz, jobject cb) {
 }
 
 extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_follow_clash_core_Core_getTraffic(JNIEnv *env, jobject thiz,
-                                           const jboolean only_statistics_proxy) {
-}
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_follow_clash_core_Core_getTotalTraffic(JNIEnv *env, jobject thiz,
-                                                const jboolean only_statistics_proxy) {
-}
-
-extern "C"
 JNIEXPORT void JNICALL
-Java_com_follow_clash_core_Core_suspended(JNIEnv *env, jobject thiz, jboolean suspended) {
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_follow_clash_core_Core_quickSetup(JNIEnv *env, jobject thiz, jstring init_params_string,
-                                           jstring setup_params_string, jobject cb) {
+Java_com_follow_clash_core_Core_quickSetup(JNIEnv *env, jobject thiz,
+                                           jstring init_params, jstring setup_params,
+                                           jobject cb) {
 }
 #endif

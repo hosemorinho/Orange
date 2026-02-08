@@ -1,7 +1,5 @@
 package com.follow.clash
 
-import android.app.Application
-import android.content.Context.MODE_PRIVATE
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
@@ -10,7 +8,6 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
-import com.follow.clash.common.GlobalState
 import com.follow.clash.models.SharedState
 import com.google.gson.Gson
 import io.flutter.embedding.engine.FlutterEngine
@@ -26,10 +23,11 @@ import kotlin.coroutines.resume
 
 private const val ICON_TTL_DAYS = 1L
 
-val Application.sharedState: SharedState
+val FlClashApplication.Companion.sharedState: SharedState
     get() {
         try {
-            val sp = getSharedPreferences("FlutterSharedPreferences", MODE_PRIVATE)
+            val context = getAppContext()
+            val sp = context.getSharedPreferences("FlutterSharedPreferences", android.content.Context.MODE_PRIVATE)
             val res = sp.getString("flutter.sharedState", "")
             return Gson().fromJson(res, SharedState::class.java)
         } catch (_: Exception) {
@@ -40,19 +38,18 @@ val Application.sharedState: SharedState
 
 private var lastToast: Toast? = null
 
-fun Application.showToast(text: String?) {
+fun showToast(text: String?) {
     Handler(Looper.getMainLooper()).post {
         lastToast?.cancel()
-        lastToast = Toast.makeText(this, text, Toast.LENGTH_LONG).apply {
+        lastToast = Toast.makeText(FlClashApplication.getAppContext(), text, Toast.LENGTH_LONG).apply {
             show()
         }
     }
-
 }
 
 suspend fun PackageManager.getPackageIconPath(packageName: String): String =
     withContext(Dispatchers.IO) {
-        val cacheDir = GlobalState.application.cacheDir
+        val cacheDir = FlClashApplication.getAppContext().cacheDir
         val iconDir = File(cacheDir, "icons").apply { mkdirs() }
         return@withContext try {
             val pkgInfo = getPackageInfo(packageName, 0)
@@ -86,6 +83,7 @@ private suspend fun saveDrawableToFile(drawable: Drawable, file: File) {
             }
 
             else -> {
+                @Suppress("DEPRECATION")
                 Bitmap.CompressFormat.WEBP
             }
         }

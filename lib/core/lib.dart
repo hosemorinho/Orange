@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/core.dart';
 import 'package:fl_clash/plugins/service.dart';
@@ -21,9 +20,9 @@ class CoreLib extends CoreHandlerInterface {
     if (res?.isEmpty != true) {
       return res ?? '';
     }
+    await service?.setEventListener();
     _connectedCompleter.complete(true);
-    final syncRes = await service?.syncState(appController.sharedState);
-    return syncRes ?? '';
+    return '';
   }
 
   factory CoreLib() {
@@ -33,6 +32,7 @@ class CoreLib extends CoreHandlerInterface {
 
   @override
   destroy() async {
+    await service?.removeEventListener();
     return true;
   }
 
@@ -42,7 +42,8 @@ class CoreLib extends CoreHandlerInterface {
       return false;
     }
     _connectedCompleter = Completer();
-    return service?.shutdown() ?? true;
+    await service?.removeEventListener();
+    return true;
   }
 
   @override

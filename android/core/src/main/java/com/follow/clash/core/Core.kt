@@ -13,19 +13,6 @@ data object Core {
         dns: String,
     )
 
-    external fun forceGC(
-    )
-
-    external fun updateDNS(
-        dns: String,
-    )
-
-    private fun parseInetSocketAddress(address: String): InetSocketAddress {
-        val url = URL("https://$address")
-
-        return InetSocketAddress(InetAddress.getByName(url.host), url.port)
-    }
-
     fun startTun(
         fd: Int,
         protect: (Int) -> Boolean,
@@ -61,9 +48,7 @@ data object Core {
         )
     }
 
-    external fun suspended(
-        suspended: Boolean,
-    )
+    external fun stopTun()
 
     private external fun invokeAction(
         data: String,
@@ -124,11 +109,10 @@ data object Core {
         cb: InvokeInterface
     )
 
-    external fun stopTun()
-
-    external fun getTraffic(onlyStatisticsProxy: Boolean): String
-
-    external fun getTotalTraffic(onlyStatisticsProxy: Boolean): String
+    private fun parseInetSocketAddress(address: String): InetSocketAddress {
+        val url = URL("https://$address")
+        return InetSocketAddress(InetAddress.getByName(url.host), url.port)
+    }
 
     init {
         System.loadLibrary("core")

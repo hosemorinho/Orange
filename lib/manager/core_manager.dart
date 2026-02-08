@@ -26,6 +26,19 @@ class _CoreContainerState extends ConsumerState<CoreManager>
     with CoreEventListener {
   DateTime? _lastCrashRecoveryAt;
 
+  bool _shouldSuppressErrorNotifier(String payload) {
+    final message = payload.toLowerCase();
+    const ignoreKeywords = <String>[
+      'health check',
+      'healthcheck',
+      'urltest',
+      'latency',
+      'delay test',
+      'speed test',
+    ];
+    return ignoreKeywords.any(message.contains);
+  }
+
   @override
   Widget build(BuildContext context) {
     return widget.child;
@@ -84,7 +97,8 @@ class _CoreContainerState extends ConsumerState<CoreManager>
       case LogLevel.silent:
         break;
     }
-    if (log.logLevel == LogLevel.error) {
+    if (log.logLevel == LogLevel.error &&
+        !_shouldSuppressErrorNotifier(log.payload)) {
       globalState.showNotifier(log.payload);
     }
     super.onLog(log);

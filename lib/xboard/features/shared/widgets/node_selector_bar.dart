@@ -15,18 +15,11 @@ class NodeSelectorBar extends ConsumerStatefulWidget {
   ConsumerState<NodeSelectorBar> createState() => _NodeSelectorBarState();
 }
 class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
-  String? _lastProxyName;
-  bool _isFirstBuild = true;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       autoLatencyService.initialize(ref);
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) {
-          autoLatencyService.testCurrentNode();
-        }
-      });
     });
   }
   @override
@@ -38,22 +31,6 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
     final groups = ref.watch(groupsProvider);
     final selectedMap = ref.watch(selectedMapProvider);
     final mode = ref.watch(patchClashConfigProvider.select((state) => state.mode));
-    ref.listen(runTimeProvider, (previous, next) {
-      final wasConnected = previous != null;
-      final isConnected = next != null;
-      if (wasConnected != isConnected) {
-        autoLatencyService.onConnectionStatusChanged(isConnected);
-      }
-    });
-    ref.listen(selectedMapProvider, (previous, next) {
-      if (previous != null && next != previous) {
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted) {
-            autoLatencyService.onNodeChanged();
-          }
-        });
-      }
-    });
     if (groups.isEmpty) {
       return _buildEmptyState(context);
     }
@@ -65,7 +42,6 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
     if (group == null || proxy == null) {
       return _buildEmptyState(context);
     }
-    _checkNodeChange(proxy);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: _buildProxyDisplay(context, group, proxy, mode),
@@ -294,17 +270,6 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
         ),
       ),
     );
-  }
-  void _checkNodeChange(Proxy currentProxy) {
-    if (_isFirstBuild) {
-      _lastProxyName = currentProxy.name;
-      _isFirstBuild = false;
-      return;
-    }
-    if (_lastProxyName != currentProxy.name) {
-      _lastProxyName = currentProxy.name;
-      autoLatencyService.onNodeChanged();
-    }
   }
   void _handleManualTest(Proxy proxy) {
     autoLatencyService.testProxy(proxy, forceTest: true);

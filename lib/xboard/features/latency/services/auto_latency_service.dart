@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -23,7 +22,7 @@ class AutoLatencyService {
   WidgetRef? _ref;
   final Map<String, DateTime> _proxyTestCache = {};
   static const int _cacheMinutes = 2;
-  static const int _periodicIntervalMinutes = 5;
+  static const bool _enableAutoLatencyTesting = false;
   
   // 操作协调器已废弃
   // final OperationCoordinator _coordinator = OperationCoordinator();
@@ -35,7 +34,9 @@ class AutoLatencyService {
     _ref = ref;
     if (!_isServiceActive) {
       _isServiceActive = true;
-      _startPeriodicTesting();
+      if (_enableAutoLatencyTesting) {
+        _startPeriodicTesting();
+      }
       _logger.info('自动延迟测试服务已启动');
     } else {
       _logger.debug('自动延迟测试服务已激活，更新ref引用');
@@ -198,6 +199,9 @@ class AutoLatencyService {
   Timer? _nodeChangeTimer;
 
   void onNodeChanged() {
+    if (!_enableAutoLatencyTesting) {
+      return;
+    }
     _logger.info('检测到节点切换，将自动测试新节点');
     
     // 使用防抖机制，避免快速切换时的重复测试
@@ -233,6 +237,9 @@ class AutoLatencyService {
     testCurrentNode(forceTest: true);
   }
   void onConnectionStatusChanged(bool isConnected) {
+    if (!_enableAutoLatencyTesting) {
+      return;
+    }
     if (isConnected) {
       _logger.info('代理连接成功，将自动测试当前节点');
       Timer(const Duration(milliseconds: 1500), () {
@@ -250,9 +257,12 @@ class AutoLatencyService {
     }
   }
   void _startPeriodicTesting() {
+    if (!_enableAutoLatencyTesting) {
+      return;
+    }
     _periodicTimer?.cancel();
     _periodicTimer = Timer.periodic(
-      const Duration(minutes: _periodicIntervalMinutes),
+      const Duration(minutes: 5),
       (_) {
         _performPeriodicTest();
       },

@@ -24,7 +24,6 @@ class XBoardHomePage extends ConsumerStatefulWidget {
 class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
     with AutomaticKeepAliveClientMixin {
   bool _hasInitialized = false;
-  bool _hasStartedLatencyTesting = false;
   bool _hasCheckedSubscriptionStatus = false;
   Timer? _subscriptionRefreshTimer;  // 订阅信息定时刷新计时器
 
@@ -45,7 +44,6 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         _startSubscriptionRefreshTimer();
       }
       autoLatencyService.initialize(ref);
-      _waitForGroupsAndStartTesting();
     });
     ref.listenManual(xboardUserProvider, (previous, next) {
       if (next.errorMessage == 'TOKEN_EXPIRED') {
@@ -70,25 +68,6 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       }
     });
     
-    ref.listenManual(currentProfileProvider, (previous, next) {
-      if (previous?.label != next?.label && previous != null) {
-        Future.delayed(const Duration(milliseconds: 1500), () {
-          if (mounted) {
-            autoLatencyService.testCurrentNode(forceTest: true);
-          }
-        });
-      }
-    });
-    ref.listenManual(groupsProvider, (previous, next) {
-      if ((previous?.isEmpty ?? true) && next.isNotEmpty && !_hasStartedLatencyTesting) {
-        _hasStartedLatencyTesting = true;
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            _performInitialLatencyTest();
-          }
-        });
-      }
-    });
   }
   @override
   void dispose() {
@@ -319,43 +298,6 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         ],
       ),
     );
-  }
-
-  void _waitForGroupsAndStartTesting() {
-    if (_hasStartedLatencyTesting) {
-      return;
-    }
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      try {
-        final groups = ref.read(groupsProvider);
-        if (groups.isNotEmpty && !_hasStartedLatencyTesting) {
-          timer.cancel();
-          _hasStartedLatencyTesting = true;
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) {
-              _performInitialLatencyTest();
-            }
-          });
-        }
-      } catch (e) {
-      }
-    });
-  }
-  void _performInitialLatencyTest() {
-    if (!mounted) return;
-    autoLatencyService.testCurrentNode();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        final userState = ref.read(xboardUserProvider);
-        if (userState.isAuthenticated) {
-          autoLatencyService.testCurrentGroupNodes();
-        }
-      }
-    });
   }
 
   /// 启动订阅信息定时刷新（每 5 分钟）

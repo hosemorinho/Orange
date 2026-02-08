@@ -217,10 +217,10 @@ class XBoardProfileImportService {
       // 3. 通过 ClashCoreBridge 应用配置到核心（绕过 safeRun，让错误自然传播）
       //    如果核心还没初始化完成（启动时自动导入），等待初始化完成再执行
       if (!_ref.read(initProvider)) {
-        _logger.info('核心尚未初始化，等待初始化完成（最多30s）...');
-        final ready = await _waitForInit(timeout: const Duration(seconds: 30));
+        _logger.info('核心尚未初始化，等待初始化完成（最多60s）...');
+        final ready = await _waitForInit(timeout: const Duration(seconds: 60));
         if (!ready) {
-          _logger.warning('⚠️ 等待核心初始化超时(30s)，配置已保存，将在初始化后自动加载');
+          _logger.warning('⚠️ 等待核心初始化超时(60s)，配置已保存，将在初始化后自动加载');
           return;
         }
         _logger.info('核心初始化完成，继续应用配置');

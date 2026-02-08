@@ -215,14 +215,20 @@ class XBoardProfileImportService {
       _logger.info('已设置为当前配置');
 
       // 3. 通过 ClashCoreBridge 应用配置到核心（绕过 safeRun，让错误自然传播）
-      if (_ref.read(initProvider)) {
-        _logger.info('核心已就绪，通过 ClashCoreBridge 应用配置...');
-        final bridge = _ref.read(clashCoreBridgeProvider);
-        final groups = await bridge.applyAndFetchGroups(profile);
-        _logger.info('✅ 配置应用成功，groups 数量: ${groups.length}');
-      } else {
-        _logger.info('核心尚未初始化完成，配置将在初始化完成后自动加载');
+      //    如果核心还没初始化完成（启动时自动导入），等待初始化完成再执行
+      if (!_ref.read(initProvider)) {
+        _logger.info('核心尚未初始化，等待初始化完成（最多30s）...');
+        final ready = await _waitForInit(timeout: const Duration(seconds: 30));
+        if (!ready) {
+          _logger.warning('⚠️ 等待核心初始化超时(30s)，配置已保存，将在初始化后自动加载');
+          return;
+        }
+        _logger.info('核心初始化完成，继续应用配置');
       }
+      _logger.info('核心已就绪，通过 ClashCoreBridge 应用配置...');
+      final bridge = _ref.read(clashCoreBridgeProvider);
+      final groups = await bridge.applyAndFetchGroups(profile);
+      _logger.info('✅ 配置应用成功，groups 数量: ${groups.length}');
 
       _logger.info('配置添加完成 (ID: ${profile.id}, Label: ${profile.label})');
     } catch (e, st) {
@@ -230,6 +236,16 @@ class XBoardProfileImportService {
       throw Exception('添加配置失败: $e');
     }
   }
+  /// 等待核心初始化完成，轮询 initProvider 直到为 true 或超时
+  Future<bool> _waitForInit({required Duration timeout}) async {
+    final deadline = DateTime.now().add(timeout);
+    while (!_ref.read(initProvider)) {
+      if (DateTime.now().isAfter(deadline)) return false;
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    return true;
+  }
+
   ImportErrorType _classifyError(dynamic error) {
     final errorString = error.toString().toLowerCase();
     if (errorString.contains('timeout') || 

@@ -1128,14 +1128,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
               _logger.info('手动重试加载配置：优先执行 xboardQuickSetup()');
               try {
                 final quickSetupResult = await appController.xboardQuickSetup();
-                if (!quickSetupResult.isSuccess && quickSetupResult.shouldFallbackToFullSetup) {
+                if (!quickSetupResult.isSuccess) {
                   _logger.warning(
-                    'xboardQuickSetup 失败（${quickSetupResult.status.name}），回退 fullSetup(): ${quickSetupResult.message}',
-                  );
-                  appController.fullSetup();
-                } else if (!quickSetupResult.isSuccess) {
-                  _logger.info(
-                    'xboardQuickSetup 未执行回退（${quickSetupResult.status.name}）：${quickSetupResult.message}',
+                    'xboardQuickSetup 未成功（${quickSetupResult.status.name}）：${quickSetupResult.message}',
                   );
                 }
               } finally {

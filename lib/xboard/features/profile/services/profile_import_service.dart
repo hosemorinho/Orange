@@ -212,14 +212,9 @@ class XBoardProfileImportService {
       if (_ref.read(initProvider)) {
         _logger.info('核心已初始化，使用 xboardQuickSetup() 原子应用配置...');
         final quickSetupResult = await appController.xboardQuickSetup();
-        if (!quickSetupResult.isSuccess && quickSetupResult.shouldFallbackToFullSetup) {
+        if (!quickSetupResult.isSuccess) {
           _logger.warning(
-            'xboardQuickSetup 失败（${quickSetupResult.status.name}），回退 fullSetup(): ${quickSetupResult.message}',
-          );
-          appController.fullSetup();
-        } else if (!quickSetupResult.isSuccess) {
-          _logger.info(
-            'xboardQuickSetup 未执行回退（${quickSetupResult.status.name}）：${quickSetupResult.message}',
+            'xboardQuickSetup 未成功（${quickSetupResult.status.name}）：${quickSetupResult.message}',
           );
         }
       } else {

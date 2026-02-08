@@ -22,6 +22,15 @@ class AppController {
   bool isAttach = false;
   bool _isApplyingProfile = false;
   bool _isXboardQuickSetting = false;
+  bool _isCoreReady = false;
+  bool _isDispatchingSetup = false;
+  int _setupRequestSeq = 0;
+  String? _activeSetupRequestId;
+  _SetupDispatchRequest? _queuedSetupRequest;
+  Completer<void>? _queuedSetupCompleter;
+  XboardQuickSetupResult _lastSetupDispatchResult = const XboardQuickSetupResult(
+    status: XboardQuickSetupStatus.success,
+  );
 
   static AppController? _instance;
 
@@ -37,6 +46,50 @@ class AppController {
     _ref = ref;
     await _init();
     isAttach = true;
+  }
+}
+
+class _SetupDispatchRequest {
+  final String requestId;
+  final String traceRequestIds;
+  final String trigger;
+  final bool preferQuickSetup;
+  final bool force;
+  final bool silence;
+  final bool resetUiCaches;
+
+  const _SetupDispatchRequest({
+    required this.requestId,
+    required this.traceRequestIds,
+    required this.trigger,
+    required this.preferQuickSetup,
+    required this.force,
+    required this.silence,
+    required this.resetUiCaches,
+  });
+
+  _SetupDispatchRequest merge(_SetupDispatchRequest other) {
+    final triggerSet = <String>{
+      ...trigger.split(','),
+      ...other.trigger.split(','),
+    }
+      ..removeWhere((item) => item.trim().isEmpty);
+
+    final traceSet = <String>{
+      ...traceRequestIds.split(','),
+      ...other.traceRequestIds.split(','),
+    }
+      ..removeWhere((item) => item.trim().isEmpty);
+
+    return _SetupDispatchRequest(
+      requestId: requestId,
+      traceRequestIds: traceSet.join(','),
+      trigger: triggerSet.join(','),
+      preferQuickSetup: preferQuickSetup || other.preferQuickSetup,
+      force: force || other.force,
+      silence: silence && other.silence,
+      resetUiCaches: resetUiCaches || other.resetUiCaches,
+    );
   }
 }
 
@@ -118,7 +171,8 @@ extension InitControllerExt on AppController {
     final profileId = _ref.read(currentProfileIdProvider);
     if (groups.isEmpty &&
         profileId != null &&
-        _ref.read(coreStatusProvider) == CoreStatus.connected) {
+        _ref.read(coreStatusProvider) == CoreStatus.connected &&
+        _isCoreReady) {
       commonPrint.log(
         'post-init: groups empty but profile $profileId exists, triggering fullSetup',
       );
@@ -153,8 +207,8 @@ extension InitControllerExt on AppController {
       return;
     }
 
-    if (_ref.read(coreStatusProvider) != CoreStatus.connected) {
-      commonPrint.log('init status: core disconnected, skip apply');
+    if (_ref.read(coreStatusProvider) != CoreStatus.connected || !_isCoreReady) {
+      commonPrint.log('init status: core not ready, skip apply');
       return;
     }
 
@@ -579,29 +633,26 @@ extension SetupControllerExt on AppController {
       'fullSetup entry: coreStatus=$coreStatus, '
       'isAttach=$isAttach, '
       'isApplyingProfile=$_isApplyingProfile, '
+      'isDispatchingSetup=$_isDispatchingSetup, '
+      'isCoreReady=$_isCoreReady, '
       'currentProfileId=$currentProfileId',
     );
 
-    if (!_ref.read(initProvider)) {
-      return;
-    }
-
-    if (coreStatus != CoreStatus.connected) {
-      commonPrint.log('fullSetup skip: core disconnected, try restart core');
-      tryStartCore();
-      return;
-    }
-
-    _ref.read(delayDataSourceProvider.notifier).value = {};
-    applyProfile(force: true);
-    _ref.read(logsProvider.notifier).value = FixedList(500);
-    _ref.read(requestsProvider.notifier).value = FixedList(500);
+    final request = _newSetupDispatchRequest(
+      trigger: 'fullSetup',
+      preferQuickSetup: false,
+      force: true,
+      silence: true,
+      resetUiCaches: true,
+    );
+    commonPrint.log('fullSetup dispatch requestId=${request.requestId}');
+    unawaited(_dispatchSetup(request));
   }
 
   Future<void> updateStatus(bool isStart, {bool isInit = false}) async {
     if (isStart) {
       if (!isInit) {
-        final res = await tryStartCore(true);
+        final res = await tryStartCore(start: true);
         if (res) {
           return;
         }
@@ -840,28 +891,185 @@ extension SetupControllerExt on AppController {
     });
   }
 
-  Future<void> applyProfile({
-    bool silence = false,
-    bool force = false,
+  _SetupDispatchRequest _newSetupDispatchRequest({
+    required String trigger,
+    required bool preferQuickSetup,
+    required bool force,
+    required bool silence,
+    required bool resetUiCaches,
+  }) {
+    _setupRequestSeq += 1;
+    final requestId =
+        'setup-${DateTime.now().millisecondsSinceEpoch}-$_setupRequestSeq';
+    return _SetupDispatchRequest(
+      requestId: requestId,
+      traceRequestIds: requestId,
+      trigger: trigger,
+      preferQuickSetup: preferQuickSetup,
+      force: force,
+      silence: silence,
+      resetUiCaches: resetUiCaches,
+    );
+  }
+
+  Future<XboardQuickSetupResult> _dispatchSetup(
+    _SetupDispatchRequest request, {
+    VoidCallback? preloadInvoke,
+  }) async {
+    if (_isDispatchingSetup) {
+      _queuedSetupRequest = (_queuedSetupRequest?.merge(request)) ?? request;
+      _queuedSetupCompleter ??= Completer<void>();
+      commonPrint.log(
+        'setupDispatch queued: requestId=${request.requestId}, '
+        'activeRequestId=${_activeSetupRequestId ?? ''}, '
+        'queuedRequestId=${_queuedSetupRequest?.requestId}, '
+        'queuedTraceIds=${_queuedSetupRequest?.traceRequestIds}, '
+        'trigger=${request.trigger}',
+      );
+      await _queuedSetupCompleter!.future;
+      return _lastSetupDispatchResult;
+    }
+
+    _isDispatchingSetup = true;
+    try {
+      var currentRequest = request;
+      var currentPreloadInvoke = preloadInvoke;
+      while (true) {
+        _activeSetupRequestId = currentRequest.requestId;
+        commonPrint.log(
+          'setupDispatch run: requestId=${currentRequest.requestId}, '
+          'traceIds=${currentRequest.traceRequestIds}, '
+          'trigger=${currentRequest.trigger}',
+        );
+        try {
+          _lastSetupDispatchResult = await _executeSetupDispatch(
+            currentRequest,
+            preloadInvoke: currentPreloadInvoke,
+          );
+          commonPrint.log(
+            'setupDispatch done: requestId=${currentRequest.requestId}, '
+            'status=${_lastSetupDispatchResult.status.name}, '
+            'message=${_lastSetupDispatchResult.message}',
+          );
+        } catch (e, s) {
+          commonPrint.log(
+            'setupDispatch exception: requestId=${currentRequest.requestId}, $e, $s',
+            logLevel: LogLevel.error,
+          );
+          _lastSetupDispatchResult = XboardQuickSetupResult(
+            status: XboardQuickSetupStatus.failed,
+            message: '$e',
+          );
+        }
+
+        if (_queuedSetupRequest == null) {
+          return _lastSetupDispatchResult;
+        }
+
+        currentRequest = _queuedSetupRequest!;
+        _queuedSetupRequest = null;
+        currentPreloadInvoke = null;
+        commonPrint.log(
+          'setupDispatch drain queued request: requestId=${currentRequest.requestId}, '
+          'traceIds=${currentRequest.traceRequestIds}, '
+          'trigger=${currentRequest.trigger}',
+        );
+      }
+    } finally {
+      _activeSetupRequestId = null;
+      _isDispatchingSetup = false;
+      _queuedSetupCompleter?.complete();
+      _queuedSetupCompleter = null;
+    }
+  }
+
+  Future<XboardQuickSetupResult> _executeSetupDispatch(
+    _SetupDispatchRequest request, {
     VoidCallback? preloadInvoke,
   }) async {
     final coreStatus = _ref.read(coreStatusProvider);
     final currentProfileId = _ref.read(currentProfileIdProvider);
     commonPrint.log(
-      'applyProfile entry: coreStatus=$coreStatus, '
-      'isAttach=$isAttach, '
+      'setupDispatch start: requestId=${request.requestId}, '
+      'traceIds=${request.traceRequestIds}, trigger=${request.trigger}, '
+      'preferQuickSetup=${request.preferQuickSetup}, '
+      'force=${request.force}, silence=${request.silence}, '
+      'coreStatus=$coreStatus, isAttach=$isAttach, '
       'isApplyingProfile=$_isApplyingProfile, '
-      'currentProfileId=$currentProfileId, '
-      'force=$force, silence=$silence',
+      'isXboardQuickSetting=$_isXboardQuickSetting, '
+      'isCoreReady=$_isCoreReady, currentProfileId=$currentProfileId',
     );
 
-    if (_isApplyingProfile || _isXboardQuickSetting) {
-      commonPrint.log('applyProfile skip: another apply is running');
+    if (!isAttach) {
+      return const XboardQuickSetupResult(
+        status: XboardQuickSetupStatus.notAttached,
+        message: 'setupDispatch skipped: appController not attached',
+      );
+    }
+
+    if (!_ref.read(initProvider)) {
+      return const XboardQuickSetupResult(
+        status: XboardQuickSetupStatus.notAttached,
+        message: 'setupDispatch skipped: app not initialized',
+      );
+    }
+
+    if (_ref.read(coreStatusProvider) != CoreStatus.connected || !_isCoreReady) {
+      commonPrint.log(
+        'setupDispatch: requestId=${request.requestId}, core not ready, try restart core',
+      );
+      await tryStartCore(skipPostSetup: true);
+    }
+
+    if (_ref.read(coreStatusProvider) != CoreStatus.connected || !_isCoreReady) {
+      return const XboardQuickSetupResult(
+        status: XboardQuickSetupStatus.coreDisconnected,
+        message: 'setupDispatch failed: core not ready',
+      );
+    }
+
+    if (request.resetUiCaches) {
+      _ref.read(delayDataSourceProvider.notifier).value = {};
+      _ref.read(logsProvider.notifier).value = FixedList(500);
+      _ref.read(requestsProvider.notifier).value = FixedList(500);
+    }
+
+    if (request.preferQuickSetup && system.isAndroid) {
+      final quickSetupResult = await _xboardQuickSetupInternal();
+      if (quickSetupResult.isSuccess) {
+        return quickSetupResult;
+      }
+      if (!quickSetupResult.shouldFallbackToFullSetup) {
+        return quickSetupResult;
+      }
+      commonPrint.log(
+        'setupDispatch: requestId=${request.requestId}, quickSetup fallback to applyProfile '
+        '(${quickSetupResult.status.name}): ${quickSetupResult.message}',
+      );
+    }
+
+    await _applyProfileInternal(
+      force: request.force,
+      silence: request.silence,
+      preloadInvoke: preloadInvoke,
+    );
+    return const XboardQuickSetupResult(status: XboardQuickSetupStatus.success);
+  }
+
+  Future<void> _applyProfileInternal({
+    required bool silence,
+    required bool force,
+    VoidCallback? preloadInvoke,
+  }) async {
+    final coreStatus = _ref.read(coreStatusProvider);
+
+    if (_isApplyingProfile) {
+      commonPrint.log('applyProfile internal skip: apply already running');
       return;
     }
 
-    if (coreStatus != CoreStatus.connected) {
-      commonPrint.log('applyProfile skip: core disconnected');
+    if (coreStatus != CoreStatus.connected || !_isCoreReady) {
+      commonPrint.log('applyProfile internal skip: core not ready');
       return;
     }
 
@@ -885,27 +1093,9 @@ extension SetupControllerExt on AppController {
     }
   }
 
-  Future<XboardQuickSetupResult> xboardQuickSetup() async {
-    final coreStatus = _ref.read(coreStatusProvider);
-    final currentProfileId = _ref.read(currentProfileIdProvider);
-    commonPrint.log(
-      'xboardQuickSetup entry: coreStatus=$coreStatus, '
-      'isAttach=$isAttach, '
-      'isApplyingProfile=$_isApplyingProfile, '
-      'isXboardQuickSetting=$_isXboardQuickSetting, '
-      'currentProfileId=$currentProfileId',
-    );
-
+  Future<XboardQuickSetupResult> _xboardQuickSetupInternal() async {
     if (!system.isAndroid) {
-      await applyProfile(silence: true, force: true);
       return const XboardQuickSetupResult(status: XboardQuickSetupStatus.success);
-    }
-
-    if (!isAttach) {
-      return const XboardQuickSetupResult(
-        status: XboardQuickSetupStatus.notAttached,
-        message: 'xboardQuickSetup skipped: appController not attached',
-      );
     }
 
     if (_isApplyingProfile || _isXboardQuickSetting) {
@@ -915,16 +1105,11 @@ extension SetupControllerExt on AppController {
       );
     }
 
-    if (coreStatus != CoreStatus.connected) {
-      commonPrint.log('xboardQuickSetup: core disconnected, try restart core');
-      await tryStartCore();
-      final nextStatus = _ref.read(coreStatusProvider);
-      if (nextStatus != CoreStatus.connected) {
-        return const XboardQuickSetupResult(
-          status: XboardQuickSetupStatus.coreDisconnected,
-          message: 'xboardQuickSetup failed: core disconnected',
-        );
-      }
+    if (_ref.read(coreStatusProvider) != CoreStatus.connected || !_isCoreReady) {
+      return const XboardQuickSetupResult(
+        status: XboardQuickSetupStatus.coreDisconnected,
+        message: 'xboardQuickSetup failed: core disconnected',
+      );
     }
 
     final profile = _ref.read(currentProfileProvider);
@@ -970,7 +1155,6 @@ extension SetupControllerExt on AppController {
         );
       }
 
-      // quickSetup 成功后刷新状态
       await updateGroups();
       await updateProviders();
       addCheckIp();
@@ -984,6 +1168,61 @@ extension SetupControllerExt on AppController {
     } finally {
       _isXboardQuickSetting = false;
     }
+  }
+
+  Future<void> applyProfile({
+    bool silence = false,
+    bool force = false,
+    VoidCallback? preloadInvoke,
+  }) async {
+    final coreStatus = _ref.read(coreStatusProvider);
+    final currentProfileId = _ref.read(currentProfileIdProvider);
+    commonPrint.log(
+      'applyProfile entry: coreStatus=$coreStatus, '
+      'isAttach=$isAttach, '
+      'isApplyingProfile=$_isApplyingProfile, '
+      'isDispatchingSetup=$_isDispatchingSetup, '
+      'isCoreReady=$_isCoreReady, '
+      'currentProfileId=$currentProfileId, '
+      'force=$force, silence=$silence',
+    );
+
+    final request = _newSetupDispatchRequest(
+      trigger: 'applyProfile',
+      preferQuickSetup: false,
+      force: force,
+      silence: silence,
+      resetUiCaches: false,
+    );
+    commonPrint.log('applyProfile dispatch requestId=${request.requestId}');
+    await _dispatchSetup(
+      request,
+      preloadInvoke: preloadInvoke,
+    );
+  }
+
+  Future<XboardQuickSetupResult> xboardQuickSetup() async {
+    final coreStatus = _ref.read(coreStatusProvider);
+    final currentProfileId = _ref.read(currentProfileIdProvider);
+    commonPrint.log(
+      'xboardQuickSetup entry: coreStatus=$coreStatus, '
+      'isAttach=$isAttach, '
+      'isApplyingProfile=$_isApplyingProfile, '
+      'isDispatchingSetup=$_isDispatchingSetup, '
+      'isXboardQuickSetting=$_isXboardQuickSetting, '
+      'isCoreReady=$_isCoreReady, '
+      'currentProfileId=$currentProfileId',
+    );
+
+    final request = _newSetupDispatchRequest(
+      trigger: 'xboardQuickSetup',
+      preferQuickSetup: true,
+      force: true,
+      silence: true,
+      resetUiCaches: false,
+    );
+    commonPrint.log('xboardQuickSetup dispatch requestId=${request.requestId}');
+    return _dispatchSetup(request);
   }
 
   Future<Map<String, dynamic>> getProfile({
@@ -1138,22 +1377,33 @@ extension SetupControllerExt on AppController {
 }
 
 extension CoreControllerExt on AppController {
+  void _setCoreReady(bool value, {String? reason}) {
+    if (_isCoreReady == value) {
+      return;
+    }
+    _isCoreReady = value;
+    commonPrint.log('coreReady => $value${reason != null ? ', reason=$reason' : ''}');
+  }
+
   Future<bool> _initCore() async {
     final isInit = await coreController.isInit;
     final version = _ref.read(versionProvider);
     if (!isInit) {
       final initSuccess = await coreController.init(version);
       if (!initSuccess) {
+        _setCoreReady(false, reason: 'coreController.init returned false');
         commonPrint.log('init core failed: coreController.init returned false');
         return false;
       }
     } else {
       await updateGroups();
     }
+    _setCoreReady(true, reason: 'initCore success');
     return true;
   }
 
   Future<bool> _connectCore() async {
+    _setCoreReady(false, reason: 'connectCore start');
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.connecting;
     final result = await Future.wait([
       coreController.preload(),
@@ -1161,12 +1411,14 @@ extension CoreControllerExt on AppController {
     ]);
     final String message = result[0];
     if (message.isNotEmpty) {
+      _setCoreReady(false, reason: 'preload failed');
       _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
       if (_context.mounted) {
         _context.showNotifier(message);
       }
       return false;
     }
+    _setCoreReady(false, reason: 'connected but not initialized');
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.connected;
     return true;
   }
@@ -1206,7 +1458,11 @@ extension CoreControllerExt on AppController {
     return Result.success(enableTun);
   }
 
-  Future<void> restartCore([bool start = false]) async {
+  Future<void> restartCore({
+    bool start = false,
+    bool skipPostSetup = false,
+  }) async {
+    _setCoreReady(false, reason: 'restartCore begin');
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
     await coreController.shutdown(true);
     final isConnected = await _connectCore();
@@ -1217,6 +1473,10 @@ extension CoreControllerExt on AppController {
     if (!isCoreInitialized) {
       return;
     }
+    if (skipPostSetup) {
+      commonPrint.log('restartCore: skip post setup by caller');
+      return;
+    }
     if (start || _ref.read(isStartProvider)) {
       await updateStatus(true, isInit: true);
     } else {
@@ -1224,15 +1484,19 @@ extension CoreControllerExt on AppController {
     }
   }
 
-  Future<bool> tryStartCore([bool start = false]) async {
-    if (coreController.isCompleted) {
+  Future<bool> tryStartCore({
+    bool start = false,
+    bool skipPostSetup = false,
+  }) async {
+    if (_ref.read(coreStatusProvider) == CoreStatus.connected && _isCoreReady) {
       return false;
     }
-    await restartCore(start);
+    await restartCore(start: start, skipPostSetup: skipPostSetup);
     return true;
   }
 
   void handleCoreDisconnected() {
+    _setCoreReady(false, reason: 'core disconnected');
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
   }
 }

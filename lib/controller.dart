@@ -653,7 +653,7 @@ extension SetupControllerExt on AppController {
   Future<void> updateStatus(bool isStart, {bool isInit = false}) async {
     if (isStart) {
       if (!isInit) {
-        final res = await tryStartCore(start: true);
+        final res = await tryStartCore(start: true, forceWhenNotReady: true);
         if (res) {
           return;
         }
@@ -1020,7 +1020,7 @@ extension SetupControllerExt on AppController {
         commonPrint.log(
           'setupDispatch: requestId=${request.requestId}, core disconnected, try restart before quickSetup',
         );
-        await tryStartCore(skipPostSetup: true);
+        await tryStartCore(skipPostSetup: true, forceWhenNotReady: true);
       }
 
       if (_ref.read(coreStatusProvider) == CoreStatus.connected) {
@@ -1044,7 +1044,7 @@ extension SetupControllerExt on AppController {
       commonPrint.log(
         'setupDispatch: requestId=${request.requestId}, core not ready, try restart core',
       );
-      await tryStartCore(skipPostSetup: true);
+      await tryStartCore(skipPostSetup: true, forceWhenNotReady: true);
     }
 
     if (_ref.read(coreStatusProvider) != CoreStatus.connected || !_isCoreReady) {
@@ -1512,8 +1512,14 @@ extension CoreControllerExt on AppController {
   Future<bool> tryStartCore({
     bool start = false,
     bool skipPostSetup = false,
+    bool forceWhenNotReady = false,
   }) async {
-    if (_ref.read(coreStatusProvider) == CoreStatus.connected && _isCoreReady) {
+    final coreStatus = _ref.read(coreStatusProvider);
+    if (coreStatus == CoreStatus.connecting) {
+      commonPrint.log('tryStartCore skip: core is connecting');
+      return false;
+    }
+    if (coreStatus == CoreStatus.connected && (_isCoreReady || !forceWhenNotReady)) {
       return false;
     }
     await restartCore(start: start, skipPostSetup: skipPostSetup);

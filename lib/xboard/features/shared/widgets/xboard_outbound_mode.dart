@@ -85,14 +85,13 @@ class XBoardOutboundMode extends StatelessWidget {
                 width: double.infinity,
                 child: SegmentedButton<Mode>(
                   segments: [
-                    ButtonSegment(
-                      value: Mode.rule,
-                      label: Text(Intl.message(Mode.rule.name)),
-                    ),
-                    ButtonSegment(
-                      value: Mode.global,
-                      label: Text(Intl.message(Mode.global.name)),
-                    ),
+                    for (final item in [Mode.rule, Mode.global])
+                      ButtonSegment(
+                        value: item,
+                        label: (mode == Mode.direct ? Mode.rule : mode) == item
+                            ? const SizedBox.shrink()
+                            : Text(Intl.message(item.name)),
+                      ),
                   ],
                   selected: {mode == Mode.direct ? Mode.rule : mode},
                   onSelectionChanged: (selected) {

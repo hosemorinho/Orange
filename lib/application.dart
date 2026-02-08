@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fl_clash/common/common.dart';
@@ -84,10 +83,10 @@ class ApplicationState extends ConsumerState<Application> {
     });
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      await _attachWithRetry();
-
-      // 核心已就绪，现在安全执行快速认证（可能触发订阅导入）
+      // 快速认证独立运行，不被 Clash 核心初始化阻塞
       _performQuickAuthWithDomainService();
+
+      await _attachWithRetry();
 
       _autoUpdateProfilesTask();
       app?.initShortcuts();
@@ -100,7 +99,8 @@ class ApplicationState extends ConsumerState<Application> {
   /// Attach appController with retry when navigator context is not yet available
   Future<void> _attachWithRetry() async {
     for (int i = 0; i < 5; i++) {
-      final currentContext = globalState.navigatorKey.currentContext;
+      final currentContext = globalState.navigatorKey.currentContext ??
+          (mounted ? context : null);
       if (currentContext != null) {
         await appController.attach(currentContext, ref);
         return;
@@ -108,8 +108,7 @@ class ApplicationState extends ConsumerState<Application> {
       debugPrint('[Application] Navigator context is null, retry ${i + 1}/5...');
       await Future.delayed(const Duration(milliseconds: 100));
     }
-    debugPrint('[Application] Navigator context still null after retries, force exit');
-    exit(0);
+    debugPrint('[Application] Navigator context still null after retries, skip force exit');
   }
 
   /// 使用新域名服务架构进行快速认证检查

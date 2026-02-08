@@ -69,8 +69,14 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     private fun handleInvokeAction(call: MethodCall, result: MethodChannel.Result) {
         launch {
             val data = call.arguments<String>()!!
+            var responded = false
             Service.invokeAction(data) {
+                responded = true
                 result.success(it)
+            }.onFailure {
+                if (!responded) {
+                    result.success(null)
+                }
             }
         }
     }

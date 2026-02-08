@@ -60,6 +60,17 @@ extension InitControllerExt on AppController {
     await _initCore();
     await _initStatus();
     _ref.read(initProvider.notifier).value = true;
+
+    // 竞态兜底：订阅导入可能在 _init() 期间完成，此时 fullSetup() 因
+    // initProvider == false 被跳过。初始化完成后再次检查并补一次 fullSetup。
+    final groups = _ref.read(groupsProvider);
+    final profileId = _ref.read(currentProfileIdProvider);
+    if (groups.isEmpty && profileId != null) {
+      commonPrint.log(
+        'post-init: groups empty but profile $profileId exists, triggering fullSetup',
+      );
+      fullSetup();
+    }
   }
 
   Future<void> _handleFailedPreference() async {

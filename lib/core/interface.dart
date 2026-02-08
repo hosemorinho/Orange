@@ -164,7 +164,10 @@ abstract class CoreHandlerInterface with CoreInterface {
   @override
   Future<Result> getConfig(String path) async {
     final res = await _invoke(method: ActionMethod.getConfig, data: path);
-    return res ?? Result.success({});
+    return res ??
+        Result.error(
+          'getConfig failed: core not ready or FFI call timed out (path: $path)',
+        );
   }
 
   @override
@@ -173,7 +176,7 @@ abstract class CoreHandlerInterface with CoreInterface {
           method: ActionMethod.setupConfig,
           data: json.encode(setupParams),
         ) ??
-        '';
+        'setupConfig failed: core not ready or FFI call timed out';
   }
 
   @override

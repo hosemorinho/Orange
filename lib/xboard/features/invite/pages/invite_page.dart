@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/features/invite/providers/invite_provider.dart';
 import 'package:fl_clash/xboard/features/invite/widgets/invite_stats_section.dart';
@@ -50,7 +51,7 @@ class _InvitePageState extends ConsumerState<InvitePage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${appLocalizations.xboardError}: ${e.toString()}'),
+            content: Text('${appLocalizations.xboardError}: ${ErrorSanitizer.sanitize(e.toString())}'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -166,7 +167,7 @@ class _InvitePageState extends ConsumerState<InvitePage>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  error.toString(),
+                  ErrorSanitizer.sanitize(error.toString()),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
@@ -68,7 +69,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     } catch (e) {
       if (mounted) {
         XBoardNotification.showError(
-            '${AppLocalizations.of(context).sendCodeFailed}: $e');
+            '${AppLocalizations.of(context).sendCodeFailed}: ${ErrorSanitizer.sanitize(e.toString())}');
       }
     } finally {
       if (mounted) setState(() => _isSendingCode = false);
@@ -114,13 +115,14 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       }
     } catch (e) {
       if (mounted) {
+        final sanitized = ErrorSanitizer.sanitize(e.toString());
         setState(() {
           _alertType = AuthAlertType.error;
           _alertMessage =
-              '${AppLocalizations.of(context).passwordResetFailed}: $e';
+              '${AppLocalizations.of(context).passwordResetFailed}: $sanitized';
         });
         XBoardNotification.showError(
-            '${AppLocalizations.of(context).passwordResetFailed}: $e');
+            '${AppLocalizations.of(context).passwordResetFailed}: $sanitized');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

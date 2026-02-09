@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/adapter/state/order_state.dart';
 import 'package:fl_clash/xboard/adapter/state/payment_state.dart';
@@ -199,7 +200,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                error.toString(),
+                ErrorSanitizer.sanitize(error.toString()),
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
@@ -392,7 +393,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${appLocalizations.xboardLoadFailed}: $e'),
+            content: Text('${appLocalizations.xboardLoadFailed}: ${ErrorSanitizer.sanitize(e.toString())}'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -438,7 +439,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
         PaymentWaitingManager.hide();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${appLocalizations.xboardLoadFailed}: $e'),
+            content: Text('${appLocalizations.xboardLoadFailed}: ${ErrorSanitizer.sanitize(e.toString())}'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -485,7 +486,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${appLocalizations.xboardCancelFailed}: $e'),
+              content: Text('${appLocalizations.xboardCancelFailed}: ${ErrorSanitizer.sanitize(e.toString())}'),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );

@@ -3,6 +3,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/services/services.dart';
@@ -125,11 +126,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           } else {
             final errorStr = e.toString();
             if (errorStr.startsWith('Error: ')) {
-              errorMessage = errorStr.substring(7);
+              errorMessage = ErrorSanitizer.sanitize(errorStr.substring(7));
             } else if (errorStr.startsWith('Exception: ')) {
-              errorMessage = errorStr.substring(11);
+              errorMessage = ErrorSanitizer.sanitize(errorStr.substring(11));
             } else {
-              errorMessage = errorStr;
+              errorMessage = ErrorSanitizer.sanitize(errorStr);
             }
           }
           if (errorMessage.contains('遇到了些问题') ||
@@ -170,7 +171,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     } catch (e) {
       if (mounted) {
         XBoardNotification.showError(
-            appLocalizations.sendVerificationCodeFailed(e.toString()));
+            appLocalizations.sendVerificationCodeFailed(ErrorSanitizer.sanitize(e.toString())));
       }
     } finally {
       if (mounted) setState(() => _isSendingEmailCode = false);

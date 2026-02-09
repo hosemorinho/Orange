@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/widgets/dialog.dart';
 
 /// Shows a change password dialog using FlClash's CommonDialog.
@@ -64,7 +65,7 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
       if (mounted) {
         setState(() => _isLoading = false);
         XBoardNotification.showError(
-          '${appLocalizations.xboardPasswordChangeError}: $e',
+          '${appLocalizations.xboardPasswordChangeError}: ${ErrorSanitizer.sanitize(e.toString())}',
         );
       }
     }

@@ -108,7 +108,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       _logger.info('加载待支付订单失败: $e');
       ref.read(userUIStateProvider.notifier).state = UIState(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
       ref.read(pendingOrdersProvider.notifier).state = [];
     }
@@ -144,7 +144,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       _logger.error('[Payment] 加载支付方式失败: $e');
       _logger.error('[Payment] 错误堆栈: $stackTrace');
       ref.read(userUIStateProvider.notifier).state = UIState(
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
     }
   }
@@ -207,7 +207,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       _logger.info('创建订单失败: $e');
       ref.read(userUIStateProvider.notifier).state = UIState(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
       return null;
     }
@@ -269,7 +269,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
         isProcessingPayment: false,
       );
       ref.read(userUIStateProvider.notifier).state = UIState(
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
       return null;
     }
@@ -313,7 +313,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       _logger.info('取消订单失败: $e');
       ref.read(userUIStateProvider.notifier).state = UIState(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
       return 0;
     }

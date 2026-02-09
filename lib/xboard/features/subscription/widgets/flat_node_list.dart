@@ -1,6 +1,7 @@
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
@@ -76,7 +77,7 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
       if (mounted) {
         globalState.showMessage(
           title: AppLocalizations.of(context).tip,
-          message: TextSpan(text: e.toString()),
+          message: TextSpan(text: ErrorSanitizer.sanitize(e.toString())),
         );
       }
     } finally {

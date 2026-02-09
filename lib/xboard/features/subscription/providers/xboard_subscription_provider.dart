@@ -53,7 +53,7 @@ class XBoardSubscriptionNotifier extends Notifier<List<DomainPlan>> {
       _logger.info('加载套餐列表失败: $e');
       ref.read(userUIStateProvider.notifier).state = UIState(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
     }
   }

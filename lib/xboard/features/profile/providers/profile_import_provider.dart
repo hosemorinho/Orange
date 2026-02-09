@@ -56,7 +56,7 @@ class ProfileImportNotifier extends Notifier<ImportState> {
         status: ImportStatus.failed,
         isImporting: false,
         progress: 0.0,
-        message: '导入失败: $e',
+        message: '导入失败: ${ErrorSanitizer.sanitize(e.toString())}',
       );
       return false;
     }

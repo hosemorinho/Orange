@@ -9,6 +9,7 @@ import 'register_page.dart';
 import 'forgot_password_page.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import '../widgets/auth_scaffold.dart';
 import '../widgets/auth_alert.dart';
 
@@ -89,7 +90,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         } catch (e) {
           if (mounted) {
             XBoardNotification.showError(
-                '${appLocalizations.xboardLoginFailed}: $e');
+                '${appLocalizations.xboardLoginFailed}: ${ErrorSanitizer.sanitize(e.toString())}');
           }
           return;
         }

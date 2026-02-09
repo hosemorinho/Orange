@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/domain/models/traffic_record.dart';
 import 'package:fl_clash/xboard/infrastructure/api/v2board_response.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
@@ -100,7 +101,7 @@ class TrafficLogs extends _$TrafficLogs {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
     }
   }

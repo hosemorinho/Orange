@@ -2,6 +2,7 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
@@ -43,7 +44,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
       await _launchPaymentUrl(isAutomatic: true);
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = ErrorSanitizer.sanitize(e.toString());
         _isLoading = false;
       });
     }
@@ -70,7 +71,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
       }
     } catch (e) {
       if (mounted) {
-        XBoardNotification.showError(AppLocalizations.of(context).xboardOpenPaymentLinkError(e.toString()));
+        XBoardNotification.showError(AppLocalizations.of(context).xboardOpenPaymentLinkError(ErrorSanitizer.sanitize(e.toString())));
       }
     }
   }
@@ -82,7 +83,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
       }
     } catch (e) {
       if (mounted) {
-        XBoardNotification.showError(AppLocalizations.of(context).xboardCopyFailedError(e.toString()));
+        XBoardNotification.showError(AppLocalizations.of(context).xboardCopyFailedError(ErrorSanitizer.sanitize(e.toString())));
       }
     }
   }
@@ -173,7 +174,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
           _isCheckingPayment = false;
         });
         if (!silent) {
-          XBoardNotification.showError(AppLocalizations.of(context).xboardCheckPaymentStatusError(e.toString()));
+          XBoardNotification.showError(AppLocalizations.of(context).xboardCheckPaymentStatusError(ErrorSanitizer.sanitize(e.toString())));
         }
       }
     }

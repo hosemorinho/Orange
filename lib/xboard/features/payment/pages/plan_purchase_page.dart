@@ -283,7 +283,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     } catch (e) {
       setState(() {
         _isCouponValid = false;
-        _couponErrorMessage = e.toString();
+        _couponErrorMessage = ErrorSanitizer.sanitize(e.toString());
       });
     } finally {
       if (mounted) {
@@ -424,7 +424,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       _logger.error('购买流程出错: $e');
         if (mounted) {
         PaymentWaitingManager.hide();
-        XBoardNotification.showError(AppLocalizations.of(context).xboardOperationFailedError(e.toString()));
+        XBoardNotification.showError(AppLocalizations.of(context).xboardOperationFailedError(ErrorSanitizer.sanitize(e.toString())));
       }
     }
   }
@@ -585,7 +585,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     } catch (e) {
       if (mounted) {
         PaymentWaitingManager.hide();
-        XBoardNotification.showError(AppLocalizations.of(context).xboardOpenPaymentPageError(e.toString()));
+        XBoardNotification.showError(AppLocalizations.of(context).xboardOpenPaymentPageError(ErrorSanitizer.sanitize(e.toString())));
       }
     }
   }

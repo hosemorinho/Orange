@@ -42,3 +42,6 @@ export 'result/result.dart';
 // ===== 导出工具函数 =====
 export 'utils/utils.dart';
 
+// ===== 导出错误净化 =====
+export 'error_sanitizer.dart';
+

@@ -316,19 +316,19 @@ class XBoardHttpClient {
           );
         case DioExceptionType.connectionError:
           return HttpFailure(
-            'Network connection failed: ${error.message}',
+            'Network connection failed: ${ErrorSanitizer.sanitize(error.message ?? '')}',
             errorType: HttpErrorType.network,
           );
         default:
           return HttpFailure(
-            'Unknown error: ${error.message}',
+            'Unknown error: ${ErrorSanitizer.sanitize(error.message ?? '')}',
             errorType: HttpErrorType.unknown,
           );
       }
     }
 
     return HttpFailure(
-      'Request exception: $error',
+      'Request exception: ${ErrorSanitizer.sanitize(error.toString())}',
       errorType: HttpErrorType.unknown,
     );
   }

@@ -70,7 +70,7 @@ class TicketNotifier extends Notifier<TicketState> {
       _logger.info('加载工单列表失败: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
     }
   }
@@ -93,7 +93,7 @@ class TicketNotifier extends Notifier<TicketState> {
       _logger.info('加载工单详情失败: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
     }
   }
@@ -119,7 +119,7 @@ class TicketNotifier extends Notifier<TicketState> {
       _logger.info('创建工单失败: $e');
       state = state.copyWith(
         isSubmitting: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
       return false;
     }
@@ -146,7 +146,7 @@ class TicketNotifier extends Notifier<TicketState> {
       _logger.info('回复工单失败: $e');
       state = state.copyWith(
         isSending: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
       return false;
     }
@@ -174,7 +174,7 @@ class TicketNotifier extends Notifier<TicketState> {
       _logger.info('关闭工单失败: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
       return false;
     }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/features/invite/providers/invite_provider.dart';
 
 /// Dialog for withdrawing commission
@@ -55,7 +56,7 @@ class _CommissionWithdrawDialogState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(appLocalizations.withdrawFailed(e.toString())),
+            content: Text(appLocalizations.withdrawFailed(ErrorSanitizer.sanitize(e.toString()))),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -171,7 +172,7 @@ class _CommissionWithdrawDialogState
             Icon(Icons.error_outline, size: 48, color: colorScheme.error),
             const SizedBox(height: 16),
             Text(
-              error.toString(),
+              ErrorSanitizer.sanitize(error.toString()),
               style: theme.textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),

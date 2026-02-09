@@ -329,7 +329,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       _logger.info('发送验证码出错: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
       return false;
     }
@@ -349,7 +349,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       _logger.info('重置密码出错: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
       return false;
     }
@@ -408,7 +408,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       _logger.info('刷新订阅信息出错: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
     }
   }
@@ -469,7 +469,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       _logger.info('刷新订阅信息出错: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: ErrorSanitizer.sanitize(e.toString()),
       );
     }
   }

@@ -7,6 +7,7 @@ import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dar
 import 'package:fl_clash/xboard/features/shared/dialogs/dialogs.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/widgets/input.dart';
 import 'package:flutter/material.dart';
@@ -385,7 +386,7 @@ class XBoardSettingsPage extends ConsumerWidget {
       );
     } catch (e) {
       XBoardNotification.showError(
-        '${appLocalizations.xboardNotificationUpdateError}: $e',
+        '${appLocalizations.xboardNotificationUpdateError}: ${ErrorSanitizer.sanitize(e.toString())}',
       );
     }
   }

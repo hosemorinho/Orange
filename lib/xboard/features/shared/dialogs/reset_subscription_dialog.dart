@@ -4,6 +4,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/state.dart';
 
 /// Shows a reset subscription confirmation dialog using FlClash's native globalState.showMessage.
@@ -42,7 +43,7 @@ Future<void> _handleReset(BuildContext context, WidgetRef ref) async {
   } catch (e) {
     if (context.mounted) {
       XBoardNotification.showError(
-        '${appLocalizations.xboardResetSubscriptionError}: $e',
+        '${appLocalizations.xboardResetSubscriptionError}: ${ErrorSanitizer.sanitize(e.toString())}',
       );
     }
   }

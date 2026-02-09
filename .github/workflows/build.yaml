@@ -254,7 +254,7 @@ jobs:
           THEME_COLOR: ${{ secrets.THEME_COLOR }}
           CRISP_WEBSITE_ID: ${{ env.CRISP_WEBSITE_ID }}
         run: |
-          dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }}
+          dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }} --env stable
 
       - name: Clean env.json
         if: always()

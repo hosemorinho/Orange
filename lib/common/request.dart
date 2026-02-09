@@ -50,9 +50,18 @@ class Request {
   }) async {
     try {
       final client = forceDirect ? _directDio : _clashDio;
+
+      // 使用应用的 User-Agent（动态生成：appName/版本号 clash-verge Platform/系统）
+      final ua = globalState.packageInfo.ua;
+
       return await client.get<Uint8List>(
         url,
-        options: Options(responseType: ResponseType.bytes),
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {
+            HttpHeaders.userAgentHeader: ua,
+          },
+        ),
       );
     } catch (e) {
       commonPrint.log('getFileResponseForUrl error ${e.toString()}');

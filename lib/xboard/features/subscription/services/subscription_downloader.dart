@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';
 import 'package:fl_clash/xboard/core/core.dart';
-import 'package:fl_clash/xboard/infrastructure/http/user_agent_config.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/controller.dart';
@@ -291,9 +290,8 @@ class SubscriptionDownloader {
         throw Exception('任务已取消');
       }
 
-      // 设置请求头
-      final userAgent = await UserAgentConfig.get(UserAgentScenario.subscription);
-      request.headers.set(HttpHeaders.userAgentHeader, userAgent);
+      // 设置请求头（使用应用的动态 User-Agent）
+      request.headers.set(HttpHeaders.userAgentHeader, globalState.packageInfo.ua);
 
       // 检查是否已取消
       if (cancelToken.isCancelled) {

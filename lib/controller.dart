@@ -767,10 +767,22 @@ extension SetupControllerExt on AppController {
       );
 
       if (targetGroup.type == GroupType.Selector || targetGroup.name == GroupName.GLOBAL.name) {
+        final upper = selectedProxy.toUpperCase();
         final exists = targetGroup.all.any((p) => p.name == selectedProxy);
-        if (exists) {
+        if (exists && upper != 'DIRECT' && upper != 'REJECT') {
           commonPrint.log('应用保存的节点选择到核心: $targetGroupName -> $selectedProxy');
           await changeProxy(groupName: targetGroupName, proxyName: selectedProxy);
+          return;
+        }
+        // Saved selection is DIRECT/REJECT or missing — auto-select first real proxy
+        for (final proxy in targetGroup.all) {
+          final proxyUpper = proxy.name.toUpperCase();
+          if (proxyUpper != 'DIRECT' && proxyUpper != 'REJECT') {
+            updateCurrentSelectedMap(targetGroupName, proxy.name);
+            commonPrint.log('自动选择节点: $targetGroupName -> ${proxy.name}');
+            await changeProxy(groupName: targetGroupName, proxyName: proxy.name);
+            return;
+          }
         }
       }
     }

@@ -44,7 +44,7 @@ final class TrafficLogsProvider
   }
 }
 
-String _$trafficLogsHash() => r'b7b0caee18a6bf8307ae0c061dd99772877cdd54';
+String _$trafficLogsHash() => r'bb4ecb40e9fe35dd07e2cc9a418834b246d01d2a';
 
 /// Traffic logs provider
 

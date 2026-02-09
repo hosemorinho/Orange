@@ -618,10 +618,11 @@ extension SetupControllerExt on AppController {
     final selectedMap = _ref.read(selectedMapProvider);
     final currentSelected = selectedMap[globalGroup.name];
 
-    // If a valid proxy is already selected, just push it to the core
+    // If a valid proxy is already selected (not DIRECT/REJECT), push it to the core
     if (currentSelected != null && currentSelected.isNotEmpty) {
+      final upper = currentSelected.toUpperCase();
       final exists = globalGroup.all.any((p) => p.name == currentSelected);
-      if (exists) {
+      if (exists && upper != 'DIRECT' && upper != 'REJECT') {
         if (immediate) {
           await changeProxy(groupName: globalGroup.name, proxyName: currentSelected);
           updateGroupsDebounce();

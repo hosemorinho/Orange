@@ -137,7 +137,7 @@ class SubscriptionDownloader {
         // 禁用竞速：等待核心就绪，直接使用 FlClash 核心的 Profile.update()
         _logger.info('竞速已禁用，等待核心就绪后下载');
         await _waitForCoreReady();
-        final profile = Profile.normal(url: url);
+        final profile = Profile.normal(url: url, autoUpdateDuration: const Duration(hours: 1));
         return await profile.update(forceDirect: true);
       }
 
@@ -163,7 +163,7 @@ class SubscriptionDownloader {
       // forceDirect: 绕过 Clash 代理直连下载，避免 Clash 核心已启动
       // 但节点配置过期时导致下载超时
       _logger.info('使用 FlClash 核心下载完整配置（直连）...');
-      final profile = Profile.normal(url: url);
+      final profile = Profile.normal(url: url, autoUpdateDuration: const Duration(hours: 1));
       return await profile.update(forceDirect: true);
 
     } on TimeoutException catch (e) {

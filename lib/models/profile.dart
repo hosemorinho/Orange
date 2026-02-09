@@ -62,13 +62,13 @@ abstract class Profile with _$Profile {
   factory Profile.fromJson(Map<String, Object?> json) =>
       _$ProfileFromJson(json);
 
-  factory Profile.normal({String? label, String url = ''}) {
+  factory Profile.normal({String? label, String url = '', Duration? autoUpdateDuration}) {
     final id = snowflake.id;
     return Profile(
       label: label ?? '',
       url: url,
       id: id,
-      autoUpdateDuration: defaultUpdateDuration,
+      autoUpdateDuration: autoUpdateDuration ?? defaultUpdateDuration,
     );
   }
 }

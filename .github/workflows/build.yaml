@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - exp/applicationid-only-pre-androidfix
   pull_request:
     branches:
       - main

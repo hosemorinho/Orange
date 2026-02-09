@@ -4,13 +4,12 @@ import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
-import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.dart';
+import 'package:fl_clash/views/proxies/common.dart' as proxies_common;
 import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/text.dart';
-import 'package:fl_clash/views/proxies/common.dart' as proxies_common;
 import 'package:fl_clash/xboard/features/shared/utils/node_tag_parser.dart';
 
 class FlatNodeListView extends ConsumerStatefulWidget {
@@ -354,7 +353,7 @@ class _FlatNodeCard extends ConsumerWidget {
     ));
     return LatencyIndicator(
       delayValue: delayState,
-      onTap: () => autoLatencyService.testProxy(proxy, forceTest: true),
+      onTap: () => proxies_common.proxyDelayTest(proxy, ref.read(appSettingProvider).testUrl),
       isCompact: true,
     );
   }

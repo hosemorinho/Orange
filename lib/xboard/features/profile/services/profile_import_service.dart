@@ -176,6 +176,9 @@ class XBoardProfileImportService {
         try {
           await appController.applyProfile(silence: true);
           _logger.info('配置应用成功');
+          // 恢复节点选择到 Clash 核心
+          await appController.restoreSelectedProxy();
+          _logger.info('节点选择已恢复');
         } catch (e) {
           _logger.error('配置应用失败', e);
           // 不抛出异常，因为配置已经保存了

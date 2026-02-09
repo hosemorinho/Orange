@@ -11,8 +11,10 @@ import 'package:fl_clash/l10n/l10n.dart';
 
 // 初始化文件级日志器
 final _logger = FileLogger('xboard_outbound_mode.dart');
+
 class XBoardOutboundMode extends StatelessWidget {
   const XBoardOutboundMode({super.key});
+
   Future<void> _handleModeChange(WidgetRef ref, Mode modeOption) async {
     _logger.debug('[XBoardOutboundMode] 切换模式到: $modeOption');
 
@@ -21,7 +23,9 @@ class XBoardOutboundMode extends StatelessWidget {
     // - 规则模式: 更新 currentGroupName 为第一个可见的非 GLOBAL 组
     await appController.changeMode(modeOption);
   }
-  Future<void> _handleTunToggle(BuildContext context, WidgetRef ref, bool selected) async {
+
+  Future<void> _handleTunToggle(
+      BuildContext context, WidgetRef ref, bool selected) async {
     if (selected) {
       final storageService = ref.read(storageServiceProvider);
       final hasShownResult = await storageService.hasTunFirstUseShown();
@@ -47,108 +51,184 @@ class XBoardOutboundMode extends StatelessWidget {
           );
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Consumer(
       builder: (context, ref, child) {
-        final mode = ref.watch(patchClashConfigProvider.select((state) => state.mode));
-        final tunEnabled = ref.watch(patchClashConfigProvider.select((state) => state.tun.enable));
-        return Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.all(14.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        final mode = ref.watch(
+            patchClashConfigProvider.select((state) => state.mode));
+        final tunEnabled = ref.watch(patchClashConfigProvider
+            .select((state) => state.tun.enable));
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // 根据可用宽度调整布局
+            final isNarrow = constraints.maxWidth < 280;
+            final buttonWidth = isNarrow
+                ? null
+                : double.infinity;
+            final horizontalPadding = isNarrow ? 8.0 : 14.0;
+
+            return Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: 14.0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.tune,
-                    color: colorScheme.primary,
-                    size: 18,
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.tune,
+                        color: colorScheme.primary,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          l10n.xboardProxyMode,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    AppLocalizations.of(context).xboardProxyMode,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  SizedBox(height: isNarrow ? 10 : 12),
+                  SizedBox(
+                    width: buttonWidth,
+                    child: _buildModeSelector(context, mode, isNarrow),
+                  ),
+                  SizedBox(height: isNarrow ? 10 : 12),
+                  _buildTunRow(context, tunEnabled, isNarrow),
+                  const SizedBox(height: 6),
+                  Flexible(
+                    child: Text(
+                      _getModeDescription(mode, tunEnabled, l10n),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.65),
+                            fontSize: 12,
+                          ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: SegmentedButton<Mode>(
-                  segments: [
-                    ButtonSegment(
-                      value: Mode.rule,
-                      label: Text(Intl.message(Mode.rule.name)),
-                      icon: const Icon(Icons.alt_route, size: 16),
-                    ),
-                    ButtonSegment(
-                      value: Mode.global,
-                      label: Text(Intl.message(Mode.global.name)),
-                      icon: const Icon(Icons.public, size: 16),
-                    ),
-                  ],
-                  selected: {mode == Mode.direct ? Mode.rule : mode},
-                  onSelectionChanged: (selected) {
-                    _handleModeChange(ref, selected.first);
-                  },
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.vpn_lock,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'TUN',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const Spacer(),
-                  Switch(
-                    value: tunEnabled,
-                    onChanged: (value) {
-                      _handleTunToggle(context, ref, value);
-                    },
-                    activeColor: colorScheme.tertiary,
-                    activeTrackColor: colorScheme.tertiaryContainer,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _getModeDescription(mode, tunEnabled, context),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.65),
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
-  String _getModeDescription(Mode mode, bool tunEnabled, BuildContext context) {
-    final tunStatus = tunEnabled ? ' | ${AppLocalizations.of(context).xboardTunEnabled}' : '';
+
+  Widget _buildModeSelector(BuildContext context, Mode mode, bool isNarrow) {
+    final l10n = AppLocalizations.of(context);
+
+    return SegmentedButton<Mode>(
+      segments: [
+        ButtonSegment(
+          value: Mode.rule,
+          label: SizedBox(
+            // 使用约束防止文本挤压
+            width: isNarrow ? null : double.infinity,
+            child: Text(
+              Intl.message(Mode.rule.name),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          icon: const Icon(Icons.alt_route, size: 16),
+        ),
+        ButtonSegment(
+          value: Mode.global,
+          label: SizedBox(
+            // 使用约束防止文本挤压
+            width: isNarrow ? null : double.infinity,
+            child: Text(
+              Intl.message(Mode.global.name),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          icon: const Icon(Icons.public, size: 16),
+        ),
+      ],
+      selected: {mode == Mode.direct ? Mode.rule : mode},
+      onSelectionChanged: (selected) {
+        _handleModeChange(
+            _getRefFromContext(selected.first.context!), selected.first);
+      },
+    );
+  }
+
+  /// 从 BuildContext 中获取 WidgetRef（SegmentedButton 需要这种处理方式）
+  WidgetRef _getRefFromContext(BuildContext context) {
+    return ProviderScope.containerOf(context, listen: false);
+  }
+
+  Widget _buildTunRow(BuildContext context, bool tunEnabled, bool isNarrow) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
+
+    return Row(
+      children: [
+        Icon(
+          Icons.vpn_lock,
+          size: 16,
+          color: colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'TUN',
+            style: Theme.of(context).textTheme.bodyMedium,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        SizedBox(
+          // 约束 Switch 宽度，防止在小屏幕下挤压
+          width: isNarrow ? 52 : null,
+          child: Switch(
+            value: tunEnabled,
+            onChanged: (value) {
+              _handleTunToggle(context, _getRefFromContext(context), value);
+            },
+            activeColor: colorScheme.tertiary,
+            activeTrackColor: colorScheme.tertiaryContainer,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getModeDescription(
+      Mode mode, bool tunEnabled, AppLocalizations l10n) {
+    final tunStatus =
+        tunEnabled ? ' | ${l10n.xboardTunEnabled}' : '';
     switch (mode) {
       case Mode.rule:
-        return '${AppLocalizations.of(context).xboardProxyModeRuleDescription}$tunStatus';
+        return '${l10n.xboardProxyModeRuleDescription}$tunStatus';
       case Mode.global:
-        return '${AppLocalizations.of(context).xboardProxyModeGlobalDescription}$tunStatus';
+        return '${l10n.xboardProxyModeGlobalDescription}$tunStatus';
       case Mode.direct:
-        return '${AppLocalizations.of(context).xboardProxyModeDirectDescription}$tunStatus';
+        return '${l10n.xboardProxyModeDirectDescription}$tunStatus';
     }
   }
 }

@@ -6,9 +6,9 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/database.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/views/proxies/common.dart' as proxies_common;
 import 'package:fl_clash/xboard/domain/models/models.dart';
 import 'package:fl_clash/xboard/features/subscription/widgets/flat_node_list.dart';
-import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.dart';
 import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart';
 import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/tun_introduction_dialog.dart';
@@ -1038,7 +1038,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     ));
     return LatencyIndicator(
       delayValue: delayState,
-      onTap: () => autoLatencyService.testProxy(proxy, forceTest: true),
+      onTap: () => proxies_common.proxyDelayTest(proxy, ref.read(appSettingProvider).testUrl),
       isCompact: true,
     );
   }

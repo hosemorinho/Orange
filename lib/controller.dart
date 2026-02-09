@@ -766,6 +766,12 @@ extension SetupControllerExt on AppController {
     );
   }
 
+  /// 恢复节点选择到 Clash 核心
+  /// 在 applyProfile 后调用，因为 setupConfig 会重置核心
+  Future<void> restoreSelectedProxy() async {
+    await _applySelectedProxyToCore();
+  }
+
   Future<Map<String, dynamic>> getProfile({
     required SetupState setupState,
     required ClashConfig patchConfig,

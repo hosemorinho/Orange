@@ -1,59 +1,23 @@
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/views/proxies/common.dart' as proxies_common;
 import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/xboard/features/subscription/widgets/flat_node_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.dart';
 import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart';
 import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/enum/enum.dart';
-class NodeSelectorBar extends ConsumerStatefulWidget {
+class NodeSelectorBar extends ConsumerWidget {
   const NodeSelectorBar({super.key});
+
   @override
-  ConsumerState<NodeSelectorBar> createState() => _NodeSelectorBarState();
-}
-class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
-  String? _lastProxyName;
-  bool _isFirstBuild = true;
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      autoLatencyService.initialize(ref);
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) {
-          autoLatencyService.testCurrentNode();
-        }
-      });
-    });
-  }
-  @override
-  void dispose() {
-    super.dispose();
-  }
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final groups = ref.watch(groupsProvider);
     final selectedMap = ref.watch(selectedMapProvider);
     final mode = ref.watch(patchClashConfigProvider.select((state) => state.mode));
-    ref.listen(runTimeProvider, (previous, next) {
-      final wasConnected = previous != null;
-      final isConnected = next != null;
-      if (wasConnected != isConnected) {
-        autoLatencyService.onConnectionStatusChanged(isConnected);
-      }
-    });
-    ref.listen(selectedMapProvider, (previous, next) {
-      if (previous != null && next != previous) {
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted) {
-            autoLatencyService.onNodeChanged();
-          }
-        });
-      }
-    });
+
     if (groups.isEmpty) {
       return _buildEmptyState(context);
     }
@@ -65,7 +29,6 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
     if (group == null || proxy == null) {
       return _buildEmptyState(context);
     }
-    _checkNodeChange(proxy);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: _buildProxyDisplay(context, group, proxy, mode),
@@ -206,7 +169,7 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
     ));
     return LatencyIndicator(
       delayValue: delayState,
-      onTap: () => _handleManualTest(proxy),
+      onTap: () => _handleManualTest(ref, proxy),
       showIcon: true,
     );
   }
@@ -295,18 +258,8 @@ class _NodeSelectorBarState extends ConsumerState<NodeSelectorBar> {
       ),
     );
   }
-  void _checkNodeChange(Proxy currentProxy) {
-    if (_isFirstBuild) {
-      _lastProxyName = currentProxy.name;
-      _isFirstBuild = false;
-      return;
-    }
-    if (_lastProxyName != currentProxy.name) {
-      _lastProxyName = currentProxy.name;
-      autoLatencyService.onNodeChanged();
-    }
-  }
-  void _handleManualTest(Proxy proxy) {
-    autoLatencyService.testProxy(proxy, forceTest: true);
+  void _handleManualTest(WidgetRef ref, Proxy proxy) {
+    final testUrl = ref.read(appSettingProvider).testUrl;
+    proxies_common.proxyDelayTest(proxy, testUrl);
   }
 }

@@ -66,7 +66,9 @@ class System {
 
   Future<AuthorizeCode> authorizeCore() async {
     if (system.isAndroid) {
-      return AuthorizeCode.error;
+      // Android 使用 VpnService 实现 TUN，不需要管理员权限
+      // 返回 none 表示不需要额外授权
+      return AuthorizeCode.none;
     }
     final corePath = appPath.corePath.replaceAll(' ', '\\\\ ');
     final isAdmin = await checkIsAdmin();

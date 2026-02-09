@@ -91,6 +91,15 @@ class IconGenerator {
     'drawable-xxxhdpi': {'canvas': 432, 'icon': 288},
   };
 
+  /// Notification icon sizes for Android (24dp base)
+  static const Map<String, int> notificationIconSizes = {
+    'drawable-mdpi': 24,
+    'drawable-hdpi': 36,
+    'drawable-xhdpi': 48,
+    'drawable-xxhdpi': 72,
+    'drawable-xxxhdpi': 96,
+  };
+
   Future<void> run(String iconUrl) async {
     print('🎨 Starting icon generation...');
     print('📥 Icon URL: $iconUrl');
@@ -258,6 +267,9 @@ class IconGenerator {
       await _generateRoundWebp(sourcePath, roundPath, size);
     }
 
+    // Generate notification icons
+    await _generateNotificationIcons(sourcePath);
+
     print('✅ Android icons generated');
   }
 
@@ -298,6 +310,76 @@ class IconGenerator {
     }
 
     print('  ✅ Adaptive icon foreground PNGs generated');
+  }
+
+  /// Generate notification icons for Android.
+  ///
+  /// Notification icons must be simple, single-color (alpha only) images.
+  /// Android 8.0+ renders these as white icons, so we create monochrome PNGs.
+  /// The drawable XML files are replaced with references to the PNGs.
+  Future<void> _generateNotificationIcons(String sourcePath) async {
+    print('🔔 Generating notification icons...');
+
+    // Delete the old notification icon vector XML
+    final serviceResDir = path.join(
+      projectRoot, 'android', 'service', 'src', 'main', 'res');
+    final oldNotificationIconPath = path.join(serviceResDir, 'drawable', 'ic.xml');
+    final oldNotificationIconFile = File(oldNotificationIconPath);
+    if (await oldNotificationIconFile.exists()) {
+      await oldNotificationIconFile.delete();
+      print('  🗑️ Removed old notification icon: $oldNotificationIconPath');
+    }
+
+    // Generate PNG icons for each density
+    for (final entry in notificationIconSizes.entries) {
+      final density = entry.key;
+      final size = entry.value;
+
+      final drawableDir = path.join(serviceResDir, density);
+      final dir = Directory(drawableDir);
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+
+      final outputPath = path.join(drawableDir, 'ic.png');
+
+      // Convert to monochrome (alpha only) for notification compatibility
+      // Android notification system renders icons in white
+      await _exec(_magickCmd, [
+        sourcePath,
+        '-resize', '${size}x$size',
+        '-background', 'black',
+        '-gravity', 'center',
+        '-extent', '${size}x$size',
+        '-colorspace', 'Gray',
+        '-alpha', 'copy',
+        '-negate',
+        outputPath,
+      ]);
+
+      print('  ✅ Generated notification icon: $outputPath (${size}x$size)');
+    }
+
+    // Also generate a default icon in drawable folder for backward compatibility
+    final drawableDefaultDir = path.join(serviceResDir, 'drawable');
+    final drawableDefaultFile = File(path.join(drawableDefaultDir, 'ic.png'));
+    if (!await drawableDefaultFile.exists()) {
+      // Use xhdpi size (48dp) as default
+      await _exec(_magickCmd, [
+        sourcePath,
+        '-resize', '48x48',
+        '-background', 'black',
+        '-gravity', 'center',
+        '-extent', '48x48',
+        '-colorspace', 'Gray',
+        '-alpha', 'copy',
+        '-negate',
+        drawableDefaultFile.path,
+      ]);
+      print('  ✅ Generated default notification icon: ${drawableDefaultFile.path}');
+    }
+
+    print('  ✅ Notification icons generated');
   }
 
   Future<void> _generateAssetIcons(String sourcePath) async {

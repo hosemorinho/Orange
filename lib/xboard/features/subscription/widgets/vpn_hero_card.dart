@@ -18,6 +18,7 @@ import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/widgets/text.dart';
+import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -829,34 +830,38 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     Mode mode,
     bool tunEnabled,
   ) {
+    final thumbColor = switch (mode) {
+      Mode.rule => colorScheme.secondaryContainer,
+      Mode.global => colorScheme.primaryContainer,
+      Mode.direct => colorScheme.secondaryContainer,
+    };
+
     return Row(
       children: [
-        Flexible(
-          child: SegmentedButton<Mode>(
-            segments: [
-              ButtonSegment(
-                value: Mode.rule,
-                label: Text(
+        Expanded(
+          child: CommonTabBar<Mode>(
+            children: {
+              Mode.rule: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Text(
                   Intl.message(Mode.rule.name),
                   style: const TextStyle(fontSize: 12),
                 ),
               ),
-              ButtonSegment(
-                value: Mode.global,
-                label: Text(
+              Mode.global: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Text(
                   Intl.message(Mode.global.name),
                   style: const TextStyle(fontSize: 12),
                 ),
               ),
-            ],
-            selected: {mode == Mode.direct ? Mode.rule : mode},
-            onSelectionChanged: (selected) {
-              _handleModeChange(selected.first);
             },
-            style: ButtonStyle(
-              visualDensity: VisualDensity.compact,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
+            groupValue: mode == Mode.direct ? Mode.rule : mode,
+            onValueChanged: (value) {
+              if (value != null) _handleModeChange(value);
+            },
+            thumbColor: thumbColor,
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           ),
         ),
         const SizedBox(width: 8),
@@ -971,60 +976,71 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     Mode mode,
     bool tunEnabled,
   ) {
-    return Row(
+    final thumbColor = switch (mode) {
+      Mode.rule => colorScheme.secondaryContainer,
+      Mode.global => colorScheme.primaryContainer,
+      Mode.direct => colorScheme.secondaryContainer,
+    };
+
+    return Column(
       children: [
-        Flexible(
-          child: SegmentedButton<Mode>(
-            segments: [
-              ButtonSegment(
-                value: Mode.rule,
-                label: Text(
-                  Intl.message(Mode.rule.name),
-                  style: const TextStyle(fontSize: 12),
-                ),
+        Row(
+          children: [
+            Expanded(
+              child: CommonTabBar<Mode>(
+                children: {
+                  Mode.rule: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Text(
+                      Intl.message(Mode.rule.name),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                  Mode.global: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Text(
+                      Intl.message(Mode.global.name),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                },
+                groupValue: mode == Mode.direct ? Mode.rule : mode,
+                onValueChanged: (value) {
+                  if (value != null) _handleModeChange(value);
+                },
+                thumbColor: thumbColor,
+                backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               ),
-              ButtonSegment(
-                value: Mode.global,
-                label: Text(
-                  Intl.message(Mode.global.name),
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ),
-            ],
-            selected: {mode == Mode.direct ? Mode.rule : mode},
-            onSelectionChanged: (selected) {
-              _handleModeChange(selected.first);
-            },
-            style: ButtonStyle(
+            ),
+            const SizedBox(width: 8),
+            FilterChip(
+              label: const Text('TUN', style: TextStyle(fontSize: 12)),
+              selected: tunEnabled,
+              onSelected: (selected) {
+                _handleTunToggle(selected);
+              },
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              selectedColor: colorScheme.tertiaryContainer,
+              checkmarkColor: colorScheme.onTertiaryContainer,
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: _navigateToProxies,
+            icon: const Icon(Icons.swap_horiz, size: 16),
+            label: Text(
+              AppLocalizations.of(context).xboardSwitchNode,
+              style: const TextStyle(fontSize: 12),
+            ),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               visualDensity: VisualDensity.compact,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        FilterChip(
-          label: const Text('TUN', style: TextStyle(fontSize: 12)),
-          selected: tunEnabled,
-          onSelected: (selected) {
-            _handleTunToggle(selected);
-          },
-          visualDensity: VisualDensity.compact,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          selectedColor: colorScheme.tertiaryContainer,
-          checkmarkColor: colorScheme.onTertiaryContainer,
-        ),
-        const Spacer(),
-        TextButton.icon(
-          onPressed: _navigateToProxies,
-          icon: const Icon(Icons.swap_horiz, size: 16),
-          label: Text(
-            AppLocalizations.of(context).xboardSwitchNode,
-            style: const TextStyle(fontSize: 12),
-          ),
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            visualDensity: VisualDensity.compact,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
       ],

@@ -1,6 +1,7 @@
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -136,43 +137,56 @@ class XBoardOutboundMode extends StatelessWidget {
   }
 
   Widget _buildModeSelector(BuildContext context, Mode mode, bool isNarrow, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final thumbColor = switch (mode) {
+      Mode.rule => colorScheme.secondaryContainer,
+      Mode.global => colorScheme.primaryContainer,
+      Mode.direct => colorScheme.secondaryContainer,
+    };
 
-    return SegmentedButton<Mode>(
-      segments: [
-        ButtonSegment(
-          value: Mode.rule,
-          label: SizedBox(
-            // 使用约束防止文本挤压
-            width: isNarrow ? null : double.infinity,
-            child: Text(
-              Intl.message(Mode.rule.name),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+    return CommonTabBar<Mode>(
+      children: {
+        Mode.rule: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.alt_route, size: 14),
+              const SizedBox(width: 4),
+              Text(
+                Intl.message(Mode.rule.name),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          icon: const Icon(Icons.alt_route, size: 16),
         ),
-        ButtonSegment(
-          value: Mode.global,
-          label: SizedBox(
-            // 使用约束防止文本挤压
-            width: isNarrow ? null : double.infinity,
-            child: Text(
-              Intl.message(Mode.global.name),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+        Mode.global: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.public, size: 14),
+              const SizedBox(width: 4),
+              Text(
+                Intl.message(Mode.global.name),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          icon: const Icon(Icons.public, size: 16),
         ),
-      ],
-      selected: {mode == Mode.direct ? Mode.rule : mode},
-      onSelectionChanged: (selected) {
-        _handleModeChange(ref, selected.first);
       },
+      groupValue: mode == Mode.direct ? Mode.rule : mode,
+      onValueChanged: (value) {
+        if (value != null) _handleModeChange(ref, value);
+      },
+      thumbColor: thumbColor,
+      backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
     );
   }
 

@@ -237,6 +237,10 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
       node.groupName,
       node.proxy.name,
     );
+    appController.changeProxyDebounce(
+      node.groupName,
+      node.proxy.name,
+    );
     Navigator.of(context).pop();
   }
 }

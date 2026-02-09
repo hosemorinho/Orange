@@ -119,10 +119,23 @@ export APP_PACKAGE_NAME="com.example.myapp"
 bash scripts/setup_android_config.sh
 ```
 
+**默认模式（推荐）:**
+- 仅更新 Android `applicationId`（安装包名）
+- 不重构 Kotlin/Java/AIDL 包路径
+- 不修改 JNI 符号
+
+**可选全量重构模式:**
+```bash
+export REFACTOR_ANDROID_PACKAGE=true
+export APP_PACKAGE_NAME="com.example.myapp"
+bash scripts/setup_android_config.sh
+```
+
 **功能:**
 - ✓ 非交互式执行
 - ✓ 自动更新 `strings.xml` 中的 app_name
-- ✓ 自动重构包名（如果changed）
+- ✓ 默认只更新 `applicationId`（更稳妥）
+- ✓ 可选开启全量包名重构（`REFACTOR_ANDROID_PACKAGE=true`）
 - ✓ 适合 GitHub Actions 等 CI 环境
 
 ## 使用示例

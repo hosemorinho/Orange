@@ -206,6 +206,7 @@ jobs:
         env:
           APP_NAME: ${{ secrets.APP_NAME }}
           APP_PACKAGE_NAME: ${{ secrets.APP_PACKAGE_NAME }}
+          REFACTOR_ANDROID_PACKAGE: ${{ secrets.REFACTOR_ANDROID_PACKAGE }}
         run: |
           chmod +x scripts/setup_android_config.sh
           bash scripts/setup_android_config.sh
@@ -248,6 +249,7 @@ jobs:
           API_TEXT_DOMAIN: ${{ env.API_TEXT_DOMAIN }}
           APP_NAME: ${{ secrets.APP_NAME }}
           APP_PACKAGE_NAME: ${{ secrets.APP_PACKAGE_NAME }}
+          REFACTOR_ANDROID_PACKAGE: ${{ secrets.REFACTOR_ANDROID_PACKAGE }}
           THEME_COLOR: ${{ secrets.THEME_COLOR }}
           CRISP_WEBSITE_ID: ${{ env.CRISP_WEBSITE_ID }}
         run: |

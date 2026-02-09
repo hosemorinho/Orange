@@ -7,6 +7,7 @@ import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/dialog.dart';
+import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -836,7 +837,7 @@ extension SetupControllerExt on AppController {
     final overrideDns = _ref.read(overrideDnsProvider);
     final appendSystemDns = networkVM2.a;
     final routeMode = networkVM2.b;
-    final configMap = await coreController.getConfig(profileId);
+    final configMap = await _getConfigDecrypted(profileId);
     String? scriptContent;
     final List<Rule> addedRules = [];
     if (setupState.overwriteType == OverwriteType.script) {
@@ -865,6 +866,42 @@ extension SetupControllerExt on AppController {
       ),
     );
     return res;
+  }
+
+  /// Read profile config, decrypting if the file is encrypted on disk.
+  /// Decrypts to a temp file, lets core read it, then deletes the temp file.
+  Future<Map<String, dynamic>> _getConfigDecrypted(int profileId) async {
+    final profilePath = await appPath.getProfilePath(profileId.toString());
+    final profileFile = File(profilePath);
+
+    if (!await profileFile.exists()) {
+      return await coreController.getConfig(profileId);
+    }
+
+    final bytes = await profileFile.readAsBytes();
+    if (!ProfileCipher.isEncryptedFormat(bytes)) {
+      return await coreController.getConfig(profileId);
+    }
+
+    // File is encrypted — find the subscription token from the profile URL
+    final profile = _ref.read(profilesProvider).getProfile(profileId);
+    final token = profile != null ? ProfileCipher.extractToken(profile.url) : null;
+    if (token == null || token.isEmpty) {
+      // Can't decrypt, try loading as-is (will likely fail)
+      return await coreController.getConfig(profileId);
+    }
+
+    // Decrypt to temp file
+    final yamlBytes = ProfileCipher.decrypt(bytes, token);
+    final tempPath = await appPath.tempFilePath;
+    final tempFile = File(tempPath);
+    await tempFile.safeWriteAsBytes(yamlBytes);
+
+    try {
+      return await coreController.getConfig(profileId, overridePath: tempPath);
+    } finally {
+      await tempFile.safeDelete();
+    }
   }
 
   Future<Map> getProfileWithId(int profileId) async {

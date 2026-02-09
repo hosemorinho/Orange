@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'clash_config.dart';
@@ -217,16 +218,39 @@ extension ProfileExtension on Profile {
     );
     final disposition = response.headers.value("content-disposition");
     final userinfo = response.headers.value('subscription-userinfo');
+    var responseBytes = response.data ?? Uint8List.fromList([]);
+
+    // Handle encrypted response and determine storage format
+    Uint8List yamlBytes;
+    Uint8List? storageBytes;
+    final token = ProfileCipher.extractToken(url);
+
+    if (ProfileCipher.isEncryptedFormat(responseBytes)) {
+      // Backend sent encrypted → decrypt for validation, keep encrypted for storage
+      if (token == null || token.isEmpty) {
+        throw 'Cannot decrypt: no subscription token in URL';
+      }
+      yamlBytes = ProfileCipher.decrypt(responseBytes, token);
+      storageBytes = responseBytes;
+    } else if (token != null && token.isNotEmpty) {
+      // Backend sent plain YAML → encrypt for local storage
+      yamlBytes = responseBytes;
+      storageBytes = ProfileCipher.encrypt(responseBytes, token);
+    } else {
+      // No token (non-subscription profile) → store plain
+      yamlBytes = responseBytes;
+    }
+
     return await copyWith(
       label: label.takeFirstValid([
         utils.getFileNameForDisposition(disposition),
         id.toString(),
       ]),
       subscriptionInfo: SubscriptionInfo.formHString(userinfo),
-    ).saveFile(response.data ?? Uint8List.fromList([]));
+    ).saveFile(yamlBytes, storageBytes: storageBytes);
   }
 
-  Future<Profile> saveFile(Uint8List bytes) async {
+  Future<Profile> saveFile(Uint8List bytes, {Uint8List? storageBytes}) async {
     final path = await appPath.tempFilePath;
     final tempFile = File(path);
     await tempFile.safeWriteAsBytes(bytes);
@@ -235,7 +259,12 @@ extension ProfileExtension on Profile {
       throw message;
     }
     final mFile = await file;
-    await tempFile.copy(mFile.path);
+    if (storageBytes != null) {
+      // Store encrypted version on disk
+      await mFile.safeWriteAsBytes(storageBytes);
+    } else {
+      await tempFile.copy(mFile.path);
+    }
     await tempFile.safeDelete();
     return copyWith(lastUpdateDate: DateTime.now());
   }

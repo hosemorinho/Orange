@@ -41,3 +41,6 @@ export 'network/network.dart';
 // ===== 导出缓存模块 =====
 export 'cache/cache.dart';
 
+// ===== 导出加密模块 =====
+export 'crypto/profile_cipher.dart';
+

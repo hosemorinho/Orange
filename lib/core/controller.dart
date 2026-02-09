@@ -197,8 +197,8 @@ class CoreController {
     return Delay.fromJson(json.decode(data));
   }
 
-  Future<Map<String, dynamic>> getConfig(int id) async {
-    final profilePath = await appPath.getProfilePath(id.toString());
+  Future<Map<String, dynamic>> getConfig(int id, {String? overridePath}) async {
+    final profilePath = overridePath ?? await appPath.getProfilePath(id.toString());
     final res = await _interface.getConfig(profilePath);
     if (res.isSuccess) {
       final data = Map<String, dynamic>.from(res.data);

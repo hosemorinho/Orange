@@ -269,9 +269,6 @@ extension ProfilesControllerExt on AppController {
       _ref.read(profilesProvider.notifier).put(newProfile);
       if (profile.id == _ref.read(currentProfileIdProvider)) {
         await applyProfile(silence: true);
-        // applyProfile 会调用 updateGroups，updateGroups 会读取 selectedMap
-        // 但 setupConfig 重置了 Clash 核心，所以需要重新发送选择到核心
-        await _applySelectedProxyToCore();
       }
     } finally {
       _ref.read(isUpdatingProvider(profile.updatingKey).notifier).value = false;
@@ -808,6 +805,8 @@ extension SetupControllerExt on AppController {
         await _setupConfig(preloadInvoke);
         await updateGroups();
         await updateProviders();
+        // setupConfig resets core state — ensure a valid proxy is pushed
+        await _applySelectedProxyToCore();
       },
       silence: true,
       tag: !silence ? LoadingTag.proxies : null,

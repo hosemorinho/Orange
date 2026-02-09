@@ -665,8 +665,9 @@ extension SetupControllerExt on AppController {
           currentGroup.all.isNotEmpty) {
         final currentSelected = selectedMap[currentGroupName];
         if (currentSelected != null && currentSelected.isNotEmpty) {
+          final upper = currentSelected.toUpperCase();
           final exists = currentGroup.all.any((p) => p.name == currentSelected);
-          if (exists) {
+          if (exists && upper != 'DIRECT' && upper != 'REJECT') {
             if (immediate) {
               await changeProxy(
                   groupName: currentGroupName, proxyName: currentSelected);
@@ -674,6 +675,22 @@ extension SetupControllerExt on AppController {
             } else {
               changeProxyDebounce(currentGroupName, currentSelected);
             }
+            return;
+          }
+        }
+        // Auto-select first non-DIRECT/REJECT proxy in current group
+        for (final proxy in currentGroup.all) {
+          final upper = proxy.name.toUpperCase();
+          if (upper != 'DIRECT' && upper != 'REJECT') {
+            updateCurrentSelectedMap(currentGroupName, proxy.name);
+            if (immediate) {
+              await changeProxy(
+                  groupName: currentGroupName, proxyName: proxy.name);
+              updateGroupsDebounce();
+            } else {
+              changeProxyDebounce(currentGroupName, proxy.name);
+            }
+            return;
           }
         }
       }
@@ -688,8 +705,9 @@ extension SetupControllerExt on AppController {
         if (group.type == GroupType.Selector && group.all.isNotEmpty) {
           final groupSelected = selectedMap[group.name];
           if (groupSelected != null && groupSelected.isNotEmpty) {
+            final upper = groupSelected.toUpperCase();
             final exists = group.all.any((p) => p.name == groupSelected);
-            if (exists) {
+            if (exists && upper != 'DIRECT' && upper != 'REJECT') {
               if (immediate) {
                 await changeProxy(
                     groupName: group.name, proxyName: groupSelected);
@@ -697,6 +715,22 @@ extension SetupControllerExt on AppController {
               } else {
                 changeProxyDebounce(group.name, groupSelected);
               }
+              return;
+            }
+          }
+          // Auto-select first non-DIRECT/REJECT proxy in this group
+          for (final proxy in group.all) {
+            final upper = proxy.name.toUpperCase();
+            if (upper != 'DIRECT' && upper != 'REJECT') {
+              updateCurrentSelectedMap(group.name, proxy.name);
+              if (immediate) {
+                await changeProxy(
+                    groupName: group.name, proxyName: proxy.name);
+                updateGroupsDebounce();
+              } else {
+                changeProxyDebounce(group.name, proxy.name);
+              }
+              return;
             }
           }
         }

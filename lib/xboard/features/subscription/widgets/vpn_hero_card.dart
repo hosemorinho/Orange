@@ -133,14 +133,12 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     final currentMode =
         ref.read(patchClashConfigProvider.select((state) => state.mode));
     if (currentMode != modeOption) {
+      // Carry over node selection between modes (data only, no core push).
+      // changeMode() handles pushing to core via _ensureGlobalProxySelection
+      // or _ensureRuleGroupSelection with immediate: true.
       _syncNodeSelectionOnModeChange(from: currentMode, to: modeOption);
     }
     await appController.changeMode(modeOption);
-    if (modeOption == Mode.global) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        _ensureValidProxyForGlobalMode();
-      });
-    }
   }
 
   Future<void> _handleTunToggle(bool selected) async {
@@ -191,12 +189,6 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           GroupName.GLOBAL.name,
           resolved.proxy!.name,
         );
-        // Push selection to core immediately (short debounce for mode switch)
-        appController.changeProxyDebounce(
-          GroupName.GLOBAL.name,
-          resolved.proxy!.name,
-          duration: const Duration(milliseconds: 100),
-        );
       }
     } else if (from == Mode.global && to == Mode.rule) {
       final globalGroup = groups.firstWhere(
@@ -223,59 +215,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
               ruleGroup.name,
               globalSelected,
             );
-            // Push selection to core immediately (short debounce for mode switch)
-            appController.changeProxyDebounce(
-              ruleGroup.name,
-              globalSelected,
-              duration: const Duration(milliseconds: 100),
-            );
           }
         }
       }
-    }
-  }
-
-  void _ensureValidProxyForGlobalMode() {
-    final groups = ref.read(groupsProvider);
-    if (groups.isEmpty) return;
-    final globalGroup = groups.firstWhere(
-      (group) => group.name == GroupName.GLOBAL.name,
-      orElse: () => groups.first,
-    );
-    if (globalGroup.all.isEmpty) return;
-    final selectedMap = ref.read(selectedMapProvider);
-    final currentSelected = selectedMap[globalGroup.name];
-    if (currentSelected != null && currentSelected.isNotEmpty) {
-      final selectedProxy = globalGroup.all.firstWhere(
-        (proxy) => proxy.name == currentSelected,
-        orElse: () => globalGroup.all.first,
-      );
-      if (selectedProxy.name == currentSelected &&
-          selectedProxy.name.toUpperCase() != 'DIRECT' &&
-          selectedProxy.name.toUpperCase() != 'REJECT') {
-        return;
-      }
-    }
-    Proxy? validProxy;
-    for (final proxy in globalGroup.all) {
-      if (proxy.name.toUpperCase() != 'DIRECT' &&
-          proxy.name.toLowerCase() != 'direct' &&
-          proxy.name.toUpperCase() != 'REJECT') {
-        validProxy = proxy;
-        break;
-      }
-    }
-    if (validProxy != null) {
-      appController.updateCurrentSelectedMap(
-        globalGroup.name,
-        validProxy.name,
-      );
-      // Push selection to core immediately (short debounce for mode switch)
-      appController.changeProxyDebounce(
-        globalGroup.name,
-        validProxy.name,
-        duration: const Duration(milliseconds: 100),
-      );
     }
   }
 

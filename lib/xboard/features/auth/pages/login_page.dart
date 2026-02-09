@@ -164,14 +164,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final userState = ref.watch(xboardUserProvider);
 
     return AuthScaffold(
-      headerTrailing: _buildInitializationIndicator(initState),
       child: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header: centered title + subtitle (matching frontend)
+            // Language selector + initialization indicator (top-right)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _buildInitializationIndicator(initState),
+                const SizedBox(width: 8),
+                const LanguageSelector(),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Header: centered title + subtitle
             Text(
               appLocalizations.xboardLogin,
               style: textTheme.headlineMedium?.copyWith(

@@ -110,10 +110,10 @@ class XBoardOutboundMode extends StatelessWidget {
                   SizedBox(height: isNarrow ? 10 : 12),
                   SizedBox(
                     width: buttonWidth,
-                    child: _buildModeSelector(context, mode, isNarrow),
+                    child: _buildModeSelector(context, mode, isNarrow, ref),
                   ),
                   SizedBox(height: isNarrow ? 10 : 12),
-                  _buildTunRow(context, tunEnabled, isNarrow),
+                  _buildTunRow(context, tunEnabled, isNarrow, ref),
                   const SizedBox(height: 6),
                   Flexible(
                     child: Text(
@@ -135,7 +135,7 @@ class XBoardOutboundMode extends StatelessWidget {
     );
   }
 
-  Widget _buildModeSelector(BuildContext context, Mode mode, bool isNarrow) {
+  Widget _buildModeSelector(BuildContext context, Mode mode, bool isNarrow, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
 
     return SegmentedButton<Mode>(
@@ -171,18 +171,12 @@ class XBoardOutboundMode extends StatelessWidget {
       ],
       selected: {mode == Mode.direct ? Mode.rule : mode},
       onSelectionChanged: (selected) {
-        _handleModeChange(
-            _getRefFromContext(selected.first.context!), selected.first);
+        _handleModeChange(ref, selected.first);
       },
     );
   }
 
-  /// 从 BuildContext 中获取 WidgetRef（SegmentedButton 需要这种处理方式）
-  WidgetRef _getRefFromContext(BuildContext context) {
-    return ProviderScope.containerOf(context, listen: false);
-  }
-
-  Widget _buildTunRow(BuildContext context, bool tunEnabled, bool isNarrow) {
+  Widget _buildTunRow(BuildContext context, bool tunEnabled, bool isNarrow, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
 
@@ -208,7 +202,7 @@ class XBoardOutboundMode extends StatelessWidget {
           child: Switch(
             value: tunEnabled,
             onChanged: (value) {
-              _handleTunToggle(context, _getRefFromContext(context), value);
+              _handleTunToggle(context, ref, value);
             },
             activeColor: colorScheme.tertiary,
             activeTrackColor: colorScheme.tertiaryContainer,

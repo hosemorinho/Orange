@@ -123,7 +123,7 @@ class NodeSelectorBar extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      _buildProxyLatency(proxy),
+                      _buildProxyLatency(ref, proxy),
                     ],
                   ),
                 ),
@@ -162,7 +162,7 @@ class NodeSelectorBar extends ConsumerWidget {
       ),
     );
   }
-  Widget _buildProxyLatency(Proxy proxy) {
+  Widget _buildProxyLatency(WidgetRef ref, Proxy proxy) {
     final delayState = ref.watch(getDelayProvider(
       proxyName: proxy.name,
       testUrl: ref.read(appSettingProvider).testUrl,

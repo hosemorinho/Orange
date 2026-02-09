@@ -135,6 +135,9 @@ class XBoardConfig {
   
   // 缓存最后一次竞速结果
   static DomainRacingResult? _lastRacingResult;
+
+  // 缓存最后一次竞速的所有候选域名（供 DomainPool 使用）
+  static List<String> _lastRacingCandidates = [];
   
   // 私有构造函数，防止外部实例化
   XBoardConfig._();
@@ -199,6 +202,14 @@ class XBoardConfig {
   /// 设置竞速结果（供 domain_status_service 使用）
   static void setLastRacingResult(DomainRacingResult result) {
     _lastRacingResult = result;
+  }
+
+  /// 获取最后一次竞速的所有候选域名
+  static List<String> get lastRacingCandidates => _lastRacingCandidates;
+
+  /// 保存竞速的所有候选域名（供 DomainPool 域名切换使用）
+  static void setLastRacingCandidates(List<String> candidates) {
+    _lastRacingCandidates = List.unmodifiable(candidates);
   }
   
   /// 重置模块

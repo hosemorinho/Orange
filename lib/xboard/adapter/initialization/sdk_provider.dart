@@ -4,6 +4,7 @@ import 'package:fl_clash/common/constant.dart' show apiBaseUrl;
 import 'package:fl_clash/xboard/config/xboard_config.dart';
 import 'package:fl_clash/xboard/infrastructure/api/api.dart';
 import 'package:fl_clash/xboard/infrastructure/http/xboard_http_client.dart';
+import 'package:fl_clash/xboard/infrastructure/network/domain_pool.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 
 part 'generated/sdk_provider.g.dart';
@@ -70,6 +71,17 @@ Future<V2BoardApiService> xboardSdk(Ref ref) async {
     if (api.hasAuthToken) {
       _logger.info('[SdkProvider] 已加载存储的 token');
     }
+
+    // 6. 初始化 DomainPool（域名切换支持）
+    final candidates = XBoardConfig.lastRacingCandidates;
+    DomainPool.instance.initialize(
+      fastestUrl,
+      candidates.isNotEmpty ? candidates : [fastestUrl],
+      onSwitch: (newDomain) {
+        _logger.info('[SdkProvider] 域名切换: ${api.baseUrl} → $newDomain');
+        api.baseUrl = newDomain;
+      },
+    );
 
     _logger.info('[SdkProvider] V2Board API Service 初始化成功');
     return api;

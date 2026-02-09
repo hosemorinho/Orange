@@ -73,6 +73,8 @@ class DomainStatusService {
       final latency = endTime.difference(startTime).inMilliseconds;
 
       if (bestDomain != null && bestDomain.isNotEmpty) {
+        // 保存候选列表供 DomainPool 使用
+        XBoardConfig.setLastRacingCandidates(availableDomains);
         await _initializeXBoardService(bestDomain);
         _logger.info('域名检查成功: $bestDomain (${latency}ms)');
 
@@ -134,8 +136,9 @@ class DomainStatusService {
       final latency = endTime.difference(startTime).inMilliseconds;
 
       if (result != null) {
-        // 竞速成功，保存结果到 XBoardConfig
+        // 竞速成功，保存结果和候选列表到 XBoardConfig
         XBoardConfig.setLastRacingResult(result);
+        XBoardConfig.setLastRacingCandidates(hostsToRace);
 
         await _initializeXBoardService(result.domain);
         _logger.info('[TXT] 域名竞速成功: ${result.domain} (${latency}ms)');

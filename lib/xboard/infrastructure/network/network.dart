@@ -6,4 +6,5 @@ export 'utils/utils.dart';
 export 'doh_txt_resolver.dart';
 export 'cryptojs_aes_decryptor.dart';
 export 'api_text_resolver.dart';
+export 'domain_pool.dart';
 

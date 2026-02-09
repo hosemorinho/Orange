@@ -13,7 +13,7 @@ final _logger = FileLogger('v2board_api_service.dart');
 
 class V2BoardApiService {
   final XBoardHttpClient _http;
-  final String baseUrl;
+  String baseUrl;
   String? _authToken;
 
   V2BoardApiService({

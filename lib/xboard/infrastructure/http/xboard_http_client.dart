@@ -3,6 +3,7 @@ import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'user_agent_config.dart';
+import 'package:fl_clash/xboard/infrastructure/network/domain_pool.dart';
 
 // 初始化文件级日志器
 final _logger = FileLogger('xboard_http_client.dart');
@@ -349,68 +350,148 @@ class XBoardHttpClient {
   }
 }
 
-/// 重试拦截器
+/// 重试拦截器（带域名切换）
+///
+/// Phase 1: 在当前域名重试 N 次（指数退避）
+/// Phase 2: 切换到 DomainPool 中的下一个候选域名，重置重试计数
+/// Phase 3: 所有候选域名耗尽后，重新解析 TXT 记录 + 竞速，用新域名重试
+///
+/// 仅对基础设施错误（超时、连接失败、5xx）触发切换，
+/// 业务错误（401、403、404、422）不触发。
 class _RetryInterceptor extends Interceptor {
   final Dio _dio;
-  
+
   _RetryInterceptor(this._dio);
-  
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    // 检查是否应该重试
     final extra = err.requestOptions.extra;
     final retries = extra['retries'] ?? XBoardHttpConfig.defaultRetries;
     final attempt = extra['attempt'] ?? 0;
-    
-    if (attempt >= retries) {
-      // 已达到最大重试次数
+
+    // Skip domain fallback if explicitly disabled (e.g., domain racing requests)
+    final skipFallback = extra['skipDomainFallback'] == true;
+
+    // Check if this is an infrastructure error worth retrying
+    if (!_isInfrastructureError(err)) {
       return handler.next(err);
     }
-    
-    // 检查错误类型是否应该重试
-    final shouldRetry = _shouldRetry(err);
-    if (!shouldRetry) {
-      return handler.next(err);
-    }
-    
-    // 计算延迟
-    final delay = XBoardHttpConfig.retryDelay(attempt + 1);
-    _logger.warning(
-      '[HTTP] 请求失败，${delay.inSeconds}秒后进行第${attempt + 1}次重试: ${err.requestOptions.uri}',
-    );
-    
-    // 延迟后重试
-    await Future.delayed(delay);
-    
-    // 更新重试次数
-    err.requestOptions.extra['attempt'] = attempt + 1;
-    
-    try {
-      final response = await _dio.fetch(err.requestOptions);
-      return handler.resolve(response);
-    } catch (e) {
-      if (e is DioException) {
-        return handler.next(e);
+
+    // ── Phase 1: retry on same domain ──
+    if (attempt < retries) {
+      final delay = XBoardHttpConfig.retryDelay(attempt + 1);
+      _logger.warning(
+        '[HTTP] Phase 1: 第${attempt + 1}/$retries次重试 (${delay.inSeconds}s后): '
+        '${err.requestOptions.uri}',
+      );
+
+      await Future.delayed(delay);
+      err.requestOptions.extra['attempt'] = attempt + 1;
+
+      try {
+        final response = await _dio.fetch(err.requestOptions);
+        return handler.resolve(response);
+      } catch (e) {
+        if (e is DioException) {
+          return handler.next(e);
+        }
+        return handler.next(err);
       }
+    }
+
+    // Domain fallback disabled — propagate error
+    if (skipFallback) {
       return handler.next(err);
     }
+
+    final pool = DomainPool.instance;
+    if (!pool.isInitialized) {
+      return handler.next(err);
+    }
+
+    // ── Phase 2: switch to next candidate domain ──
+    final nextDomain = pool.switchToNext();
+    if (nextDomain != null) {
+      _logger.info('[HTTP] Phase 2: 切换域名 → $nextDomain');
+
+      _rewriteRequestDomain(err.requestOptions, nextDomain);
+      err.requestOptions.extra['attempt'] = 0; // reset retry counter
+
+      try {
+        final response = await _dio.fetch(err.requestOptions);
+        // Success on new domain — reset failure state
+        pool.resetFailureState();
+        return handler.resolve(response);
+      } catch (e) {
+        if (e is DioException) {
+          return handler.next(e);
+        }
+        return handler.next(err);
+      }
+    }
+
+    // ── Phase 3: re-resolve TXT + re-race ──
+    _logger.info('[HTTP] Phase 3: 所有候选域名耗尽，开始重新解析');
+    final newDomain = await pool.reResolveAndRace();
+    if (newDomain != null) {
+      _logger.info('[HTTP] Phase 3: 新域名 → $newDomain');
+
+      _rewriteRequestDomain(err.requestOptions, newDomain);
+      err.requestOptions.extra['attempt'] = 0;
+
+      try {
+        final response = await _dio.fetch(err.requestOptions);
+        pool.resetFailureState();
+        return handler.resolve(response);
+      } catch (e) {
+        if (e is DioException) {
+          return handler.next(e);
+        }
+        return handler.next(err);
+      }
+    }
+
+    // All phases exhausted — propagate original error
+    _logger.error('[HTTP] 所有域名切换阶段均失败: ${err.requestOptions.uri}');
+    return handler.next(err);
   }
-  
-  bool _shouldRetry(DioException err) {
-    // 超时应该重试
+
+  /// Whether the error is an infrastructure failure that warrants domain switching.
+  ///
+  /// Business errors (4xx except 408/429) indicate the domain is working fine —
+  /// switching domains would not help.
+  bool _isInfrastructureError(DioException err) {
+    // Timeout
     if (err.type == DioExceptionType.connectionTimeout ||
-        err.type == DioExceptionType.receiveTimeout) {
+        err.type == DioExceptionType.receiveTimeout ||
+        err.type == DioExceptionType.sendTimeout) {
       return true;
     }
-    
-    // 网络错误应该重试
+
+    // Connection / network error
     if (err.type == DioExceptionType.connectionError) {
       return true;
     }
-    
-    // 根据状态码判断
+
+    // Server-side errors (5xx), 408 timeout, 429 rate limit
     final statusCode = err.response?.statusCode;
     return XBoardHttpConfig.shouldRetry(statusCode);
+  }
+
+  /// Rewrite the request URL to use [newDomain], keeping the path and query intact.
+  void _rewriteRequestDomain(RequestOptions options, String newDomain) {
+    final oldUri = options.uri;
+    final newBaseUri = Uri.parse(newDomain);
+
+    final rewritten = oldUri.replace(
+      scheme: newBaseUri.scheme.isNotEmpty ? newBaseUri.scheme : oldUri.scheme,
+      host: newBaseUri.host,
+      port: newBaseUri.hasPort ? newBaseUri.port : oldUri.port,
+    );
+
+    // Dio uses path + baseUrl; update via full path to avoid conflicts
+    options.path = rewritten.toString();
+    options.baseUrl = '';
   }
 }
 

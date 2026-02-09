@@ -1,3 +1,4 @@
+import 'package:fl_clash/providers/state.dart';
 import 'package:fl_clash/xboard/adapter/state/plan_state.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/crisp/crisp_config.dart';
@@ -36,11 +37,23 @@ class CrispChatButton extends ConsumerWidget {
     final user = ref.read(userInfoProvider);
     if (user == null) return;
 
+    // Profile subscription info (same source as homepage traffic display)
+    final currentProfile = ref.read(currentProfileProvider);
+    final profileSubInfo = currentProfile?.subscriptionInfo;
+
+    // V2Board subscription data (fallback)
+    final subscription = ref.read(subscriptionInfoProvider);
+
     // Fetch the user's current plan (best-effort, don't block on failure).
     final plan = user.planId != null
         ? await ref.read(getPlanProvider(user.planId!).future).catchError((_) => null)
         : null;
 
-    await CrispChatService.openChat(user: user, plan: plan);
+    await CrispChatService.openChat(
+      user: user,
+      plan: plan,
+      profileSubInfo: profileSubInfo,
+      subscription: subscription,
+    );
   }
 }

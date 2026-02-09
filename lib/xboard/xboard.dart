@@ -49,5 +49,8 @@ export 'features/crisp/crisp_config.dart';
 export 'features/crisp/crisp_chat_service.dart';
 export 'features/crisp/crisp_chat_button.dart';
 
+// ========== TV 模块 ==========
+export 'features/tv/tv.dart';
+
 // ========== 共享组件 ==========
 export 'features/shared/shared.dart';

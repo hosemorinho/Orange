@@ -18,6 +18,7 @@ const _envCrispWebsiteId = String.fromEnvironment('CRISP_WEBSITE_ID');
 const crispWebsiteId = _envCrispWebsiteId;
 const _envApiTextDomain = String.fromEnvironment('API_TEXT_DOMAIN');
 const apiTextDomain = _envApiTextDomain;
+const forceTV = bool.fromEnvironment('FORCE_TV');
 
 const appName = _envAppName == '' ? 'Orange' : _envAppName;
 const appNameEn = appName;

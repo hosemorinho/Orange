@@ -23,6 +23,21 @@ class System {
 
   bool get isDesktop => isWindows || isMacOS || isLinux;
 
+  // TV detection
+  static const _forceTV = bool.fromEnvironment('FORCE_TV');
+  bool _isTV = false;
+  bool get isTV => _isTV || _forceTV;
+
+  Future<void> initTVDetection() async {
+    if (!isAndroid) return;
+    try {
+      final deviceInfo = await DeviceInfoPlugin().androidInfo;
+      _isTV = deviceInfo.systemFeatures.contains('android.software.leanback');
+    } catch (_) {
+      _isTV = false;
+    }
+  }
+
   bool get isWindows => Platform.isWindows;
 
   bool get isMacOS => Platform.isMacOS;

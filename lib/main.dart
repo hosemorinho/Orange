@@ -38,6 +38,9 @@ Future<void> main() async {
       debugPrint('[Main] 磁盘日志初始化失败: $e');
     }
 
+    // TV 检测
+    await system.initTVDetection();
+
     // 初始化XBoard配置模块
     await _initializeXBoardServices();
 

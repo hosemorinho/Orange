@@ -31,10 +31,10 @@ class NodeSelectorBar extends ConsumerWidget {
     }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: _buildProxyDisplay(context, group, proxy, mode),
+      child: _buildProxyDisplay(context, ref, group, proxy, mode),
     );
   }
-  Widget _buildProxyDisplay(BuildContext context, Group group, Proxy proxy, Mode mode) {
+  Widget _buildProxyDisplay(BuildContext context, WidgetRef ref, Group group, Proxy proxy, Mode mode) {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(

@@ -227,8 +227,9 @@ class Build {
     String archName,
   ) {
     final ndk = Platform.environment['ANDROID_NDK'] ??
-        Platform.environment['NDK_HOME'] ??
-        Platform.environment['ANDROID_NDK_HOME'];
+        Platform.environment['ANDROID_NDK_HOME'] ??
+        Platform.environment['ANDROID_NDK_LATEST_HOME'] ??
+        Platform.environment['NDK_HOME'];
     if (ndk == null || ndk.isEmpty) {
       throw 'ANDROID_NDK or NDK_HOME environment variable must be set';
     }

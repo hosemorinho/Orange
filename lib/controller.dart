@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/leaf/leaf_controller.dart';
+import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
@@ -11,17 +12,33 @@ import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:yaml/yaml.dart';
 
 import 'common/common.dart';
 import 'database/database.dart';
 import 'models/models.dart';
 import 'providers/database.dart';
 
+/// Recursively convert YAML values to plain Dart types.
+dynamic _convertYamlValue(dynamic v) {
+  if (v is YamlMap) {
+    return Map<String, dynamic>.from(
+      v.map((k, val) => MapEntry(k.toString(), _convertYamlValue(val))),
+    );
+  }
+  if (v is YamlList) {
+    return v.map(_convertYamlValue).toList();
+  }
+  return v;
+}
+
 class AppController {
   late final BuildContext _context;
   late final WidgetRef _ref;
   bool isAttach = false;
   bool _isApplyingProfile = false;
+  LeafController? _leafController;
+  bool _leafInitialized = false;
 
   static AppController? _instance;
 
@@ -35,6 +52,7 @@ class AppController {
   Future<void> attach(BuildContext context, WidgetRef ref) async {
     _context = context;
     _ref = ref;
+    _leafController = ref.read(leafControllerProvider);
     await _init();
     isAttach = true;
   }
@@ -61,7 +79,6 @@ extension InitControllerExt on AppController {
     await _initCore();
     await _initStatus();
     _ref.read(initProvider.notifier).value = true;
-    // Run after init completes to avoid racing with _initStatus's applyProfile
     autoUpdateProfiles();
   }
 
@@ -334,7 +351,10 @@ extension ProfilesControllerExt on AppController {
     if (isExists) {
       await profileFile.safeDelete(recursive: true);
     }
-    await coreController.deleteFile(providersDirPath);
+    final providersDir = Directory(providersDirPath);
+    if (await providersDir.exists()) {
+      await providersDir.delete(recursive: true);
+    }
   }
 }
 
@@ -379,32 +399,14 @@ extension ProxiesControllerExt on AppController {
   }
 
   Future<void> updateGroups() async {
-    try {
-      commonPrint.log('updateGroups');
-      _ref.read(groupsProvider.notifier).value = await retry(
-        task: () async {
-          final sortType = _ref.read(
-            proxiesStyleSettingProvider.select((state) => state.sortType),
-          );
-          final delayMap = _ref.read(delayDataSourceProvider);
-          final testUrl = _ref.read(
-            appSettingProvider.select((state) => state.testUrl),
-          );
-          final selectedMap = _ref.read(
-            currentProfileProvider.select((state) => state?.selectedMap ?? {}),
-          );
-          return await coreController.getProxiesGroups(
-            selectedMap: selectedMap,
-            sortType: sortType,
-            delayMap: delayMap,
-            defaultTestUrl: testUrl,
-          );
-        },
-        retryIf: (res) => res.isEmpty,
-      );
-    } catch (e) {
-      commonPrint.log('updateGroups error: $e');
-      _ref.read(groupsProvider.notifier).value = [];
+    // Leaf uses a flat node list instead of hierarchical proxy groups.
+    // The leaf UI widgets read from leafNodesProvider directly.
+    // Keep groupsProvider empty for backward compatibility.
+    commonPrint.log('updateGroups (leaf: no-op, using leafNodesProvider)');
+    if (_leafController != null && _leafController!.isRunning) {
+      _ref.read(leafNodesProvider.notifier).state = _leafController!.nodes;
+      _ref.read(selectedNodeTagProvider.notifier).state =
+          _leafController!.getSelectedNode();
     }
   }
 
@@ -448,14 +450,13 @@ extension ProxiesControllerExt on AppController {
     required String groupName,
     required String proxyName,
   }) async {
-    await coreController.changeProxy(
-      ChangeProxyParams(groupName: groupName, proxyName: proxyName),
-    );
-    if (_ref.read(appSettingProvider).closeConnections) {
-      coreController.closeConnections();
-    } else {
-      coreController.resetConnections();
+    // In leaf, groupName is ignored — we select by node tag (proxyName).
+    if (_leafController != null && _leafController!.isRunning) {
+      await _leafController!.selectNode(proxyName);
+      _ref.read(selectedNodeTagProvider.notifier).state = proxyName;
     }
+    // Also persist in the profile's selectedMap
+    updateCurrentSelectedMap(groupName, proxyName);
     addCheckIp();
   }
 
@@ -464,29 +465,15 @@ extension ProxiesControllerExt on AppController {
   }
 
   Future<void> updateProviders() async {
-    _ref.read(providersProvider.notifier).value = await coreController
-        .getExternalProviders();
+    // Leaf does not support external providers — no-op.
   }
 
   Future<String> updateProvider(
     ExternalProvider provider, {
     bool showLoading = false,
   }) async {
-    try {
-      if (showLoading) {
-        _ref.read(isUpdatingProvider(provider.updatingKey).notifier).value =
-            true;
-      }
-      final message = await coreController.updateExternalProvider(
-        providerName: provider.name,
-      );
-      if (message.isNotEmpty) return message;
-      setProvider(await coreController.getExternalProvider(provider.name));
-      return '';
-    } finally {
-      _ref.read(isUpdatingProvider(provider.updatingKey).notifier).value =
-          false;
-    }
+    // Leaf does not support external providers.
+    return '';
   }
 
   int addSortNum() {
@@ -527,8 +514,9 @@ extension SetupControllerExt on AppController {
         );
       }
     } else {
+      await _leafController?.stop();
+      _ref.read(isLeafRunningProvider.notifier).state = false;
       await globalState.handleStop();
-      coreController.resetTraffic();
       _ref.read(trafficsProvider.notifier).clear();
       _ref.read(totalTrafficProvider.notifier).value = Traffic();
       _ref.read(runTimeProvider.notifier).value = null;
@@ -552,17 +540,12 @@ extension SetupControllerExt on AppController {
   }
 
   Future<void> _updateConfigImmediate() async {
+    // In leaf, runtime config updates are done by regenerating config and
+    // reloading. For now, re-apply the profile to pick up any changes.
     await safeRun(() async {
-      final updateParams = _ref.read(updateParamsProvider);
-      final res = await _requestAdmin(updateParams.tun.enable);
-      if (res.isError) {
-        return;
+      if (_leafController != null && _leafController!.isRunning) {
+        await applyProfile(force: true, silence: true);
       }
-      final realTunEnable = _ref.read(realTunEnableProvider);
-      final message = await coreController.updateConfig(
-        updateParams.copyWith.tun(enable: realTunEnable),
-      );
-      if (message.isNotEmpty) throw message;
     });
   }
 
@@ -589,238 +572,32 @@ extension SetupControllerExt on AppController {
   }
 
   Future<void> changeMode(Mode mode) async {
+    // Leaf uses a single select outbound — no mode switching.
+    // Store the mode for UI state but don't change core behavior.
     _ref
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
-
-    // Wait for config update to complete before changing proxy
-    await _updateConfigImmediate();
-
-    if (mode == Mode.global) {
-      updateCurrentGroupName(GroupName.GLOBAL.name);
-      await _ensureGlobalProxySelection(immediate: true);
-    } else if (mode == Mode.rule) {
-      await _ensureRuleGroupSelection(immediate: true);
-    }
     addCheckIp();
   }
 
-  Future<void> _ensureGlobalProxySelection({bool immediate = false}) async {
-    final groups = _ref.read(groupsProvider);
-    if (groups.isEmpty) return;
+  /// Ensure a valid proxy node is selected in the leaf core.
+  Future<void> _ensureValidSelection() async {
+    if (_leafController == null || !_leafController!.isRunning) return;
 
-    final globalGroup = groups.firstWhere(
-      (g) => g.name == GroupName.GLOBAL.name,
-      orElse: () => groups.first,
-    );
-    if (globalGroup.all.isEmpty) return;
-
-    final selectedMap = _ref.read(selectedMapProvider);
-    final currentSelected = selectedMap[globalGroup.name];
-
-    // If a valid proxy is already selected (not DIRECT/REJECT), push it to the core
+    final currentSelected = _leafController!.getSelectedNode();
     if (currentSelected != null && currentSelected.isNotEmpty) {
-      final upper = currentSelected.toUpperCase();
-      final exists = globalGroup.all.any((p) => p.name == currentSelected);
-      if (exists && upper != 'DIRECT' && upper != 'REJECT') {
-        if (immediate) {
-          await changeProxy(groupName: globalGroup.name, proxyName: currentSelected);
-          updateGroupsDebounce();
-        } else {
-          changeProxyDebounce(globalGroup.name, currentSelected);
-        }
-        return;
-      }
-    }
-
-    // Auto-select first non-DIRECT/REJECT proxy
-    for (final proxy in globalGroup.all) {
-      final upper = proxy.name.toUpperCase();
-      if (upper != 'DIRECT' && upper != 'REJECT') {
-        updateCurrentSelectedMap(globalGroup.name, proxy.name);
-        if (immediate) {
-          await changeProxy(groupName: globalGroup.name, proxyName: proxy.name);
-          updateGroupsDebounce();
-        } else {
-          changeProxyDebounce(globalGroup.name, proxy.name);
-        }
-        return;
-      }
-    }
-  }
-
-  Future<void> _ensureRuleGroupSelection({bool immediate = false}) async {
-    final currentGroupName = getCurrentGroupName();
-    final groups = _ref.read(groupsProvider);
-    final selectedMap = _ref.read(selectedMapProvider);
-
-    // If already on a non-GLOBAL group, push its current selection to core
-    if (currentGroupName != null &&
-        currentGroupName != GroupName.GLOBAL.name) {
-      final currentGroup = groups.firstWhere(
-        (g) => g.name == currentGroupName,
-        orElse: () => groups.first,
-      );
-      if (currentGroup.type == GroupType.Selector &&
-          currentGroup.all.isNotEmpty) {
-        final currentSelected = selectedMap[currentGroupName];
-        if (currentSelected != null && currentSelected.isNotEmpty) {
-          final upper = currentSelected.toUpperCase();
-          final exists = currentGroup.all.any((p) => p.name == currentSelected);
-          if (exists && upper != 'DIRECT' && upper != 'REJECT') {
-            if (immediate) {
-              await changeProxy(
-                  groupName: currentGroupName, proxyName: currentSelected);
-              updateGroupsDebounce();
-            } else {
-              changeProxyDebounce(currentGroupName, currentSelected);
-            }
-            return;
-          }
-        }
-        // Auto-select first non-DIRECT/REJECT proxy in current group
-        for (final proxy in currentGroup.all) {
-          final upper = proxy.name.toUpperCase();
-          if (upper != 'DIRECT' && upper != 'REJECT') {
-            updateCurrentSelectedMap(currentGroupName, proxy.name);
-            if (immediate) {
-              await changeProxy(
-                  groupName: currentGroupName, proxyName: proxy.name);
-              updateGroupsDebounce();
-            } else {
-              changeProxyDebounce(currentGroupName, proxy.name);
-            }
-            return;
-          }
-        }
-      }
+      // Already has a valid selection
+      _ref.read(selectedNodeTagProvider.notifier).state = currentSelected;
       return;
     }
 
-    // Select the first visible non-GLOBAL group
-    for (final group in groups) {
-      if (group.hidden != true && group.name != GroupName.GLOBAL.name) {
-        updateCurrentGroupName(group.name);
-        // Also push its current selection if it's a Selector group
-        if (group.type == GroupType.Selector && group.all.isNotEmpty) {
-          final groupSelected = selectedMap[group.name];
-          if (groupSelected != null && groupSelected.isNotEmpty) {
-            final upper = groupSelected.toUpperCase();
-            final exists = group.all.any((p) => p.name == groupSelected);
-            if (exists && upper != 'DIRECT' && upper != 'REJECT') {
-              if (immediate) {
-                await changeProxy(
-                    groupName: group.name, proxyName: groupSelected);
-                updateGroupsDebounce();
-              } else {
-                changeProxyDebounce(group.name, groupSelected);
-              }
-              return;
-            }
-          }
-          // Auto-select first non-DIRECT/REJECT proxy in this group
-          for (final proxy in group.all) {
-            final upper = proxy.name.toUpperCase();
-            if (upper != 'DIRECT' && upper != 'REJECT') {
-              updateCurrentSelectedMap(group.name, proxy.name);
-              if (immediate) {
-                await changeProxy(
-                    groupName: group.name, proxyName: proxy.name);
-                updateGroupsDebounce();
-              } else {
-                changeProxyDebounce(group.name, proxy.name);
-              }
-              return;
-            }
-          }
-        }
-        return;
-      }
-    }
-  }
-
-  /// Fix missing or invalid proxy selections after setupConfig.
-  ///
-  /// The Go core already applies selectedMap during setupConfig, so valid
-  /// selections are restored automatically. This method only handles edge
-  /// cases: GLOBAL mode with no saved selection, or a saved proxy name
-  /// that no longer exists after a subscription update.
-  ///
-  /// Unlike the old _applySelectedProxyToCore(), this does NOT call
-  /// changeProxy() for already-valid selections, avoiding unnecessary
-  /// connection resets and UI flicker.
-  Future<void> _ensureValidSelection() async {
-    final groups = _ref.read(groupsProvider);
-    if (groups.isEmpty) return;
-
-    final selectedMap = _ref.read(selectedMapProvider);
-    final currentMode = _ref.read(
-      patchClashConfigProvider.select((state) => state.mode),
-    );
-
-    if (currentMode == Mode.global) {
-      // GLOBAL group must have a valid non-DIRECT selection
-      final globalGroup = groups.cast<Group?>().firstWhere(
-        (g) => g!.name == GroupName.GLOBAL.name,
-        orElse: () => null,
-      );
-      if (globalGroup != null) {
-        await _fixGroupSelectionIfNeeded(globalGroup, selectedMap);
-      }
-    }
-
-    // Also verify the current rule-mode group has a valid selection
-    final currentGroupName = getCurrentGroupName();
-    if (currentGroupName != null && currentGroupName != GroupName.GLOBAL.name) {
-      final currentGroup = groups.cast<Group?>().firstWhere(
-        (g) => g!.name == currentGroupName,
-        orElse: () => null,
-      );
-      if (currentGroup != null && currentGroup.type == GroupType.Selector) {
-        await _fixGroupSelectionIfNeeded(currentGroup, selectedMap);
-      }
-    }
-  }
-
-  /// Auto-select the first valid proxy if the group has no valid selection.
-  /// Pushes to core directly without resetting connections.
-  Future<void> _fixGroupSelectionIfNeeded(
-    Group group,
-    Map<String, String> selectedMap,
-  ) async {
-    final sel = selectedMap[group.name];
-    if (sel != null && sel.isNotEmpty) {
-      final upper = sel.toUpperCase();
-      if (upper != 'DIRECT' && upper != 'REJECT' &&
-          group.all.any((p) => p.name == sel)) {
-        // Valid selection — Go core already applied it via setupConfig
-        return;
-      }
-    }
-    // No valid selection — find fallback
-    String? fallback;
-    if (group.name == GroupName.GLOBAL.name) {
-      // Use the proxy name from user's current rule-mode group selection
-      final ruleGroupName = getCurrentGroupName();
-      if (ruleGroupName != null && ruleGroupName != GroupName.GLOBAL.name) {
-        fallback = selectedMap[ruleGroupName];
-      }
-    }
-    // Fallback to first non-DIRECT/REJECT proxy
-    fallback ??= group.all.cast<Proxy?>().firstWhere(
-      (p) {
-        final upper = p!.name.toUpperCase();
-        return upper != 'DIRECT' && upper != 'REJECT';
-      },
-      orElse: () => null,
-    )?.name;
-
-    if (fallback != null) {
-      updateCurrentSelectedMap(group.name, fallback);
-      await coreController.changeProxy(
-        ChangeProxyParams(groupName: group.name, proxyName: fallback),
-      );
-      commonPrint.log('自动修正节点选择: ${group.name} -> $fallback');
+    // No selection — auto-pick the first node
+    final nodes = _leafController!.nodes;
+    if (nodes.isNotEmpty) {
+      final firstNode = nodes.first.tag;
+      await _leafController!.selectNode(firstNode);
+      _ref.read(selectedNodeTagProvider.notifier).state = firstNode;
+      commonPrint.log('Auto-selected node: $firstNode');
     }
   }
 
@@ -848,10 +625,6 @@ extension SetupControllerExt on AppController {
         () async {
           await _setupConfig(preloadInvoke);
           await updateGroups();
-          await updateProviders();
-          // setupConfig already applies selectedMap to the Go core.
-          // Only fix edge cases (e.g. GLOBAL with no saved selection,
-          // or a saved proxy that no longer exists after subscription update).
           await _ensureValidSelection();
         },
         silence: true,
@@ -862,105 +635,50 @@ extension SetupControllerExt on AppController {
     }
   }
 
-  /// 恢复节点选择到 Clash 核心
-  /// 在 applyProfile 后调用，因为 setupConfig 会重置核心
   Future<void> restoreSelectedProxy() async {
     await _ensureValidSelection();
   }
 
-  Future<Map<String, dynamic>> getProfile({
-    required SetupState setupState,
-    required ClashConfig patchConfig,
-  }) async {
-    final profileId = setupState.profileId;
-    if (profileId == null) {
-      return {};
+  /// Read profile YAML from disk, decrypting if encrypted.
+  Future<String?> _getProfileYaml(Profile profile) async {
+    final profilePath = await appPath.getProfilePath(profile.id.toString());
+    final file = File(profilePath);
+    if (!await file.exists()) return null;
+
+    final bytes = await file.readAsBytes();
+    if (ProfileCipher.isEncryptedFormat(bytes)) {
+      final token = ProfileCipher.extractToken(profile.url);
+      if (token != null && token.isNotEmpty) {
+        final decrypted = ProfileCipher.decrypt(bytes, token);
+        return String.fromCharCodes(decrypted);
+      }
     }
-    final defaultUA = globalState.packageInfo.ua;
-    final networkVM2 = _ref.read(
-      networkSettingProvider.select(
-        (state) => VM2(state.appendSystemDns, state.routeMode),
-      ),
-    );
-    final overrideDns = _ref.read(overrideDnsProvider);
-    final appendSystemDns = networkVM2.a;
-    final routeMode = networkVM2.b;
-    final configMap = await _getConfigDecrypted(profileId);
-    String? scriptContent;
-    final List<Rule> addedRules = [];
-    if (setupState.overwriteType == OverwriteType.script) {
-      scriptContent = await setupState.script?.content;
-    } else {
-      addedRules.addAll(setupState.addedRules);
-    }
-    final realPatchConfig = patchConfig.copyWith(
-      tun: patchConfig.tun.getRealTun(routeMode),
-    );
-    Map<String, dynamic> rawConfig = configMap;
-    if (scriptContent?.isNotEmpty == true) {
-      rawConfig = await globalState.handleEvaluate(scriptContent!, rawConfig);
-    }
-    final directory = await appPath.profilesPath;
-    final res = makeRealProfileTask(
-      MakeRealProfileState(
-        profilesPath: directory,
-        profileId: profileId,
-        rawConfig: rawConfig,
-        realPatchConfig: realPatchConfig,
-        overrideDns: overrideDns,
-        appendSystemDns: appendSystemDns,
-        addedRules: addedRules,
-        defaultUA: defaultUA,
-      ),
-    );
-    return res;
+    return file.readAsString();
   }
 
-  /// Read profile config, decrypting if the file is encrypted on disk.
-  /// Decrypts to a temp file, lets core read it, then deletes the temp file.
+  /// Read profile config as a Map (for backward compatibility).
   Future<Map<String, dynamic>> _getConfigDecrypted(int profileId) async {
-    final profilePath = await appPath.getProfilePath(profileId.toString());
-    final profileFile = File(profilePath);
-
-    if (!await profileFile.exists()) {
-      return await coreController.getConfig(profileId);
-    }
-
-    final bytes = await profileFile.readAsBytes();
-    if (!ProfileCipher.isEncryptedFormat(bytes)) {
-      return await coreController.getConfig(profileId);
-    }
-
-    // File is encrypted — find the subscription token from the profile URL
     final profile = _ref.read(profilesProvider).getProfile(profileId);
-    final token = profile != null ? ProfileCipher.extractToken(profile.url) : null;
-    if (token == null || token.isEmpty) {
-      // Can't decrypt, try loading as-is (will likely fail)
-      return await coreController.getConfig(profileId);
-    }
-
-    // Decrypt to temp file
-    final yamlBytes = ProfileCipher.decrypt(bytes, token);
-    final tempPath = await appPath.tempFilePath;
-    final tempFile = File(tempPath);
-    await tempFile.safeWriteAsBytes(yamlBytes);
-
+    if (profile == null) return {};
+    final yaml = await _getProfileYaml(profile);
+    if (yaml == null) return {};
     try {
-      return await coreController.getConfig(profileId, overridePath: tempPath);
-    } finally {
-      await tempFile.safeDelete();
+      final doc = loadYaml(yaml);
+      if (doc is YamlMap) {
+        return Map<String, dynamic>.from(
+          doc.map((k, v) => MapEntry(k.toString(), _convertYamlValue(v))),
+        );
+      }
+    } catch (e) {
+      commonPrint.log('Failed to parse profile YAML: $e');
     }
+    return {};
   }
 
   Future<Map> getProfileWithId(int profileId) async {
     var res = {};
     try {
-      final setupState = await _ref.read(setupStateProvider(profileId).future);
-      final patchClashConfig = _ref.read(patchClashConfigProvider);
-      res = await getProfile(
-        setupState: setupState,
-        patchConfig: patchClashConfig,
-      );
+      res = await _getConfigDecrypted(profileId);
     } catch (e) {
       globalState.showNotifier(e.toString());
     }
@@ -970,80 +688,106 @@ extension SetupControllerExt on AppController {
   Future<void> _setupConfig([VoidCallback? preloadInvoke]) async {
     commonPrint.log('setup ===>');
     var profile = _ref.read(currentProfileProvider);
-    final nextProfile = await profile?.checkAndUpdateAndCopy();
+    if (profile == null) {
+      commonPrint.log('setup: no current profile');
+      return;
+    }
+
+    final nextProfile = await profile.checkAndUpdateAndCopy();
     if (nextProfile != null) {
       profile = nextProfile;
       _ref.read(profilesProvider.notifier).put(nextProfile);
     }
-    final patchConfig = _ref.read(patchClashConfigProvider);
-    final res = await _requestAdmin(patchConfig.tun.enable);
-    if (res.isError) {
+
+    // Read YAML content from profile file
+    final yamlContent = await _getProfileYaml(profile!);
+    if (yamlContent == null || yamlContent.isEmpty) {
+      commonPrint.log('setup: empty YAML for profile ${profile.id}');
       return;
     }
-    final realTunEnable = _ref.read(realTunEnableProvider);
-    var realPatchConfig = patchConfig.copyWith.tun(enable: realTunEnable);
-    if (!system.isAndroid &&
-        !await isPortAvailable(realPatchConfig.mixedPort)) {
-      final newPort = await findAvailablePort(realPatchConfig.mixedPort);
+
+    // Port configuration
+    final patchConfig = _ref.read(patchClashConfigProvider);
+    var httpPort = patchConfig.mixedPort;
+    var socksPort = httpPort + 1;
+
+    if (!system.isAndroid && !await isPortAvailable(httpPort)) {
+      final newPort = await findAvailablePort(httpPort);
       commonPrint.log(
-        'Port ${realPatchConfig.mixedPort} is occupied, using $newPort',
+        'Port $httpPort is occupied, using $newPort',
         logLevel: LogLevel.warning,
       );
-      realPatchConfig = realPatchConfig.copyWith(mixedPort: newPort);
+      httpPort = newPort;
+      socksPort = newPort + 1;
       _ref.read(patchClashConfigProvider.notifier).value =
-          patchConfig.copyWith(mixedPort: newPort);
+          patchConfig.copyWith(mixedPort: httpPort);
     }
-    final setupState = await _ref.read(setupStateProvider(profile?.id).future);
+
+    // Save setup state
+    final setupState = await _ref.read(setupStateProvider(profile.id).future);
     globalState.lastSetupState = setupState;
     if (system.isAndroid) {
       globalState.lastVpnState = _ref.read(vpnStateProvider);
       preferences.saveShareState(this.sharedState);
     }
-    final config = await getProfile(
-      setupState: setupState,
-      patchConfig: realPatchConfig,
-    );
-    final configFilePath = await appPath.configFilePath;
-    final yamlString = await encodeYamlTask(config);
-    await File(configFilePath).safeWriteAsString(yamlString);
-    final message = await coreController.setupConfig(
-      setupState: setupState,
-      params: setupParams,
-      preloadInvoke: preloadInvoke,
-    );
-    if (message.isNotEmpty) {
-      throw message;
+
+    if (preloadInvoke != null) preloadInvoke();
+
+    // Start leaf with the subscription YAML
+    if (_leafController == null) {
+      throw StateError('LeafController not initialized');
     }
+    if (_leafController!.isRunning) {
+      await _leafController!.stop();
+    }
+    await _leafController!.startWithClashYaml(
+      yamlContent,
+      httpPort: httpPort,
+      socksPort: socksPort,
+    );
+
+    // Update leaf providers
+    _ref.read(isLeafRunningProvider.notifier).state = true;
+    _ref.read(leafNodesProvider.notifier).state = _leafController!.nodes;
+    _ref.read(selectedNodeTagProvider.notifier).state =
+        _leafController!.getSelectedNode();
+
     addCheckIp();
+    commonPrint.log('setup complete: ${_leafController!.nodes.length} nodes');
   }
 }
 
 extension CoreControllerExt on AppController {
   Future<void> _initCore() async {
-    final isInit = await coreController.isInit;
-    final version = _ref.read(versionProvider);
-    if (!isInit) {
-      await coreController.init(version);
+    if (_leafInitialized) return;
+
+    String homeDir;
+    if (Platform.isAndroid) {
+      homeDir = appPath.homePath;
     } else {
-      await updateGroups();
+      final home = Platform.environment['HOME'] ??
+          Platform.environment['USERPROFILE'] ??
+          '.';
+      homeDir =
+          '$home${Platform.pathSeparator}.config${Platform.pathSeparator}orange${Platform.pathSeparator}leaf';
     }
+
+    await _leafController?.init(homeDir);
+    _leafInitialized = true;
+    commonPrint.log('leaf core initialized: $homeDir');
   }
 
   Future<void> _connectCore() async {
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.connecting;
-    final result = await Future.wait([
-      coreController.preload(),
-      Future.delayed(Duration(milliseconds: 300)),
-    ]);
-    final String message = result[0];
-    if (message.isNotEmpty) {
+    try {
+      // Leaf FFI library is loaded when LeafController is constructed.
+      // No separate connect step needed.
+      await Future.delayed(const Duration(milliseconds: 100));
+      _ref.read(coreStatusProvider.notifier).value = CoreStatus.connected;
+    } catch (e) {
       _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
-      if (_context.mounted) {
-        _context.showNotifier(message);
-      }
-      return;
+      commonPrint.log('leaf connect failed: $e');
     }
-    _ref.read(coreStatusProvider.notifier).value = CoreStatus.connected;
   }
 
   Future<Result<bool>> _requestAdmin(bool enableTun) async {
@@ -1070,7 +814,6 @@ extension CoreControllerExt on AppController {
             logLevel: LogLevel.warning,
           );
           enableTun = false;
-          // Revert TUN toggle in UI
           _ref
               .read(patchClashConfigProvider.notifier)
               .update((state) => state.copyWith.tun(enable: false));
@@ -1083,7 +826,9 @@ extension CoreControllerExt on AppController {
 
   Future<void> restartCore([bool start = false]) async {
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
-    await coreController.shutdown(true);
+    await _leafController?.stop();
+    _ref.read(isLeafRunningProvider.notifier).state = false;
+    _leafInitialized = false;
     await _connectCore();
     await _initCore();
     if (start || _ref.read(isStartProvider)) {
@@ -1094,7 +839,7 @@ extension CoreControllerExt on AppController {
   }
 
   Future<bool> tryStartCore([bool start = false]) async {
-    if (coreController.isCompleted) {
+    if (_leafInitialized) {
       return false;
     }
     await restartCore(start);
@@ -1129,7 +874,8 @@ extension SystemControllerExt on AppController {
         if (proxy != null) proxy!.stopProxy(),
         if (tray != null) tray!.destroy(),
       ]);
-      await coreController.destroy();
+      await _leafController?.stop();
+      _ref.read(isLeafRunningProvider.notifier).state = false;
       commonPrint.log('exit');
     } finally {
       system.exit();
@@ -1220,12 +966,17 @@ extension BackupControllerExt on AppController {
     if (pathsToDelete.isNotEmpty) {
       final deleteFutures = pathsToDelete.map((path) async {
         try {
-          final res = await coreController.deleteFile(path);
-          if (res.isNotEmpty) {
-            throw res;
+          final file = File(path);
+          if (await file.exists()) {
+            await file.delete(recursive: true);
+          } else {
+            final dir = Directory(path);
+            if (await dir.exists()) {
+              await dir.delete(recursive: true);
+            }
           }
         } catch (e) {
-          rethrow;
+          commonPrint.log('Failed to delete $path: $e');
         }
       });
 
@@ -1319,7 +1070,10 @@ extension StoreControllerExt on AppController {
     await File(await appPath.databasePath).safeDelete(recursive: true);
     final homeDir = Directory(await appPath.profilesPath);
     await for (final file in homeDir.list(recursive: true)) {
-      await coreController.deleteFile(file.path);
+      final f = File(file.path);
+      if (await f.exists()) {
+        await f.delete();
+      }
     }
     await preferences.clearPreferences();
     handleExit(false);
@@ -1346,6 +1100,7 @@ extension CommonControllerExt on AppController {
   }
 
   Future<void> updateMode() async {
+    // Leaf uses a single select outbound — mode switching is a UI-only concept.
     final currentMode = _ref.read(patchClashConfigProvider.select((state) => state.mode));
     final index = Mode.values.indexWhere((item) => item == currentMode);
     if (index == -1) {
@@ -1368,13 +1123,14 @@ extension CommonControllerExt on AppController {
   }
 
   Future<void> updateTraffic() async {
-    final onlyStatisticsProxy = _ref.read(
-      appSettingProvider.select((state) => state.onlyStatisticsProxy),
+    if (_leafController == null || !_leafController!.isRunning) return;
+    final totals = _leafController!.getTrafficTotals();
+    final traffic = Traffic(
+      upload: totals.bytesSent,
+      download: totals.bytesRecvd,
     );
-    final traffic = await coreController.getTraffic(onlyStatisticsProxy);
     _ref.read(trafficsProvider.notifier).addTraffic(traffic);
-    _ref.read(totalTrafficProvider.notifier).value = await coreController
-        .getTotalTraffic(onlyStatisticsProxy);
+    _ref.read(totalTrafficProvider.notifier).value = traffic;
   }
 
   Future<T?> loadingRun<T>(

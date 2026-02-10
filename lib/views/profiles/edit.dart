@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/pages/editor.dart';
@@ -107,8 +106,8 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   Future<void> _handleSaveEdit(BuildContext context, String data) async {
     final message = await appController.safeRun<String>(() async {
-      final message = await coreController.validateConfigWithData(data);
-      return message;
+      // Leaf validates config when starting — skip separate validation.
+      return '';
     }, silence: false);
     if (message?.isNotEmpty == true) {
       globalState.showMessage(

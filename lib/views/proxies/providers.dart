@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/models/common.dart';
 import 'package:fl_clash/models/core.dart';
 import 'package:fl_clash/providers/app.dart';
@@ -94,15 +93,8 @@ class ProviderItem extends StatelessWidget {
       if (bytes == null || provider.path == null) return;
       await File(provider.path!).safeWriteAsBytes(bytes);
       final providerName = provider.name;
-      var message = await coreController.sideLoadExternalProvider(
-        providerName: providerName,
-        data: utf8.decode(bytes),
-      );
-      if (message.isNotEmpty) throw message;
-      appController.setProvider(
-        await coreController.getExternalProvider(provider.name),
-      );
-      if (message.isNotEmpty) throw message;
+      // Leaf does not support external providers — no-op.
+      throw 'External providers are not supported in leaf mode';
     });
     appController.updateGroupsDebounce();
   }

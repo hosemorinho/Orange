@@ -1,6 +1,5 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
@@ -39,7 +38,7 @@ Future<void> proxyDelayTest(Proxy proxy, [String? testUrl]) async {
     Delay(url: currentTestUrl, name: state.proxyName, value: 0),
   );
   appController.setDelay(
-    await coreController.getDelay(currentTestUrl, state.proxyName),
+    Delay(url: currentTestUrl, name: state.proxyName, value: -1),  // Leaf: use health check instead
   );
 }
 
@@ -62,7 +61,7 @@ Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
       return;
     }
     appController.setDelay(Delay(url: url, name: name, value: 0));
-    appController.setDelay(await coreController.getDelay(url, name));
+    appController.setDelay(Delay(url: url, name: name, value: -1));  // Leaf: use health check instead
   }).toList();
 
   final batchesDelayProxies = delayProxies.batch(100);

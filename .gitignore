@@ -57,12 +57,8 @@ CLAUDE.md
 /android/**/build
 /android/common/**/.**/
 /android/common/local.*
-/android/core/**/includes/
-/android/core/**/cmake-build-*/
-/android/core/**/jniLibs/
-
-#FlClash
-/libclash/
+#Leaf
+/libleaf/
 /android/app/src/main/jniLibs/
 /services/helper/target
 /macos/**/Package.resolved

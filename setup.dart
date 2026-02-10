@@ -10,13 +10,6 @@ import 'package:path/path.dart';
 enum Target { windows, linux, android, macos }
 
 extension TargetExt on Target {
-  String get os {
-    if (this == Target.macos) {
-      return 'darwin';
-    }
-    return name;
-  }
-
   bool get same {
     if (this == Target.android) {
       return true;
@@ -34,38 +27,48 @@ extension TargetExt on Target {
   }
 
   String get dynamicLibExtensionName {
-    final String extensionName;
-    switch (this) {
-      case Target.android || Target.linux:
-        extensionName = '.so';
-        break;
-      case Target.windows:
-        extensionName = '.dll';
-        break;
-      case Target.macos:
-        extensionName = '.dylib';
-        break;
-    }
-    return extensionName;
+    return switch (this) {
+      Target.android || Target.linux => '.so',
+      Target.windows => '.dll',
+      Target.macos => '.dylib',
+    };
   }
 
   String get executableExtensionName {
-    final String extensionName;
-    switch (this) {
-      case Target.windows:
-        extensionName = '.exe';
-        break;
-      default:
-        extensionName = '';
-        break;
-    }
-    return extensionName;
+    return switch (this) {
+      Target.windows => '.exe',
+      _ => '',
+    };
+  }
+
+  /// The shared library filename for this platform.
+  String get leafLibName {
+    return switch (this) {
+      Target.android || Target.linux => 'libleaf.so',
+      Target.windows => 'leaf.dll',
+      Target.macos => 'libleaf.dylib',
+    };
   }
 }
 
-enum Mode { core, lib }
-
 enum Arch { amd64, arm64, arm }
+
+extension ArchExt on Arch {
+  /// Returns the Rust target triple for the given platform + arch.
+  String rustTarget(Target target) {
+    return switch ((target, this)) {
+      (Target.android, Arch.arm64) => 'aarch64-linux-android',
+      (Target.android, Arch.arm) => 'armv7-linux-androideabi',
+      (Target.android, Arch.amd64) => 'x86_64-linux-android',
+      (Target.linux, Arch.amd64) => 'x86_64-unknown-linux-gnu',
+      (Target.linux, Arch.arm64) => 'aarch64-unknown-linux-gnu',
+      (Target.macos, Arch.arm64) => 'aarch64-apple-darwin',
+      (Target.macos, Arch.amd64) => 'x86_64-apple-darwin',
+      (Target.windows, Arch.amd64) => 'x86_64-pc-windows-msvc',
+      (Target.windows, Arch.arm64) => 'aarch64-pc-windows-msvc',
+    };
+  }
+}
 
 class BuildItem {
   Target target;
@@ -76,7 +79,7 @@ class BuildItem {
 
   @override
   String toString() {
-    return 'BuildLibItem{target: $target, arch: $arch, archName: $archName}';
+    return 'BuildItem{target: $target, arch: $arch, archName: $archName}';
   }
 }
 
@@ -98,42 +101,15 @@ class Build {
     return envName.isNotEmpty ? envName : 'Orange';
   }
 
-  static String get coreName => '${appName}Core';
+  static String get outDir => join(current, 'libleaf');
 
-  static String get libName => 'libclash';
-
-  static String get outDir => join(current, libName);
-
-  static String get _coreDir => join(current, 'core');
+  static String get _leafFfiDir => join(current, 'leaf');
 
   static String get _servicesDir => join(current, 'services', 'helper');
 
   static String get distPath => join(current, 'dist');
 
-  static String _getCc(BuildItem buildItem) {
-    final environment = Platform.environment;
-    if (buildItem.target == Target.android) {
-      final ndk = environment['ANDROID_NDK'];
-      assert(ndk != null);
-      final prebuiltDir = Directory(
-        join(ndk!, 'toolchains', 'llvm', 'prebuilt'),
-      );
-      final prebuiltDirList = prebuiltDir
-          .listSync()
-          .where((file) => !basename(file.path).startsWith('.'))
-          .toList();
-      final map = {
-        'armeabi-v7a': 'armv7a-linux-androideabi21-clang',
-        'arm64-v8a': 'aarch64-linux-android21-clang',
-        'x86': 'i686-linux-android21-clang',
-        'x86_64': 'x86_64-linux-android21-clang',
-      };
-      return join(prebuiltDirList.first.path, 'bin', map[buildItem.archName]);
-    }
-    return 'gcc';
-  }
-
-  static String get tags => 'with_gvisor';
+  static const int _ndkApiLevel = 21;
 
   static Future<void> exec(
     List<String> executable, {
@@ -171,13 +147,11 @@ class Build {
     return sha256.convert(await stream.reduce((a, b) => a + b)).toString();
   }
 
+  /// Build the leaf-ffi Rust shared library for the given platform.
   static Future<List<String>> buildCore({
-    required Mode mode,
     required Target target,
     Arch? arch,
   }) async {
-    final isLib = mode == Mode.lib;
-
     final items = buildItems.where((element) {
       return element.target == target &&
           (arch == null ? true : element.arch == arch);
@@ -186,85 +160,118 @@ class Build {
     final List<String> corePaths = [];
 
     final targetOutFilePath = join(outDir, target.name);
-    final targetOutFile = File(targetOutFilePath);
-    if (await targetOutFile.exists()) {
-      await targetOutFile.delete(recursive: true);
-      await Directory(targetOutFilePath).create(recursive: true);
+    final dir = Directory(targetOutFilePath);
+    if (await dir.exists()) {
+      await dir.delete(recursive: true);
     }
+    await dir.create(recursive: true);
+
     for (final item in items) {
-      final outFilePath = join(targetOutFilePath, item.archName);
-      final file = File(outFilePath);
-      if (file.existsSync()) {
-        file.deleteSync(recursive: true);
-      }
+      final rustTarget = item.arch!.rustTarget(item.target);
 
-      final fileName = isLib
-          ? '$libName${item.target.dynamicLibExtensionName}'
-          : '$coreName${item.target.executableExtensionName}';
-      final realOutPath = join(outFilePath, fileName);
-      corePaths.add(realOutPath);
-
-      final Map<String, String> env = {};
-      env['GOOS'] = item.target.os;
-      if (item.arch != null) {
-        env['GOARCH'] = item.arch!.name;
-      }
-      if (isLib) {
-        env['CGO_ENABLED'] = '1';
-        env['CC'] = _getCc(item);
-        env['CFLAGS'] = '-O3 -Werror';
-      } else {
-        env['CGO_ENABLED'] = '0';
-      }
-      final execLines = [
-        'go',
-        'build',
-        '-ldflags=-w -s',
-        '-tags=$tags',
-        if (isLib) '-buildmode=c-shared',
-        '-o',
-        realOutPath,
-      ];
+      // Ensure Rust target is installed
       await exec(
-        execLines,
-        name: 'build core',
-        environment: env,
-        workingDirectory: _coreDir,
+        ['rustup', 'target', 'add', rustTarget],
+        name: 'add rust target $rustTarget',
       );
-      if (isLib && item.archName != null) {
-        await adjustLibOut(
-          targetOutFilePath: targetOutFilePath,
-          outFilePath: outFilePath,
-          archName: item.archName!,
-        );
+
+      // Set up environment for cross-compilation
+      final Map<String, String> env = {};
+      if (item.target == Target.android) {
+        _setupAndroidNdkEnv(env, rustTarget, item.archName!);
       }
+
+      // Build with cargo
+      await exec(
+        [
+          'cargo', 'build',
+          '-p', 'leaf-ffi',
+          '--release',
+          '--target', rustTarget,
+        ],
+        name: 'build leaf-ffi ($rustTarget)',
+        environment: env,
+        workingDirectory: _leafFfiDir,
+      );
+
+      // Copy the built library to the output directory
+      final builtLib = join(
+        _leafFfiDir, 'target', rustTarget, 'release', target.leafLibName,
+      );
+
+      final String destPath;
+      if (item.target == Target.android) {
+        // Android: place in arch-specific subdirectory for jniLibs
+        final archDir = join(targetOutFilePath, item.archName!);
+        await Directory(archDir).create(recursive: true);
+        destPath = join(archDir, target.leafLibName);
+      } else {
+        destPath = join(targetOutFilePath, target.leafLibName);
+      }
+
+      await File(builtLib).copy(destPath);
+      corePaths.add(destPath);
+      print('Copied $builtLib -> $destPath');
     }
 
     return corePaths;
   }
 
-  static Future<void> adjustLibOut({
-    required String targetOutFilePath,
-    required String outFilePath,
-    required String archName,
-  }) async {
-    final includesPath = join(targetOutFilePath, 'includes');
-    final realOutPath = join(includesPath, archName);
-    await Directory(realOutPath).create(recursive: true);
-    final targetOutFiles = Directory(outFilePath).listSync();
-    final coreFiles = Directory(_coreDir).listSync();
-    for (final file in [...targetOutFiles, ...coreFiles]) {
-      if (!file.path.endsWith('.h')) {
-        continue;
-      }
-      final targetFilePath = join(realOutPath, basename(file.path));
-      final realFile = File(file.path);
-      await realFile.copy(targetFilePath);
-      if (coreFiles.contains(file)) {
-        continue;
-      }
-      await realFile.delete();
+  /// Set up NDK environment variables for Rust Android cross-compilation.
+  static void _setupAndroidNdkEnv(
+    Map<String, String> env,
+    String rustTarget,
+    String archName,
+  ) {
+    final ndk = Platform.environment['ANDROID_NDK'] ??
+        Platform.environment['NDK_HOME'] ??
+        Platform.environment['ANDROID_NDK_HOME'];
+    if (ndk == null || ndk.isEmpty) {
+      throw 'ANDROID_NDK or NDK_HOME environment variable must be set';
     }
+
+    final hostOs = Platform.isLinux ? 'linux' : (Platform.isMacOS ? 'darwin' : 'windows');
+    final hostArch = 'x86_64'; // NDK prebuilt is x86_64
+    final toolchainBin = join(
+      ndk, 'toolchains', 'llvm', 'prebuilt', '$hostOs-$hostArch', 'bin',
+    );
+
+    // If the default x86_64 toolchain doesn't exist, try detecting the actual host arch
+    if (!Directory(toolchainBin).existsSync()) {
+      final altHostArch = Platform.localHostname; // fallback
+      final altBin = join(
+        ndk, 'toolchains', 'llvm', 'prebuilt',
+      );
+      final prebuiltDir = Directory(altBin);
+      if (prebuiltDir.existsSync()) {
+        final dirs = prebuiltDir.listSync()
+            .whereType<Directory>()
+            .where((d) => !basename(d.path).startsWith('.'))
+            .toList();
+        if (dirs.isNotEmpty) {
+          final actualBin = join(dirs.first.path, 'bin');
+          env['PATH'] = '$actualBin:${Platform.environment['PATH'] ?? ''}';
+        }
+      }
+    } else {
+      env['PATH'] = '$toolchainBin:${Platform.environment['PATH'] ?? ''}';
+    }
+
+    // Map Rust target to NDK clang/linker names
+    final clangPrefix = switch (archName) {
+      'armeabi-v7a' => 'armv7a-linux-androideabi$_ndkApiLevel',
+      'arm64-v8a' => 'aarch64-linux-android$_ndkApiLevel',
+      'x86_64' => 'x86_64-linux-android$_ndkApiLevel',
+      _ => throw 'Unknown Android arch: $archName',
+    };
+
+    final envTarget = rustTarget.toUpperCase().replaceAll('-', '_');
+    env['CC_$rustTarget'] = '$toolchainBin/$clangPrefix-clang';
+    env['AR_$rustTarget'] = '$toolchainBin/llvm-ar';
+    env['CARGO_TARGET_${envTarget}_LINKER'] = '$toolchainBin/$clangPrefix-clang';
+    env['ANDROID_NDK_ROOT'] = ndk;
+    env['ANDROID_NDK'] = ndk;
+    env['ANDROID_NDK_HOME'] = ndk;
   }
 
   static Future<void> buildHelper(Target target, String token) async {
@@ -334,9 +341,8 @@ class Build {
     final name = appName;
     if (name == 'Orange') return;
 
-    final core = coreName;
     final helper = '${name}HelperService';
-    print('Updating platform binary names: app=$name core=$core helper=$helper');
+    print('Updating platform binary names: app=$name helper=$helper');
 
     // distribute_options.yaml
     await _replaceInFile('distribute_options.yaml', {
@@ -348,7 +354,6 @@ class Build {
         await _replaceInFile('windows/CMakeLists.txt', {
           'project(Orange ': 'project($name ',
           'set(BINARY_NAME "Orange")': 'set(BINARY_NAME "$name")',
-          'OrangeCore.exe': '$core.exe',
           'OrangeHelperService.exe': '$helper.exe',
         });
         await _replaceInFile('windows/runner/main.cpp', {
@@ -368,14 +373,12 @@ class Build {
         });
         await _replaceInFile('windows/packaging/exe/inno_setup.iss', {
           "'Orange.exe'": "'$name.exe'",
-          "'OrangeCore.exe'": "'$core.exe'",
           "'OrangeHelperService.exe'": "'$helper.exe'",
         });
         break;
       case Target.linux:
         await _replaceInFile('linux/CMakeLists.txt', {
           'set(BINARY_NAME "Orange")': 'set(BINARY_NAME "$name")',
-          'OrangeCore': core,
         });
         await _replaceInFile('linux/runner/my_application.cc', {
           '"Orange"': '"$name"',
@@ -398,7 +401,6 @@ class Build {
           'path: Orange.app': 'path: $name.app',
         });
         await _replaceInFile('macos/Runner.xcodeproj/project.pbxproj', {
-          'OrangeCore': core,
           'Orange.app': '$name.app',
           'INFOPLIST_KEY_CFBundleDisplayName = Orange;':
               'INFOPLIST_KEY_CFBundleDisplayName = $name;',
@@ -409,7 +411,6 @@ class Build {
         );
         break;
       case Target.android:
-        // Android binary names handled by setup_android_config.sh
         break;
     }
     print('Platform binary names updated successfully');
@@ -557,7 +558,6 @@ class BuildCommand extends Command {
 
   @override
   Future<void> run() async {
-    final mode = target == Target.android ? Mode.lib : Mode.core;
     final String out = argResults?['out'] ?? (target.same ? 'app' : 'core');
     final archName = argResults?['arch'];
     final env = argResults?['env'] ?? 'pre';
@@ -575,7 +575,6 @@ class BuildCommand extends Command {
     final corePaths = await Build.buildCore(
       target: target,
       arch: arch,
-      mode: mode,
     );
 
     String? coreSha256;
@@ -589,7 +588,7 @@ class BuildCommand extends Command {
     // Generate custom icons if APP_ICON_URL is set
     final appIconUrl = (Platform.environment['APP_ICON_URL'] ?? '').trim();
     if (appIconUrl.isNotEmpty) {
-      print('🎨 APP_ICON_URL detected, generating icons...');
+      print('APP_ICON_URL detected, generating icons...');
       await Build.exec(
         name: 'generate icons',
         Build.getExecutable('dart scripts/generate_icons.dart $appIconUrl'),

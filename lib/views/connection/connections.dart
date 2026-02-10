@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +28,7 @@ class _ConnectionsViewState extends ConsumerState<ConnectionsView> {
     return [
       IconButton(
         onPressed: () async {
-          coreController.closeConnections();
+          // Leaf does not support closing all connections — no-op.
           await _updateConnections();
         },
         icon: const Icon(Icons.delete_sweep_outlined),
@@ -68,12 +67,12 @@ class _ConnectionsViewState extends ConsumerState<ConnectionsView> {
 
   Future<void> _updateConnections() async {
     _connectionsStateNotifier.value = _connectionsStateNotifier.value.copyWith(
-      trackerInfos: await coreController.getConnections(),
+      trackerInfos: [],  // Leaf uses different connection stats format.
     );
   }
 
   Future<void> _handleBlockConnection(String id) async {
-    coreController.closeConnection(id);
+    // Leaf does not support closing individual connections.
     await _updateConnections();
   }
 

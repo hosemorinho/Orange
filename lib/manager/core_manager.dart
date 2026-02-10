@@ -1,8 +1,5 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/core/core.dart';
-import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/app.dart';
 import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/providers/state.dart';
@@ -19,8 +16,7 @@ class CoreManager extends ConsumerStatefulWidget {
   ConsumerState<CoreManager> createState() => _CoreContainerState();
 }
 
-class _CoreContainerState extends ConsumerState<CoreManager>
-    with CoreEventListener {
+class _CoreContainerState extends ConsumerState<CoreManager> {
   @override
   Widget build(BuildContext context) {
     return widget.child;
@@ -29,7 +25,6 @@ class _CoreContainerState extends ConsumerState<CoreManager>
   @override
   void initState() {
     super.initState();
-    coreEventManager.addListener(this);
     ref.listenManual(
       currentSetupStateProvider.select((state) => state?.profileId),
       (prev, next) {
@@ -43,69 +38,12 @@ class _CoreContainerState extends ConsumerState<CoreManager>
         appController.updateConfigDebounce();
       }
     });
-    ref.listenManual(appSettingProvider.select((state) => state.openLogs), (
-      prev,
-      next,
-    ) {
-      if (next) {
-        coreController.startLog();
-      } else {
-        coreController.stopLog();
-      }
-    }, fireImmediately: true);
+    // Leaf does not support log streaming from the core.
+    // The openLogs setting is kept for UI state but doesn't trigger core logs.
   }
 
   @override
   Future<void> dispose() async {
-    coreEventManager.removeListener(this);
     super.dispose();
-  }
-
-  @override
-  Future<void> onDelay(Delay delay) async {
-    super.onDelay(delay);
-    appController.setDelay(delay);
-    debouncer.call(FunctionTag.updateDelay, () async {
-      appController.updateGroupsDebounce();
-    }, duration: const Duration(milliseconds: 5000));
-  }
-
-  @override
-  void onLog(Log log) {
-    ref.read(logsProvider.notifier).addLog(log);
-    if (log.logLevel == LogLevel.error) {
-      globalState.showNotifier(log.payload);
-    }
-    super.onLog(log);
-  }
-
-  @override
-  void onRequest(TrackerInfo trackerInfo) async {
-    ref.read(requestsProvider.notifier).addRequest(trackerInfo);
-    super.onRequest(trackerInfo);
-  }
-
-  @override
-  Future<void> onLoaded(String providerName) async {
-    ref
-        .read(providersProvider.notifier)
-        .setProvider(await coreController.getExternalProvider(providerName));
-    debouncer.call(FunctionTag.loadedProvider, () async {
-      appController.updateGroupsDebounce();
-    }, duration: const Duration(milliseconds: 5000));
-    super.onLoaded(providerName);
-  }
-
-  @override
-  Future<void> onCrash(String message) async {
-    if (ref.read(coreStatusProvider) != CoreStatus.connected) {
-      return;
-    }
-    ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
-    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
-      context.showNotifier(message);
-    }
-    await coreController.shutdown(false);
-    super.onCrash(message);
   }
 }

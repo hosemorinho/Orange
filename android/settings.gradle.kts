@@ -25,6 +25,5 @@ plugins {
 
 
 include(":app")
-include(":core")
 include(":service")
 include(":common")

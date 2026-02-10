@@ -1,6 +1,6 @@
 import 'package:fl_clash/common/app_localizations.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/core/controller.dart';
+import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/plugins/tile.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -26,7 +26,7 @@ class _TileContainerState extends ConsumerState<TileManager> with TileListener {
 
   @override
   Future<void> onStart() async {
-    if (isStart && coreController.isCompleted) {
+    if (isStart) {
       return;
     }
     appController.updateStatus(true);

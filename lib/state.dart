@@ -5,7 +5,6 @@ import 'dart:ffi' as ffi;
 import 'package:animations/animations.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:fl_clash/common/theme.dart';
-import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/plugins/service.dart';
 import 'package:fl_clash/providers/app.dart';
 import 'package:fl_clash/providers/config.dart';
@@ -146,7 +145,6 @@ class GlobalState {
 
   Future<void> handleStart([UpdateTasks? tasks]) async {
     startTime ??= DateTime.now();
-    await coreController.startListener();
     await service?.start();
     startUpdateTasks(tasks);
   }
@@ -157,7 +155,6 @@ class GlobalState {
 
   Future handleStop() async {
     startTime = null;
-    await coreController.stopListener();
     await service?.stop();
     stopUpdateTasks();
   }

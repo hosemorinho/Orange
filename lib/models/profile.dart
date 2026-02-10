@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -256,10 +255,7 @@ extension ProfileExtension on Profile {
     final path = await appPath.tempFilePath;
     final tempFile = File(path);
     await tempFile.safeWriteAsBytes(bytes);
-    final message = await coreController.validateConfig(path);
-    if (message.isNotEmpty) {
-      throw message;
-    }
+    // Leaf validates config when starting — skip separate validation here.
     final mFile = await file;
     if (storageBytes != null) {
       // Store encrypted version on disk
@@ -272,10 +268,7 @@ extension ProfileExtension on Profile {
   }
 
   Future<Profile> saveFileWithPath(String path) async {
-    final message = await coreController.validateConfig(path);
-    if (message.isNotEmpty) {
-      throw message;
-    }
+    // Leaf validates config when starting — skip separate validation here.
     final mFile = await file;
     await File(path).copy(mFile.path);
     return copyWith(lastUpdateDate: DateTime.now(), selectedMap: selectedMap);

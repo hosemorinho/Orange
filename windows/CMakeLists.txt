@@ -84,13 +84,13 @@ install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}
 install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
-# Orange
-set(CLASH_DIR "../libclash/windows")
+# Leaf core shared library
+set(LEAF_DIR "../libleaf/windows")
 
-install(PROGRAMS "${CLASH_DIR}/OrangeCore.exe" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+install(FILES "${LEAF_DIR}/leaf.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
-install(PROGRAMS "${CLASH_DIR}/OrangeHelperService.exe" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+install(PROGRAMS "${LEAF_DIR}/OrangeHelperService.exe" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 install(FILES "EnableLoopback.exe" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"

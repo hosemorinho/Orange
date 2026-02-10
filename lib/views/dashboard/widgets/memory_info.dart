@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -34,11 +33,8 @@ class _MemoryInfoState extends State<MemoryInfo> {
   _updateMemory() async {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final rss = ProcessInfo.currentRss;
-      if (coreController.isCompleted) {
-        _memoryStateNotifier.value = await coreController.getMemory() + rss;
-      } else {
-        _memoryStateNotifier.value = rss;
-      }
+      // Leaf does not expose memory stats — show process RSS only.
+      _memoryStateNotifier.value = rss;
       timer = Timer(Duration(seconds: 2), () async {
         _updateMemory();
       });
@@ -52,7 +48,7 @@ class _MemoryInfoState extends State<MemoryInfo> {
       child: CommonCard(
         info: Info(iconData: Icons.memory, label: appLocalizations.memoryInfo),
         onPressed: () {
-          coreController.requestGc();
+          // Leaf does not support GC requests — no-op.
         },
         child: Container(
           padding: baseInfoEdgeInsets.copyWith(top: 0),

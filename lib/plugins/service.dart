@@ -8,8 +8,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 abstract mixin class ServiceListener {
-  void onServiceEvent(CoreEvent event) {}
-
   void onServiceCrash(String message) {}
 }
 
@@ -30,13 +28,6 @@ class Service {
     methodChannel = const MethodChannel('$packageName/service');
     methodChannel.setMethodCallHandler((call) async {
       switch (call.method) {
-        case 'event':
-          final data = call.arguments as String? ?? '';
-          final result = ActionResult.fromJson(json.decode(data));
-          for (final listener in _listeners) {
-            listener.onServiceEvent(CoreEvent.fromJson(result.data));
-          }
-          break;
         case 'crash':
           final message = call.arguments as String? ?? '';
           for (final listener in _listeners) {
@@ -44,21 +35,10 @@ class Service {
           }
           break;
         default:
-          throw MissingPluginException();
+          commonPrint.log('unhandled service method: ${call.method}');
+          break;
       }
     });
-  }
-
-  Future<ActionResult?> invokeAction(Action action) async {
-    final data = await methodChannel.invokeMethod<String>(
-      'invokeAction',
-      json.encode(action),
-    );
-    if (data == null) {
-      return null;
-    }
-    final dataJson = await data.commonToJSON<dynamic>();
-    return ActionResult.fromJson(dataJson);
   }
 
   Future<bool> start() async {

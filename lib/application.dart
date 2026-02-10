@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/core/core.dart';
+import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/manager/hotkey_manager.dart';
 import 'package:fl_clash/manager/manager.dart';
@@ -326,7 +326,6 @@ class ApplicationState extends ConsumerState<Application> {
   @override
   Future<void> dispose() async {
     _autoUpdateProfilesTaskTimer?.cancel();
-    await coreController.destroy();
     await appController.handleExit();
     super.dispose();
   }

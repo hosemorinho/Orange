@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/state.dart';
@@ -196,10 +195,8 @@ class _GeoDataListItemState extends State<GeoDataListItem> {
   Future<void> updateGeoDateItem() async {
     isUpdating.value = true;
     try {
-      final message = await coreController.updateGeoData(
-        UpdateGeoDataParams(geoName: geoItem.fileName, geoType: geoItem.label),
-      );
-      if (message.isNotEmpty) throw message;
+      // Leaf does not use GeoIP/GeoSite data files.
+      throw 'GeoData updates are not supported in leaf mode';
     } catch (e) {
       isUpdating.value = false;
       rethrow;

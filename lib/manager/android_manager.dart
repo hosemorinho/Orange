@@ -1,7 +1,5 @@
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/plugins/service.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -48,16 +46,8 @@ class _AndroidContainerState extends ConsumerState<AndroidManager>
   }
 
   @override
-  void onServiceEvent(CoreEvent event) {
-    coreEventManager.sendEvent(event);
-    super.onServiceEvent(event);
-  }
-
-  @override
   void onServiceCrash(String message) {
-    coreEventManager.sendEvent(
-      CoreEvent(type: CoreEventType.crash, data: message),
-    );
+    commonPrint.log('service crash: $message', logLevel: LogLevel.error);
     super.onServiceCrash(message);
   }
 

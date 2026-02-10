@@ -59,29 +59,9 @@ enum GroupType {
 enum GroupName { GLOBAL, Proxy, Auto, Fallback }
 
 extension GroupTypeExtension on GroupType {
-  static List<String> get valueList =>
-      GroupType.values.map((e) => e.toString().split('.').last).toList();
-
   bool get isComputedSelected {
     return [GroupType.URLTest, GroupType.Fallback].contains(this);
   }
-
-  static GroupType? getGroupType(String value) {
-    final index = GroupTypeExtension.valueList.indexOf(value);
-    if (index == -1) return null;
-    return GroupType.values[index];
-  }
-
-  String get value => GroupTypeExtension.valueList[index];
-}
-
-enum UsedProxy { GLOBAL, DIRECT, REJECT }
-
-extension UsedProxyExtension on UsedProxy {
-  static List<String> get valueList =>
-      UsedProxy.values.map((e) => e.toString().split('.').last).toList();
-
-  String get value => UsedProxyExtension.valueList[index];
 }
 
 enum Mode { rule, global, direct }
@@ -126,10 +106,6 @@ enum ResultType {
   @JsonValue(-1)
   error,
 }
-
-enum CoreEventType { log, delay, request, loaded, crash }
-
-enum InvokeMessageType { protect, process }
 
 enum FindProcessMode { always, off }
 
@@ -210,50 +186,6 @@ enum FontFamily {
 }
 
 enum RouteMode { bypassPrivate, config }
-
-enum ActionMethod {
-  message,
-  initClash,
-  getIsInit,
-  forceGc,
-  shutdown,
-  validateConfig,
-  updateConfig,
-  getConfig,
-  getProxies,
-  changeProxy,
-  getTraffic,
-  getTotalTraffic,
-  resetTraffic,
-  asyncTestDelay,
-  getConnections,
-  closeConnections,
-  resetConnections,
-  closeConnection,
-  getExternalProviders,
-  getExternalProvider,
-  updateGeoData,
-  updateExternalProvider,
-  sideLoadExternalProvider,
-  startLog,
-  stopLog,
-  startListener,
-  stopListener,
-  getCountryCode,
-  getMemory,
-  crash,
-  setupConfig,
-  deleteFile,
-
-  ///Android,
-  setState,
-  startTun,
-  stopTun,
-  getRunTime,
-  updateDns,
-  getAndroidVpnOptions,
-  getCurrentProfileName,
-}
 
 enum AuthorizeCode { none, success, error }
 

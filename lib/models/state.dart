@@ -326,31 +326,6 @@ extension SharedStateExt on SharedState {
 }
 
 @freezed
-abstract class ComputeGroupsState with _$ComputeGroupsState {
-  const factory ComputeGroupsState({
-    required ProxiesData proxiesData,
-    required ProxiesSortType sortType,
-    required DelayMap delayMap,
-    required Map<String, String> selectedMap,
-    required String defaultTestUrl,
-  }) = _ComputeGroupsState;
-}
-
-@freezed
-abstract class MakeRealProfileState with _$MakeRealProfileState {
-  const factory MakeRealProfileState({
-    required String profilesPath,
-    required int profileId,
-    required Map<String, dynamic> rawConfig,
-    required ClashConfig realPatchConfig,
-    required bool overrideDns,
-    required bool appendSystemDns,
-    required List<Rule> addedRules,
-    required String defaultUA,
-  }) = _MakeRealProfileState;
-}
-
-@freezed
 abstract class MigrationData with _$MigrationData {
   const factory MigrationData({
     Map<String, Object?>? configMap,

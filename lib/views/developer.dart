@@ -1,6 +1,5 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/common.dart';
 import 'package:fl_clash/providers/config.dart';
@@ -47,7 +46,7 @@ class DeveloperView extends ConsumerWidget {
               if (res != true) {
                 return;
               }
-              coreController.crash();
+              // Leaf does not support forced crash — no-op.
             },
           ),
         ListItem(

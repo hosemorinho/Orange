@@ -106,9 +106,9 @@ foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
     COMPONENT Runtime)
 endforeach(bundled_library)
 
-# Core
-set(CLASH_DIR "../libclash/linux")
-install(PROGRAMS "${CLASH_DIR}/OrangeCore" DESTINATION "${BUILD_BUNDLE_DIR}"
+# Leaf core shared library
+set(LEAF_DIR "../libleaf/linux")
+install(FILES "${LEAF_DIR}/libleaf.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 

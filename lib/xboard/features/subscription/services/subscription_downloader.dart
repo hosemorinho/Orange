@@ -7,7 +7,6 @@ import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/core/controller.dart';
 import 'package:socks5_proxy/socks_client.dart';
 
 // 初始化文件级日志器
@@ -100,11 +99,10 @@ class SubscriptionDownloader {
 
     final startTime = DateTime.now();
     while (DateTime.now().difference(startTime) < _coreWaitTimeout) {
-      // 检查核心是否已连接（通过 coreController.isCompleted）
+      // Check if leaf core is ready (via appController.isAttach)
       if (appController.isAttach) {
-        // 使用全局的 coreController 检查初始化状态
         try {
-          final isCompleted = coreController.isCompleted;
+          final isCompleted = appController.isAttach;
           if (isCompleted) {
             final elapsed = DateTime.now().difference(startTime).inMilliseconds;
             _logger.info('✅ [核心初始化] Clash 核心服务已就绪 (${elapsed}ms)');

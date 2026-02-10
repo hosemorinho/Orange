@@ -21,6 +21,7 @@ class AppController {
   late final BuildContext _context;
   late final WidgetRef _ref;
   bool isAttach = false;
+  bool _isApplyingProfile = false;
 
   static AppController? _instance;
 
@@ -48,7 +49,6 @@ extension InitControllerExt on AppController {
       );
     };
     updateTray();
-    autoUpdateProfiles();
     autoCheckUpdate();
     autoLaunch?.updateStatus(_ref.read(appSettingProvider).autoLaunch);
     if (!_ref.read(appSettingProvider).silentLaunch) {
@@ -61,6 +61,8 @@ extension InitControllerExt on AppController {
     await _initCore();
     await _initStatus();
     _ref.read(initProvider.notifier).value = true;
+    // Run after init completes to avoid racing with _initStatus's applyProfile
+    autoUpdateProfiles();
   }
 
   Future<void> _handleFailedPreference() async {
@@ -737,51 +739,75 @@ extension SetupControllerExt on AppController {
     }
   }
 
-  /// 将 Profile 中保存的节点选择应用到 Clash 核心
-  /// (setupConfig 会重置核心，但 selectedMap 保存在数据库中)
-  Future<void> _applySelectedProxyToCore() async {
+  /// Fix missing or invalid proxy selections after setupConfig.
+  ///
+  /// The Go core already applies selectedMap during setupConfig, so valid
+  /// selections are restored automatically. This method only handles edge
+  /// cases: GLOBAL mode with no saved selection, or a saved proxy name
+  /// that no longer exists after a subscription update.
+  ///
+  /// Unlike the old _applySelectedProxyToCore(), this does NOT call
+  /// changeProxy() for already-valid selections, avoiding unnecessary
+  /// connection resets and UI flicker.
+  Future<void> _ensureValidSelection() async {
     final groups = _ref.read(groupsProvider);
     if (groups.isEmpty) return;
 
     final selectedMap = _ref.read(selectedMapProvider);
-    final currentMode = _ref.read(patchClashConfigProvider.select((state) => state.mode));
-    final currentGroupName = getCurrentGroupName();
+    final currentMode = _ref.read(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
 
-    // 根据当前模式确定要恢复的组
-    String? targetGroupName;
     if (currentMode == Mode.global) {
-      targetGroupName = GroupName.GLOBAL.name;
-    } else if (currentMode == Mode.rule && currentGroupName != null) {
-      targetGroupName = currentGroupName;
+      // GLOBAL group must have a valid non-DIRECT selection
+      final globalGroup = groups.cast<Group?>().firstWhere(
+        (g) => g!.name == GroupName.GLOBAL.name,
+        orElse: () => null,
+      );
+      if (globalGroup != null) {
+        await _fixGroupSelectionIfNeeded(globalGroup, selectedMap);
+      }
     }
 
-    if (targetGroupName == null) return;
-
-    final selectedProxy = selectedMap[targetGroupName];
-    if (selectedProxy != null && selectedProxy.isNotEmpty) {
-      final targetGroup = groups.firstWhere(
-        (g) => g.name == targetGroupName,
-        orElse: () => groups.first,
+    // Also verify the current rule-mode group has a valid selection
+    final currentGroupName = getCurrentGroupName();
+    if (currentGroupName != null && currentGroupName != GroupName.GLOBAL.name) {
+      final currentGroup = groups.cast<Group?>().firstWhere(
+        (g) => g!.name == currentGroupName,
+        orElse: () => null,
       );
+      if (currentGroup != null && currentGroup.type == GroupType.Selector) {
+        await _fixGroupSelectionIfNeeded(currentGroup, selectedMap);
+      }
+    }
+  }
 
-      if (targetGroup.type == GroupType.Selector || targetGroup.name == GroupName.GLOBAL.name) {
-        final upper = selectedProxy.toUpperCase();
-        final exists = targetGroup.all.any((p) => p.name == selectedProxy);
-        if (exists && upper != 'DIRECT' && upper != 'REJECT') {
-          commonPrint.log('应用保存的节点选择到核心: $targetGroupName -> $selectedProxy');
-          await changeProxy(groupName: targetGroupName, proxyName: selectedProxy);
-          return;
-        }
-        // Saved selection is DIRECT/REJECT or missing — auto-select first real proxy
-        for (final proxy in targetGroup.all) {
-          final proxyUpper = proxy.name.toUpperCase();
-          if (proxyUpper != 'DIRECT' && proxyUpper != 'REJECT') {
-            updateCurrentSelectedMap(targetGroupName, proxy.name);
-            commonPrint.log('自动选择节点: $targetGroupName -> ${proxy.name}');
-            await changeProxy(groupName: targetGroupName, proxyName: proxy.name);
-            return;
-          }
-        }
+  /// Auto-select the first valid proxy if the group has no valid selection.
+  /// Pushes to core directly without resetting connections.
+  Future<void> _fixGroupSelectionIfNeeded(
+    Group group,
+    Map<String, String> selectedMap,
+  ) async {
+    final sel = selectedMap[group.name];
+    if (sel != null && sel.isNotEmpty) {
+      final upper = sel.toUpperCase();
+      if (upper != 'DIRECT' && upper != 'REJECT' &&
+          group.all.any((p) => p.name == sel)) {
+        // Valid selection — Go core already applied it via setupConfig
+        return;
+      }
+    }
+    // No valid selection — auto-pick first non-DIRECT/REJECT proxy
+    for (final proxy in group.all) {
+      final upper = proxy.name.toUpperCase();
+      if (upper != 'DIRECT' && upper != 'REJECT') {
+        updateCurrentSelectedMap(group.name, proxy.name);
+        // Push to core without connection reset (not user-initiated change)
+        await coreController.changeProxy(
+          ChangeProxyParams(groupName: group.name, proxyName: proxy.name),
+        );
+        commonPrint.log('自动修正节点选择: ${group.name} -> ${proxy.name}');
+        return;
       }
     }
   }
@@ -797,26 +823,37 @@ extension SetupControllerExt on AppController {
     bool force = false,
     VoidCallback? preloadInvoke,
   }) async {
+    if (_isApplyingProfile) {
+      commonPrint.log('applyProfile: skipping concurrent call');
+      return;
+    }
     if (!force && !await needSetup()) {
       return;
     }
-    await loadingRun(
-      () async {
-        await _setupConfig(preloadInvoke);
-        await updateGroups();
-        await updateProviders();
-        // setupConfig resets core state — ensure a valid proxy is pushed
-        await _applySelectedProxyToCore();
-      },
-      silence: true,
-      tag: !silence ? LoadingTag.proxies : null,
-    );
+    _isApplyingProfile = true;
+    try {
+      await loadingRun(
+        () async {
+          await _setupConfig(preloadInvoke);
+          await updateGroups();
+          await updateProviders();
+          // setupConfig already applies selectedMap to the Go core.
+          // Only fix edge cases (e.g. GLOBAL with no saved selection,
+          // or a saved proxy that no longer exists after subscription update).
+          await _ensureValidSelection();
+        },
+        silence: true,
+        tag: !silence ? LoadingTag.proxies : null,
+      );
+    } finally {
+      _isApplyingProfile = false;
+    }
   }
 
   /// 恢复节点选择到 Clash 核心
   /// 在 applyProfile 后调用，因为 setupConfig 会重置核心
   Future<void> restoreSelectedProxy() async {
-    await _applySelectedProxyToCore();
+    await _ensureValidSelection();
   }
 
   Future<Map<String, dynamic>> getProfile({

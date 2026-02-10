@@ -259,7 +259,7 @@ class _ThemeLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(
-      appSettingProvider.select((state) => state.themeMode),
+      themeSettingProvider.select((state) => state.themeMode),
     );
     final appLocalizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;

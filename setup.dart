@@ -60,8 +60,8 @@ extension ArchExt on Arch {
       (Target.android, Arch.arm64) => 'aarch64-linux-android',
       (Target.android, Arch.arm) => 'armv7-linux-androideabi',
       (Target.android, Arch.amd64) => 'x86_64-linux-android',
-      (Target.linux, Arch.amd64) => 'x86_64-unknown-linux-gnu',
-      (Target.linux, Arch.arm64) => 'aarch64-unknown-linux-gnu',
+      (Target.linux, Arch.amd64) => 'x86_64-unknown-linux-musl',
+      (Target.linux, Arch.arm64) => 'aarch64-unknown-linux-musl',
       (Target.macos, Arch.arm64) => 'aarch64-apple-darwin',
       (Target.macos, Arch.amd64) => 'x86_64-apple-darwin',
       (Target.windows, Arch.amd64) => 'x86_64-pc-windows-msvc',
@@ -179,6 +179,8 @@ class Build {
       final Map<String, String> env = {};
       if (item.target == Target.android) {
         _setupAndroidNdkEnv(env, rustTarget, item.archName!);
+      } else if (item.target == Target.linux) {
+        _setupLinuxMuslEnv(env, rustTarget);
       }
 
       // Build with cargo
@@ -272,6 +274,23 @@ class Build {
     env['ANDROID_NDK_ROOT'] = ndk;
     env['ANDROID_NDK'] = ndk;
     env['ANDROID_NDK_HOME'] = ndk;
+  }
+
+  /// Set up environment variables for Rust Linux musl cross-compilation.
+  static void _setupLinuxMuslEnv(
+    Map<String, String> env,
+    String rustTarget,
+  ) {
+    final envTarget = rustTarget.toUpperCase().replaceAll('-', '_');
+    if (rustTarget.contains('aarch64')) {
+      env['CC_$rustTarget'] = 'aarch64-linux-gnu-gcc';
+      env['AR_$rustTarget'] = 'aarch64-linux-gnu-ar';
+      env['CARGO_TARGET_${envTarget}_LINKER'] = 'aarch64-linux-gnu-gcc';
+    } else {
+      env['CC_$rustTarget'] = 'musl-gcc';
+      env['AR_$rustTarget'] = 'ar';
+      env['CARGO_TARGET_${envTarget}_LINKER'] = 'musl-gcc';
+    }
   }
 
   static Future<void> buildHelper(Target target, String token) async {

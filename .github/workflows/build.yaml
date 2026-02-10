@@ -176,12 +176,32 @@ jobs:
             echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/local.properties
           fi
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
         with:
-          go-version: '1.24'
-          cache-dependency-path: |
-            core/go.sum
+          workspaces: leaf
+          cache-on-failure: true
+
+      - name: Install musl toolchain (Linux)
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          sudo apt-get update && sudo apt-get install -y musl-tools
+          if [[ "${{ matrix.arch }}" == "amd64" ]]; then
+            rustup target add x86_64-unknown-linux-musl
+          elif [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            sudo apt-get install -y gcc-aarch64-linux-gnu
+            rustup target add aarch64-unknown-linux-musl
+          fi
+
+      - name: Install Android Rust targets
+        if: matrix.platform == 'android'
+        shell: bash
+        run: |
+          rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2

@@ -66,6 +66,7 @@ extension ArchExt on Arch {
       (Target.macos, Arch.amd64) => 'x86_64-apple-darwin',
       (Target.windows, Arch.amd64) => 'x86_64-pc-windows-msvc',
       (Target.windows, Arch.arm64) => 'aarch64-pc-windows-msvc',
+      _ => throw 'Unsupported target/arch combination: $target/$this',
     };
   }
 }

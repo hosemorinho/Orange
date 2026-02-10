@@ -797,18 +797,30 @@ extension SetupControllerExt on AppController {
         return;
       }
     }
-    // No valid selection — auto-pick first non-DIRECT/REJECT proxy
-    for (final proxy in group.all) {
-      final upper = proxy.name.toUpperCase();
-      if (upper != 'DIRECT' && upper != 'REJECT') {
-        updateCurrentSelectedMap(group.name, proxy.name);
-        // Push to core without connection reset (not user-initiated change)
-        await coreController.changeProxy(
-          ChangeProxyParams(groupName: group.name, proxyName: proxy.name),
-        );
-        commonPrint.log('自动修正节点选择: ${group.name} -> ${proxy.name}');
-        return;
+    // No valid selection — find fallback
+    String? fallback;
+    if (group.name == GroupName.GLOBAL.name) {
+      // Use the proxy name from user's current rule-mode group selection
+      final ruleGroupName = getCurrentGroupName();
+      if (ruleGroupName != null && ruleGroupName != GroupName.GLOBAL.name) {
+        fallback = selectedMap[ruleGroupName];
       }
+    }
+    // Fallback to first non-DIRECT/REJECT proxy
+    fallback ??= group.all.cast<Proxy?>().firstWhere(
+      (p) {
+        final upper = p!.name.toUpperCase();
+        return upper != 'DIRECT' && upper != 'REJECT';
+      },
+      orElse: () => null,
+    )?.name;
+
+    if (fallback != null) {
+      updateCurrentSelectedMap(group.name, fallback);
+      await coreController.changeProxy(
+        ChangeProxyParams(groupName: group.name, proxyName: fallback),
+      );
+      commonPrint.log('自动修正节点选择: ${group.name} -> $fallback');
     }
   }
 

@@ -100,6 +100,15 @@ class IconGenerator {
     'drawable-xxxhdpi': 96,
   };
 
+  /// Service icon sizes for Android FilesProvider (same as notification)
+  static const Map<String, int> serviceIconSizes = {
+    'drawable-mdpi': 24,
+    'drawable-hdpi': 36,
+    'drawable-xhdpi': 48,
+    'drawable-xxhdpi': 72,
+    'drawable-xxxhdpi': 96,
+  };
+
   Future<void> run(String iconUrl) async {
     print('🎨 Starting icon generation...');
     print('📥 Icon URL: $iconUrl');
@@ -270,6 +279,12 @@ class IconGenerator {
     // Generate notification icons
     await _generateNotificationIcons(sourcePath);
 
+    // Generate TV banner icon
+    await _generateBannerIcon(sourcePath);
+
+    // Generate service icons (FilesProvider document icon)
+    await _generateServiceIcons(sourcePath);
+
     print('✅ Android icons generated');
   }
 
@@ -380,6 +395,78 @@ class IconGenerator {
     }
 
     print('  ✅ Notification icons generated');
+  }
+
+  /// Generate Android TV banner icon (320x180).
+  ///
+  /// The source icon is scaled to fit the height (180px) and centered
+  /// horizontally on a 320x180 transparent canvas.
+  Future<void> _generateBannerIcon(String sourcePath) async {
+    print('📺 Generating TV banner icon...');
+
+    final bannerPath = path.join(
+      projectRoot, 'android', 'app', 'src', 'main', 'res',
+      'mipmap-xhdpi', 'ic_banner.png',
+    );
+
+    await _exec(_magickCmd, [
+      sourcePath,
+      '-resize', '180x180',
+      '-background', 'none',
+      '-gravity', 'center',
+      '-extent', '320x180',
+      bannerPath,
+    ]);
+
+    print('  ✅ Generated TV banner: $bannerPath (320x180)');
+  }
+
+  /// Generate service icons for Android FilesProvider.
+  ///
+  /// Replaces the old ic_service.xml vector with density-specific PNGs.
+  /// Referenced by FilesProvider.kt as R.drawable.ic_service.
+  Future<void> _generateServiceIcons(String sourcePath) async {
+    print('📂 Generating service icons...');
+
+    final serviceResDir = path.join(
+      projectRoot, 'android', 'service', 'src', 'main', 'res');
+
+    // Delete the old vector XML
+    final oldServiceIconPath = path.join(serviceResDir, 'drawable', 'ic_service.xml');
+    final oldServiceIconFile = File(oldServiceIconPath);
+    if (await oldServiceIconFile.exists()) {
+      await oldServiceIconFile.delete();
+      print('  🗑️ Removed old service icon: $oldServiceIconPath');
+    }
+
+    // Generate PNG icons for each density
+    for (final entry in serviceIconSizes.entries) {
+      final density = entry.key;
+      final size = entry.value;
+
+      final drawableDir = path.join(serviceResDir, density);
+      final dir = Directory(drawableDir);
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+
+      final outputPath = path.join(drawableDir, 'ic_service.png');
+      await _resizePng(sourcePath, outputPath, size);
+
+      print('  ✅ Generated service icon: $outputPath (${size}x$size)');
+    }
+
+    // Also generate a default icon in drawable/ for backward compatibility
+    final drawableDefaultDir = path.join(serviceResDir, 'drawable');
+    final dir = Directory(drawableDefaultDir);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    final defaultPath = path.join(drawableDefaultDir, 'ic_service.png');
+    await _resizePng(sourcePath, defaultPath, 48);
+    print('  ✅ Generated default service icon: $defaultPath');
+
+    print('  ✅ Service icons generated');
   }
 
   Future<void> _generateAssetIcons(String sourcePath) async {

@@ -585,6 +585,17 @@ class BuildCommand extends Command {
       await Build.buildHelper(target, coreSha256);
     }
     await _buildEnvFile(env, coreSha256: coreSha256);
+
+    // Generate custom icons if APP_ICON_URL is set
+    final appIconUrl = (Platform.environment['APP_ICON_URL'] ?? '').trim();
+    if (appIconUrl.isNotEmpty) {
+      print('🎨 APP_ICON_URL detected, generating icons...');
+      await Build.exec(
+        name: 'generate icons',
+        Build.getExecutable('dart scripts/generate_icons.dart $appIconUrl'),
+      );
+    }
+
     if (out != 'app') {
       return;
     }

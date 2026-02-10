@@ -78,10 +78,10 @@ class LeafController {
       await stop();
     }
 
-    // Write config to file
+    // Write config to temp file (cleaned up on stop)
     _configPath = await ConfigWriter.writeToFile(
       config: config,
-      directory: _homeDir!,
+      directory: Directory.systemTemp.path,
     );
 
     // Validate config
@@ -97,10 +97,11 @@ class LeafController {
     );
   }
 
-  /// Stop the proxy.
+  /// Stop the proxy and clean up temp config.
   Future<void> stop() async {
     _instance?.shutdown();
     _instance = null;
+    await _deleteConfigFile();
   }
 
   /// Reload config (e.g., after modifying the JSON file).
@@ -204,6 +205,18 @@ class LeafController {
 
   void _requireRunning() {
     if (_instance == null) throw StateError('Leaf is not running');
+  }
+
+  /// Delete the temp config file from disk.
+  Future<void> _deleteConfigFile() async {
+    if (_configPath == null) return;
+    try {
+      final file = File(_configPath!);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (_) {}
+    _configPath = null;
   }
 
   /// Parse Clash YAML `proxies:` section into a list of maps.

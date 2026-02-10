@@ -153,6 +153,7 @@ extension ProfilesExt on List<Profile> {
     );
     final updateProfile = profile.copyWith(
       label: _getLabel(profile.label, profile.id),
+      selectedMap: profile.selectedMap,  // Preserve selected proxy map
     );
     if (index == -1) {
       profilesTemp.add(updateProfile);
@@ -247,6 +248,7 @@ extension ProfileExtension on Profile {
         id.toString(),
       ]),
       subscriptionInfo: SubscriptionInfo.formHString(userinfo),
+      selectedMap: selectedMap,  // Preserve selected proxy map during updates
     ).saveFile(yamlBytes, storageBytes: storageBytes);
   }
 
@@ -266,7 +268,7 @@ extension ProfileExtension on Profile {
       await tempFile.copy(mFile.path);
     }
     await tempFile.safeDelete();
-    return copyWith(lastUpdateDate: DateTime.now());
+    return copyWith(lastUpdateDate: DateTime.now(), selectedMap: selectedMap);
   }
 
   Future<Profile> saveFileWithPath(String path) async {
@@ -276,6 +278,6 @@ extension ProfileExtension on Profile {
     }
     final mFile = await file;
     await File(path).copy(mFile.path);
-    return copyWith(lastUpdateDate: DateTime.now());
+    return copyWith(lastUpdateDate: DateTime.now(), selectedMap: selectedMap);
   }
 }

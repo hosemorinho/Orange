@@ -25,6 +25,15 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
   bool _isRefreshing = false;
   bool _isTesting = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Auto-test all nodes when entering the list
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _testAllNodesDelay();
+    });
+  }
+
   Future<void> _testAllNodesDelay() async {
     if (_isTesting) return;
 

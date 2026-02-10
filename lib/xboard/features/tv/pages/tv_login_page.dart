@@ -50,7 +50,13 @@ class _TvLoginPageState extends ConsumerState<TvLoginPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         await ref.read(initializationProvider.notifier).initialize();
-      } catch (_) {}
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _errorMessage = ErrorSanitizer.sanitize(e.toString());
+          });
+        }
+      }
     });
   }
 
@@ -268,7 +274,9 @@ class _TvLoginPageState extends ConsumerState<TvLoginPage> {
                     order: const NumericFocusOrder(3),
                     child: _TvFocusButton(
                       focusNode: _loginButtonFocus,
-                      onPressed: !userState.isLoading ? _login : null,
+                      onPressed: !userState.isLoading && !initState.isInitializing
+                          ? _login
+                          : null,
                       isLoading: userState.isLoading,
                       label: appLocalizations.xboardLogin,
                       colorScheme: colorScheme,

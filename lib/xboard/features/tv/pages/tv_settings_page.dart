@@ -41,8 +41,6 @@ class TvSettingsPage extends ConsumerWidget {
                     email: userInfo.email,
                     planName: subscription?.planName,
                     balance: userInfo.balanceInYuan,
-                    colorScheme: colorScheme,
-                    textTheme: theme.textTheme,
                   ),
                   const SizedBox(height: 24),
                 ],
@@ -60,7 +58,7 @@ class TvSettingsPage extends ConsumerWidget {
                 _TvSettingRow(
                   icon: Icons.brightness_6,
                   title: appLocalizations.switchTheme,
-                  trailing: _ThemeLabel(ref: ref, textTheme: theme.textTheme),
+                  trailing: const _ThemeLabel(),
                   onPressed: () => showThemeDialog(context, ref),
                 ),
                 const SizedBox(height: 8),
@@ -69,7 +67,7 @@ class TvSettingsPage extends ConsumerWidget {
                 _TvSettingRow(
                   icon: Icons.security,
                   title: 'TUN',
-                  trailing: _TunToggle(tun: tun, ref: ref),
+                  trailing: _TunToggle(tun: tun),
                   onPressed: () {
                     ref.read(patchClashConfigProvider.notifier).update(
                           (state) => state.copyWith.tun(enable: !tun),
@@ -100,7 +98,7 @@ class TvSettingsPage extends ConsumerWidget {
                 const SizedBox(height: 32),
 
                 // Logout button
-                _TvLogoutButton(ref: ref),
+                const _TvLogoutButton(),
               ],
             ),
           ),
@@ -114,19 +112,18 @@ class _UserInfoCard extends StatelessWidget {
   final String email;
   final String? planName;
   final double balance;
-  final ColorScheme colorScheme;
-  final TextTheme textTheme;
 
   const _UserInfoCard({
     required this.email,
     required this.planName,
     required this.balance,
-    required this.colorScheme,
-    required this.textTheme,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -250,19 +247,16 @@ class _TvSettingRow extends StatelessWidget {
   }
 }
 
-class _ThemeLabel extends StatelessWidget {
-  final WidgetRef ref;
-  final TextTheme textTheme;
-
-  const _ThemeLabel({required this.ref, required this.textTheme});
+class _ThemeLabel extends ConsumerWidget {
+  const _ThemeLabel();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(
       themeSettingProvider.select((state) => state.themeMode),
     );
     final appLocalizations = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
 
     String label;
     switch (themeMode) {
@@ -276,8 +270,8 @@ class _ThemeLabel extends StatelessWidget {
 
     return Text(
       label,
-      style: textTheme.bodyLarge?.copyWith(
-        color: colorScheme.primary,
+      style: theme.textTheme.bodyLarge?.copyWith(
+        color: theme.colorScheme.primary,
         fontWeight: FontWeight.w600,
       ),
     );
@@ -286,9 +280,8 @@ class _ThemeLabel extends StatelessWidget {
 
 class _TunToggle extends StatelessWidget {
   final bool tun;
-  final WidgetRef ref;
 
-  const _TunToggle({required this.tun, required this.ref});
+  const _TunToggle({required this.tun});
 
   @override
   Widget build(BuildContext context) {
@@ -312,15 +305,14 @@ class _TunToggle extends StatelessWidget {
   }
 }
 
-class _TvLogoutButton extends StatefulWidget {
-  final WidgetRef ref;
-  const _TvLogoutButton({required this.ref});
+class _TvLogoutButton extends ConsumerStatefulWidget {
+  const _TvLogoutButton();
 
   @override
-  State<_TvLogoutButton> createState() => _TvLogoutButtonState();
+  ConsumerState<_TvLogoutButton> createState() => _TvLogoutButtonState();
 }
 
-class _TvLogoutButtonState extends State<_TvLogoutButton> {
+class _TvLogoutButtonState extends ConsumerState<_TvLogoutButton> {
   bool _isFocused = false;
   final _focusNode = FocusNode();
 
@@ -335,7 +327,7 @@ class _TvLogoutButtonState extends State<_TvLogoutButton> {
         (event.logicalKey == LogicalKeyboardKey.select ||
             event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.gameButtonA)) {
-      showLogoutDialog(context, widget.ref);
+      showLogoutDialog(context, ref);
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -351,7 +343,7 @@ class _TvLogoutButtonState extends State<_TvLogoutButton> {
       onFocusChange: (f) => setState(() => _isFocused = f),
       onKeyEvent: _handleKeyEvent,
       child: GestureDetector(
-        onTap: () => showLogoutDialog(context, widget.ref),
+        onTap: () => showLogoutDialog(context, ref),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           height: 64,

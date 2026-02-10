@@ -16,6 +16,7 @@ final _logger = FileLogger('profile_import_service.dart');
 final xboardProfileImportServiceProvider = Provider<XBoardProfileImportService>((ref) {
   return XBoardProfileImportService(ref);
 });
+
 class XBoardProfileImportService {
   final Ref _ref;
   bool _isImporting = false;
@@ -23,6 +24,18 @@ class XBoardProfileImportService {
   static const Duration retryDelay = Duration(seconds: 2);
   static const Duration downloadTimeout = Duration(seconds: 30);
   XBoardProfileImportService(this._ref);
+
+  /// 查找现有的 XBoard URL 类型 profile
+  Profile? _findExistingXboardProfile(List<Profile> profiles) {
+    try {
+      final urlProfiles = profiles.where((p) => p.type == ProfileType.url).toList();
+      if (urlProfiles.isEmpty) return null;
+      return urlProfiles.first;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<ImportResult> importSubscription(
     String url, {
     Function(ImportStatus, double, String?)? onProgress,
@@ -37,20 +50,25 @@ class XBoardProfileImportService {
     final stopwatch = Stopwatch()..start();
     try {
       _logger.info('开始导入订阅配置: $url');
-      
-      // 1. 先下载并验证新配置（不删除旧配置）
-      onProgress?.call(ImportStatus.downloading, 0.3, '下载配置文件');
-      final profile = await _downloadAndValidateProfile(url);
-      onProgress?.call(ImportStatus.validating, 0.6, '验证配置格式');
-      
-      // 2. 下载成功后，再清理旧配置（避免 UI 闪烁显示"无订阅"）
-      onProgress?.call(ImportStatus.cleaning, 0.8, '替换旧的订阅配置');
-      await _cleanOldUrlProfiles();
-      
-      // 3. 添加新配置
-      onProgress?.call(ImportStatus.adding, 0.9, '添加到配置列表');
-      await _addProfile(profile);
-      
+
+      // 查找现有的 XBoard URL profile
+      final profiles = _ref.read(profilesProvider);
+      final existingProfile = _findExistingXboardProfile(profiles);
+
+      Profile profile;
+      if (existingProfile != null) {
+        // 已有配置：更新 URL，使用 FlClash 原生 update() 自动保留 selectedMap
+        _logger.info('已有配置 ${existingProfile.id}，更新 URL');
+        onProgress?.call(ImportStatus.downloading, 0.3, '更新订阅配置');
+        profile = existingProfile.copyWith(url: url);
+        await _updateExistingProfile(profile);
+      } else {
+        // 没有配置：下载新配置并导入
+        onProgress?.call(ImportStatus.downloading, 0.3, '下载配置文件');
+        profile = await _downloadAndValidateProfile(url);
+        await _addNewProfile(profile);
+      }
+
       stopwatch.stop();
       onProgress?.call(ImportStatus.success, 1.0, '导入成功');
       _logger.info('订阅配置导入成功，耗时: ${stopwatch.elapsedMilliseconds}ms');
@@ -73,6 +91,85 @@ class XBoardProfileImportService {
       _isImporting = false;
     }
   }
+
+  /// 更新现有配置：使用 FlClash 原生 update()，自动保留 selectedMap
+  Future<void> _updateExistingProfile(Profile profile) async {
+    try {
+      _logger.info('使用 FlClash 原生 update() 更新配置: ${profile.id}');
+
+      // 使用 FlClash 原生的 update() 方法
+      // 该方法会自动：下载新配置、验证、写入文件、保留 selectedMap
+      final updatedProfile = await profile.update();
+
+      // 更新到数据库
+      _ref.read(profilesProvider.notifier).put(updatedProfile);
+      _logger.info('数据库更新成功');
+
+      // 确保设置为当前配置
+      final currentProfileId = _ref.read(currentProfileIdProvider);
+      if (currentProfileId != profile.id) {
+        _ref.read(currentProfileIdProvider.notifier).value = profile.id;
+      }
+
+      // 等待 appController 就绪后应用配置
+      if (!appController.isAttach) {
+        _logger.info('appController 未就绪，等待 attach...');
+        for (int i = 0; i < 60; i++) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (appController.isAttach) break;
+        }
+      }
+
+      if (appController.isAttach) {
+        _logger.info('应用配置...');
+        try {
+          await appController.applyProfile(silence: true);
+          _logger.info('配置应用成功');
+        } catch (e) {
+          _logger.error('配置应用失败', e);
+        }
+      }
+    } catch (e) {
+      _logger.error('更新现有配置失败', e);
+      throw Exception('更新配置失败: $e');
+    }
+  }
+
+  /// 添加全新配置
+  Future<void> _addNewProfile(Profile profile) async {
+    try {
+      // 1. 添加配置到列表
+      _ref.read(profilesProvider.notifier).put(profile);
+
+      // 2. 强制设置为当前配置
+      _ref.read(currentProfileIdProvider.notifier).value = profile.id;
+      _logger.info('已设置为当前配置: ${profile.label ?? profile.id}');
+
+      // 3. 等待 appController 就绪后应用配置
+      if (!appController.isAttach) {
+        _logger.info('appController 未就绪，等待 attach...');
+        for (int i = 0; i < 60; i++) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (appController.isAttach) break;
+        }
+      }
+
+      if (appController.isAttach) {
+        _logger.info('应用配置...');
+        try {
+          await appController.applyProfile(silence: true);
+          _logger.info('配置应用成功');
+        } catch (e) {
+          _logger.error('配置应用失败', e);
+        }
+      } else {
+        _logger.info('appController 等待超时，跳过应用');
+      }
+    } catch (e) {
+      throw Exception('添加配置失败: $e');
+    }
+  }
+
   Future<ImportResult> importSubscriptionWithRetry(
     String url, {
     Function(ImportStatus, double, String?)? onProgress,
@@ -84,7 +181,7 @@ class XBoardProfileImportService {
       if (result.isSuccess) {
         return result;
       }
-      if (result.errorType != ImportErrorType.networkError && 
+      if (result.errorType != ImportErrorType.networkError &&
           result.errorType != ImportErrorType.downloadError) {
         return result;
       }
@@ -100,30 +197,13 @@ class XBoardProfileImportService {
       errorType: ImportErrorType.networkError,
     );
   }
-  Future<void> _cleanOldUrlProfiles() async {
-    try {
-      final profiles = _ref.read(profilesProvider);
-      final urlProfiles = profiles.where((profile) => profile.type == ProfileType.url).toList();
 
-      for (final profile in urlProfiles) {
-        _logger.debug('删除旧的URL配置: ${profile.label ?? profile.id}');
-        _ref.read(profilesProvider.notifier).del(profile.id);
-        // 删除实际的 yaml 配置文件和 providers 目录，避免文件堆积
-        await appController.clearEffect(profile.id);
-      }
-
-      _logger.info('清理了 ${urlProfiles.length} 个旧的URL配置');
-    } catch (e) {
-      _logger.warning('清理旧配置时出错', e);
-      throw Exception('清理旧配置失败: $e');
-    }
-  }
   Future<Profile> _downloadAndValidateProfile(String url) async {
     try {
       _logger.info('开始下载配置: $url');
-      
-      // 使用 XBoard 订阅下载服务
-      _logger.info('📄 使用 XBoard 订阅下载服务（并发竞速）');
+
+      // 使用 XBoard 订阅下载服务（并发竞速）
+      _logger.info('使用 XBoard 订阅下载服务（并发竞速）');
       final profile = await SubscriptionDownloader.downloadSubscription(
         url,
         enableRacing: true,
@@ -133,10 +213,10 @@ class XBoardProfileImportService {
           throw TimeoutException('下载超时', downloadTimeout);
         },
       );
-      
+
       _logger.info('配置下载和验证成功: ${profile.label ?? profile.id}');
       return profile;
-      
+
     } on TimeoutException catch (e) {
       throw Exception('下载超时: ${e.message}');
     } on SocketException catch (e) {
@@ -151,52 +231,14 @@ class XBoardProfileImportService {
     }
   }
 
-  Future<void> _addProfile(Profile profile) async {
-    try {
-      // 1. 添加配置到列表
-      _ref.read(profilesProvider.notifier).put(profile);
-      
-      // 2. 强制设置为当前配置（订阅导入是用户主动操作，应该立即生效）
-      final currentProfileIdNotifier = _ref.read(currentProfileIdProvider.notifier);
-      currentProfileIdNotifier.value = profile.id;
-      _logger.info('✅ 已设置为当前配置: ${profile.label ?? profile.id}');
-      
-      // 3. 等待 appController 就绪后应用配置
-      // 在安卓上，profile 导入可能在 attach() 之前完成（Clash 核心初始化较慢），
-      // 此时需要等待 attach 完成后再 apply，否则 groups 永远为空
-      if (!appController.isAttach) {
-        _logger.info('appController 未就绪，等待 attach...');
-        for (int i = 0; i < 60; i++) {
-          await Future.delayed(const Duration(milliseconds: 500));
-          if (appController.isAttach) break;
-        }
-      }
-      if (appController.isAttach) {
-        _logger.info('使用 silence 模式应用配置...');
-        try {
-          await appController.applyProfile(silence: true);
-          _logger.info('配置应用成功');
-        } catch (e) {
-          _logger.error('配置应用失败', e);
-          // 不抛出异常，因为配置已经保存了
-        }
-      } else {
-        _logger.info('appController 等待超时，跳过应用（配置已保存，后续 attach 时会加载）');
-      }
-      
-      _logger.info('配置添加成功: ${profile.label ?? profile.id}');
-    } catch (e) {
-      throw Exception('添加配置失败: $e');
-    }
-  }
   ImportErrorType _classifyError(dynamic error) {
     final errorString = error.toString().toLowerCase();
-    if (errorString.contains('timeout') || 
+    if (errorString.contains('timeout') ||
         errorString.contains('连接失败') ||
         errorString.contains('network')) {
       return ImportErrorType.networkError;
     }
-    if (errorString.contains('下载') || 
+    if (errorString.contains('下载') ||
         errorString.contains('http') ||
         errorString.contains('响应')) {
       return ImportErrorType.downloadError;
@@ -209,23 +251,24 @@ class XBoardProfileImportService {
         errorString.contains('invalid config')) {
       return ImportErrorType.validationError;
     }
-    if (errorString.contains('存储') || 
+    if (errorString.contains('存储') ||
         errorString.contains('文件') ||
         errorString.contains('保存')) {
       return ImportErrorType.storageError;
     }
     return ImportErrorType.unknownError;
   }
+
   String _getUserFriendlyErrorMessage(dynamic error, ImportErrorType errorType) {
     final errorString = error.toString();
-    
+
     switch (errorType) {
       case ImportErrorType.networkError:
         return '网络连接失败，请检查网络设置后重试';
       case ImportErrorType.downloadError:
-        // 特殊处理User-Agent相关错误
+        // 特殊处理 User-Agent 相关错误
         if (errorString.contains('Invalid HTTP header field value')) {
-          return '配置文件下载失败：HTTP请求头格式错误，请稍后重试';
+          return '配置文件下载失败：HTTP 请求头格式错误，请稍后重试';
         }
         if (errorString.contains('FormatException')) {
           return '配置文件下载失败：请求格式错误，请稍后重试';
@@ -236,13 +279,14 @@ class XBoardProfileImportService {
       case ImportErrorType.storageError:
         return '保存配置失败，请检查存储空间';
       case ImportErrorType.unknownError:
-        // 简化未知错误的显示，避免显示技术细节
-        if (errorString.contains('Invalid HTTP header field value') || 
+        // 简化未知错误的显示
+        if (errorString.contains('Invalid HTTP header field value') ||
             errorString.contains('FormatException')) {
           return '导入失败：应用配置错误，请稍后重试或重启应用';
         }
         return '导入失败，请稍后重试或联系技术支持';
     }
   }
+
   bool get isImporting => _isImporting;
 } 

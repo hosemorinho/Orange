@@ -75,7 +75,7 @@ class RemoteService : Service(),
             launch {
                 runCatching {
                     callback.onResult(
-                        "",
+                        ByteArray(0),
                         true,
                         object : IAckInterface.Stub() {
                             override fun onAck() {}
@@ -96,7 +96,7 @@ class RemoteService : Service(),
             launch {
                 runCatching {
                     callback.onResult(
-                        "",
+                        ByteArray(0),
                         true,
                         object : IAckInterface.Stub() {
                             override fun onAck() {}

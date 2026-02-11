@@ -107,6 +107,28 @@ class LeafController {
       rtId: _rtId,
       configPath: _configPath!,
     );
+
+    // Wait for runtime manager to be ready.
+    // The isolate signals ok before leaf_run_with_options actually starts,
+    // so RUNTIME_MANAGER may not be populated yet. Poll until ready.
+    await _waitForRuntimeReady();
+  }
+
+  /// Poll until leaf's RUNTIME_MANAGER is populated and ready for FFI calls.
+  Future<void> _waitForRuntimeReady() async {
+    const maxAttempts = 50; // 50 × 100ms = 5 seconds max
+    for (var i = 0; i < maxAttempts; i++) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      try {
+        // Try a lightweight FFI call — if it doesn't throw, runtime is ready
+        _instance?.getOutboundSelected('proxy');
+        _logger.info('runtime ready after ${(i + 1) * 100}ms');
+        return;
+      } catch (_) {
+        // Not ready yet, keep polling
+      }
+    }
+    _logger.warning('runtime not ready after ${maxAttempts * 100}ms');
   }
 
   /// Stop the proxy and clean up temp config.

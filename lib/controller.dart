@@ -725,9 +725,14 @@ extension SetupControllerExt on AppController {
     }
 
     // Port configuration — single mixed port for HTTP+SOCKS5
-    // Use configured port; do NOT write back to patchClashConfigProvider
-    // to avoid triggering updateParamsProvider → updateConfigDebounce → applyProfile loop.
-    final mixedPort = _ref.read(patchClashConfigProvider).mixedPort;
+    // Do NOT write port changes back to patchClashConfigProvider —
+    // that triggers updateParamsProvider → updateConfigDebounce → applyProfile loop.
+    var mixedPort = _ref.read(patchClashConfigProvider).mixedPort;
+    if (!system.isAndroid && !await isPortAvailable(mixedPort)) {
+      final newPort = await findAvailablePort(mixedPort);
+      _logger.warning('Port $mixedPort occupied, using $newPort (local only, not persisted)');
+      mixedPort = newPort;
+    }
 
     // Save setup state
     final setupState = await _ref.read(setupStateProvider(profile.id).future);

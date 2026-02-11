@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:fl_clash/enum/enum.dart';
@@ -653,7 +654,7 @@ extension SetupControllerExt on AppController {
       final token = ProfileCipher.extractToken(profile.url);
       if (token != null && token.isNotEmpty) {
         final decrypted = ProfileCipher.decrypt(bytes, token);
-        return String.fromCharCodes(decrypted);
+        return utf8.decode(decrypted);
       }
     }
     return file.readAsString();

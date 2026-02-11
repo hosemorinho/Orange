@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.PowerManager
 import androidx.core.content.getSystemService
 import com.follow.clash.common.receiveBroadcastFlow
-import com.follow.clash.core.Core
+import com.follow.clash.common.GlobalState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -31,11 +31,8 @@ class SuspendModule(private val service: Service) : Module() {
         }
 
     private fun onUpdate(isScreenOn: Boolean) {
-        if (isScreenOn) {
-            Core.suspended(false)
-            return
-        }
-        Core.suspended(isDeviceIdleMode)
+        // Leaf does not have a suspend/resume API. Log for debugging.
+        GlobalState.log("SuspendModule: screenOn=$isScreenOn idle=$isDeviceIdleMode")
     }
 
     override fun onInstall() {

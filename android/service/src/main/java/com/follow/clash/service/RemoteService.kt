@@ -5,9 +5,7 @@ import android.content.Intent
 import android.os.IBinder
 import com.follow.clash.common.GlobalState
 import com.follow.clash.common.ServiceDelegate
-import com.follow.clash.common.chunkedForAidl
 import com.follow.clash.common.intent
-import com.follow.clash.core.Core
 import com.follow.clash.service.State.delegate
 import com.follow.clash.service.State.intent
 import com.follow.clash.service.State.runLock
@@ -17,10 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.withLock
-import java.util.UUID
-import kotlin.coroutines.resume
 
 class RemoteService : Service(),
     CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
@@ -76,24 +71,16 @@ class RemoteService : Service(),
 
     private val binder = object : IRemoteInterface.Stub() {
         override fun invokeAction(data: String, callback: ICallbackInterface) {
-            Core.invokeAction(data) {
-                launch {
-                    runCatching {
-                        val chunks = it?.chunkedForAidl() ?: listOf()
-                        for ((index, chunk) in chunks.withIndex()) {
-                            suspendCancellableCoroutine { cont ->
-                                callback.onResult(
-                                    chunk,
-                                    index == chunks.lastIndex,
-                                    object : IAckInterface.Stub() {
-                                        override fun onAck() {
-                                            cont.resume(Unit)
-                                        }
-                                    },
-                                )
-                            }
-                        }
-                    }
+            // No-op: Go core RPC removed; actions are handled by Dart via MethodChannel.
+            launch {
+                runCatching {
+                    callback.onResult(
+                        "",
+                        true,
+                        object : IAckInterface.Stub() {
+                            override fun onAck() {}
+                        },
+                    )
                 }
             }
         }
@@ -104,27 +91,19 @@ class RemoteService : Service(),
             callback: ICallbackInterface,
             onStarted: IVoidInterface
         ) {
-            Core.quickSetup(initParamsString, setupParamsString) {
-                launch {
-                    runCatching {
-                        val chunks = it?.chunkedForAidl() ?: listOf()
-                        for ((index, chunk) in chunks.withIndex()) {
-                            suspendCancellableCoroutine { cont ->
-                                callback.onResult(
-                                    chunk,
-                                    index == chunks.lastIndex,
-                                    object : IAckInterface.Stub() {
-                                        override fun onAck() {
-                                            cont.resume(Unit)
-                                        }
-                                    },
-                                )
-                            }
-                        }
-                    }
+            // No-op: Go core RPC removed; setup is handled by Dart via MethodChannel.
+            onStarted()
+            launch {
+                runCatching {
+                    callback.onResult(
+                        "",
+                        true,
+                        object : IAckInterface.Stub() {
+                            override fun onAck() {}
+                        },
+                    )
                 }
             }
-            onStarted()
         }
 
         override fun updateNotificationParams(params: NotificationParams?) {
@@ -148,32 +127,7 @@ class RemoteService : Service(),
 
         override fun setEventListener(eventListener: IEventInterface?) {
             GlobalState.log("RemoveEventListener ${eventListener == null}")
-            when (eventListener != null) {
-                true -> Core.callSetEventListener {
-                    launch {
-                        runCatching {
-                            val id = UUID.randomUUID().toString()
-                            val chunks = it?.chunkedForAidl() ?: listOf()
-                            for ((index, chunk) in chunks.withIndex()) {
-                                suspendCancellableCoroutine { cont ->
-                                    eventListener.onEvent(
-                                        id,
-                                        chunk,
-                                        index == chunks.lastIndex,
-                                        object : IAckInterface.Stub() {
-                                            override fun onAck() {
-                                                cont.resume(Unit)
-                                            }
-                                        },
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                false -> Core.callSetEventListener(null)
-            }
+            // No-op: Go core event listener removed; events are handled by Dart via MethodChannel.
         }
 
         override fun getRunTime(): Long {

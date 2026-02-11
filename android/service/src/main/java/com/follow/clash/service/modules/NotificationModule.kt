@@ -16,11 +16,9 @@ import com.follow.clash.common.receiveBroadcastFlow
 import com.follow.clash.common.startForeground
 import com.follow.clash.common.tickerFlow
 import com.follow.clash.common.toPendingIntent
-import com.follow.clash.core.Core
 import com.follow.clash.service.R
 import com.follow.clash.service.State
 import com.follow.clash.service.models.NotificationParams
-import com.follow.clash.service.models.getSpeedTrafficText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -40,7 +38,7 @@ data class ExtendedNotificationParams(
 
 val NotificationParams.extended: ExtendedNotificationParams
     get() = ExtendedNotificationParams(
-        title, stopText, onlyStatisticsProxy, Core.getSpeedTrafficText(onlyStatisticsProxy)
+        title, stopText, onlyStatisticsProxy, ""
     )
 
 class NotificationModule(private val service: Service) : Module() {

@@ -12,7 +12,7 @@ import android.util.Log
 import androidx.core.content.getSystemService
 import com.follow.clash.common.AccessControlMode
 import com.follow.clash.common.GlobalState
-import com.follow.clash.core.Core
+import com.follow.clash.core.LeafBridge
 import com.follow.clash.service.models.VpnOptions
 import com.follow.clash.service.models.getIpv4RouteAddress
 import com.follow.clash.service.models.getIpv6RouteAddress
@@ -98,7 +98,6 @@ class VpnService : SystemVpnService(), IBaseService,
 
 
     override fun onLowMemory() {
-        Core.forceGC()
         super.onLowMemory()
     }
 
@@ -223,14 +222,10 @@ class VpnService : SystemVpnService(), IBaseService,
             establish()?.detachFd()
                 ?: throw NullPointerException("Establish VPN rejected by system")
         }
-        Core.startTun(
-            fd,
-            protect = this::protect,
-            resolverProcess = this::resolverProcess,
-            options.stack,
-            options.address,
-            options.dns
-        )
+        // Register VPN service for socket protection; leaf will be started from Dart side.
+        // The fd is stored in State so Dart can retrieve it via MethodChannel.
+        LeafBridge.setVpnService(this)
+        State.tunFd = fd
     }
 
     override fun start() {
@@ -246,7 +241,9 @@ class VpnService : SystemVpnService(), IBaseService,
 
     override fun stop() {
         loader.cancel()
-        Core.stopTun()
+        LeafBridge.leafShutdown(0)
+        LeafBridge.setVpnService(null)
+        State.tunFd = null
         stopSelf()
     }
 

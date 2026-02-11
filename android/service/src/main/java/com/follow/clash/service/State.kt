@@ -19,4 +19,6 @@ object State {
     var delegate: ServiceDelegate<IBaseService>? = null
 
     var intent: Intent? = null
+
+    var tunFd: Int? = null
 }

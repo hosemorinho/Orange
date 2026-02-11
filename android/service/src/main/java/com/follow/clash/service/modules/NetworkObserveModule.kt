@@ -10,7 +10,7 @@ import android.net.NetworkCapabilities.TRANSPORT_USB
 import android.net.NetworkRequest
 import android.os.Build
 import androidx.core.content.getSystemService
-import com.follow.clash.core.Core
+import com.follow.clash.common.GlobalState
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -102,7 +102,9 @@ class NetworkObserveModule(private val service: Service) : Module() {
             return
         }
         preDnsList = dnsList
-        Core.updateDNS(dnsList.toSet().joinToString(","))
+        // Leaf uses its own DNS config from the JSON config file.
+        // Log the detected system DNS for debugging.
+        GlobalState.log("NetworkObserve: system DNS changed: ${dnsList.toSet().joinToString(",")}")
     }
 
     fun setUnderlyingNetworks(network: Network) {

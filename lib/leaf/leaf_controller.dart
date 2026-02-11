@@ -221,7 +221,18 @@ class LeafController {
 
   /// Parse Clash YAML `proxies:` section into a list of maps.
   static List<Map<String, dynamic>> _parseClashProxies(String yamlContent) {
-    final doc = loadYaml(yamlContent);
+    dynamic doc;
+    try {
+      doc = loadYaml(yamlContent);
+    } catch (_) {
+      // Retry with quoted name values — some subscriptions produce
+      // unquoted names containing YAML-special characters (|, :, {, }, etc.)
+      try {
+        doc = loadYaml(_quoteProxyNames(yamlContent));
+      } catch (_) {
+        return [];
+      }
+    }
     if (doc is! YamlMap) return [];
     final proxies = doc['proxies'];
     if (proxies is! YamlList) return [];
@@ -231,6 +242,21 @@ class LeafController {
       }
       return <String, dynamic>{};
     }).toList();
+  }
+
+  /// Quote unquoted `name:` values in YAML proxy entries.
+  ///
+  /// Handles both flow-style (`- { name: value, ... }`) and block-style
+  /// (`  name: value`) entries.
+  static String _quoteProxyNames(String yaml) {
+    return yaml.replaceAllMapped(
+      RegExp(r'name:\s*([^"''\n,}]+)'),
+      (m) {
+        final value = m.group(1)!.trim();
+        if (value.isEmpty) return m.group(0)!;
+        return 'name: "${value.replaceAll('"', r'\"')}"';
+      },
+    );
   }
 
   /// Recursively convert YamlMap to Map<String, dynamic>.

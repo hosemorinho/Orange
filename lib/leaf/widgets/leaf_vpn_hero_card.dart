@@ -2,15 +2,17 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/l10n/l10n.dart';
-import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/leaf/widgets/leaf_node_list.dart';
 import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/xboard/domain/models/models.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
+import 'package:fl_clash/xboard/features/shared/widgets/tun_introduction_dialog.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_status_service.dart';
 import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/providers/database.dart';
@@ -43,7 +45,7 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
   @override
   void initState() {
     super.initState();
-    _isStart = ref.read(isLeafRunningProvider);
+    _isStart = ref.read(isStartProvider);
 
     _iconController = AnimationController(
       vsync: this,
@@ -65,8 +67,10 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
     );
     if (_isStart) _ringController.repeat(reverse: true);
 
+    // Watch runTimeProvider like the original VpnHeroCard — this drives
+    // isStartProvider, which in turn drives proxyStateProvider (system proxy).
     ref.listenManual(
-      isLeafRunningProvider,
+      runTimeProvider.select((state) => state != null),
       (prev, next) {
         if (next != _isStart) {
           setState(() => _isStart = next);
@@ -84,20 +88,21 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
     super.dispose();
   }
 
-  Future<void> _handleSwitchStart() async {
+  void _handleSwitchStart() {
     if (_isSwitching) return;
     _isSwitching = true;
-    try {
-      setState(() => _isStart = !_isStart);
-      _updateController();
-      if (_isStart) {
-        await startLeaf(ref);
-      } else {
-        await stopLeaf(ref);
-      }
-    } finally {
-      _isSwitching = false;
-    }
+    setState(() => _isStart = !_isStart);
+    _updateController();
+    // Use appController.updateStatus() like the original VpnHeroCard.
+    // This handles the full lifecycle: system proxy, TUN, traffic, runtime.
+    debouncer.call(
+      FunctionTag.updateStatus,
+      () {
+        appController.updateStatus(_isStart);
+        _isSwitching = false;
+      },
+      duration: commonDuration,
+    );
   }
 
   void _updateController() {
@@ -119,6 +124,27 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
         builder: (context) => const LeafNodeListView(),
       ),
     );
+  }
+
+  Future<void> _handleTunToggle(bool selected) async {
+    if (selected) {
+      final storageService = ref.read(storageServiceProvider);
+      final hasShownResult = await storageService.hasTunFirstUseShown();
+      final hasShown = hasShownResult.dataOrNull ?? false;
+      if (!hasShown) {
+        if (mounted) {
+          final shouldEnable = await TunIntroductionDialog.show(context);
+          if (shouldEnable == true) {
+            await storageService.markTunFirstUseShown();
+            appController.updateTun();
+          }
+        }
+      } else {
+        appController.updateTun();
+      }
+    } else {
+      appController.updateTun();
+    }
   }
 
   // --- Subscription helpers ---
@@ -182,6 +208,8 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
     final nodes = ref.watch(leafNodesProvider);
     final selectedTag = ref.watch(selectedNodeTagProvider);
     final delays = ref.watch(nodeDelaysProvider);
+    final tunEnabled = ref.watch(
+        patchClashConfigProvider.select((state) => state.tun.enable));
 
     if (nodes.isEmpty) {
       final userState = ref.watch(xboardUserProvider);
@@ -195,10 +223,10 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
     final nodeName = selectedNode?.tag ?? nodes.first.tag;
     final delayMs = delays[nodeName];
 
-    return _buildCard(context, nodeName, delayMs);
+    return _buildCard(context, nodeName, delayMs, tunEnabled);
   }
 
-  Widget _buildCard(BuildContext context, String nodeName, int? delayMs) {
+  Widget _buildCard(BuildContext context, String nodeName, int? delayMs, bool tunEnabled) {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
 
@@ -243,10 +271,10 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
         child: _isDesktop
             ? _buildDesktopLayout(context, theme, colorScheme, nodeName,
                 delayMs, statusColor, onStatusColor, bgColor, progress,
-                usedTraffic, totalTraffic, remainingDays)
+                usedTraffic, totalTraffic, remainingDays, tunEnabled)
             : _buildMobileLayout(context, theme, colorScheme, nodeName,
                 delayMs, statusColor, onStatusColor, progress, usedTraffic,
-                totalTraffic, remainingDays),
+                totalTraffic, remainingDays, tunEnabled),
       ),
     );
   }
@@ -265,6 +293,7 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
     double usedTraffic,
     double totalTraffic,
     int? remainingDays,
+    bool tunEnabled,
   ) {
     const buttonSize = 88.0;
     const ringSize = 108.0;
@@ -362,24 +391,37 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
         _buildCompactTrafficText(
             theme, colorScheme, progress, usedTraffic, totalTraffic,
             remainingDays),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
 
-        // Switch node button
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: _navigateToNodes,
-            icon: const Icon(Icons.swap_horiz, size: 16),
-            label: Text(
-              appLocalizations.xboardSwitchNode,
-              style: const TextStyle(fontSize: 12),
-            ),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+        // Controls row: TUN toggle + switch node
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            FilterChip(
+              label: const Text('TUN', style: TextStyle(fontSize: 12)),
+              selected: tunEnabled,
+              onSelected: (selected) {
+                _handleTunToggle(selected);
+              },
               visualDensity: VisualDensity.compact,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              selectedColor: colorScheme.tertiaryContainer,
+              checkmarkColor: colorScheme.onTertiaryContainer,
             ),
-          ),
+            TextButton.icon(
+              onPressed: _navigateToNodes,
+              icon: const Icon(Icons.swap_horiz, size: 16),
+              label: Text(
+                appLocalizations.xboardSwitchNode,
+                style: const TextStyle(fontSize: 12),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -400,6 +442,7 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
     double usedTraffic,
     double totalTraffic,
     int? remainingDays,
+    bool tunEnabled,
   ) {
     const buttonSize = 80.0;
     const ringSize = 100.0;
@@ -467,7 +510,23 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  _buildLatencyChip(context, nodeName, delayMs),
+                  Row(
+                    children: [
+                      _buildLatencyChip(context, nodeName, delayMs),
+                      const SizedBox(width: 8),
+                      FilterChip(
+                        label: const Text('TUN', style: TextStyle(fontSize: 12)),
+                        selected: tunEnabled,
+                        onSelected: (selected) {
+                          _handleTunToggle(selected);
+                        },
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        selectedColor: colorScheme.tertiaryContainer,
+                        checkmarkColor: colorScheme.onTertiaryContainer,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:fl_clash/leaf/providers/leaf_providers.dart';
+
 import 'app.dart';
 import 'config.dart';
 import 'database.dart';
@@ -107,14 +109,17 @@ ProxyState proxyState(Ref ref) {
       (state) => VM2(state.systemProxy, state.bypassDomain),
     ),
   );
-  final mixedPort = ref.watch(
+  // Use the actual port leaf is listening on (may differ from config if
+  // the configured port was occupied and a fallback was used).
+  final activePort = ref.watch(activePortProvider);
+  final configPort = ref.watch(
     patchClashConfigProvider.select((state) => state.mixedPort),
   );
   return ProxyState(
     isStart: isStart,
     systemProxy: vm2.a,
     bassDomain: vm2.b,
-    port: mixedPort,
+    port: activePort ?? configPort,
   );
 }
 

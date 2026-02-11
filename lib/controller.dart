@@ -554,10 +554,16 @@ extension SetupControllerExt on AppController {
 
   Future<void> _updateConfigImmediate() async {
     // Leaf does not support runtime config hot-reload for most parameters
-    // (mode, tun, allowLan, etc.). These are UI-only state changes.
-    // Do NOT call applyProfile here — it would stop/restart leaf on every
-    // minor config change, causing port escalation and flickering.
-    // Full restart only happens via fullSetup() or explicit user action.
+    // (mode, allowLan, etc.). These are UI-only state changes.
+    // However, port changes require a leaf restart because the inbound
+    // is bound to a specific port.
+    if (_leafController == null || !_leafController!.isRunning) return;
+
+    final configPort = _ref.read(patchClashConfigProvider).mixedPort;
+    if (_activePort != null && _activePort != configPort) {
+      _logger.info('port changed: $_activePort → $configPort, restarting leaf');
+      applyProfile(force: true);
+    }
   }
 
   void addCheckIp() {

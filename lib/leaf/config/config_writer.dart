@@ -31,7 +31,8 @@ class ConfigWriter {
     // Convert Clash proxies to leaf outbounds
     final converted = ClashProxyConverter.convertAll(proxies);
 
-    // Assemble inbounds — always include mixed port as baseline
+    // Assemble inbounds — mixed HTTP+SOCKS5 on a single port.
+    // Leaf's mixed inbound peeks the first byte: 0x05 → SOCKS5, else → HTTP.
     final inbounds = <LeafInbound>[
       LeafInbound.mixed(port: mixedPort),
       // Android: TUN via VPN service fd

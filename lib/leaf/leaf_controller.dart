@@ -7,7 +7,10 @@ import 'package:fl_clash/leaf/config/leaf_config.dart';
 import 'package:fl_clash/leaf/ffi/leaf_errors.dart';
 import 'package:fl_clash/leaf/ffi/leaf_ffi.dart';
 import 'package:fl_clash/leaf/models/leaf_node.dart';
+import 'package:fl_clash/xboard/core/core.dart';  // FileLogger
 import 'package:yaml/yaml.dart';
+
+final _logger = FileLogger('leaf_controller.dart');
 
 /// High-level controller for the leaf proxy core.
 ///
@@ -57,7 +60,7 @@ class LeafController {
     // Parse Clash YAML proxies
     final proxies = _parseClashProxies(yamlContent);
     if (proxies.isEmpty) {
-      print('[LeafController] WARNING: parsed 0 proxies from YAML (${yamlContent.length} bytes). '
+      _logger.warning('parsed 0 proxies from YAML (${yamlContent.length} bytes). '
           'First 200 chars: ${yamlContent.substring(0, yamlContent.length.clamp(0, 200))}');
     } else {
       // Log protocol distribution for debugging
@@ -66,10 +69,10 @@ class LeafController {
         final t = (p['type'] as String? ?? 'unknown').toLowerCase();
         typeCounts[t] = (typeCounts[t] ?? 0) + 1;
       }
-      print('[LeafController] parsed ${proxies.length} proxies: $typeCounts');
+      _logger.info('parsed ${proxies.length} proxies: $typeCounts');
     }
     _nodes = _extractNodes(proxies);
-    print('[LeafController] supported nodes: ${_nodes.length} / ${proxies.length} total proxies');
+    _logger.info('supported nodes: ${_nodes.length} / ${proxies.length} total proxies');
 
     // Build leaf config
     final config = ConfigWriter.build(

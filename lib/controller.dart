@@ -9,6 +9,7 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/dialog.dart';
 import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
+import 'package:fl_clash/xboard/core/core.dart';  // FileLogger
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,6 +19,8 @@ import 'common/common.dart';
 import 'database/database.dart';
 import 'models/models.dart';
 import 'providers/database.dart';
+
+final _logger = FileLogger('controller.dart');
 
 /// Recursively convert YAML values to plain Dart types.
 dynamic _convertYamlValue(dynamic v) {
@@ -686,10 +689,10 @@ extension SetupControllerExt on AppController {
   }
 
   Future<void> _setupConfig([VoidCallback? preloadInvoke]) async {
-    commonPrint.log('setup ===>');
+    _logger.info('setup ===>');
     var profile = _ref.read(currentProfileProvider);
     if (profile == null) {
-      commonPrint.log('setup: no current profile');
+      _logger.warning('setup: no current profile');
       return;
     }
 
@@ -704,12 +707,11 @@ extension SetupControllerExt on AppController {
     try {
       yamlContent = await _getProfileYaml(profile!);
     } catch (e) {
-      commonPrint.log('setup: failed to read/decrypt YAML for profile ${profile.id}: $e',
-          logLevel: LogLevel.warning);
+      _logger.error('setup: failed to read/decrypt YAML for profile ${profile.id}', e);
       return;
     }
     if (yamlContent == null || yamlContent.isEmpty) {
-      commonPrint.log('setup: empty YAML for profile ${profile.id}');
+      _logger.warning('setup: empty YAML for profile ${profile.id}');
       return;
     }
 
@@ -720,10 +722,7 @@ extension SetupControllerExt on AppController {
 
     if (!system.isAndroid && !await isPortAvailable(httpPort)) {
       final newPort = await findAvailablePort(httpPort);
-      commonPrint.log(
-        'Port $httpPort is occupied, using $newPort',
-        logLevel: LogLevel.warning,
-      );
+      _logger.warning('Port $httpPort is occupied, using $newPort');
       httpPort = newPort;
       socksPort = newPort + 1;
       _ref.read(patchClashConfigProvider.notifier).value =
@@ -747,7 +746,7 @@ extension SetupControllerExt on AppController {
     if (_leafController!.isRunning) {
       await _leafController!.stop();
     }
-    commonPrint.log('setup: starting leaf with YAML (${yamlContent.length} bytes)');
+    _logger.info('setup: starting leaf with YAML (${yamlContent.length} bytes)');
     try {
       await _leafController!.startWithClashYaml(
         yamlContent,
@@ -755,7 +754,7 @@ extension SetupControllerExt on AppController {
         socksPort: socksPort,
       );
     } catch (e) {
-      commonPrint.log('setup: leaf start failed: $e', logLevel: LogLevel.warning);
+      _logger.error('setup: leaf start failed', e);
       return;
     }
 
@@ -766,7 +765,7 @@ extension SetupControllerExt on AppController {
         _leafController!.getSelectedNode();
 
     addCheckIp();
-    commonPrint.log('setup complete: ${_leafController!.nodes.length} nodes');
+    _logger.info('setup complete: ${_leafController!.nodes.length} nodes');
   }
 }
 

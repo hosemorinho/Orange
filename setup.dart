@@ -60,8 +60,8 @@ extension ArchExt on Arch {
       (Target.android, Arch.arm64) => 'aarch64-linux-android',
       (Target.android, Arch.arm) => 'armv7-linux-androideabi',
       (Target.android, Arch.amd64) => 'x86_64-linux-android',
-      (Target.linux, Arch.amd64) => 'x86_64-unknown-linux-musl',
-      (Target.linux, Arch.arm64) => 'aarch64-unknown-linux-musl',
+      (Target.linux, Arch.amd64) => 'x86_64-unknown-linux-gnu',
+      (Target.linux, Arch.arm64) => 'aarch64-unknown-linux-gnu',
       (Target.macos, Arch.arm64) => 'aarch64-apple-darwin',
       (Target.macos, Arch.amd64) => 'x86_64-apple-darwin',
       (Target.windows, Arch.amd64) => 'x86_64-pc-windows-msvc',
@@ -167,65 +167,64 @@ class Build {
     }
     await dir.create(recursive: true);
 
-    for (final item in items) {
-      final rustTarget = item.arch!.rustTarget(item.target);
+    // Write .cargo/config.toml for Android NDK cross-compilation
+    if (target == Target.android) {
+      await _writeAndroidCargoConfig();
+    }
 
-      // Ensure Rust target is installed
-      await exec(
-        ['rustup', 'target', 'add', rustTarget],
-        name: 'add rust target $rustTarget',
-      );
+    try {
+      for (final item in items) {
+        final rustTarget = item.arch!.rustTarget(item.target);
 
-      // Set up environment for cross-compilation
-      final Map<String, String> env = {};
-      if (item.target == Target.android) {
-        _setupAndroidNdkEnv(env, rustTarget, item.archName!);
-      } else if (item.target == Target.linux) {
-        _setupLinuxMuslEnv(env, rustTarget);
+        // Ensure Rust target is installed
+        await exec(
+          ['rustup', 'target', 'add', rustTarget],
+          name: 'add rust target $rustTarget',
+        );
+
+        // Build with cargo
+        await exec(
+          [
+            'cargo', 'build',
+            '-p', 'leaf-ffi',
+            '--release',
+            '--target', rustTarget,
+          ],
+          name: 'build leaf-ffi ($rustTarget)',
+          workingDirectory: _leafFfiDir,
+        );
+
+        // Copy the built library to the output directory
+        final builtLib = join(
+          _leafFfiDir, 'target', rustTarget, 'release', target.leafLibName,
+        );
+
+        final String destPath;
+        if (item.target == Target.android) {
+          // Android: place in arch-specific subdirectory for jniLibs
+          final archDir = join(targetOutFilePath, item.archName!);
+          await Directory(archDir).create(recursive: true);
+          destPath = join(archDir, target.leafLibName);
+        } else {
+          destPath = join(targetOutFilePath, target.leafLibName);
+        }
+
+        await File(builtLib).copy(destPath);
+        corePaths.add(destPath);
+        print('Copied $builtLib -> $destPath');
       }
-
-      // Build with cargo
-      await exec(
-        [
-          'cargo', 'build',
-          '-p', 'leaf-ffi',
-          '--release',
-          '--target', rustTarget,
-        ],
-        name: 'build leaf-ffi ($rustTarget)',
-        environment: env,
-        workingDirectory: _leafFfiDir,
-      );
-
-      // Copy the built library to the output directory
-      final builtLib = join(
-        _leafFfiDir, 'target', rustTarget, 'release', target.leafLibName,
-      );
-
-      final String destPath;
-      if (item.target == Target.android) {
-        // Android: place in arch-specific subdirectory for jniLibs
-        final archDir = join(targetOutFilePath, item.archName!);
-        await Directory(archDir).create(recursive: true);
-        destPath = join(archDir, target.leafLibName);
-      } else {
-        destPath = join(targetOutFilePath, target.leafLibName);
+    } finally {
+      // Clean up .cargo/config.toml if we created it
+      if (target == Target.android) {
+        await _cleanupCargoConfig();
       }
-
-      await File(builtLib).copy(destPath);
-      corePaths.add(destPath);
-      print('Copied $builtLib -> $destPath');
     }
 
     return corePaths;
   }
 
-  /// Set up NDK environment variables for Rust Android cross-compilation.
-  static void _setupAndroidNdkEnv(
-    Map<String, String> env,
-    String rustTarget,
-    String archName,
-  ) {
+  /// Resolve the NDK toolchain bin directory.
+  static String _resolveNdkToolchainBin() {
     final ndk = Platform.environment['ANDROID_NDK'] ??
         Platform.environment['ANDROID_NDK_HOME'] ??
         Platform.environment['ANDROID_NDK_LATEST_HOME'] ??
@@ -235,63 +234,76 @@ class Build {
     }
 
     final hostOs = Platform.isLinux ? 'linux' : (Platform.isMacOS ? 'darwin' : 'windows');
-    final hostArch = 'x86_64'; // NDK prebuilt is x86_64
-    final toolchainBin = join(
-      ndk, 'toolchains', 'llvm', 'prebuilt', '$hostOs-$hostArch', 'bin',
+    final defaultBin = join(
+      ndk, 'toolchains', 'llvm', 'prebuilt', '$hostOs-x86_64', 'bin',
     );
 
-    // If the default x86_64 toolchain doesn't exist, try detecting the actual host arch
-    if (!Directory(toolchainBin).existsSync()) {
-      final altHostArch = Platform.localHostname; // fallback
-      final altBin = join(
-        ndk, 'toolchains', 'llvm', 'prebuilt',
-      );
-      final prebuiltDir = Directory(altBin);
-      if (prebuiltDir.existsSync()) {
-        final dirs = prebuiltDir.listSync()
-            .whereType<Directory>()
-            .where((d) => !basename(d.path).startsWith('.'))
-            .toList();
-        if (dirs.isNotEmpty) {
-          final actualBin = join(dirs.first.path, 'bin');
-          env['PATH'] = '$actualBin:${Platform.environment['PATH'] ?? ''}';
-        }
-      }
-    } else {
-      env['PATH'] = '$toolchainBin:${Platform.environment['PATH'] ?? ''}';
+    if (Directory(defaultBin).existsSync()) {
+      return defaultBin;
     }
 
-    // Map Rust target to NDK clang/linker names
-    final clangPrefix = switch (archName) {
-      'armeabi-v7a' => 'armv7a-linux-androideabi$_ndkApiLevel',
-      'arm64-v8a' => 'aarch64-linux-android$_ndkApiLevel',
-      'x86_64' => 'x86_64-linux-android$_ndkApiLevel',
-      _ => throw 'Unknown Android arch: $archName',
-    };
+    // Auto-detect host prebuilt directory
+    final prebuiltDir = Directory(join(ndk, 'toolchains', 'llvm', 'prebuilt'));
+    if (prebuiltDir.existsSync()) {
+      final dirs = prebuiltDir.listSync()
+          .whereType<Directory>()
+          .where((d) => !basename(d.path).startsWith('.'))
+          .toList();
+      if (dirs.isNotEmpty) {
+        return join(dirs.first.path, 'bin');
+      }
+    }
 
-    final envTarget = rustTarget.toUpperCase().replaceAll('-', '_');
-    env['CC_$rustTarget'] = '$toolchainBin/$clangPrefix-clang';
-    env['AR_$rustTarget'] = '$toolchainBin/llvm-ar';
-    env['CARGO_TARGET_${envTarget}_LINKER'] = '$toolchainBin/$clangPrefix-clang';
-    env['ANDROID_NDK_ROOT'] = ndk;
-    env['ANDROID_NDK'] = ndk;
-    env['ANDROID_NDK_HOME'] = ndk;
+    throw 'Could not find NDK toolchain bin directory in $ndk';
   }
 
-  /// Set up environment variables for Rust Linux musl cross-compilation.
-  static void _setupLinuxMuslEnv(
-    Map<String, String> env,
-    String rustTarget,
-  ) {
-    final envTarget = rustTarget.toUpperCase().replaceAll('-', '_');
-    if (rustTarget.contains('aarch64')) {
-      env['CC_$rustTarget'] = 'aarch64-linux-gnu-gcc';
-      env['AR_$rustTarget'] = 'aarch64-linux-gnu-ar';
-      env['CARGO_TARGET_${envTarget}_LINKER'] = 'aarch64-linux-gnu-gcc';
-    } else {
-      env['CC_$rustTarget'] = 'musl-gcc';
-      env['AR_$rustTarget'] = 'ar';
-      env['CARGO_TARGET_${envTarget}_LINKER'] = 'musl-gcc';
+  /// Write .cargo/config.toml with Android NDK linker/compiler settings.
+  ///
+  /// This is more reliable than env vars for cross-compilation because
+  /// Cargo reads it directly without depending on shell env propagation.
+  static Future<void> _writeAndroidCargoConfig() async {
+    final toolchainBin = _resolveNdkToolchainBin();
+    print('NDK toolchain bin: $toolchainBin');
+
+    final configDir = Directory(join(_leafFfiDir, '.cargo'));
+    await configDir.create(recursive: true);
+
+    final configPath = join(configDir.path, 'config.toml');
+
+    // Use forward slashes for TOML paths (works on all platforms)
+    final bin = toolchainBin.replaceAll('\\', '/');
+    final api = _ndkApiLevel;
+
+    final config = '''
+# Auto-generated for Android NDK cross-compilation
+[target.aarch64-linux-android]
+linker = "$bin/aarch64-linux-android$api-clang"
+
+[target.armv7-linux-androideabi]
+linker = "$bin/armv7a-linux-androideabi$api-clang"
+
+[target.x86_64-linux-android]
+linker = "$bin/x86_64-linux-android$api-clang"
+
+[env]
+CC_aarch64-linux-android = "$bin/aarch64-linux-android$api-clang"
+AR_aarch64-linux-android = "$bin/llvm-ar"
+CC_armv7-linux-androideabi = "$bin/armv7a-linux-androideabi$api-clang"
+AR_armv7-linux-androideabi = "$bin/llvm-ar"
+CC_x86_64-linux-android = "$bin/x86_64-linux-android$api-clang"
+AR_x86_64-linux-android = "$bin/llvm-ar"
+''';
+
+    await File(configPath).writeAsString(config);
+    print('Wrote $configPath');
+  }
+
+  /// Remove the auto-generated .cargo/config.toml.
+  static Future<void> _cleanupCargoConfig() async {
+    final configFile = File(join(_leafFfiDir, '.cargo', 'config.toml'));
+    if (await configFile.exists()) {
+      await configFile.delete();
+      print('Cleaned up .cargo/config.toml');
     }
   }
 

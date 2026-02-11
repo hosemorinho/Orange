@@ -763,7 +763,7 @@ extension CoreControllerExt on AppController {
 
     String homeDir;
     if (Platform.isAndroid) {
-      homeDir = appPath.homePath;
+      homeDir = await appPath.homeDirPath;
     } else {
       final home = Platform.environment['HOME'] ??
           Platform.environment['USERPROFILE'] ??
@@ -1126,8 +1126,8 @@ extension CommonControllerExt on AppController {
     if (_leafController == null || !_leafController!.isRunning) return;
     final totals = _leafController!.getTrafficTotals();
     final traffic = Traffic(
-      upload: totals.bytesSent,
-      download: totals.bytesRecvd,
+      up: totals.bytesSent,
+      down: totals.bytesRecvd,
     );
     _ref.read(trafficsProvider.notifier).addTraffic(traffic);
     _ref.read(totalTrafficProvider.notifier).value = traffic;

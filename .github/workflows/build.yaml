@@ -117,6 +117,7 @@ jobs:
             lib/l10n/
             lib/models/generated/
             lib/database/generated/
+            lib/leaf/providers/generated/
             lib/xboard/domain/models/generated/
             lib/xboard/adapter/state/generated/
             lib/xboard/adapter/initialization/generated/
@@ -185,16 +186,13 @@ jobs:
           workspaces: leaf
           cache-on-failure: true
 
-      - name: Install musl toolchain (Linux)
+      - name: Install Linux Rust targets
         if: matrix.platform == 'linux'
         shell: bash
         run: |
-          sudo apt-get update && sudo apt-get install -y musl-tools
-          if [[ "${{ matrix.arch }}" == "amd64" ]]; then
-            rustup target add x86_64-unknown-linux-musl
-          elif [[ "${{ matrix.arch }}" == "arm64" ]]; then
-            sudo apt-get install -y gcc-aarch64-linux-gnu
-            rustup target add aarch64-unknown-linux-musl
+          if [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+            rustup target add aarch64-unknown-linux-gnu
           fi
 
       - name: Install Android Rust targets

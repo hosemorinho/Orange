@@ -18,16 +18,10 @@ class LeafInitializer {
   /// Initialize the leaf core. Safe to call multiple times.
   ///
   /// This replaces `appController.attach()` for the leaf branch.
-  static Future<void> initLeaf(dynamic ref) async {
+  static Future<void> initLeaf(Ref ref) async {
     if (_initialized) return;
 
-    T read<T>(ProviderListenable<T> provider) {
-      if (ref is WidgetRef) return (ref as WidgetRef).read(provider);
-      if (ref is Ref) return (ref as Ref).read(provider);
-      throw ArgumentError('ref must be WidgetRef or Ref');
-    }
-
-    final controller = read(leafControllerProvider);
+    final controller = ref.read(leafControllerProvider);
 
     final homeDir = await _getHomeDir();
     debugPrint('[LeafInitializer] Initializing with homeDir: $homeDir');
@@ -42,7 +36,7 @@ class LeafInitializer {
 
   static Future<String> _getHomeDir() async {
     if (Platform.isAndroid) {
-      return appPath.homePath;
+      return await appPath.homeDirPath;
     }
     // Desktop: use ~/.config/orange/leaf
     final home = Platform.environment['HOME'] ??

@@ -2,6 +2,7 @@ package com.follow.clash.service
 
 import android.content.Intent
 import android.net.VpnService
+import android.os.ParcelFileDescriptor
 import com.follow.clash.common.ServiceDelegate
 import com.follow.clash.service.models.NotificationParams
 import com.follow.clash.service.models.VpnOptions
@@ -22,6 +23,9 @@ object State {
     var intent: Intent? = null
 
     var tunFd: Int? = null
+
+    /** The TUN ParcelFileDescriptor from VpnService.Builder.establish(). */
+    var tunPfd: ParcelFileDescriptor? = null
 
     var vpnService: VpnService? = null
 }

@@ -3,6 +3,7 @@ package com.follow.clash.service
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.os.ParcelFileDescriptor
 import com.follow.clash.common.GlobalState
 import com.follow.clash.common.ServiceDelegate
 import com.follow.clash.common.intent
@@ -132,6 +133,28 @@ class RemoteService : Service(),
 
         override fun getRunTime(): Long {
             return State.runTime
+        }
+
+        override fun getTunFd(): ParcelFileDescriptor? {
+            return try {
+                State.tunPfd?.dup()
+            } catch (e: Exception) {
+                GlobalState.log("getTunFd failed: $e")
+                null
+            }
+        }
+
+        override fun protectSocket(fd: ParcelFileDescriptor?): Boolean {
+            if (fd == null) return false
+            return try {
+                val result = State.vpnService?.protect(fd.fd) ?: false
+                fd.close()
+                result
+            } catch (e: Exception) {
+                GlobalState.log("protectSocket failed: $e")
+                try { fd.close() } catch (_: Exception) {}
+                false
+            }
         }
     }
 

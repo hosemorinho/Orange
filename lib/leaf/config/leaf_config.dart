@@ -115,6 +115,31 @@ class LeafInbound {
         protocol: 'tun',
         settings: {'fd': fd, 'mtu': mtu},
       );
+
+  /// TUN inbound with auto mode (macOS/Linux).
+  /// Leaf auto-creates the TUN device and configures routes via sys.rs.
+  /// Requires root or CAP_NET_ADMIN.
+  factory LeafInbound.tunAuto({String? tag}) => LeafInbound(
+        tag: tag ?? 'tun_in',
+        protocol: 'tun',
+        settings: {'auto': true, 'fd': -1, 'mtu': 1500},
+      );
+
+  /// Windows NF (netfilter/WFP) inbound.
+  /// Requires nfdriver.sys kernel driver and nfapi.dll.
+  factory LeafInbound.nf({
+    String driverName = 'nfdriver',
+    String? nfapiPath,
+    String? tag,
+  }) =>
+      LeafInbound(
+        tag: tag ?? 'nf',
+        protocol: 'nf',
+        settings: {
+          'driverName': driverName,
+          if (nfapiPath != null) 'nfapi': nfapiPath,
+        },
+      );
 }
 
 // ---------------------------------------------------------------------------

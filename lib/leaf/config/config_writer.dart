@@ -21,15 +21,22 @@ class ConfigWriter {
     required List<Map<String, dynamic>> proxies,
     required int mixedPort,
     int? tunFd,
+    bool tunEnabled = false,
     String logLevel = 'warn',
   }) {
     // Convert Clash proxies to leaf outbounds
     final converted = ClashProxyConverter.convertAll(proxies);
 
-    // Assemble inbounds — single mixed port handles both HTTP and SOCKS5
+    // Assemble inbounds — always include mixed port as baseline
     final inbounds = <LeafInbound>[
       LeafInbound.mixed(port: mixedPort),
+      // Android: TUN via VPN service fd
       if (tunFd != null) LeafInbound.tun(fd: tunFd),
+      // macOS/Linux: TUN auto mode (leaf creates device + routes)
+      if (tunEnabled && tunFd == null && (Platform.isMacOS || Platform.isLinux))
+        LeafInbound.tunAuto(),
+      // Windows: NF (netfilter/WFP) inbound
+      if (tunEnabled && Platform.isWindows) LeafInbound.nf(),
     ];
 
     // Assemble outbounds: direct + proxy nodes + select group

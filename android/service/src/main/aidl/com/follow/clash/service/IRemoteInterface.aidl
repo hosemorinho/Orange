@@ -16,4 +16,6 @@ interface IRemoteInterface {
     void stopService(in IResultInterface result);
     void setEventListener(in IEventInterface event);
     long getRunTime();
+    ParcelFileDescriptor getTunFd();
+    boolean protectSocket(in ParcelFileDescriptor fd);
 }

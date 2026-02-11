@@ -47,9 +47,11 @@ class LeafController {
   ///
   /// [yamlContent] is the raw Clash YAML string from V2Board.
   /// [tunFd] is the Android VPN TUN file descriptor (null on desktop).
+  /// [tunEnabled] enables TUN/NF inbound on desktop platforms.
   Future<void> startWithClashYaml(
     String yamlContent, {
     int? tunFd,
+    bool tunEnabled = false,
     int mixedPort = 7890,
   }) async {
     _mixedPort = mixedPort;
@@ -76,6 +78,7 @@ class LeafController {
       proxies: proxies,
       mixedPort: _mixedPort,
       tunFd: tunFd,
+      tunEnabled: tunEnabled,
     );
 
     await _startWithConfig(config);

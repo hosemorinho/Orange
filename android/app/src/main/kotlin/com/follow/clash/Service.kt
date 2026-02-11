@@ -1,5 +1,6 @@
 package com.follow.clash
 
+import android.os.ParcelFileDescriptor
 import com.follow.clash.common.GlobalState
 import com.follow.clash.common.ServiceDelegate
 import com.follow.clash.common.formatString
@@ -175,5 +176,33 @@ object Service {
         return delegate.useService {
             it.runTime
         }.getOrNull() ?: 0L
+    }
+
+    /**
+     * Get the TUN file descriptor from the VPN service (remote process).
+     * Returns the fd integer valid in this process, or null if unavailable.
+     */
+    suspend fun getTunFd(): Int? {
+        return delegate.useService {
+            val pfd = it.tunFd ?: return@useService null
+            try {
+                pfd.detachFd()
+            } catch (e: Exception) {
+                GlobalState.log("getTunFd detachFd failed: $e")
+                try { pfd.close() } catch (_: Exception) {}
+                null
+            }
+        }.getOrNull()
+    }
+
+    /**
+     * Forward socket protection to the VPN service (remote process).
+     * Creates a dup of the fd for cross-process transfer; the original fd stays valid.
+     */
+    suspend fun protectSocket(fd: Int): Boolean {
+        return delegate.useService {
+            val pfd = ParcelFileDescriptor.fromFd(fd)
+            it.protectSocket(pfd)
+        }.getOrDefault(false)
     }
 }

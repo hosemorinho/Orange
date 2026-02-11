@@ -1,7 +1,8 @@
 package com.follow.clash.core
 
-import android.net.VpnService
 import android.util.Log
+import com.follow.clash.Service
+import kotlinx.coroutines.runBlocking
 
 /**
  * JNI bridge to libleaf.so (Rust proxy core).
@@ -11,46 +12,60 @@ import android.util.Log
  *
  * Leaf calls [protectSocket] from native code when it needs to
  * protect a socket from being routed through the VPN tunnel.
+ *
+ * Since the VPN service runs in the :remote process and leaf runs
+ * in the :app process via FFI, socket protection is forwarded
+ * across the process boundary via AIDL.
  */
 object LeafBridge {
     private const val TAG = "LeafBridge"
 
-    private var vpnService: VpnService? = null
+    private var protectionEnabled = false
 
     init {
         System.loadLibrary("leaf")
     }
 
     /**
-     * Register the VPN service for socket protection.
+     * Enable socket protection via the remote VPN service.
      * Must be called before starting leaf when using TUN mode.
+     * Registers the JNI callback so leaf's Rust code can call [protectSocket].
      */
-    fun setVpnService(service: VpnService?) {
-        vpnService = service
-        if (service != null) {
-            nativeSetProtectSocketCallback()
-        }
+    fun enableProtection() {
+        protectionEnabled = true
+        nativeSetProtectSocketCallback()
+    }
+
+    /**
+     * Disable socket protection (e.g., when VPN is stopped).
+     */
+    fun disableProtection() {
+        protectionEnabled = false
     }
 
     /**
      * Called from native code (Rust/JNI) when leaf needs to protect a socket fd.
-     * This prevents the socket from being routed through the VPN tunnel.
+     * Forwards the request to the VPN service in the :remote process via AIDL.
+     *
+     * This method blocks the calling (native) thread until protection completes.
      *
      * @param fd The raw file descriptor of the socket to protect.
      * @return true if protection succeeded, false otherwise.
      */
     @JvmStatic
     fun protectSocket(fd: Int): Boolean {
-        val service = vpnService
-        if (service == null) {
-            Log.w(TAG, "protectSocket called but no VPN service registered")
+        if (!protectionEnabled) {
+            Log.w(TAG, "protectSocket called but protection not enabled")
             return false
         }
-        val result = service.protect(fd)
-        if (!result) {
-            Log.w(TAG, "Failed to protect socket fd=$fd")
+        return try {
+            runBlocking {
+                Service.protectSocket(fd)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "protectSocket failed for fd=$fd: $e")
+            false
         }
-        return result
     }
 
     // -- Native methods (implemented in leaf-ffi) --

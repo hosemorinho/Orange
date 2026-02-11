@@ -6,6 +6,7 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/plugins/app.dart';
+import 'package:fl_clash/plugins/service.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/dialog.dart';
@@ -521,6 +522,9 @@ extension SetupControllerExt on AppController {
     } else {
       await _leafController?.stop();
       _ref.read(isLeafRunningProvider.notifier).state = false;
+      if (system.isAndroid) {
+        await service?.disableSocketProtection();
+      }
       await globalState.handleStop();
       _ref.read(trafficsProvider.notifier).clear();
       _ref.read(totalTrafficProvider.notifier).value = Traffic();
@@ -743,6 +747,23 @@ extension SetupControllerExt on AppController {
 
     if (preloadInvoke != null) preloadInvoke();
 
+    // TUN mode configuration
+    final tunEnabled = _ref.read(patchClashConfigProvider).tun.enable;
+    int? tunFd;
+    if (system.isAndroid && tunEnabled) {
+      // Enable socket protection before starting leaf with TUN
+      await service?.enableSocketProtection();
+      tunFd = await service?.getTunFd();
+      if (tunFd == null) {
+        _logger.warning('setup: TUN enabled but no VPN fd available');
+      } else {
+        _logger.info('setup: got TUN fd=$tunFd from VPN service');
+      }
+    }
+    if (tunEnabled && !system.isAndroid) {
+      _logger.info('setup: TUN mode enabled for desktop (${Platform.operatingSystem})');
+    }
+
     // Start leaf with the subscription YAML
     if (_leafController == null) {
       throw StateError('LeafController not initialized');
@@ -755,6 +776,8 @@ extension SetupControllerExt on AppController {
       await _leafController!.startWithClashYaml(
         yamlContent,
         mixedPort: mixedPort,
+        tunFd: tunFd,
+        tunEnabled: tunEnabled,
       );
     } catch (e) {
       _logger.error('setup: leaf start failed', e);

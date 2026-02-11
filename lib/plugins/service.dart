@@ -73,6 +73,23 @@ class Service {
     return DateTime.fromMillisecondsSinceEpoch(ms);
   }
 
+  /// Get the TUN file descriptor from the VPN service (remote process).
+  /// Returns null if VPN is not running or fd is not available.
+  Future<int?> getTunFd() async {
+    return await methodChannel.invokeMethod<int>('getTunFd');
+  }
+
+  /// Enable socket protection for TUN mode.
+  /// Must be called before starting leaf with a TUN fd.
+  Future<void> enableSocketProtection() async {
+    await methodChannel.invokeMethod<void>('enableSocketProtection');
+  }
+
+  /// Disable socket protection when TUN mode is stopped.
+  Future<void> disableSocketProtection() async {
+    await methodChannel.invokeMethod<void>('disableSocketProtection');
+  }
+
   bool get hasListeners {
     return _listeners.isNotEmpty;
   }

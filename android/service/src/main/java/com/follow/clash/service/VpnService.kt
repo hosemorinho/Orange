@@ -7,6 +7,7 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.os.Parcel
+import android.os.ParcelFileDescriptor
 import android.os.RemoteException
 import android.util.Log
 import androidx.core.content.getSystemService
@@ -125,7 +126,7 @@ class VpnService : SystemVpnService(), IBaseService,
     }
 
     private fun handleStart(options: VpnOptions) {
-        val fd = with(Builder()) {
+        val pfd = with(Builder()) {
             val cidr = IPV4_ADDRESS.toCIDR()
             addAddress(cidr.address, cidr.prefixLength)
             Log.d(
@@ -218,12 +219,13 @@ class VpnService : SystemVpnService(), IBaseService,
                     )
                 )
             }
-            establish()?.detachFd()
+            establish()
                 ?: throw NullPointerException("Establish VPN rejected by system")
         }
-        // Store the TUN fd so the Dart side can retrieve it via MethodChannel.
-        // Socket protection and leaf lifecycle are managed from the :app module.
-        State.tunFd = fd
+        // Keep the PFD so it can be dup'd and sent to the :app process via AIDL.
+        // The raw fd is also stored for backward compatibility.
+        State.tunPfd = pfd
+        State.tunFd = pfd.fd
         State.vpnService = this
     }
 
@@ -240,6 +242,8 @@ class VpnService : SystemVpnService(), IBaseService,
 
     override fun stop() {
         loader.cancel()
+        State.tunPfd?.close()
+        State.tunPfd = null
         State.tunFd = null
         State.vpnService = null
         stopSelf()

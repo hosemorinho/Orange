@@ -61,6 +61,20 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             handleStop(result)
         }
 
+        "getTunFd" -> {
+            handleGetTunFd(result)
+        }
+
+        "enableSocketProtection" -> {
+            com.follow.clash.core.LeafBridge.enableProtection()
+            result.success(null)
+        }
+
+        "disableSocketProtection" -> {
+            com.follow.clash.core.LeafBridge.disableProtection()
+            result.success(null)
+        }
+
         else -> {
             result.notImplemented()
         }
@@ -134,6 +148,17 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         launch {
             State.handleSyncState()
             result.success(State.runTime)
+        }
+    }
+
+    private fun handleGetTunFd(result: MethodChannel.Result) {
+        launch {
+            try {
+                val fd = Service.getTunFd()
+                result.success(fd)
+            } catch (e: Exception) {
+                result.success(null)
+            }
         }
     }
 }

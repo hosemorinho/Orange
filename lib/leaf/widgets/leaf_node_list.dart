@@ -142,12 +142,10 @@ class _LeafNodeListViewState extends ConsumerState<LeafNodeListView> {
 
   Future<void> _testNodeDelay(LeafNode node) async {
     final controller = ref.read(leafControllerProvider);
-    final result = await controller.healthCheck(node.tag);
-    if (result != null) {
-      final delays = Map<String, int?>.from(ref.read(nodeDelaysProvider));
-      delays[node.tag] = result.tcpMs > 0 ? result.tcpMs : null;
-      ref.read(nodeDelaysProvider.notifier).state = delays;
-    }
+    final result = await controller.tcpPing(node);
+    final delays = Map<String, int?>.from(ref.read(nodeDelaysProvider));
+    delays[node.tag] = result;
+    ref.read(nodeDelaysProvider.notifier).state = delays;
   }
 }
 

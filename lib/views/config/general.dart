@@ -1,5 +1,6 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
@@ -153,13 +154,15 @@ class PortItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final mixedPort = ref.watch(
+    final configPort = ref.watch(
       patchClashConfigProvider.select((state) => state.mixedPort),
     );
+    final activePort = ref.watch(activePortProvider);
+    final displayPort = activePort ?? configPort;
     return ListItem(
       leading: const Icon(Icons.adjust_outlined),
       title: Text(appLocalizations.port),
-      subtitle: Text('$mixedPort'),
+      subtitle: Text('$displayPort'),
       onTap: () {
         handleShowPortDialog();
       },

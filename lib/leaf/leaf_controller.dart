@@ -209,6 +209,37 @@ class LeafController {
   }
 
   // ---------------------------------------------------------------------------
+  // TCP Ping (Dart-layer latency test — works with any proxy server)
+  // ---------------------------------------------------------------------------
+
+  /// TCP connect test — measures handshake latency to the proxy server directly.
+  /// Does not require leaf to be running; tests raw network reachability.
+  Future<int?> tcpPing(LeafNode node, {int timeoutMs = 3000}) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final socket = await Socket.connect(
+        node.server,
+        node.port,
+        timeout: Duration(milliseconds: timeoutMs),
+      );
+      stopwatch.stop();
+      await socket.close();
+      return stopwatch.elapsedMilliseconds;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// TCP ping all nodes. Returns a map of tag → latency ms (null = failed).
+  Future<Map<String, int?>> tcpPingAll({int timeoutMs = 3000}) async {
+    final results = <String, int?>{};
+    for (final node in _nodes) {
+      results[node.tag] = await tcpPing(node, timeoutMs: timeoutMs);
+    }
+    return results;
+  }
+
+  // ---------------------------------------------------------------------------
   // Stats (via FFI)
   // ---------------------------------------------------------------------------
 

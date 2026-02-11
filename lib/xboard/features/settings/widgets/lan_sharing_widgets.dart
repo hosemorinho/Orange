@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fl_clash/common/utils.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,9 +47,11 @@ class LanPortCard extends ConsumerWidget {
     final allowLan = ref.watch(
       patchClashConfigProvider.select((state) => state.allowLan),
     );
-    final mixedPort = ref.watch(
+    final configPort = ref.watch(
       patchClashConfigProvider.select((state) => state.mixedPort),
     );
+    final activePort = ref.watch(activePortProvider);
+    final displayPort = activePort ?? configPort;
 
     return ListTile(
       enabled: allowLan,
@@ -60,10 +63,10 @@ class LanPortCard extends ConsumerWidget {
             : theme.colorScheme.onSurfaceVariant,
       ),
       title: Text(appLocalizations.xboardProxyPort),
-      subtitle: Text('$mixedPort'),
+      subtitle: Text('$displayPort'),
       trailing: const Icon(Icons.edit),
       onTap: allowLan
-          ? () => _showPortDialog(context, ref, mixedPort)
+          ? () => _showPortDialog(context, ref, configPort)
           : null,
     );
   }
@@ -149,9 +152,11 @@ class _LanInfoCardState extends ConsumerState<LanInfoCard> {
     final allowLan = ref.watch(
       patchClashConfigProvider.select((state) => state.allowLan),
     );
-    final mixedPort = ref.watch(
+    final configPort = ref.watch(
       patchClashConfigProvider.select((state) => state.mixedPort),
     );
+    final activePort = ref.watch(activePortProvider);
+    final mixedPort = activePort ?? configPort;
 
     if (!allowLan) return const SizedBox.shrink();
 

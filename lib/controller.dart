@@ -46,6 +46,10 @@ class AppController {
   LeafController? _leafController;
   bool _leafInitialized = false;
 
+  /// The actual port the proxy is listening on (may differ from config after fallback).
+  int? _activePort;
+  int? get activePort => _activePort;
+
   static AppController? _instance;
 
   AppController._internal();
@@ -789,6 +793,10 @@ extension SetupControllerExt on AppController {
     _ref.read(leafNodesProvider.notifier).state = _leafController!.nodes;
     _ref.read(selectedNodeTagProvider.notifier).state =
         _leafController!.getSelectedNode();
+
+    // Track the actual port the proxy is running on (may differ from config)
+    _activePort = mixedPort;
+    _ref.read(activePortProvider.notifier).state = mixedPort;
 
     addCheckIp();
     _lastSetupTime = DateTime.now(); // Only throttle after successful completion

@@ -13,7 +13,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'generated/leaf_providers.g.dart';
 
 /// Singleton LeafController provider.
-@riverpod
+@Riverpod(keepAlive: true)
 LeafController leafController(Ref ref) {
   return LeafController();
 }
@@ -44,6 +44,13 @@ class LeafNodes extends _$LeafNodes {
 class NodeDelays extends _$NodeDelays {
   @override
   Map<String, int?> build() => {};
+}
+
+/// The actual port the proxy is listening on (may differ from config after fallback).
+@Riverpod(keepAlive: true)
+class ActivePort extends _$ActivePort {
+  @override
+  int? build() => null;
 }
 
 /// Traffic stats: periodic polling of leaf connection stats.
@@ -116,9 +123,9 @@ Future<void> selectLeafNode(WidgetRef ref, String nodeTag) async {
   ref.read(selectedNodeTagProvider.notifier).state = nodeTag;
 }
 
-/// Helper to run health checks on all nodes.
+/// Helper to run health checks (TCP ping) on all nodes.
 Future<void> runHealthChecks(WidgetRef ref) async {
   final controller = ref.read(leafControllerProvider);
-  final results = await controller.healthCheckAll();
+  final results = await controller.tcpPingAll();
   ref.read(nodeDelaysProvider.notifier).state = results;
 }

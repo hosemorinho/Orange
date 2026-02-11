@@ -316,12 +316,12 @@ class _LeafConnectionStatusCardState
 
   Future<void> _testNodeDelay(String tag) async {
     final controller = ref.read(leafControllerProvider);
-    final result = await controller.healthCheck(tag);
-    if (result != null) {
-      final delays = Map<String, int?>.from(ref.read(nodeDelaysProvider));
-      delays[tag] = result.tcpMs > 0 ? result.tcpMs : null;
-      ref.read(nodeDelaysProvider.notifier).state = delays;
-    }
+    final node = controller.nodes.where((n) => n.tag == tag).firstOrNull;
+    if (node == null) return;
+    final result = await controller.tcpPing(node);
+    final delays = Map<String, int?>.from(ref.read(nodeDelaysProvider));
+    delays[tag] = result;
+    ref.read(nodeDelaysProvider.notifier).state = delays;
   }
 
   Widget _buildEmptyState(BuildContext context) {

@@ -268,9 +268,10 @@ class Build {
   }
 
   static Future<void> buildHelper(Target target, String token) async {
+    final serviceName = '${appName}HelperService';
     await exec(
       ['cargo', 'build', '--release', '--features', 'windows-service'],
-      environment: {'TOKEN': token},
+      environment: {'TOKEN': token, 'SERVICE_NAME': serviceName},
       name: 'build helper',
       workingDirectory: _servicesDir,
     );

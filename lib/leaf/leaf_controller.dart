@@ -56,7 +56,20 @@ class LeafController {
 
     // Parse Clash YAML proxies
     final proxies = _parseClashProxies(yamlContent);
+    if (proxies.isEmpty) {
+      print('[LeafController] WARNING: parsed 0 proxies from YAML (${yamlContent.length} bytes). '
+          'First 200 chars: ${yamlContent.substring(0, yamlContent.length.clamp(0, 200))}');
+    } else {
+      // Log protocol distribution for debugging
+      final typeCounts = <String, int>{};
+      for (final p in proxies) {
+        final t = (p['type'] as String? ?? 'unknown').toLowerCase();
+        typeCounts[t] = (typeCounts[t] ?? 0) + 1;
+      }
+      print('[LeafController] parsed ${proxies.length} proxies: $typeCounts');
+    }
     _nodes = _extractNodes(proxies);
+    print('[LeafController] supported nodes: ${_nodes.length} / ${proxies.length} total proxies');
 
     // Build leaf config
     final config = ConfigWriter.build(

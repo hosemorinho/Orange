@@ -700,7 +700,14 @@ extension SetupControllerExt on AppController {
     }
 
     // Read YAML content from profile file
-    final yamlContent = await _getProfileYaml(profile!);
+    String? yamlContent;
+    try {
+      yamlContent = await _getProfileYaml(profile!);
+    } catch (e) {
+      commonPrint.log('setup: failed to read/decrypt YAML for profile ${profile.id}: $e',
+          logLevel: LogLevel.warning);
+      return;
+    }
     if (yamlContent == null || yamlContent.isEmpty) {
       commonPrint.log('setup: empty YAML for profile ${profile.id}');
       return;
@@ -740,11 +747,17 @@ extension SetupControllerExt on AppController {
     if (_leafController!.isRunning) {
       await _leafController!.stop();
     }
-    await _leafController!.startWithClashYaml(
-      yamlContent,
-      httpPort: httpPort,
-      socksPort: socksPort,
-    );
+    commonPrint.log('setup: starting leaf with YAML (${yamlContent.length} bytes)');
+    try {
+      await _leafController!.startWithClashYaml(
+        yamlContent,
+        httpPort: httpPort,
+        socksPort: socksPort,
+      );
+    } catch (e) {
+      commonPrint.log('setup: leaf start failed: $e', logLevel: LogLevel.warning);
+      return;
+    }
 
     // Update leaf providers
     _ref.read(isLeafRunningProvider.notifier).state = true;

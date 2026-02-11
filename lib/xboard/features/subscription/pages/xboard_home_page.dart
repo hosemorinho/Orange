@@ -12,7 +12,8 @@ import 'package:fl_clash/xboard/features/notice/notice.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_status_checker.dart';
 import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
 
-import '../widgets/vpn_hero_card.dart';
+import 'package:fl_clash/leaf/widgets/leaf_vpn_hero_card.dart';
+import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import '../widgets/quick_actions_card.dart';
 import '../widgets/traffic_history_card.dart';
 class XBoardHomePage extends ConsumerStatefulWidget {
@@ -59,7 +60,7 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         final actuallyRan = next.lastResult != null;
         if (actuallyRan) {
           _hasCheckedSubscriptionStatus = true;
-          // 等待 Clash 核心解析完 profile（groups 非空）后再检查订阅状态，
+          // 等待 Leaf 引擎解析完 profile（nodes 非空）后再检查订阅状态，
           // 否则 profileSubscriptionInfo 可能还是 null，会误判为"无订阅"
           _waitForGroupsThenCheckStatus();
         }
@@ -162,7 +163,7 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                         // VPN Hero Card (connection + subscription + mode controls)
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                          child: const VpnHeroCard(),
+                          child: const LeafVpnHeroCard(),
                         ),
                         SizedBox(height: sectionSpacing),
                         // Quick actions
@@ -220,15 +221,15 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
     );
   }
 
-  /// 等待 Clash 核心解析完成（groups 非空）后再检查订阅状态
+  /// 等待 Leaf 引擎解析完成（nodes 非空）后再检查订阅状态
   /// 避免 profileSubscriptionInfo 还是 null 时误判为"无订阅"
   void _waitForGroupsThenCheckStatus() async {
-    // 等待 groups 非空（Clash 核心解析完 YAML），最多等 15 秒
+    // 等待 leafNodes 非空（Leaf 引擎解析完 YAML），最多等 15 秒
     for (int i = 0; i < 30; i++) {
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
-      final groups = ref.read(groupsProvider);
-      if (groups.isNotEmpty) break;
+      final nodes = ref.read(leafNodesProvider);
+      if (nodes.isNotEmpty) break;
     }
     if (mounted) {
       subscriptionStatusChecker.checkSubscriptionStatusOnStartup(context, ref);
@@ -260,7 +261,7 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
     if (_hasCheckedSubscriptionStatus) return;
     _hasCheckedSubscriptionStatus = true;
     if (mounted) {
-      // 同样等待 groups 加载完成后再检查
+      // 同样等待 leaf nodes 加载完成后再检查
       _waitForGroupsThenCheckStatus();
     }
   }

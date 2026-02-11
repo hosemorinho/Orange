@@ -296,6 +296,7 @@ class LeafRouter {
 
 class LeafRule {
   final String target;
+  final String? type;
   final List<String>? ip;
   final List<String>? domain;
   final List<String>? domainKeyword;
@@ -306,6 +307,7 @@ class LeafRule {
 
   const LeafRule({
     required this.target,
+    this.type,
     this.ip,
     this.domain,
     this.domainKeyword,
@@ -315,8 +317,20 @@ class LeafRule {
     this.portRange,
   });
 
+  /// FINAL rule — makes the target outbound the default handler.
+  const LeafRule.final_({required this.target})
+      : type = 'FINAL',
+        ip = null,
+        domain = null,
+        domainKeyword = null,
+        domainSuffix = null,
+        network = null,
+        inboundTag = null,
+        portRange = null;
+
   Map<String, dynamic> toJson() => {
         'target': target,
+        if (type != null) 'type': type,
         if (ip != null) 'ip': ip,
         if (domain != null) 'domain': domain,
         if (domainKeyword != null) 'domainKeyword': domainKeyword,

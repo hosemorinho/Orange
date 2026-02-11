@@ -55,10 +55,12 @@ class ConfigWriter {
         ),
     ];
 
-    // Router: route all traffic through the selector
+    // Router: FINAL rule makes the selector the default outbound,
+    // so all traffic goes through the proxy instead of direct.
     final router = LeafRouter(
       rules: [
-        if (converted.nodeTags.isNotEmpty) LeafRule(target: selectorTag),
+        if (converted.nodeTags.isNotEmpty)
+          LeafRule.final_(target: selectorTag),
       ],
       domainResolve: true,
     );

@@ -28,9 +28,8 @@ class LeafController {
   /// Nodes extracted from the last loaded Clash YAML.
   List<LeafNode> _nodes = [];
 
-  /// Ports used for local proxy.
-  int _httpPort = 7890;
-  int _socksPort = 7891;
+  /// Port used for local mixed (HTTP+SOCKS5) proxy.
+  int _mixedPort = 7890;
 
   LeafController() : _ffi = LeafFfi.open();
 
@@ -51,11 +50,9 @@ class LeafController {
   Future<void> startWithClashYaml(
     String yamlContent, {
     int? tunFd,
-    int httpPort = 7890,
-    int socksPort = 7891,
+    int mixedPort = 7890,
   }) async {
-    _httpPort = httpPort;
-    _socksPort = socksPort;
+    _mixedPort = mixedPort;
 
     // Parse Clash YAML proxies
     final proxies = _parseClashProxies(yamlContent);
@@ -77,8 +74,7 @@ class LeafController {
     // Build leaf config
     final config = ConfigWriter.build(
       proxies: proxies,
-      httpPort: _httpPort,
-      socksPort: _socksPort,
+      mixedPort: _mixedPort,
       tunFd: tunFd,
     );
 
@@ -130,8 +126,7 @@ class LeafController {
 
   bool get isRunning => _instance != null;
 
-  int get httpPort => _httpPort;
-  int get socksPort => _socksPort;
+  int get mixedPort => _mixedPort;
 
   /// The list of proxy nodes from the current subscription.
   List<LeafNode> get nodes => List.unmodifiable(_nodes);

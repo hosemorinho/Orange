@@ -716,18 +716,16 @@ extension SetupControllerExt on AppController {
       return;
     }
 
-    // Port configuration
+    // Port configuration — single mixed port for HTTP+SOCKS5
     final patchConfig = _ref.read(patchClashConfigProvider);
-    var httpPort = patchConfig.mixedPort;
-    var socksPort = httpPort + 1;
+    var mixedPort = patchConfig.mixedPort;
 
-    if (!system.isAndroid && !await isPortAvailable(httpPort)) {
-      final newPort = await findAvailablePort(httpPort);
-      _logger.warning('Port $httpPort is occupied, using $newPort');
-      httpPort = newPort;
-      socksPort = newPort + 1;
+    if (!system.isAndroid && !await isPortAvailable(mixedPort)) {
+      final newPort = await findAvailablePort(mixedPort);
+      _logger.warning('Port $mixedPort is occupied, using $newPort');
+      mixedPort = newPort;
       _ref.read(patchClashConfigProvider.notifier).value =
-          patchConfig.copyWith(mixedPort: httpPort);
+          patchConfig.copyWith(mixedPort: mixedPort);
     }
 
     // Save setup state
@@ -747,12 +745,11 @@ extension SetupControllerExt on AppController {
     if (_leafController!.isRunning) {
       await _leafController!.stop();
     }
-    _logger.info('setup: starting leaf with YAML (${yamlContent.length} bytes)');
+    _logger.info('setup: starting leaf on mixed port $mixedPort with YAML (${yamlContent.length} bytes)');
     try {
       await _leafController!.startWithClashYaml(
         yamlContent,
-        httpPort: httpPort,
-        socksPort: socksPort,
+        mixedPort: mixedPort,
       );
     } catch (e) {
       _logger.error('setup: leaf start failed', e);

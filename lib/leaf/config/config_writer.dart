@@ -19,18 +19,16 @@ class ConfigWriter {
   /// Build a leaf config from Clash proxy entries.
   static LeafConfig build({
     required List<Map<String, dynamic>> proxies,
-    required int httpPort,
-    required int socksPort,
+    required int mixedPort,
     int? tunFd,
     String logLevel = 'warn',
   }) {
     // Convert Clash proxies to leaf outbounds
     final converted = ClashProxyConverter.convertAll(proxies);
 
-    // Assemble inbounds
+    // Assemble inbounds — single mixed port handles both HTTP and SOCKS5
     final inbounds = <LeafInbound>[
-      LeafInbound.http(port: httpPort),
-      LeafInbound.socks(port: socksPort),
+      LeafInbound.mixed(port: mixedPort),
       if (tunFd != null) LeafInbound.tun(fd: tunFd),
     ];
 

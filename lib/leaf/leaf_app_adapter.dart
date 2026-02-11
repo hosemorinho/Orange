@@ -44,8 +44,7 @@ class LeafAppAdapter {
     bool isStart, {
     String? yamlContent,
     int? tunFd,
-    int httpPort = 7890,
-    int socksPort = 7891,
+    int mixedPort = 7890,
   }) async {
     if (isStart) {
       if (yamlContent == null) {
@@ -54,8 +53,7 @@ class LeafAppAdapter {
       await controller.startWithClashYaml(
         yamlContent,
         tunFd: tunFd,
-        httpPort: httpPort,
-        socksPort: socksPort,
+        mixedPort: mixedPort,
       );
       _startTrafficPolling();
     } else {

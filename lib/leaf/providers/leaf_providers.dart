@@ -60,8 +60,7 @@ Future<void> startLeaf(
   WidgetRef ref, {
   String? yamlContent,
   int? tunFd,
-  int httpPort = 7890,
-  int socksPort = 7891,
+  int mixedPort = 7890,
 }) async {
   final controller = ref.read(leafControllerProvider);
 
@@ -85,8 +84,7 @@ Future<void> startLeaf(
   await controller.startWithClashYaml(
     yamlContent,
     tunFd: tunFd,
-    httpPort: httpPort,
-    socksPort: socksPort,
+    mixedPort: mixedPort,
   );
   ref.read(isLeafRunningProvider.notifier).state = true;
   ref.read(leafNodesProvider.notifier).state = controller.nodes;

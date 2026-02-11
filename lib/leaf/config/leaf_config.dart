@@ -98,6 +98,16 @@ class LeafInbound {
         protocol: 'socks',
       );
 
+  /// Mixed HTTP+SOCKS5 inbound on a single port.
+  /// Leaf detects the protocol by peeking the first byte:
+  /// 0x05 → SOCKS5, otherwise → HTTP.
+  factory LeafInbound.mixed({required int port, String? tag}) => LeafInbound(
+        tag: tag ?? 'mixed_in',
+        address: '127.0.0.1',
+        port: port,
+        protocol: 'http+socks',
+      );
+
   /// TUN inbound (Android VPN fd).
   factory LeafInbound.tun({required int fd, int mtu = 1500, String? tag}) =>
       LeafInbound(

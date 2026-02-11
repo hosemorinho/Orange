@@ -7,7 +7,7 @@ import 'package:fl_clash/leaf/config/leaf_config.dart';
 import 'package:fl_clash/leaf/ffi/leaf_errors.dart';
 import 'package:fl_clash/leaf/ffi/leaf_ffi.dart';
 import 'package:fl_clash/leaf/models/leaf_node.dart';
-import 'package:fl_clash/xboard/core/core.dart';  // FileLogger
+import 'package:fl_clash/xboard/core/logger/file_logger.dart';
 import 'package:yaml/yaml.dart';
 
 final _logger = FileLogger('leaf_controller.dart');

@@ -10,6 +10,7 @@ import 'package:fl_clash/leaf/widgets/leaf_node_list.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/widgets/tab.dart';
 import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/xboard/domain/models/models.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
@@ -23,7 +24,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Leaf VPN hero card — replaces the Clash-based VpnHeroCard.
 ///
 /// Shows connection state, selected node, subscription usage, and controls.
-/// No mode selector (leaf has no Rule/Global/Direct modes).
+/// Includes a Rule/Global mode selector for GeoIP-based routing.
 class LeafVpnHeroCard extends ConsumerStatefulWidget {
   const LeafVpnHeroCard({super.key});
 
@@ -314,6 +315,10 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
 
     return Column(
       children: [
+        // Mode selector
+        _buildModeSelector(context),
+        const SizedBox(height: 10),
+
         // Status text
         Text(
           _isStart
@@ -528,6 +533,8 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
                       ),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  _buildModeSelector(context),
                 ],
               ),
             ),
@@ -627,6 +634,68 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
   }
 
   // --- Shared sub-widgets ---
+
+  Widget _buildModeSelector(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Consumer(
+      builder: (context, ref, _) {
+        final mode = ref.watch(
+          patchClashConfigProvider.select((state) => state.mode),
+        );
+        final thumbColor = switch (mode) {
+          Mode.rule => colorScheme.secondaryContainer,
+          Mode.global => colorScheme.primaryContainer,
+          Mode.direct => colorScheme.primaryContainer,
+        };
+
+        return CommonTabBar<Mode>(
+          children: {
+            Mode.rule: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.alt_route, size: 14),
+                  const SizedBox(width: 4),
+                  Text(
+                    Mode.rule.name,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Mode.global: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.public, size: 14),
+                  const SizedBox(width: 4),
+                  Text(
+                    Mode.global.name,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          },
+          groupValue: mode == Mode.direct ? Mode.global : mode,
+          onValueChanged: (value) {
+            if (value != null) appController.changeMode(value);
+          },
+          thumbColor: thumbColor,
+          backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        );
+      },
+    );
+  }
 
   Widget _buildNodePill(
       String nodeName, int? delayMs, ColorScheme colorScheme, ThemeData theme) {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/leaf/config/clash_proxy_converter.dart';
 import 'package:fl_clash/leaf/config/config_writer.dart';
 import 'package:fl_clash/leaf/config/leaf_config.dart';
@@ -23,6 +24,7 @@ class LeafController {
   LeafInstance? _instance;
 
   String? _homeDir;
+  String? get homeDir => _homeDir;
   String? _configPath;
 
   /// Nodes extracted from the last loaded Clash YAML.
@@ -48,11 +50,15 @@ class LeafController {
   /// [yamlContent] is the raw Clash YAML string from V2Board.
   /// [tunFd] is the Android VPN TUN file descriptor (null on desktop).
   /// [tunEnabled] enables TUN/NF inbound on desktop platforms.
+  /// [mode] controls routing: global (all proxy), rule (CN direct), direct.
+  /// [mmdbPath] is required for rule mode — absolute path to Country.mmdb.
   Future<void> startWithClashYaml(
     String yamlContent, {
     int? tunFd,
     bool tunEnabled = false,
     int mixedPort = 7890,
+    Mode mode = Mode.global,
+    String? mmdbPath,
   }) async {
     _mixedPort = mixedPort;
 
@@ -71,7 +77,7 @@ class LeafController {
       _logger.info('parsed ${proxies.length} proxies: $typeCounts');
     }
     _nodes = _extractNodes(proxies);
-    _logger.info('supported nodes: ${_nodes.length} / ${proxies.length} total proxies');
+    _logger.info('supported nodes: ${_nodes.length} / ${proxies.length} total proxies, mode: ${mode.name}');
 
     // Build leaf config
     final config = ConfigWriter.build(
@@ -79,6 +85,8 @@ class LeafController {
       mixedPort: _mixedPort,
       tunFd: tunFd,
       tunEnabled: tunEnabled,
+      mode: mode,
+      mmdbPath: mmdbPath,
     );
 
     await _startWithConfig(config);

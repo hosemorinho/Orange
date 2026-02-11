@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
+import 'package:fl_clash/leaf/providers/leaf_providers.dart';
+import 'package:fl_clash/leaf/services/mmdb_manager.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/state.dart';
@@ -28,11 +30,9 @@ class ResourcesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Leaf mode: only Country.mmdb is needed for rule-based routing
     const geoItems = <GeoItem>[
-      GeoItem(label: 'GEOIP', fileName: GEOIP, key: 'geoip'),
-      GeoItem(label: 'GEOSITE', fileName: GEOSITE, key: 'geosite'),
-      GeoItem(label: 'MMDB', fileName: MMDB, key: 'mmdb'),
-      GeoItem(label: 'ASN', fileName: ASN, key: 'asn'),
+      GeoItem(label: 'Country MMDB', fileName: 'Country.mmdb', key: 'country'),
     ];
 
     return CommonScaffold(
@@ -94,92 +94,80 @@ class _GeoDataListItemState extends State<GeoDataListItem> {
   }
 
   Future<FileInfo> _getGeoFileLastModified(String fileName) async {
-    final homePath = await appPath.homeDirPath;
+    // For leaf, Country.mmdb is in the leaf home directory
+    String homePath;
+    if (fileName == 'Country.mmdb') {
+      homePath = Platform.isAndroid
+          ? await appPath.homeDirPath
+          : '${Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.'}${Platform.pathSeparator}.config${Platform.pathSeparator}orange${Platform.pathSeparator}leaf';
+    } else {
+      homePath = await appPath.homeDirPath;
+    }
     final file = File(join(homePath, fileName));
+    if (!await file.exists()) {
+      return FileInfo(size: 0, lastModified: DateTime.now());
+    }
     final lastModified = await file.lastModified();
     final size = await file.length();
     return FileInfo(size: size, lastModified: lastModified);
   }
 
   Widget _buildSubtitle() {
-    return Consumer(
-      builder: (_, ref, _) {
-        final url = ref.watch(
-          patchClashConfigProvider.select(
-            (state) => state.geoXUrl.toJson()[geoItem.key],
-          ),
-        );
-        if (url == null) {
-          return SizedBox();
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 6),
-            FutureBuilder<FileInfo>(
-              future: _getGeoFileLastModified(geoItem.fileName),
-              builder: (_, snapshot) {
-                final height = globalState.measure.bodyMediumHeight;
-                return SizedBox(
-                  height: height,
-                  child: snapshot.data == null
-                      ? SizedBox(width: height, height: height)
-                      : Text(
-                          snapshot.data!.desc,
-                          style: context.textTheme.bodyMedium,
-                        ),
-                );
-              },
-            ),
-            const SizedBox(height: 4),
-            Text(url, style: context.textTheme.bodyMedium?.toLight),
-            const SizedBox(height: 12),
-            Wrap(
-              runSpacing: 6,
-              spacing: 12,
-              runAlignment: WrapAlignment.center,
-              children: [
-                CommonChip(
-                  avatar: const Icon(Icons.edit),
-                  label: appLocalizations.edit,
-                  onPressed: () {
-                    _updateUrl(url, ref);
-                  },
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      child: ValueListenableBuilder(
-                        valueListenable: isUpdating,
-                        builder: (_, isUpdating, _) {
-                          return isUpdating
-                              ? SizedBox(
-                                  height: 30,
-                                  width: 30,
-                                  child: const Padding(
-                                    padding: EdgeInsets.all(2),
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                )
-                              : CommonChip(
-                                  avatar: const Icon(Icons.sync),
-                                  label: appLocalizations.sync,
-                                  onPressed: () {
-                                    _handleUpdateGeoDataItem();
-                                  },
-                                );
-                        },
-                      ),
+    // For leaf, Country.mmdb has a fixed source URL (no editing needed)
+    const url = 'https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 6),
+        FutureBuilder<FileInfo>(
+          future: _getGeoFileLastModified(geoItem.fileName),
+          builder: (_, snapshot) {
+            final height = globalState.measure.bodyMediumHeight;
+            return SizedBox(
+              height: height,
+              child: snapshot.data == null
+                  ? SizedBox(width: height, height: height)
+                  : Text(
+                      snapshot.data!.desc,
+                      style: context.textTheme.bodyMedium,
                     ),
-                  ],
-                ),
-              ],
+            );
+          },
+        ),
+        const SizedBox(height: 4),
+        Text(url, style: context.textTheme.bodyMedium?.toLight),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              child: ValueListenableBuilder(
+                valueListenable: isUpdating,
+                builder: (_, isUpdating, _) {
+                  return isUpdating
+                      ? SizedBox(
+                          height: 30,
+                          width: 30,
+                          child: const Padding(
+                            padding: EdgeInsets.all(2),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      : CommonChip(
+                          avatar: const Icon(Icons.sync),
+                          label: appLocalizations.sync,
+                          onPressed: () {
+                            _handleUpdateGeoDataItem();
+                          },
+                        );
+                },
+              ),
             ),
-            const SizedBox(height: 6),
           ],
-        );
-      },
+        ),
+        const SizedBox(height: 6),
+      ],
     );
   }
 
@@ -195,8 +183,15 @@ class _GeoDataListItemState extends State<GeoDataListItem> {
   Future<void> updateGeoDateItem() async {
     isUpdating.value = true;
     try {
-      // Leaf does not use GeoIP/GeoSite data files.
-      throw 'GeoData updates are not supported in leaf mode';
+      if (geoItem.fileName == 'Country.mmdb') {
+        // Download Country.mmdb for leaf rule mode
+        final homePath = Platform.isAndroid
+            ? await appPath.homeDirPath
+            : '${Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.'}${Platform.pathSeparator}.config${Platform.pathSeparator}orange${Platform.pathSeparator}leaf';
+        await MmdbManager.download(homePath);
+      } else {
+        throw 'Unknown resource: ${geoItem.fileName}';
+      }
     } catch (e) {
       isUpdating.value = false;
       rethrow;

@@ -304,6 +304,7 @@ class LeafRule {
   final List<String>? network;
   final List<String>? inboundTag;
   final List<String>? portRange;
+  final List<String>? external;
 
   const LeafRule({
     required this.target,
@@ -315,6 +316,7 @@ class LeafRule {
     this.network,
     this.inboundTag,
     this.portRange,
+    this.external,
   });
 
   /// FINAL rule — makes the target outbound the default handler.
@@ -326,7 +328,8 @@ class LeafRule {
         domainSuffix = null,
         network = null,
         inboundTag = null,
-        portRange = null;
+        portRange = null,
+        external = null;
 
   Map<String, dynamic> toJson() => {
         'target': target,
@@ -338,5 +341,6 @@ class LeafRule {
         if (network != null) 'network': network,
         if (inboundTag != null) 'inboundTag': inboundTag,
         if (portRange != null) 'portRange': portRange,
+        if (external != null) 'external': external,
       };
 }

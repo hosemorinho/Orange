@@ -10,6 +10,7 @@ import 'package:fl_clash/plugins/service.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/dialog.dart';
+import 'package:fl_clash/leaf/services/mmdb_manager.dart';
 import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:fl_clash/xboard/core/logger/file_logger.dart';
 import 'package:flutter/material.dart';
@@ -589,11 +590,14 @@ extension SetupControllerExt on AppController {
   }
 
   Future<void> changeMode(Mode mode) async {
-    // Leaf uses a single select outbound — no mode switching.
-    // Store the mode for UI state but don't change core behavior.
     _ref
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
+    // Routing rules are baked into the config at startup — changing mode
+    // requires regenerating the config and restarting leaf.
+    if (_leafController != null && _leafController!.isRunning) {
+      applyProfile(force: true);
+    }
     addCheckIp();
   }
 
@@ -774,6 +778,22 @@ extension SetupControllerExt on AppController {
       _logger.info('setup: TUN mode enabled for desktop (${Platform.operatingSystem})');
     }
 
+    // MMDB for rule mode
+    final mode = _ref.read(patchClashConfigProvider).mode;
+    String? mmdbPath;
+    if (mode == Mode.rule && _leafController != null) {
+      final homeDir = _leafController!.homeDir;
+      if (homeDir != null) {
+        try {
+          mmdbPath = await MmdbManager.ensureAvailable(homeDir);
+          _logger.info('setup: MMDB available at $mmdbPath');
+        } catch (e) {
+          _logger.warning('setup: MMDB unavailable, falling back to global mode: $e');
+          // Fall back to global if MMDB is not available
+        }
+      }
+    }
+
     // Start leaf with the subscription YAML
     if (_leafController == null) {
       throw StateError('LeafController not initialized');
@@ -781,13 +801,15 @@ extension SetupControllerExt on AppController {
     if (_leafController!.isRunning) {
       await _leafController!.stop();
     }
-    _logger.info('setup: starting leaf on mixed port $mixedPort with YAML (${yamlContent.length} bytes)');
+    _logger.info('setup: starting leaf on mixed port $mixedPort, mode=${mode.name}, with YAML (${yamlContent.length} bytes)');
     try {
       await _leafController!.startWithClashYaml(
         yamlContent,
         mixedPort: mixedPort,
         tunFd: tunFd,
         tunEnabled: tunEnabled,
+        mode: mode,
+        mmdbPath: mmdbPath,
       );
     } catch (e) {
       _logger.error('setup: leaf start failed', e);

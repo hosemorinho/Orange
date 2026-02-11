@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/xboard/core/logger/file_logger.dart';
 
 import 'clash_proxy_converter.dart';
@@ -12,7 +13,7 @@ final _logger = FileLogger('config_writer.dart');
 /// Generates:
 /// - Inbounds: HTTP + SOCKS (+ TUN on Android)
 /// - Outbounds: direct + all converted proxy nodes + select group
-/// - Router: route everything through the select group
+/// - Router: mode-aware routing rules
 /// - DNS: public servers
 class ConfigWriter {
   ConfigWriter._();
@@ -21,12 +22,21 @@ class ConfigWriter {
   static const String selectorTag = 'proxy';
 
   /// Build a leaf config from Clash proxy entries.
+  ///
+  /// [mode] controls routing behavior:
+  /// - [Mode.global]: all traffic through proxy (FINAL → proxy)
+  /// - [Mode.rule]: CN traffic direct, rest through proxy (requires [mmdbPath])
+  /// - [Mode.direct]: all traffic direct (FINAL → direct)
+  ///
+  /// [mmdbPath] is the absolute path to Country.mmdb, required for rule mode.
   static LeafConfig build({
     required List<Map<String, dynamic>> proxies,
     required int mixedPort,
     int? tunFd,
     bool tunEnabled = false,
     String logLevel = 'warn',
+    Mode mode = Mode.global,
+    String? mmdbPath,
   }) {
     // Convert Clash proxies to leaf outbounds
     final converted = ClashProxyConverter.convertAll(proxies);
@@ -55,13 +65,14 @@ class ConfigWriter {
         ),
     ];
 
-    // Router: FINAL rule makes the selector the default outbound,
-    // so all traffic goes through the proxy instead of direct.
+    // Router: mode-aware routing rules
+    final rules = _buildRules(
+      mode: mode,
+      mmdbPath: mmdbPath,
+      hasNodes: converted.nodeTags.isNotEmpty,
+    );
     final router = LeafRouter(
-      rules: [
-        if (converted.nodeTags.isNotEmpty)
-          LeafRule.final_(target: selectorTag),
-      ],
+      rules: rules,
       domainResolve: true,
     );
 
@@ -77,6 +88,32 @@ class ConfigWriter {
       router: router,
       dns: dns,
     );
+  }
+
+  /// Build routing rules based on the selected mode.
+  static List<LeafRule> _buildRules({
+    required Mode mode,
+    String? mmdbPath,
+    required bool hasNodes,
+  }) {
+    if (!hasNodes) return [];
+
+    return switch (mode) {
+      Mode.global => [
+        LeafRule.final_(target: selectorTag),
+      ],
+      Mode.rule => [
+        if (mmdbPath != null)
+          LeafRule(
+            target: 'direct',
+            external: ['mmdb:$mmdbPath:cn'],
+          ),
+        LeafRule.final_(target: selectorTag),
+      ],
+      Mode.direct => [
+        LeafRule.final_(target: 'direct'),
+      ],
+    };
   }
 
   static bool _isNfDriverAvailable() {

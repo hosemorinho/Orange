@@ -148,6 +148,58 @@ class Build {
     return sha256.convert(await stream.reduce((a, b) => a + b)).toString();
   }
 
+  /// Download Country.mmdb from Loyalsoldier GitHub releases for leaf rule mode.
+  ///
+  /// Saves to assets/data/Country.mmdb to be bundled with the app.
+  /// Skips download if file already exists and is less than 7 days old.
+  static Future<void> downloadCountryMmdb() async {
+    final assetsDir = Directory(join(current, 'assets', 'data'));
+    await assetsDir.create(recursive: true);
+
+    final mmdbPath = join(assetsDir.path, 'Country.mmdb');
+    final mmdbFile = File(mmdbPath);
+
+    // Skip if file exists and is recent (< 7 days old)
+    if (await mmdbFile.exists()) {
+      final stat = await mmdbFile.stat();
+      final age = DateTime.now().difference(stat.modified);
+      if (age.inDays < 7) {
+        print('Country.mmdb exists and is ${age.inDays} days old, skipping download');
+        return;
+      }
+    }
+
+    const url = 'https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb';
+    print('Downloading Country.mmdb from $url...');
+
+    try {
+      final httpClient = HttpClient();
+      final request = await httpClient.getUrl(Uri.parse(url));
+      final response = await request.close();
+
+      if (response.statusCode != 200) {
+        throw 'HTTP ${response.statusCode}: Failed to download Country.mmdb';
+      }
+
+      // Stream response to file
+      final sink = mmdbFile.openWrite();
+      var totalBytes = 0;
+      await for (final chunk in response) {
+        sink.add(chunk);
+        totalBytes += chunk.length;
+      }
+      await sink.close();
+
+      final sizeMb = (totalBytes / (1024 * 1024)).toStringAsFixed(2);
+      print('Downloaded Country.mmdb ($sizeMb MB) to ${assetsDir.path}');
+
+      httpClient.close();
+    } catch (e) {
+      print('Warning: Failed to download Country.mmdb: $e');
+      print('Build will continue with bundled version (if present)');
+    }
+  }
+
   /// Build the leaf-ffi Rust shared library for the given platform.
   static Future<List<String>> buildCore({
     required Target target,
@@ -636,6 +688,10 @@ class BuildCommand extends Command {
         Build.getExecutable('dart scripts/generate_icons.dart $appIconUrl'),
       );
     }
+
+    // Download Country.mmdb for leaf rule mode
+    print('Downloading Country.mmdb for leaf rule mode...');
+    await Build.downloadCountryMmdb();
 
     if (out != 'app') {
       return;

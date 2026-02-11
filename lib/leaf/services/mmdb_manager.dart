@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:fl_clash/xboard/core/logger/file_logger.dart';
 import 'package:flutter/services.dart';
 

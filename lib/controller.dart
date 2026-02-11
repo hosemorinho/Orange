@@ -689,14 +689,13 @@ extension SetupControllerExt on AppController {
   }
 
   Future<void> _setupConfig([VoidCallback? preloadInvoke]) async {
-    // Throttle: skip if setup ran less than 2 seconds ago
+    // Throttle: skip if setup completed less than 2 seconds ago
     final now = DateTime.now();
     if (_lastSetupTime != null &&
         now.difference(_lastSetupTime!).inSeconds < 2) {
       _logger.info('setup: throttled (last ran ${now.difference(_lastSetupTime!).inMilliseconds}ms ago)');
       return;
     }
-    _lastSetupTime = now;
 
     _logger.info('setup ===>');
     var profile = _ref.read(currentProfileProvider);
@@ -769,6 +768,7 @@ extension SetupControllerExt on AppController {
         _leafController!.getSelectedNode();
 
     addCheckIp();
+    _lastSetupTime = DateTime.now(); // Only throttle after successful completion
     _logger.info('setup complete: ${_leafController!.nodes.length} nodes');
   }
 }

@@ -6,6 +6,8 @@ import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/leaf/widgets/leaf_node_list.dart';
+import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/xboard/domain/models/models.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';

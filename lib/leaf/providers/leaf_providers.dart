@@ -17,35 +17,35 @@ LeafController leafController(Ref ref) {
 }
 
 /// Whether leaf is currently running.
-@riverpod
+@Riverpod(keepAlive: true)
 class IsLeafRunning extends _$IsLeafRunning {
   @override
   bool build() => false;
 }
 
 /// Currently selected node tag.
-@riverpod
+@Riverpod(keepAlive: true)
 class SelectedNodeTag extends _$SelectedNodeTag {
   @override
   String? build() => null;
 }
 
 /// List of proxy nodes from the current subscription.
-@riverpod
+@Riverpod(keepAlive: true)
 class LeafNodes extends _$LeafNodes {
   @override
   List<LeafNode> build() => [];
 }
 
 /// Node delays from health checks. Tag → TCP latency ms (null = untested).
-@riverpod
+@Riverpod(keepAlive: true)
 class NodeDelays extends _$NodeDelays {
   @override
   Map<String, int?> build() => {};
 }
 
 /// Traffic stats: periodic polling of leaf connection stats.
-@riverpod
+@Riverpod(keepAlive: true)
 class LeafTraffic extends _$LeafTraffic {
   @override
   ({int bytesSent, int bytesRecvd}) build() =>

@@ -135,7 +135,7 @@ jobs:
           - platform: android
             os: ubuntu-latest
           - platform: linux
-            os: ubuntu-22.04
+            os: ubuntu-latest
             arch: amd64
           - platform: windows
             os: windows-latest

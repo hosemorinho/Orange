@@ -265,6 +265,12 @@ class Build {
     final toolchainBin = _resolveNdkToolchainBin();
     print('NDK toolchain bin: $toolchainBin');
 
+    // Derive sysroot from toolchain bin path (bin is <ndk>/toolchains/llvm/prebuilt/<host>/bin)
+    final sysroot = Directory(join(toolchainBin, '..', 'sysroot'))
+        .resolveSymbolicLinksSync()
+        .replaceAll('\\', '/');
+    print('NDK sysroot: $sysroot');
+
     final configDir = Directory(join(_leafFfiDir, '.cargo'));
     await configDir.create(recursive: true);
 
@@ -292,6 +298,9 @@ CC_armv7-linux-androideabi = "$bin/armv7a-linux-androideabi$api-clang"
 AR_armv7-linux-androideabi = "$bin/llvm-ar"
 CC_x86_64-linux-android = "$bin/x86_64-linux-android$api-clang"
 AR_x86_64-linux-android = "$bin/llvm-ar"
+BINDGEN_EXTRA_CLANG_ARGS_aarch64_linux_android = "--sysroot=$sysroot"
+BINDGEN_EXTRA_CLANG_ARGS_armv7_linux_androideabi = "--sysroot=$sysroot"
+BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android = "--sysroot=$sysroot"
 ''';
 
     await File(configPath).writeAsString(config);

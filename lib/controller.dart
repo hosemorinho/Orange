@@ -520,11 +520,11 @@ extension SetupControllerExt on AppController {
         );
       }
     } else {
-      await _leafController?.stop();
-      _ref.read(isLeafRunningProvider.notifier).state = false;
       if (system.isAndroid) {
         await service?.disableSocketProtection();
       }
+      await _leafController?.stop();
+      _ref.read(isLeafRunningProvider.notifier).state = false;
       await globalState.handleStop();
       _ref.read(trafficsProvider.notifier).clear();
       _ref.read(totalTrafficProvider.notifier).value = Traffic();
@@ -829,6 +829,14 @@ extension CoreControllerExt on AppController {
     }
   }
 
+  /// Request admin authorization for TUN on desktop.
+  ///
+  /// Returns a [Result] indicating whether the caller should continue:
+  /// - [Result.success(true)]: authorized, caller should proceed with restart
+  /// - [Result.success(false)]: authorization failed or TUN disabled, caller
+  ///   should NOT proceed (state already rolled back)
+  /// - [Result.error]: restartCore() was already called internally (e.g. after
+  ///   first-time SUID setup), caller should NOT proceed
   Future<Result<bool>> _requestAdmin(bool enableTun) async {
     final realTunEnable = _ref.read(realTunEnableProvider);
     if (enableTun != realTunEnable && realTunEnable == false) {
@@ -843,9 +851,13 @@ extension CoreControllerExt on AppController {
       );
       switch (code) {
         case AuthorizeCode.success:
+          // Binary permissions changed (SUID set). Must restart the core
+          // process to pick up the new privileges. restartCore() triggers
+          // applyProfile internally, so caller should NOT restart again.
           await restartCore();
-          return Result.error('');
+          return Result.error('restart_handled');
         case AuthorizeCode.none:
+          // Already authorized — continue normally.
           break;
         case AuthorizeCode.error:
           commonPrint.log(
@@ -856,7 +868,8 @@ extension CoreControllerExt on AppController {
           _ref
               .read(patchClashConfigProvider.notifier)
               .update((state) => state.copyWith.tun(enable: false));
-          break;
+          _ref.read(realTunEnableProvider.notifier).value = false;
+          return Result.success(false);
       }
     }
     _ref.read(realTunEnableProvider.notifier).value = enableTun;
@@ -907,6 +920,9 @@ extension SystemControllerExt on AppController {
       system.exit();
     });
     try {
+      if (system.isAndroid) {
+        await service?.disableSocketProtection();
+      }
       await Future.wait([
         if (needSave) preferences.saveConfig(config),
         if (macOS != null) macOS!.updateDns(true),
@@ -957,10 +973,23 @@ extension SystemControllerExt on AppController {
     });
   }
 
-  void updateTun() {
+  Future<void> updateTun() async {
+    final newEnable = !_ref.read(patchClashConfigProvider).tun.enable;
     _ref
         .read(patchClashConfigProvider.notifier)
-        .update((state) => state.copyWith.tun(enable: !state.tun.enable));
+        .update((state) => state.copyWith.tun(enable: newEnable));
+
+    // TUN config change requires leaf restart to take effect.
+    if (!_ref.read(isStartProvider)) return;
+
+    if (newEnable && system.isDesktop) {
+      // Desktop needs admin authorization before enabling TUN.
+      // _requestAdmin handles the restart when authorization succeeds.
+      final result = await _requestAdmin(newEnable);
+      if (result.isError) return; // restartCore() already called
+    }
+
+    applyProfile(force: true);
   }
 
   void updateSystemProxy() {

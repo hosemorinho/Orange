@@ -44,9 +44,10 @@ class TUNItem extends ConsumerWidget {
       delegate: SwitchDelegate(
         value: enable,
         onChanged: (value) async {
-          ref
-              .read(patchClashConfigProvider.notifier)
-              .update((state) => state.copyWith.tun(enable: value));
+          // Use appController.updateTun() so leaf core restarts with new
+          // TUN config. Do NOT write to the provider directly — that only
+          // changes UI state without restarting the proxy core.
+          appController.updateTun();
         },
       ),
     );

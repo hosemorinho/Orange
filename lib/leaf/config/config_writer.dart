@@ -1,7 +1,11 @@
 import 'dart:io';
 
+import 'package:fl_clash/xboard/core/logger/file_logger.dart';
+
 import 'clash_proxy_converter.dart';
 import 'leaf_config.dart';
+
+final _logger = FileLogger('config_writer.dart');
 
 /// Assembles a complete leaf JSON config from Clash YAML proxy entries.
 ///
@@ -35,8 +39,8 @@ class ConfigWriter {
       // macOS/Linux: TUN auto mode (leaf creates device + routes)
       if (tunEnabled && tunFd == null && (Platform.isMacOS || Platform.isLinux))
         LeafInbound.tunAuto(),
-      // Windows: NF (netfilter/WFP) inbound
-      if (tunEnabled && Platform.isWindows) LeafInbound.nf(),
+      if (tunEnabled && Platform.isWindows && _isNfDriverAvailable())
+        LeafInbound.nf(),
     ];
 
     // Assemble outbounds: direct + proxy nodes + select group
@@ -70,6 +74,22 @@ class ConfigWriter {
       router: router,
       dns: dns,
     );
+  }
+
+  static bool _isNfDriverAvailable() {
+    if (!Platform.isWindows) return false;
+    final systemRoot =
+        Platform.environment['SystemRoot'] ?? r'C:\Windows';
+    final driverPath =
+        '$systemRoot\\system32\\drivers\\nfdriver.sys';
+    final exists = File(driverPath).existsSync();
+    if (!exists) {
+      _logger.warning(
+        'nfdriver.sys not found at $driverPath — TUN/NF mode unavailable. '
+        'Install the NF driver to enable TUN on Windows.',
+      );
+    }
+    return exists;
   }
 
   /// Write a leaf config to a JSON file.

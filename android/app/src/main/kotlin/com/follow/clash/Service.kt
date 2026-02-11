@@ -179,8 +179,11 @@ object Service {
     }
 
     /**
-     * Get the TUN file descriptor from the VPN service (remote process).
-     * Returns the fd integer valid in this process, or null if unavailable.
+     * Get the TUN fd from the VPN service (remote process).
+     *
+     * Returns a detached fd valid in this process. Caller owns the fd and
+     * must eventually close it. Each call creates a new dup — do NOT call
+     * repeatedly without closing the previous fd.
      */
     suspend fun getTunFd(): Int? {
         return delegate.useService {

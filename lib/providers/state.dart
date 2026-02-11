@@ -174,6 +174,17 @@ VpnState vpnState(Ref ref) {
 }
 
 @riverpod
+VM2<bool, TunStack> desktopTunState(Ref ref) {
+  final enable = ref.watch(
+    patchClashConfigProvider.select((state) => state.tun.enable),
+  );
+  final stack = ref.watch(
+    patchClashConfigProvider.select((state) => state.tun.stack),
+  );
+  return VM2(enable, stack);
+}
+
+@riverpod
 NavigationState navigationState(Ref ref) {
   final pageLabel = ref.watch(currentPageLabelProvider);
   final navigationItems = ref.watch(currentNavigationItemsStateProvider).value;

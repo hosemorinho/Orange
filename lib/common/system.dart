@@ -57,19 +57,20 @@ class System {
   }
 
   Future<bool> checkIsAdmin() async {
-    final corePath = appPath.corePath.replaceAll(' ', '\\\\ ');
     if (system.isWindows) {
       final result = await windows?.checkService();
       return result == WindowsHelperServiceStatus.running;
     } else if (system.isMacOS) {
-      final result = await Process.run('stat', ['-f', '%Su:%Sg %Sp', corePath]);
+      final result =
+          await Process.run('stat', ['-f', '%Su:%Sg %Sp', appPath.corePath]);
       final output = result.stdout.trim();
       if (output.startsWith('root:admin') && output.contains('rws')) {
         return true;
       }
       return false;
     } else if (Platform.isLinux) {
-      final result = await Process.run('stat', ['-c', '%U:%G %A', corePath]);
+      final result =
+          await Process.run('stat', ['-c', '%U:%G %A', appPath.corePath]);
       final output = result.stdout.trim();
       if (output.startsWith('root:') && output.contains('rws')) {
         return true;
@@ -85,7 +86,6 @@ class System {
       // 返回 none 表示不需要额外授权
       return AuthorizeCode.none;
     }
-    final corePath = appPath.corePath.replaceAll(' ', '\\\\ ');
     final isAdmin = await checkIsAdmin();
     if (isAdmin) {
       return AuthorizeCode.none;
@@ -100,7 +100,9 @@ class System {
     }
 
     if (system.isMacOS) {
-      final shell = 'chown root:admin $corePath; chmod +sx $corePath';
+      final escapedPath = appPath.corePath.replaceAll("'", "'\\''");
+      final shell =
+          "chown root:admin '$escapedPath'; chmod +sx '$escapedPath'";
       final arguments = [
         '-e',
         'do shell script "$shell" with administrator privileges',
@@ -111,7 +113,20 @@ class System {
       }
       return AuthorizeCode.success;
     } else if (Platform.isLinux) {
-      final shell = Platform.environment['SHELL'] ?? 'bash';
+      final escapedPath = appPath.corePath.replaceAll("'", "'\\''");
+
+      final pkexecResult = await Process.run('which', ['pkexec']);
+      if (pkexecResult.exitCode == 0) {
+        final result = await Process.run('pkexec', [
+          'sh',
+          '-c',
+          "chown root:root '$escapedPath' && chmod +sx '$escapedPath'",
+        ]);
+        if (result.exitCode == 0) {
+          return AuthorizeCode.success;
+        }
+      }
+
       final password = await globalState.showCommonDialog<String>(
         child: InputDialog(
           obscureText: true,
@@ -119,12 +134,17 @@ class System {
           value: '',
         ),
       );
-      final arguments = [
-        '-c',
-        'echo "$password" | sudo -S chown root:root "$corePath" && echo "$password" | sudo -S chmod +sx "$corePath"',
-      ];
-      final result = await Process.run(shell, arguments);
-      if (result.exitCode != 0) {
+      if (password == null || password.isEmpty) {
+        return AuthorizeCode.error;
+      }
+      final proc = await Process.start(
+        'sudo',
+        ['-S', 'sh', '-c', "chown root:root '$escapedPath' && chmod +sx '$escapedPath'"],
+      );
+      proc.stdin.writeln(password);
+      await proc.stdin.close();
+      final exitCode = await proc.exitCode;
+      if (exitCode != 0) {
         return AuthorizeCode.error;
       }
       return AuthorizeCode.success;

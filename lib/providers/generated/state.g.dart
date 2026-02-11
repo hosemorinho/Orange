@@ -353,6 +353,50 @@ final class VpnStateProvider
 
 String _$vpnStateHash() => r'128ddad03ce045ad1f8204e47aec3cb6cfa29f6e';
 
+@ProviderFor(desktopTunState)
+const desktopTunStateProvider = DesktopTunStateProvider._();
+
+final class DesktopTunStateProvider
+    extends $FunctionalProvider<VM2<bool, TunStack>, VM2<bool, TunStack>,
+        VM2<bool, TunStack>>
+    with $Provider<VM2<bool, TunStack>> {
+  const DesktopTunStateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'desktopTunStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$desktopTunStateHash();
+
+  @$internal
+  @override
+  $ProviderElement<VM2<bool, TunStack>> $createElement(
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  VM2<bool, TunStack> create(Ref ref) {
+    return desktopTunState(ref);
+  }
+
+  @override
+  Override overrideWithValue(VM2<bool, TunStack> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<VM2<bool, TunStack>>(value),
+    );
+  }
+}
+
+String _$desktopTunStateHash() =>
+    r'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
+
 @ProviderFor(navigationState)
 const navigationStateProvider = NavigationStateProvider._();
 

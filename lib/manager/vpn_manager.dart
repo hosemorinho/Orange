@@ -20,19 +20,30 @@ class _VpnContainerState extends ConsumerState<VpnManager> {
   @override
   void initState() {
     super.initState();
-    ref.listenManual(vpnStateProvider, (prev, next) {
-      if (prev != next) {
-        showTip(next);
-      }
-    });
+    if (system.isAndroid) {
+      ref.listenManual(vpnStateProvider, (prev, next) {
+        if (prev != next) {
+          _showRestartTip();
+        }
+      });
+    }
+    if (system.isDesktop) {
+      ref.listenManual(desktopTunStateProvider, (prev, next) {
+        if (prev != next) {
+          _showRestartTip();
+        }
+      });
+    }
   }
 
-  void showTip(VpnState state) {
+  void _showRestartTip() {
     throttler.call(
       FunctionTag.vpnTip,
       () {
-        if (!ref.read(isStartProvider) || state == globalState.lastVpnState) {
-          return;
+        if (!ref.read(isStartProvider)) return;
+        if (system.isAndroid) {
+          final state = ref.read(vpnStateProvider);
+          if (state == globalState.lastVpnState) return;
         }
         globalState.showNotifier(
           appLocalizations.vpnConfigChangeDetected,

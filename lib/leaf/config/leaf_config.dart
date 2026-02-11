@@ -108,8 +108,7 @@ class LeafInbound {
         protocol: 'mixed',
       );
 
-  /// TUN inbound (Android VPN fd).
-  factory LeafInbound.tun({required int fd, int mtu = 1500, String? tag}) =>
+  factory LeafInbound.tun({required int fd, int mtu = 9000, String? tag}) =>
       LeafInbound(
         tag: tag ?? 'tun_in',
         protocol: 'tun',

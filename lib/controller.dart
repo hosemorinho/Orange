@@ -41,6 +41,7 @@ class AppController {
   late final WidgetRef _ref;
   bool isAttach = false;
   bool _isApplyingProfile = false;
+  DateTime? _lastSetupTime;
   LeafController? _leafController;
   bool _leafInitialized = false;
 
@@ -544,13 +545,11 @@ extension SetupControllerExt on AppController {
   }
 
   Future<void> _updateConfigImmediate() async {
-    // In leaf, runtime config updates are done by regenerating config and
-    // reloading. For now, re-apply the profile to pick up any changes.
-    await safeRun(() async {
-      if (_leafController != null && _leafController!.isRunning) {
-        await applyProfile(force: true, silence: true);
-      }
-    });
+    // Leaf does not support runtime config hot-reload for most parameters
+    // (mode, tun, allowLan, etc.). These are UI-only state changes.
+    // Do NOT call applyProfile here — it would stop/restart leaf on every
+    // minor config change, causing port escalation and flickering.
+    // Full restart only happens via fullSetup() or explicit user action.
   }
 
   void addCheckIp() {
@@ -690,6 +689,15 @@ extension SetupControllerExt on AppController {
   }
 
   Future<void> _setupConfig([VoidCallback? preloadInvoke]) async {
+    // Throttle: skip if setup ran less than 2 seconds ago
+    final now = DateTime.now();
+    if (_lastSetupTime != null &&
+        now.difference(_lastSetupTime!).inSeconds < 2) {
+      _logger.info('setup: throttled (last ran ${now.difference(_lastSetupTime!).inMilliseconds}ms ago)');
+      return;
+    }
+    _lastSetupTime = now;
+
     _logger.info('setup ===>');
     var profile = _ref.read(currentProfileProvider);
     if (profile == null) {
@@ -717,16 +725,9 @@ extension SetupControllerExt on AppController {
     }
 
     // Port configuration — single mixed port for HTTP+SOCKS5
-    final patchConfig = _ref.read(patchClashConfigProvider);
-    var mixedPort = patchConfig.mixedPort;
-
-    if (!system.isAndroid && !await isPortAvailable(mixedPort)) {
-      final newPort = await findAvailablePort(mixedPort);
-      _logger.warning('Port $mixedPort is occupied, using $newPort');
-      mixedPort = newPort;
-      _ref.read(patchClashConfigProvider.notifier).value =
-          patchConfig.copyWith(mixedPort: mixedPort);
-    }
+    // Use configured port; do NOT write back to patchClashConfigProvider
+    // to avoid triggering updateParamsProvider → updateConfigDebounce → applyProfile loop.
+    final mixedPort = _ref.read(patchClashConfigProvider).mixedPort;
 
     // Save setup state
     final setupState = await _ref.read(setupStateProvider(profile.id).future);

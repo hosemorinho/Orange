@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/models/leaf_node.dart';
 import 'package:fl_clash/providers/state.dart';
+import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -72,7 +74,15 @@ Future<void> startLeaf(
           await appPath.getProfilePath(profile.id.toString());
       final file = File(profilePath);
       if (await file.exists()) {
-        yamlContent = await file.readAsString();
+        final bytes = await file.readAsBytes();
+        if (ProfileCipher.isEncryptedFormat(bytes)) {
+          final token = ProfileCipher.extractToken(profile.url);
+          if (token != null && token.isNotEmpty) {
+            yamlContent = utf8.decode(ProfileCipher.decrypt(bytes, token));
+          }
+        } else {
+          yamlContent = utf8.decode(bytes);
+        }
       }
     }
   }

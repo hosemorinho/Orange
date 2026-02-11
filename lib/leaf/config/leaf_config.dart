@@ -105,7 +105,7 @@ class LeafInbound {
         tag: tag ?? 'mixed_in',
         address: '127.0.0.1',
         port: port,
-        protocol: 'http+socks',
+        protocol: 'mixed',
       );
 
   /// TUN inbound (Android VPN fd).

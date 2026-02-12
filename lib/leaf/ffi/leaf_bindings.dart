@@ -28,6 +28,9 @@ class LeafBindings {
 
   late final int Function(int rtId) leafReload;
 
+  late final int Function(int rtId, Pointer<Utf8> config)
+      leafReloadWithConfigString;
+
   late final bool Function(int rtId) leafShutdown;
 
   late final int Function(Pointer<Utf8> configPath) leafTestConfig;
@@ -140,6 +143,11 @@ class LeafBindings {
     // leaf_reload(rt_id) -> i32
     leafReload = _lib.lookupFunction<Int32 Function(Uint16),
         int Function(int)>('leaf_reload');
+
+    // leaf_reload_with_config_string(rt_id, config) -> i32
+    leafReloadWithConfigString = _lib
+        .lookupFunction<Int32 Function(Uint16, Pointer<Utf8>),
+            int Function(int, Pointer<Utf8>)>('leaf_reload_with_config_string');
 
     // leaf_shutdown(rt_id) -> bool
     leafShutdown = _lib.lookupFunction<Bool Function(Uint16),

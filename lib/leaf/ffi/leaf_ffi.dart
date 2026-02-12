@@ -133,8 +133,18 @@ class LeafInstance {
   })  : _isolate = isolate,
         _bindings = bindings;
 
-  /// Reload config (DNS, outbounds, routing rules).
+  /// Reload config from file (DNS, outbounds, routing rules).
   int reload() => _bindings.leafReload(rtId);
+
+  /// Reload config from a JSON string (no file I/O).
+  int reloadWithConfigString(String config) {
+    final configPtr = config.toNativeUtf8();
+    try {
+      return _bindings.leafReloadWithConfigString(rtId, configPtr);
+    } finally {
+      calloc.free(configPtr);
+    }
+  }
 
   /// Graceful shutdown.
   bool shutdown() {

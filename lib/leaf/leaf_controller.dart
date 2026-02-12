@@ -173,10 +173,19 @@ class LeafController {
     await _deleteConfigFile();
   }
 
-  /// Reload config (e.g., after modifying the JSON file).
+  /// Reload config from the existing config file on disk.
   Future<void> reload() async {
     final result = _instance?.reload();
     if (result != null && !LeafError.isOk(result)) {
+      throw LeafException(result);
+    }
+  }
+
+  /// Reload config from a JSON string via FFI (no file I/O).
+  Future<void> reloadWithConfigString(String configJson) async {
+    _requireRunning();
+    final result = _instance!.reloadWithConfigString(configJson);
+    if (!LeafError.isOk(result)) {
       throw LeafException(result);
     }
   }
@@ -185,15 +194,12 @@ class LeafController {
   // Hot-reload: update config without restarting the core
   // ---------------------------------------------------------------------------
 
-  /// Hot-reload with a new routing mode. Rewrites config file and calls
-  /// leaf_reload — the core stays running, connections are preserved.
+  /// Hot-reload with a new routing mode. Sends config directly via FFI —
+  /// no file I/O. The core stays running, connections are preserved.
   ///
   /// Only router rules and outbound manager are reloaded (inbounds stay as-is).
   Future<void> updateMode(Mode newMode, {required bool mmdbAvailable}) async {
     _requireRunning();
-    if (_configPath == null) {
-      throw StateError('No config file — cannot hot-reload');
-    }
 
     _logger.info('hotReload: mode ${_lastMode.name} → ${newMode.name}, '
         'mmdb=$mmdbAvailable');
@@ -208,13 +214,10 @@ class LeafController {
       mmdbAvailable: mmdbAvailable,
     );
 
-    // Overwrite the same config file so leaf_reload reads the new config
-    final file = File(_configPath!);
-    await file.writeAsString(config.toJsonString());
-    _logger.info('hotReload: config written to $_configPath');
-
-    // Hot-reload
-    await reload();
+    // Send config directly via FFI — no file I/O needed
+    final configJson = config.toJsonString();
+    _logger.info('hotReload: sending config via FFI (${configJson.length} bytes)');
+    await reloadWithConfigString(configJson);
 
     // Update remembered state
     _lastMode = newMode;

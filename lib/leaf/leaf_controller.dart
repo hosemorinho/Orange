@@ -24,6 +24,14 @@ class LeafController {
 
   String? _homeDir;
   String? get homeDir => _homeDir;
+  String? _logDir;
+
+  /// Returns the leaf log file path (same directory as xboard.log).
+  String? get _leafLogPath {
+    final dir = _logDir ?? _homeDir;
+    if (dir == null) return null;
+    return '$dir${Platform.pathSeparator}leaf.log';
+  }
 
   /// Nodes extracted from the last loaded Clash YAML.
   List<LeafNode> _nodes = [];
@@ -46,11 +54,13 @@ class LeafController {
 
   /// Initialize with the app's home directory.
   /// Sets ASSET_LOCATION so leaf can find geo.mmdb for GeoIP rule mode.
-  Future<void> init(String homeDir) async {
+  /// [logDir] is optional — if provided, leaf writes logs to `leaf.log` there.
+  Future<void> init(String homeDir, {String? logDir}) async {
     _homeDir = homeDir;
+    _logDir = logDir;
     await Directory(homeDir).create(recursive: true);
     _ffi.setEnv('ASSET_LOCATION', homeDir);
-    _logger.info('init: homeDir=$homeDir, ASSET_LOCATION set');
+    _logger.info('init: homeDir=$homeDir, logDir=$logDir, ASSET_LOCATION set');
   }
 
   /// Load a Clash YAML subscription and start the proxy.
@@ -100,6 +110,7 @@ class LeafController {
       mixedPort: _mixedPort,
       tunFd: tunFd,
       tunEnabled: tunEnabled,
+      logOutput: _leafLogPath,
       mode: mode,
       mmdbAvailable: mmdbAvailable,
     );
@@ -195,6 +206,7 @@ class LeafController {
       mixedPort: _mixedPort,
       tunFd: _lastTunFd,
       tunEnabled: _lastTunEnabled,
+      logOutput: _leafLogPath,
       mode: newMode,
       mmdbAvailable: mmdbAvailable,
     );

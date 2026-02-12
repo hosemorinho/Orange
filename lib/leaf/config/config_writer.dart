@@ -48,11 +48,11 @@ class ConfigWriter {
       LeafInbound.mixed(port: mixedPort),
       // Android: TUN via VPN service fd
       if (tunFd != null) LeafInbound.tun(fd: tunFd),
-      // macOS/Linux: TUN auto mode (leaf creates device + routes)
-      if (tunEnabled && tunFd == null && (Platform.isMacOS || Platform.isLinux))
+      // Desktop (macOS/Linux/Windows): TUN auto mode
+      // - macOS/Linux: leaf creates TUN device via utun/tun, needs SUID root
+      // - Windows: leaf uses Wintun (wintun.dll), needs admin privileges
+      if (tunEnabled && tunFd == null && !Platform.isAndroid)
         LeafInbound.tunAuto(),
-      if (tunEnabled && Platform.isWindows && _isNfDriverAvailable())
-        LeafInbound.nf(),
     ];
 
     // Assemble outbounds: direct + proxy nodes + select group
@@ -137,22 +137,6 @@ class ConfigWriter {
       'CN traffic will NOT be routed directly — behaving like global mode.',
     );
     return [];
-  }
-
-  static bool _isNfDriverAvailable() {
-    if (!Platform.isWindows) return false;
-    final systemRoot =
-        Platform.environment['SystemRoot'] ?? r'C:\Windows';
-    final driverPath =
-        '$systemRoot\\system32\\drivers\\nfdriver.sys';
-    final exists = File(driverPath).existsSync();
-    if (!exists) {
-      _logger.warning(
-        'nfdriver.sys not found at $driverPath — TUN/NF mode unavailable. '
-        'Install the NF driver to enable TUN on Windows.',
-      );
-    }
-    return exists;
   }
 
   /// Write a leaf config to a JSON file.

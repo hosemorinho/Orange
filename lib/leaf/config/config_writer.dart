@@ -35,11 +35,12 @@ class ConfigWriter {
     required int mixedPort,
     int? tunFd,
     bool tunEnabled = false,
-    String logLevel = 'warn',
+    String? logLevel,
     String? logOutput,
     Mode mode = Mode.global,
     bool mmdbAvailable = false,
   }) {
+    final effectiveLogLevel = logLevel ?? (tunEnabled ? 'info' : 'warn');
     // Convert Clash proxies to leaf outbounds
     final converted = ClashProxyConverter.convertAll(proxies);
 
@@ -92,7 +93,7 @@ class ConfigWriter {
     );
 
     return LeafConfig(
-      log: LeafLog(level: logLevel, output: logOutput),
+      log: LeafLog(level: effectiveLogLevel, output: logOutput),
       inbounds: inbounds,
       outbounds: outbounds,
       router: router,

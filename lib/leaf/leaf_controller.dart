@@ -137,9 +137,6 @@ class LeafController {
 
     await _waitForRuntimeReady();
 
-    // Grace period: TUN creation is asynchronous and may fail shortly after
-    // the runtime registers in RUNTIME_MANAGER. Wait briefly and re-check
-    // startupError to catch early TUN failures.
     final hasTun = config.inbounds?.any((i) => i.protocol == 'tun') ?? false;
     if (hasTun) {
       await Future.delayed(const Duration(milliseconds: 500));
@@ -147,7 +144,7 @@ class LeafController {
       if (startupError != null) {
         _logger.error('leaf crashed after runtime ready (likely TUN failure): '
             'error $startupError (${LeafError.message(startupError)})');
-        // Clean up the dead instance (isolate has already exited)
+        await _dumpLeafLog('TUN startup failure');
         _instance?.shutdown();
         _instance = null;
         throw LeafException(startupError);
@@ -194,6 +191,7 @@ class LeafController {
     }
     _logger.error('runtime not ready after ${maxAttempts * 100}ms — '
         'leaf likely failed to start (TUN creation or config error)');
+    await _dumpLeafLog('runtime timeout');
     throw LeafException(LeafError.runtimeManager);
   }
 
@@ -413,6 +411,25 @@ class LeafController {
       _instance!.shutdown();
       _instance = null;
       throw LeafException(startupError);
+    }
+  }
+
+  Future<void> _dumpLeafLog(String context) async {
+    if (_homeDir == null) return;
+    final logFile = File('$_homeDir${Platform.pathSeparator}leaf.log');
+    try {
+      if (await logFile.exists()) {
+        final content = await logFile.readAsString();
+        final tail = content.length > 2000
+            ? content.substring(content.length - 2000)
+            : content;
+        _logger.error('=== leaf.log ($context) last ${tail.length} chars ===\n$tail');
+      } else {
+        _logger.error('leaf.log not found at ${logFile.path} — '
+            'leaf may have crashed before writing any logs');
+      }
+    } catch (e) {
+      _logger.error('failed to read leaf.log: $e');
     }
   }
 

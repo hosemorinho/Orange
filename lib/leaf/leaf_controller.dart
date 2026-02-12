@@ -33,6 +33,13 @@ class LeafController {
   /// Port used for local mixed (HTTP+SOCKS5) proxy.
   int _mixedPort = 7890;
 
+  // --- State remembered from last start (for hot-reload) ---
+  List<Map<String, dynamic>> _lastProxies = [];
+  int? _lastTunFd;
+  bool _lastTunEnabled = false;
+  Mode _lastMode = Mode.global;
+  bool _lastMmdbAvailable = false;
+
   LeafController() : _ffi = LeafFfi.open();
 
   // ---------------------------------------------------------------------------
@@ -81,6 +88,13 @@ class LeafController {
     }
     _nodes = _extractNodes(proxies);
     _logger.info('supported nodes: ${_nodes.length} / ${proxies.length} total proxies, mode: ${mode.name}');
+
+    // Remember parameters for hot-reload
+    _lastProxies = proxies;
+    _lastTunFd = tunFd;
+    _lastTunEnabled = tunEnabled;
+    _lastMode = mode;
+    _lastMmdbAvailable = mmdbAvailable;
 
     // Build leaf config
     final config = ConfigWriter.build(
@@ -167,9 +181,52 @@ class LeafController {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Hot-reload: update config without restarting the core
+  // ---------------------------------------------------------------------------
+
+  /// Hot-reload with a new routing mode. Rewrites config file and calls
+  /// leaf_reload — the core stays running, connections are preserved.
+  ///
+  /// Only router rules and outbound manager are reloaded (inbounds stay as-is).
+  Future<void> updateMode(Mode newMode, {required bool mmdbAvailable}) async {
+    _requireRunning();
+    if (_configPath == null) {
+      throw StateError('No config file — cannot hot-reload');
+    }
+
+    _logger.info('hotReload: mode ${_lastMode.name} → ${newMode.name}, '
+        'mmdb=$mmdbAvailable');
+
+    // Rebuild config with new mode, same everything else
+    final config = ConfigWriter.build(
+      proxies: _lastProxies,
+      mixedPort: _mixedPort,
+      tunFd: _lastTunFd,
+      tunEnabled: _lastTunEnabled,
+      mode: newMode,
+      mmdbAvailable: mmdbAvailable,
+    );
+
+    // Overwrite the same config file so leaf_reload reads the new config
+    final file = File(_configPath!);
+    await file.writeAsString(config.toJsonString());
+    _logger.info('hotReload: config written to $_configPath');
+
+    // Hot-reload
+    await reload();
+
+    // Update remembered state
+    _lastMode = newMode;
+    _lastMmdbAvailable = mmdbAvailable;
+    _logger.info('hotReload: complete');
+  }
+
   bool get isRunning => _instance != null;
 
   int get mixedPort => _mixedPort;
+
+  Mode get currentMode => _lastMode;
 
   /// The list of proxy nodes from the current subscription.
   List<LeafNode> get nodes => List.unmodifiable(_nodes);

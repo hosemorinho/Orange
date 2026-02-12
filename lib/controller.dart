@@ -603,14 +603,43 @@ extension SetupControllerExt on AppController {
     _ref
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
-    // Routing rules are baked into the config at startup — changing mode
-    // requires regenerating the config and restarting leaf.
+    // Hot-reload: rewrite config file + leaf_reload (no core restart).
+    // Only falls back to full restart if hot-reload fails.
     if (_leafController != null && _leafController!.isRunning) {
-      // Reset throttle so mode change takes effect immediately
+      await _hotReloadMode(mode);
+    }
+    addCheckIp();
+  }
+
+  /// Hot-reload mode switch: rewrites leaf config and calls leaf_reload.
+  /// Core stays running, existing connections are preserved, port unchanged.
+  Future<void> _hotReloadMode(Mode mode) async {
+    // Check MMDB availability for rule mode
+    bool mmdbAvailable = false;
+    if (mode == Mode.rule) {
+      final homeDir = _leafController!.homeDir;
+      if (homeDir != null) {
+        try {
+          final mmdbPath = await MmdbManager.ensureAvailable(homeDir);
+          final mmdbFile = File(mmdbPath);
+          if (await mmdbFile.exists()) {
+            mmdbAvailable = true;
+            _logger.info('hotReload: geo.mmdb ready at $mmdbPath');
+          }
+        } catch (e) {
+          _logger.warning('hotReload: MMDB unavailable for rule mode: $e');
+        }
+      }
+    }
+
+    try {
+      await _leafController!.updateMode(mode, mmdbAvailable: mmdbAvailable);
+      _logger.info('hotReload: mode switched to ${mode.name} (no restart)');
+    } catch (e) {
+      _logger.error('hotReload failed, falling back to full restart', e);
       _lastSetupTime = null;
       applyProfile(force: true);
     }
-    addCheckIp();
   }
 
   /// Ensure a valid proxy node is selected in the leaf core.
@@ -757,7 +786,14 @@ extension SetupControllerExt on AppController {
     // Do NOT write port changes back to patchClashConfigProvider —
     // that triggers updateParamsProvider → updateConfigDebounce → applyProfile loop.
     var mixedPort = _ref.read(patchClashConfigProvider).mixedPort;
-    if (!system.isAndroid && !await isPortAvailable(mixedPort)) {
+    // Skip port availability check if leaf is already running on this port —
+    // the port will be freed when we stop leaf below. Without this check,
+    // isPortAvailable returns false (leaf is occupying it), we'd pick a
+    // random fallback port, and system proxy would desync.
+    final leafOccupyingSamePort =
+        _leafController?.isRunning == true && _activePort == mixedPort;
+    if (!system.isAndroid && !leafOccupyingSamePort &&
+        !await isPortAvailable(mixedPort)) {
       final newPort = await findAvailablePort(mixedPort);
       _logger.warning('Port $mixedPort occupied, using $newPort (local only, not persisted)');
       mixedPort = newPort;

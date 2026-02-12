@@ -226,13 +226,17 @@ class LeafController {
   /// Select a proxy node by tag.
   Future<void> selectNode(String nodeTag) async {
     _requireRunning();
+    final before = getSelectedNode();
     final result = _instance!.setOutboundSelected(
       ConfigWriter.selectorTag,
       nodeTag,
     );
     if (!LeafError.isOk(result)) {
+      _logger.error('selectNode: FFI returned error $result for tag=$nodeTag');
       throw LeafException(result);
     }
+    final after = getSelectedNode();
+    _logger.info('selectNode: $before → $after (requested=$nodeTag, match=${after == nodeTag})');
   }
 
   /// Get the currently selected node tag.

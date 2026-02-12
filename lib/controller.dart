@@ -603,42 +603,13 @@ extension SetupControllerExt on AppController {
     _ref
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
-    // Hot-reload: rewrite config file + leaf_reload (no core restart).
-    // Only falls back to full restart if hot-reload fails.
+    // Full restart required: leaf core's reload_with_config_string does NOT
+    // rebuild the router — routing rules from the initial start persist.
+    // A stop→start cycle is the only reliable way to switch modes.
     if (_leafController != null && _leafController!.isRunning) {
-      await _hotReloadMode(mode);
-    }
-    addCheckIp();
-  }
-
-  /// Hot-reload mode switch: rewrites leaf config and calls leaf_reload.
-  /// Core stays running, existing connections are preserved, port unchanged.
-  Future<void> _hotReloadMode(Mode mode) async {
-    // Check MMDB availability for rule mode
-    bool mmdbAvailable = false;
-    if (mode == Mode.rule) {
-      final homeDir = _leafController!.homeDir;
-      if (homeDir != null) {
-        try {
-          final mmdbPath = await MmdbManager.ensureAvailable(homeDir);
-          final mmdbFile = File(mmdbPath);
-          if (await mmdbFile.exists()) {
-            mmdbAvailable = true;
-            _logger.info('hotReload: geo.mmdb ready at $mmdbPath');
-          }
-        } catch (e) {
-          _logger.warning('hotReload: MMDB unavailable for rule mode: $e');
-        }
-      }
-    }
-
-    try {
-      await _leafController!.updateMode(mode, mmdbAvailable: mmdbAvailable);
-      _logger.info('hotReload: mode switched to ${mode.name} (no restart)');
-    } catch (e) {
-      _logger.error('hotReload failed, falling back to full restart', e);
+      _logger.info('changeMode: ${_leafController!.currentMode.name} → ${mode.name}, restarting leaf');
       _lastSetupTime = null;
-      applyProfile(force: true);
+      await applyProfile(force: true);
     }
   }
 

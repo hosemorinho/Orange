@@ -44,6 +44,13 @@ android {
         versionName = flutter.versionName
     }
 
+    sourceSets {
+        getByName("main") {
+            // Leaf proxy core native library (built by setup.dart → libleaf/android/<abi>/)
+            jniLibs.srcDirs("../../libleaf/android")
+        }
+    }
+
     signingConfigs {
         if (isRelease) {
             create("release") {

@@ -111,24 +111,8 @@ class XBoardProfileImportService {
         _ref.read(currentProfileIdProvider.notifier).value = profile.id;
       }
 
-      // 等待 appController 就绪后应用配置
-      if (!appController.isAttach) {
-        _logger.info('appController 未就绪，等待 attach...');
-        for (int i = 0; i < 60; i++) {
-          await Future.delayed(const Duration(milliseconds: 500));
-          if (appController.isAttach) break;
-        }
-      }
-
-      if (appController.isAttach) {
-        _logger.info('应用配置...');
-        try {
-          await appController.applyProfile(silence: true, force: true);
-          _logger.info('配置应用成功');
-        } catch (e) {
-          _logger.error('配置应用失败', e);
-        }
-      }
+      // 等待 appController 就绪后应用配置 (max 10s)
+      await _waitForAttachAndApply();
     } catch (e) {
       _logger.error('更新现有配置失败', e);
       throw Exception('更新配置失败: $e');
@@ -145,28 +129,35 @@ class XBoardProfileImportService {
       _ref.read(currentProfileIdProvider.notifier).value = profile.id;
       _logger.info('已设置为当前配置: ${profile.label ?? profile.id}');
 
-      // 3. 等待 appController 就绪后应用配置
-      if (!appController.isAttach) {
-        _logger.info('appController 未就绪，等待 attach...');
-        for (int i = 0; i < 60; i++) {
-          await Future.delayed(const Duration(milliseconds: 500));
-          if (appController.isAttach) break;
-        }
-      }
-
-      if (appController.isAttach) {
-        _logger.info('应用配置...');
-        try {
-          await appController.applyProfile(silence: true, force: true);
-          _logger.info('配置应用成功');
-        } catch (e) {
-          _logger.error('配置应用失败', e);
-        }
-      } else {
-        _logger.info('appController 等待超时，跳过应用');
-      }
+      // 3. 等待 appController 就绪后应用配置 (max 10s)
+      await _waitForAttachAndApply();
     } catch (e) {
       throw Exception('添加配置失败: $e');
+    }
+  }
+
+  /// Wait for appController to be ready, then apply profile.
+  /// Max wait: 10s. Profile is already saved to DB before this runs,
+  /// so even if we timeout, the config will be applied on next app restart.
+  Future<void> _waitForAttachAndApply() async {
+    if (!appController.isAttach) {
+      _logger.info('appController 未就绪，等待 attach (最多10秒)...');
+      for (int i = 0; i < 20; i++) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (appController.isAttach) break;
+      }
+    }
+
+    if (appController.isAttach) {
+      _logger.info('应用配置...');
+      try {
+        await appController.applyProfile(silence: true, force: true);
+        _logger.info('配置应用成功');
+      } catch (e) {
+        _logger.error('配置应用失败', e);
+      }
+    } else {
+      _logger.info('appController 等待超时(10s)，配置已保存，将在下次启动时应用');
     }
   }
 

@@ -84,40 +84,28 @@ class SubscriptionDownloader {
     }
   }
 
-  /// 等待 Clash 核心服务就绪（Android 特需）
+  /// Wait for the app controller to be ready.
   ///
-  /// 在 Android 上，Profile.update() 需要调用 validateConfig()，
-  /// 该方法通过 AIDL 与 Clash 核心服务通信。如果服务未就绪，
-  /// 调用会超时（10秒）。因此需要等待核心连接完成。
+  /// Profile.update() only needs HTTP (Dio) — no core dependency.
+  /// With the leaf core, validation happens at startup, not during download.
+  /// This wait is now just a short courtesy delay for Android to ensure
+  /// appController.isAttach is true (so applyProfile can work after download).
   static Future<void> _waitForCoreReady() async {
-    // 非 Android 平台或 appController 未就绪时跳过
-    if (!system.isAndroid || !appController.isAttach) {
-      return;
-    }
+    if (!system.isAndroid) return;
+    // Already attached — no need to wait
+    if (appController.isAttach) return;
 
-    _logger.info('[核心初始化] 等待 Clash 核心服务就绪...');
-
+    _logger.info('[核心初始化] 等待 appController 就绪 (最多10秒)...');
     final startTime = DateTime.now();
-    while (DateTime.now().difference(startTime) < _coreWaitTimeout) {
-      // Check if leaf core is ready (via appController.isAttach)
+    while (DateTime.now().difference(startTime).inSeconds < 10) {
       if (appController.isAttach) {
-        try {
-          final isCompleted = appController.isAttach;
-          if (isCompleted) {
-            final elapsed = DateTime.now().difference(startTime).inMilliseconds;
-            _logger.info('✅ [核心初始化] Clash 核心服务已就绪 (${elapsed}ms)');
-            return;
-          }
-        } catch (e) {
-          _logger.debug('[核心初始化] 状态检查出错: $e');
-        }
+        final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+        _logger.info('[核心初始化] appController 就绪 (${elapsed}ms)');
+        return;
       }
-
-      // 等待一小段时间后重试
       await Future.delayed(const Duration(milliseconds: 200));
     }
-
-    _logger.warning('⚠️ [核心初始化] 等待核心服务超时，尝试继续下载（可能失败）');
+    _logger.warning('[核心初始化] 等待超时(10s)，继续下载');
   }
 
   /// 下载订阅并返回 Profile（并发竞速）

@@ -64,7 +64,13 @@ class AppController {
   Future<void> attach(BuildContext context, WidgetRef ref) async {
     _context = context;
     _ref = ref;
-    _leafController = ref.read(leafControllerProvider);
+    try {
+      _leafController = ref.read(leafControllerProvider);
+    } catch (e) {
+      _logger.error('failed to initialize LeafController (native library may be missing)', e);
+      // Continue without leaf — the app can still show UI, manage subscriptions, etc.
+      // Proxy functionality will be unavailable.
+    }
     await _init();
     isAttach = true;
   }

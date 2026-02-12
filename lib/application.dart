@@ -102,7 +102,15 @@ class ApplicationState extends ConsumerState<Application> {
     for (int i = 0; i < 5; i++) {
       final currentContext = globalState.navigatorKey.currentContext;
       if (currentContext != null) {
-        await appController.attach(currentContext, ref);
+        try {
+          await appController.attach(currentContext, ref);
+        } catch (e) {
+          debugPrint('[Application] appController.attach() failed: $e');
+          // Even if leaf core fails to load, mark as attached so the app
+          // can still function (login, subscription management, etc.)
+          // The proxy just won't work until the core issue is resolved.
+          appController.isAttach = true;
+        }
         return;
       }
       debugPrint('[Application] Navigator context is null, retry ${i + 1}/5...');

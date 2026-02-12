@@ -58,8 +58,10 @@ class System {
 
   Future<bool> checkIsAdmin() async {
     if (system.isWindows) {
-      final result = await windows?.checkService();
-      return result == WindowsHelperServiceStatus.running;
+      // Windows uses leaf NF driver for TUN — check if driver is installed
+      final systemRoot = Platform.environment['SystemRoot'] ?? r'C:\Windows';
+      final driverPath = '$systemRoot\\system32\\drivers\\nfdriver.sys';
+      return File(driverPath).existsSync();
     } else if (system.isMacOS) {
       final result =
           await Process.run('stat', ['-f', '%Su:%Sg %Sp', appPath.corePath]);
@@ -92,10 +94,18 @@ class System {
     }
 
     if (system.isWindows) {
-      final result = await windows?.registerService();
-      if (result == true) {
-        return AuthorizeCode.success;
+      // Windows: leaf uses NF driver for TUN, started via FFI.
+      // No admin/helper service needed — just verify driver exists.
+      final systemRoot = Platform.environment['SystemRoot'] ?? r'C:\Windows';
+      final driverPath = '$systemRoot\\system32\\drivers\\nfdriver.sys';
+      if (File(driverPath).existsSync()) {
+        return AuthorizeCode.none;
       }
+      commonPrint.log(
+        'nfdriver.sys not found at $driverPath — TUN unavailable on Windows. '
+        'Install the NF driver to enable TUN.',
+        logLevel: LogLevel.error,
+      );
       return AuthorizeCode.error;
     }
 
@@ -229,103 +239,7 @@ class Windows {
     return true;
   }
 
-  // Future<void> _killProcess(int port) async {
-  //   final result = await Process.run('netstat', ['-ano']);
-  //   final lines = result.stdout.toString().trim().split('\n');
-  //   for (final line in lines) {
-  //     if (!line.contains(':$port') || !line.contains('LISTENING')) {
-  //       continue;
-  //     }
-  //     final parts = line.trim().split(RegExp(r'\s+'));
-  //     final pid = int.tryParse(parts.last);
-  //     if (pid != null) {
-  //      await Process.run('taskkill', ['/PID', pid.toString(), '/F']);
-  //     }
-  //   }
-  // }
 
-  Future<WindowsHelperServiceStatus> checkService() async {
-    // final qcResult = await Process.run('sc', ['qc', appHelperService]);
-    // final qcOutput = qcResult.stdout.toString();
-    // if (qcResult.exitCode != 0 || !qcOutput.contains(appPath.helperPath)) {
-    //   return WindowsHelperServiceStatus.none;
-    // }
-    final result = await Process.run('sc', ['query', appHelperService]);
-    if (result.exitCode != 0) {
-      return WindowsHelperServiceStatus.none;
-    }
-    final output = result.stdout.toString();
-    if (output.contains('RUNNING') && await request.pingHelper()) {
-      return WindowsHelperServiceStatus.running;
-    }
-    return WindowsHelperServiceStatus.presence;
-  }
-
-  Future<bool> registerService() async {
-    final status = await checkService();
-
-    if (status == WindowsHelperServiceStatus.running) {
-      return true;
-    }
-
-    // Verify helper binary exists
-    final helperFile = File(appPath.helperPath);
-    if (!await helperFile.exists()) {
-      commonPrint.log(
-        'Helper binary not found at: ${appPath.helperPath}',
-        logLevel: LogLevel.error,
-      );
-      return false;
-    }
-
-    final command = [
-      '/c',
-      if (status == WindowsHelperServiceStatus.presence) ...[
-        'taskkill',
-        '/F',
-        '/IM',
-        '$appHelperService.exe'
-            ' & '
-            'sc',
-        'delete',
-        appHelperService,
-        '&',
-      ],
-      'sc',
-      'create',
-      appHelperService,
-      'binPath= "${appPath.helperPath}"',
-      'start= auto',
-      '&&',
-      'sc',
-      'start',
-      appHelperService,
-    ].join(' ');
-
-    final res = runas('cmd.exe', command);
-    if (!res) {
-      commonPrint.log(
-        'Failed to execute service registration command',
-        logLevel: LogLevel.error,
-      );
-      return false;
-    }
-
-    await Future.delayed(Duration(milliseconds: 500));
-    final retryStatus = await retry(
-      task: checkService,
-      maxAttempts: 8,
-      retryIf: (status) => status != WindowsHelperServiceStatus.running,
-      delay: Duration(seconds: 1),
-    );
-    if (retryStatus != WindowsHelperServiceStatus.running) {
-      commonPrint.log(
-        'Helper service failed to start after retries, status: $retryStatus',
-        logLevel: LogLevel.error,
-      );
-    }
-    return retryStatus == WindowsHelperServiceStatus.running;
-  }
 
   Future<bool> registerTask(String appName) async {
     final taskXml =

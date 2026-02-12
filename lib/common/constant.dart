@@ -22,7 +22,6 @@ const forceTV = bool.fromEnvironment('FORCE_TV');
 
 const appName = _envAppName == '' ? 'Orange' : _envAppName;
 const appNameEn = appName;
-final appHelperService = '${appName}HelperService';
 const coreName = 'clash.meta';
 const browserUa =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
@@ -30,7 +29,6 @@ const packageName = _envPackageName == '' ? 'com.follow.clash' : _envPackageName
 const apiBaseUrl = _envApiBaseUrl;
 const themeColorHex = _envThemeColor == '' ? '66558E' : _envThemeColor;
 final unixSocketPath = '/tmp/${appName}Socket_${Random().nextInt(10000)}.sock';
-const helperPort = 47890;
 const maxTextScale = 1.4;
 const minTextScale = 0.8;
 final baseInfoEdgeInsets = EdgeInsets.symmetric(

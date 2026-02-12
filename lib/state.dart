@@ -31,7 +31,6 @@ class GlobalState {
   final navigatorKey = GlobalKey<NavigatorState>();
   Timer? timer;
   bool isPre = true;
-  late final String coreSHA256;
   late final PackageInfo packageInfo;
   Function? updateCurrentDelayDebounce;
   late Measure measure;
@@ -54,7 +53,6 @@ class GlobalState {
   }
 
   Future<ProviderContainer> init(int version) async {
-    coreSHA256 = const String.fromEnvironment('CORE_SHA256');
     isPre = const String.fromEnvironment('APP_ENV') != 'stable';
     await _initDynamicColor();
     return await _initData(version);

@@ -106,8 +106,6 @@ class Build {
 
   static String get _leafFfiDir => join(current, 'leaf');
 
-  static String get _servicesDir => join(current, 'services', 'helper');
-
   static String get distPath => join(current, 'dist');
 
   static const int _ndkApiLevel = 21;
@@ -426,26 +424,7 @@ BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android = "--sysroot=$sysroot"
     }
   }
 
-  static Future<void> buildHelper(Target target, String token) async {
-    await exec(
-      ['cargo', 'build', '--release', '--features', 'windows-service'],
-      environment: {'TOKEN': token},
-      name: 'build helper',
-      workingDirectory: _servicesDir,
-    );
-    final outPath = join(
-      _servicesDir,
-      'target',
-      'release',
-      'helper${target.executableExtensionName}',
-    );
-    final targetPath = join(
-      outDir,
-      target.name,
-      '${appName}HelperService${target.executableExtensionName}',
-    );
-    await File(outPath).copy(targetPath);
-  }
+
 
   static List<String> getExecutable(String command) {
     return command.split(' ');
@@ -493,8 +472,7 @@ BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android = "--sysroot=$sysroot"
     final name = appName;
     if (name == 'Orange') return;
 
-    final helper = '${name}HelperService';
-    print('Updating platform binary names: app=$name helper=$helper');
+    print('Updating platform binary names: app=$name');
 
     // distribute_options.yaml
     await _replaceInFile('distribute_options.yaml', {
@@ -506,7 +484,6 @@ BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android = "--sysroot=$sysroot"
         await _replaceInFile('windows/CMakeLists.txt', {
           'project(Orange ': 'project($name ',
           'set(BINARY_NAME "Orange")': 'set(BINARY_NAME "$name")',
-          'OrangeHelperService.exe': '$helper.exe',
         });
         await _replaceInFile('windows/runner/main.cpp', {
           'L"Orange"': 'L"$name"',
@@ -525,7 +502,6 @@ BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android = "--sysroot=$sysroot"
         });
         await _replaceInFile('windows/packaging/exe/inno_setup.iss', {
           "'Orange.exe'": "'$name.exe'",
-          "'OrangeHelperService.exe'": "'$helper.exe'",
         });
         break;
       case Target.linux:
@@ -623,7 +599,7 @@ class BuildCommand extends Command {
       .map((e) => e.arch!)
       .toList();
 
-  Future<void> _buildEnvFile(String env, {String? coreSha256}) async {
+  Future<void> _buildEnvFile(String env) async {
     final apiBaseUrl = (Platform.environment['API_BASE_URL'] ?? '').trim();
     final apiTextDomain = (Platform.environment['API_TEXT_DOMAIN'] ?? '').trim();
     final appName = (Platform.environment['APP_NAME'] ?? '').trim();
@@ -637,7 +613,6 @@ class BuildCommand extends Command {
 
     final data = {
       'APP_ENV': env,
-      if (coreSha256 != null) 'CORE_SHA256': coreSha256,
       if (apiBaseUrl.isNotEmpty) 'API_BASE_URL': apiBaseUrl,
       if (apiTextDomain.isNotEmpty) 'API_TEXT_DOMAIN': apiTextDomain,
       if (appName.isNotEmpty) 'APP_NAME': appName,
@@ -729,13 +704,7 @@ class BuildCommand extends Command {
       arch: arch,
     );
 
-    String? coreSha256;
-
-    if (Platform.isWindows) {
-      coreSha256 = await Build.calcSha256(corePaths.first);
-      await Build.buildHelper(target, coreSha256);
-    }
-    await _buildEnvFile(env, coreSha256: coreSha256);
+    await _buildEnvFile(env);
 
     // Generate custom icons if APP_ICON_URL is set
     final appIconUrl = (Platform.environment['APP_ICON_URL'] ?? '').trim();

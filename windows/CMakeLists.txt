@@ -90,9 +90,6 @@ set(LEAF_DIR "../libleaf/windows")
 install(FILES "${LEAF_DIR}/leaf.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
-install(PROGRAMS "${LEAF_DIR}/OrangeHelperService.exe" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-  COMPONENT Runtime)
-
 install(FILES "EnableLoopback.exe" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 

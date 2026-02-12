@@ -25,7 +25,7 @@ var
   i: Integer;
   ResultCode: Integer;
 begin
-  Processes := ['Orange.exe', 'OrangeHelperService.exe'];
+  Processes := ['Orange.exe'];
 
   for i := 0 to GetArrayLength(Processes)-1 do
   begin

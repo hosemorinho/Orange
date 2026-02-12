@@ -52,7 +52,7 @@ class ConfigWriter {
       if (tunFd != null) LeafInbound.tun(fd: tunFd),
       // Desktop (macOS/Linux/Windows): TUN auto mode
       // - macOS/Linux: leaf creates TUN device via utun/tun, needs SUID root
-      // - Windows: leaf uses Wintun (wintun.dll), needs admin privileges
+      // - Windows: leaf uses Wintun via tun-rs (wintun.dll), needs admin privileges
       if (tunEnabled && tunFd == null && !Platform.isAndroid)
         LeafInbound.tunAuto(),
     ];

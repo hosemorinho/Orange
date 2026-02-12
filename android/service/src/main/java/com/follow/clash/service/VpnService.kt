@@ -234,8 +234,13 @@ class VpnService : SystemVpnService(), IBaseService,
             loader.load()
             State.options?.let {
                 handleStart(it)
+            } ?: run {
+                Log.e("VpnService", "start: no VPN options available")
+                stop()
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e("VpnService", "start: VPN establish failed", e)
+            GlobalState.log("VpnService start failed: ${e.message}")
             stop()
         }
     }

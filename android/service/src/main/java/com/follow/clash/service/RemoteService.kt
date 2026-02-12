@@ -42,30 +42,36 @@ class RemoteService : Service(),
     private fun handleStartService(runTime: Long, result: IResultInterface) {
         launch {
             runLock.withLock {
-                val nextIntent = when (State.options?.enable == true) {
-                    true -> VpnService::class.intent
-                    false -> CommonService::class.intent
-                }
-                if (intent != nextIntent) {
-                    delegate?.unbind()
-                    delegate = ServiceDelegate(nextIntent, ::handleServiceDisconnected) { binder ->
-                        when (binder) {
-                            is VpnService.LocalBinder -> binder.getService()
-                            is CommonService.LocalBinder -> binder.getService()
-                            else -> throw IllegalArgumentException("Invalid binder type")
-                        }
+                try {
+                    val nextIntent = when (State.options?.enable == true) {
+                        true -> VpnService::class.intent
+                        false -> CommonService::class.intent
                     }
-                    intent = nextIntent
-                    delegate?.bind()
+                    if (intent != nextIntent) {
+                        delegate?.unbind()
+                        delegate =
+                            ServiceDelegate(nextIntent, ::handleServiceDisconnected) { binder ->
+                                when (binder) {
+                                    is VpnService.LocalBinder -> binder.getService()
+                                    is CommonService.LocalBinder -> binder.getService()
+                                    else -> throw IllegalArgumentException("Invalid binder type")
+                                }
+                            }
+                        intent = nextIntent
+                        delegate?.bind()
+                    }
+                    delegate?.useService { service ->
+                        service.start()
+                    }
+                    State.runTime = when (runTime != 0L) {
+                        true -> runTime
+                        false -> System.currentTimeMillis()
+                    }
+                    result.onResult(State.runTime)
+                } catch (e: Exception) {
+                    GlobalState.log("handleStartService failed: ${e.message}")
+                    result.onResult(0)
                 }
-                delegate?.useService { service ->
-                    service.start()
-                }
-                State.runTime = when (runTime != 0L) {
-                    true -> runTime
-                    false -> System.currentTimeMillis()
-                }
-                result.onResult(State.runTime)
             }
         }
     }

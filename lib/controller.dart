@@ -796,14 +796,16 @@ extension SetupControllerExt on AppController {
     if (preloadInvoke != null) preloadInvoke();
 
     // TUN mode configuration
-    final tunEnabled = _ref.read(patchClashConfigProvider).tun.enable;
+    var tunEnabled = _ref.read(patchClashConfigProvider).tun.enable;
     int? tunFd;
     if (system.isAndroid && tunEnabled) {
-      // Enable socket protection before starting leaf with TUN
       await service?.enableSocketProtection();
       tunFd = await service?.getTunFd();
       if (tunFd == null) {
-        _logger.warning('setup: TUN enabled but no VPN fd available');
+        _logger.warning('setup: TUN enabled but no VPN fd available — '
+            'VPN service may have failed to establish. Disabling TUN.');
+        tunEnabled = false;
+        await service?.disableSocketProtection();
       } else {
         _logger.info('setup: got TUN fd=$tunFd from VPN service');
       }

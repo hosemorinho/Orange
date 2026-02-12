@@ -165,16 +165,26 @@ object State {
                     val options = sharedState.vpnOptions ?: return@launch
                     appPlugin?.let {
                         it.prepare(options.enable) {
-                            runTime = Service.startService(options, runTime)
-                            runStateFlow.tryEmit(RunState.START)
+                            try {
+                                runTime = Service.startService(options, runTime)
+                                runStateFlow.tryEmit(RunState.START)
+                            } catch (e: Exception) {
+                                GlobalState.log("VPN service start failed: ${e.message}")
+                                runStateFlow.tryEmit(RunState.STOP)
+                            }
                         }
                     } ?: run {
                         val intent = VpnService.prepare(GlobalState.application)
                         if (intent != null) {
                             return@launch
                         }
-                        runTime = Service.startService(options, runTime)
-                        runStateFlow.tryEmit(RunState.START)
+                        try {
+                            runTime = Service.startService(options, runTime)
+                            runStateFlow.tryEmit(RunState.START)
+                        } catch (e: Exception) {
+                            GlobalState.log("VPN service start failed (no plugin): ${e.message}")
+                            runStateFlow.tryEmit(RunState.STOP)
+                        }
                     }
                 } finally {
                     if (runStateFlow.value == RunState.PENDING) {

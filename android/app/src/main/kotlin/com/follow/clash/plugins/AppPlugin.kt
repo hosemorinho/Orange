@@ -401,6 +401,10 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
         if (requestCode == VPN_PERMISSION_REQUEST_CODE) {
             if (resultCode == FlutterActivity.RESULT_OK) {
                 invokeVpnPrepareCallback()
+            } else {
+                // User denied VPN permission — clear the callback so state
+                // doesn't stay stuck in PENDING forever.
+                vpnPrepareCallback = null
             }
         }
         return true

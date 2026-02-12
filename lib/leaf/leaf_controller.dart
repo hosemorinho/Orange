@@ -187,13 +187,15 @@ class LeafController {
   }
 
   // ---------------------------------------------------------------------------
-  // Hot-reload: update config without restarting the core
+  // Hot-reload: update routing mode without restarting the core
   // ---------------------------------------------------------------------------
 
-  /// Hot-reload with a new routing mode. Sends config directly via FFI —
-  /// no file I/O. The core stays running, connections are preserved.
+  /// Hot-reload with a new routing mode. Rebuilds config and sends it
+  /// directly via FFI — no file I/O, no core restart.
   ///
   /// Only router rules and outbound manager are reloaded (inbounds stay as-is).
+  /// After reload, existing TCP connections are cancelled so new connections
+  /// use the updated routing.
   Future<void> updateMode(Mode newMode, {required bool mmdbAvailable}) async {
     _requireRunning();
 
@@ -219,6 +221,9 @@ class LeafController {
     // Update remembered state
     _lastMode = newMode;
     _lastMmdbAvailable = mmdbAvailable;
+
+    // Break existing TCP connections so they re-route with new rules
+    closeConnections();
     _logger.info('hotReload: complete');
   }
 
@@ -249,6 +254,20 @@ class LeafController {
     }
     final after = getSelectedNode();
     _logger.info('selectNode: $before → $after (requested=$nodeTag, match=${after == nodeTag})');
+
+    // Cancel existing TCP relay connections so new connections use the new node
+    closeConnections();
+  }
+
+  /// Cancel all active TCP relay connections.
+  ///
+  /// After selecting a new node, existing connections are still relaying
+  /// through the old proxy server. This forces them to close so new
+  /// connections go through the newly selected outbound.
+  void closeConnections() {
+    if (_instance == null) return;
+    final ok = _instance!.closeConnections();
+    _logger.info('closeConnections: $ok');
   }
 
   /// Get the currently selected node tag.

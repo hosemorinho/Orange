@@ -604,13 +604,22 @@ extension SetupControllerExt on AppController {
     _ref
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
-    // Full restart required: leaf core's reload_with_config_string does NOT
-    // rebuild the router — routing rules from the initial start persist.
-    // A stop→start cycle is the only reliable way to switch modes.
     if (_leafController != null && _leafController!.isRunning) {
-      _logger.info('changeMode: ${_leafController!.currentMode.name} → ${mode.name}, restarting leaf');
-      _lastSetupTime = null;
-      await applyProfile(force: true);
+      _logger.info('changeMode: ${_leafController!.currentMode.name} → ${mode.name}');
+      final mmdbAvailable = await _isMmdbAvailable();
+      await _leafController!.updateMode(mode, mmdbAvailable: mmdbAvailable);
+    }
+  }
+
+  /// Check if geo.mmdb is available in the leaf home directory.
+  Future<bool> _isMmdbAvailable() async {
+    final homeDir = _leafController?.homeDir;
+    if (homeDir == null) return false;
+    try {
+      final mmdbPath = await MmdbManager.ensureAvailable(homeDir);
+      return await File(mmdbPath).exists();
+    } catch (_) {
+      return false;
     }
   }
 

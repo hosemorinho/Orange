@@ -219,6 +219,13 @@ class LeafInstance {
     return result;
   }
 
+  /// Cancel all active TCP relay connections.
+  ///
+  /// After a proxy node switch, existing TCP connections are still relaying
+  /// through the old proxy server. This breaks all active relay loops so
+  /// new connections use the newly selected outbound.
+  bool closeConnections() => _bindings.leafCloseConnections(rtId);
+
   /// Set selected outbound for a selector group.
   int setOutboundSelected(String outbound, String select) {
     final outboundPtr = outbound.toNativeUtf8();

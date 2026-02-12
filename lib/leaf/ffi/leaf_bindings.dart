@@ -42,6 +42,8 @@ class LeafBindings {
 
   late final bool Function(int rtId) leafShutdown;
 
+  late final bool Function(int rtId) leafCloseConnections;
+
   late final int Function(Pointer<Utf8> configPath) leafTestConfig;
 
   late final int Function(Pointer<Utf8> config) leafTestConfigString;
@@ -169,6 +171,10 @@ class LeafBindings {
     // leaf_shutdown(rt_id) -> bool
     leafShutdown = _lib.lookupFunction<Bool Function(Uint16),
         bool Function(int)>('leaf_shutdown');
+
+    // leaf_close_connections(rt_id) -> bool
+    leafCloseConnections = _lib.lookupFunction<Bool Function(Uint16),
+        bool Function(int)>('leaf_close_connections');
 
     // leaf_test_config(config_path) -> i32
     leafTestConfig = _lib

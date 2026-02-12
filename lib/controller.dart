@@ -790,26 +790,24 @@ extension SetupControllerExt on AppController {
       _logger.info('setup: TUN mode enabled for desktop (${Platform.operatingSystem})');
     }
 
-    // MMDB for rule mode
+    // MMDB for rule mode — ensure geo.mmdb is in ASSET_LOCATION
     final mode = _ref.read(patchClashConfigProvider).mode;
-    String? mmdbPath;
+    bool mmdbAvailable = false;
     if (mode == Mode.rule && _leafController != null) {
       final homeDir = _leafController!.homeDir;
       if (homeDir != null) {
         try {
-          // ensureAvailable tries: 1) existing file, 2) bundled asset, 3) GitHub download
-          mmdbPath = await MmdbManager.ensureAvailable(homeDir);
-          // Verify file actually exists and is readable
+          final mmdbPath = await MmdbManager.ensureAvailable(homeDir);
           final mmdbFile = File(mmdbPath);
           if (await mmdbFile.exists()) {
             final stat = await mmdbFile.stat();
-            _logger.info('setup: MMDB verified at $mmdbPath (${stat.size} bytes)');
+            _logger.info('setup: geo.mmdb verified at $mmdbPath (${stat.size} bytes)');
+            mmdbAvailable = true;
           } else {
-            _logger.warning('setup: MMDB path returned but file missing: $mmdbPath');
-            mmdbPath = null;
+            _logger.warning('setup: geo.mmdb path returned but file missing: $mmdbPath');
           }
         } catch (e) {
-          _logger.warning('setup: MMDB unavailable for rule mode: $e');
+          _logger.warning('setup: geo.mmdb unavailable for rule mode: $e');
           _logger.warning('setup: Rule mode will behave like global mode (no GeoIP rules)');
         }
       }
@@ -830,7 +828,7 @@ extension SetupControllerExt on AppController {
         tunFd: tunFd,
         tunEnabled: tunEnabled,
         mode: mode,
-        mmdbPath: mmdbPath,
+        mmdbAvailable: mmdbAvailable,
       );
     } catch (e) {
       _logger.error('setup: leaf start failed', e);

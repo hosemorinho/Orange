@@ -88,6 +88,9 @@ class LeafBindings {
     int bufLen,
   ) leafGetStats;
 
+  // ---- Environment ----
+  late final void Function(Pointer<Utf8> key, Pointer<Utf8> value) leafSetEnv;
+
   // ---- Memory ----
   late final void Function(Pointer<Utf8> s) leafFreeString;
 
@@ -193,6 +196,11 @@ class LeafBindings {
     leafGetStats = _lib.lookupFunction<
         Int32 Function(Uint16, Pointer<Utf8>, Int32),
         int Function(int, Pointer<Utf8>, int)>('leaf_get_stats');
+
+    // leaf_set_env(key, value)
+    leafSetEnv = _lib.lookupFunction<
+        Void Function(Pointer<Utf8>, Pointer<Utf8>),
+        void Function(Pointer<Utf8>, Pointer<Utf8>)>('leaf_set_env');
 
     // leaf_free_string(s)
     leafFreeString = _lib.lookupFunction<Void Function(Pointer<Utf8>),

@@ -40,9 +40,12 @@ class LeafController {
   // ---------------------------------------------------------------------------
 
   /// Initialize with the app's home directory.
+  /// Sets ASSET_LOCATION so leaf can find geo.mmdb for GeoIP rule mode.
   Future<void> init(String homeDir) async {
     _homeDir = homeDir;
     await Directory(homeDir).create(recursive: true);
+    _ffi.setEnv('ASSET_LOCATION', homeDir);
+    _logger.info('init: homeDir=$homeDir, ASSET_LOCATION set');
   }
 
   /// Load a Clash YAML subscription and start the proxy.
@@ -51,14 +54,14 @@ class LeafController {
   /// [tunFd] is the Android VPN TUN file descriptor (null on desktop).
   /// [tunEnabled] enables TUN/NF inbound on desktop platforms.
   /// [mode] controls routing: global (all proxy), rule (CN direct), direct.
-  /// [mmdbPath] is required for rule mode — absolute path to Country.mmdb.
+  /// [mmdbAvailable] whether geo.mmdb is in the ASSET_LOCATION directory.
   Future<void> startWithClashYaml(
     String yamlContent, {
     int? tunFd,
     bool tunEnabled = false,
     int mixedPort = 7890,
     Mode mode = Mode.global,
-    String? mmdbPath,
+    bool mmdbAvailable = false,
   }) async {
     _mixedPort = mixedPort;
 
@@ -86,7 +89,7 @@ class LeafController {
       tunFd: tunFd,
       tunEnabled: tunEnabled,
       mode: mode,
-      mmdbPath: mmdbPath,
+      mmdbAvailable: mmdbAvailable,
     );
 
     await _startWithConfig(config);

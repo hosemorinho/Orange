@@ -25,10 +25,11 @@ class ConfigWriter {
   ///
   /// [mode] controls routing behavior:
   /// - [Mode.global]: all traffic through proxy (FINAL → proxy)
-  /// - [Mode.rule]: CN traffic direct, rest through proxy (requires [mmdbPath])
+  /// - [Mode.rule]: CN traffic direct via GeoIP, rest through proxy
   /// - [Mode.direct]: all traffic direct (FINAL → direct)
   ///
-  /// [mmdbPath] is the absolute path to Country.mmdb, required for rule mode.
+  /// For rule mode, geo.mmdb must be in the ASSET_LOCATION directory
+  /// (set via LeafController.init → leaf_set_env).
   static LeafConfig build({
     required List<Map<String, dynamic>> proxies,
     required int mixedPort,
@@ -36,7 +37,7 @@ class ConfigWriter {
     bool tunEnabled = false,
     String logLevel = 'warn',
     Mode mode = Mode.global,
-    String? mmdbPath,
+    bool mmdbAvailable = false,
   }) {
     // Convert Clash proxies to leaf outbounds
     final converted = ClashProxyConverter.convertAll(proxies);
@@ -68,10 +69,10 @@ class ConfigWriter {
     // Router: mode-aware routing rules
     final rules = _buildRules(
       mode: mode,
-      mmdbPath: mmdbPath,
+      mmdbAvailable: mmdbAvailable,
       hasNodes: converted.nodeTags.isNotEmpty,
     );
-    _logger.info('build: mode=${mode.name}, mmdbPath=$mmdbPath, '
+    _logger.info('build: mode=${mode.name}, mmdbAvailable=$mmdbAvailable, '
         'rules=${rules.length}, nodes=${converted.nodeTags.length}');
     if (mode == Mode.rule) {
       for (final r in rules) {
@@ -99,9 +100,13 @@ class ConfigWriter {
   }
 
   /// Build routing rules based on the selected mode.
+  ///
+  /// Uses `mmdb:cn` (2-part format) — leaf resolves the file via
+  /// ASSET_LOCATION/geo.mmdb. This avoids Windows drive letter colon
+  /// conflicts in the 3-part `mmdb:path:code` format.
   static List<LeafRule> _buildRules({
     required Mode mode,
-    String? mmdbPath,
+    required bool mmdbAvailable,
     required bool hasNodes,
   }) {
     if (!hasNodes) return [];
@@ -111,15 +116,12 @@ class ConfigWriter {
         LeafRule.final_(target: selectorTag),
       ],
       Mode.rule => [
-        if (mmdbPath != null)
+        if (mmdbAvailable)
           LeafRule(
             target: 'direct',
-            external: ['mmdb:$mmdbPath:cn'],
+            external: ['mmdb:cn'],
           )
         else
-          // MMDB unavailable — log warning. Without GeoIP rules, rule mode
-          // would silently behave like global mode. We still add FINAL → proxy
-          // so traffic flows, but the CN-direct rule is missing.
           ..._logMissingMmdb(),
         LeafRule.final_(target: selectorTag),
       ],
@@ -129,13 +131,10 @@ class ConfigWriter {
     };
   }
 
-  /// Log a warning when MMDB is missing in rule mode.
-  /// Returns empty list so it can be spread into the rules list.
   static List<LeafRule> _logMissingMmdb() {
     _logger.warning(
-      'Rule mode active but MMDB is unavailable. '
-      'CN traffic will NOT be routed directly — behaving like global mode. '
-      'Download Country.mmdb from Resources page to enable rule-based routing.',
+      'Rule mode active but geo.mmdb is unavailable in ASSET_LOCATION. '
+      'CN traffic will NOT be routed directly — behaving like global mode.',
     );
     return [];
   }

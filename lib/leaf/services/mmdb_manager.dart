@@ -15,8 +15,8 @@ final _logger = FileLogger('mmdb_manager.dart');
 class MmdbManager {
   MmdbManager._();
 
-  static const String fileName = 'Country.mmdb';
-  static const String _assetPath = 'assets/data/$fileName';
+  static const String fileName = 'geo.mmdb';
+  static const String _assetPath = 'assets/data/Country.mmdb';
 
   /// Maximum age before the file is considered stale (7 days).
   static const Duration _maxAge = Duration(days: 7);

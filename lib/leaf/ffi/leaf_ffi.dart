@@ -26,6 +26,21 @@ class LeafFfi {
   factory LeafFfi.open() => LeafFfi(LeafBindings.open());
 
   // ---------------------------------------------------------------------------
+  // Environment (must be called before start)
+  // ---------------------------------------------------------------------------
+
+  void setEnv(String key, String value) {
+    final keyPtr = key.toNativeUtf8();
+    final valuePtr = value.toNativeUtf8();
+    try {
+      _bindings.leafSetEnv(keyPtr, valuePtr);
+    } finally {
+      calloc.free(keyPtr);
+      calloc.free(valuePtr);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Core lifecycle
   // ---------------------------------------------------------------------------
 

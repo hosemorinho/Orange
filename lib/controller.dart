@@ -836,7 +836,8 @@ extension SetupControllerExt on AppController {
     if (_leafController!.isRunning) {
       await _leafController!.stop();
     }
-    _logger.info('setup: starting leaf on mixed port $mixedPort, mode=${mode.name}, with YAML (${yamlContent.length} bytes)');
+    _logger.info('setup: starting leaf on mixed port $mixedPort, mode=${mode.name}, '
+        'tun=$tunEnabled, with YAML (${yamlContent.length} bytes)');
     try {
       await _leafController!.startWithClashYaml(
         yamlContent,
@@ -847,8 +848,34 @@ extension SetupControllerExt on AppController {
         mmdbAvailable: mmdbAvailable,
       );
     } catch (e) {
-      _logger.error('setup: leaf start failed', e);
-      return;
+      // If TUN is enabled and startup failed, retry without TUN.
+      // TUN failures are common: missing admin rights, wintun.dll issues,
+      // or platform-specific TUN creation errors.
+      if (tunEnabled) {
+        _logger.warning('setup: leaf start failed with TUN ($e), retrying without TUN');
+        try {
+          await _leafController!.startWithClashYaml(
+            yamlContent,
+            mixedPort: mixedPort,
+            tunEnabled: false,
+            mode: mode,
+            mmdbAvailable: mmdbAvailable,
+          );
+          // TUN-less start succeeded — update UI state to reflect TUN is off
+          _ref.read(patchClashConfigProvider.notifier)
+              .update((state) => state.copyWith.tun(enable: false));
+          _ref.read(realTunEnableProvider.notifier).value = false;
+          globalState.showNotifier(
+            'TUN启动失败，已降级为系统代理模式: $e',
+          );
+        } catch (e2) {
+          _logger.error('setup: leaf start failed even without TUN', e2);
+          return;
+        }
+      } else {
+        _logger.error('setup: leaf start failed', e);
+        return;
+      }
     }
 
     // Update leaf providers

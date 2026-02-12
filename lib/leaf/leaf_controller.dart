@@ -136,9 +136,32 @@ class LeafController {
     );
 
     await _waitForRuntimeReady();
+
+    // Grace period: TUN creation is asynchronous and may fail shortly after
+    // the runtime registers in RUNTIME_MANAGER. Wait briefly and re-check
+    // startupError to catch early TUN failures.
+    final hasTun = config.inbounds?.any((i) => i.protocol == 'tun') ?? false;
+    if (hasTun) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      final startupError = _instance?.startupError;
+      if (startupError != null) {
+        _logger.error('leaf crashed after runtime ready (likely TUN failure): '
+            'error $startupError (${LeafError.message(startupError)})');
+        // Clean up the dead instance (isolate has already exited)
+        _instance?.shutdown();
+        _instance = null;
+        throw LeafException(startupError);
+      }
+      _logger.info('TUN inbound appears healthy after grace period');
+    }
   }
 
   /// Poll until leaf's RUNTIME_MANAGER is populated and ready for FFI calls.
+  ///
+  /// Uses [getOutboundSelects] instead of [getOutboundSelected] because
+  /// the selects function returns a JSON array (always >9 bytes with any
+  /// nodes) which avoids the error-code / byte-count ambiguity in the
+  /// FFI buffer return convention.
   ///
   /// Throws [LeafException] if:
   /// - The leaf isolate reports a startup error (e.g., TUN creation failed)
@@ -157,17 +180,21 @@ class LeafController {
       }
 
       try {
-        // Try a lightweight FFI call — if it doesn't throw, runtime is ready
-        _instance?.getOutboundSelected('proxy');
-        _logger.info('runtime ready after ${(i + 1) * 100}ms');
-        return;
+        // getOutboundSelects returns a non-empty list when the runtime
+        // is alive AND the outbound manager is populated with our config.
+        final selects = _instance?.getOutboundSelects(ConfigWriter.selectorTag);
+        if (selects != null && selects.isNotEmpty) {
+          _logger.info('runtime ready after ${(i + 1) * 100}ms '
+              '(${selects.length} nodes in selector)');
+          return;
+        }
       } catch (_) {
         // Not ready yet, keep polling
       }
     }
     _logger.error('runtime not ready after ${maxAttempts * 100}ms — '
         'leaf likely failed to start (TUN creation or config error)');
-    throw LeafException(LeafError.config);
+    throw LeafException(LeafError.runtimeManager);
   }
 
   Future<void> stop() async {
@@ -377,6 +404,16 @@ class LeafController {
 
   void _requireRunning() {
     if (_instance == null) throw StateError('Leaf is not running');
+    // Detect post-startup crashes (e.g. TUN creation failed asynchronously
+    // after the runtime was briefly registered in RUNTIME_MANAGER).
+    final startupError = _instance!.startupError;
+    if (startupError != null) {
+      _logger.error('leaf runtime has crashed: error $startupError '
+          '(${LeafError.message(startupError)})');
+      _instance!.shutdown();
+      _instance = null;
+      throw LeafException(startupError);
+    }
   }
 
   /// Parse Clash YAML `proxies:` section into a list of maps.

@@ -385,11 +385,18 @@ class LeafInstance {
       }
 
       if (result < 0) return null; // Still too small (shouldn't happen)
-      if (result <= LeafError.noData) {
-        // It's an error code (0-9), not a byte count
-        // result == 0 could be either ERR_OK or 0 bytes written — ambiguous.
-        // For buffer functions, 0 means empty string which is valid.
-        if (result > 0) return null;
+
+      // Disambiguate error codes (1-9) from valid byte counts (1-9).
+      // On error, the FFI does NOT write to the buffer — buf[0] stays 0
+      // (calloc zeroes memory). On success, write_to_buf writes data
+      // followed by a NUL terminator, so buf[0] is non-zero for any
+      // non-empty string.
+      if (result == 0) {
+        return ''; // 0 bytes written = empty string (or ERR_OK, same effect)
+      }
+      if (result <= LeafError.noData && buf[0] == 0) {
+        // No data was written to buffer — this is an error code, not a byte count
+        return null;
       }
 
       return buf.cast<Utf8>().toDartString(length: result);

@@ -43,6 +43,7 @@ class AppController {
   late final WidgetRef _ref;
   bool isAttach = false;
   bool _isApplyingProfile = false;
+  bool _isUpdatingStatus = false;
   DateTime? _lastSetupTime;
   LeafController? _leafController;
   bool _leafInitialized = false;
@@ -504,37 +505,46 @@ extension SetupControllerExt on AppController {
   }
 
   Future<void> updateStatus(bool isStart, {bool isInit = false}) async {
-    if (isStart) {
-      if (!isInit) {
-        final res = await tryStartCore(true);
-        if (res) {
-          return;
+    if (_isUpdatingStatus) {
+      _logger.info('updateStatus: skipping concurrent call (isStart=$isStart)');
+      return;
+    }
+    _isUpdatingStatus = true;
+    try {
+      if (isStart) {
+        if (!isInit) {
+          final res = await tryStartCore(true);
+          if (res) {
+            return;
+          }
+          if (!_ref.read(initProvider)) {
+            return;
+          }
+          await globalState.handleStart([updateRunTime, updateTraffic]);
+          applyProfileDebounce(force: true, silence: true);
+        } else {
+          globalState.needInitStatus = false;
+          await applyProfile(
+            force: true,
+            preloadInvoke: () async {
+              await globalState.handleStart([updateRunTime, updateTraffic]);
+            },
+          );
         }
-        if (!_ref.read(initProvider)) {
-          return;
-        }
-        await globalState.handleStart([updateRunTime, updateTraffic]);
-        applyProfileDebounce(force: true, silence: true);
       } else {
-        globalState.needInitStatus = false;
-        await applyProfile(
-          force: true,
-          preloadInvoke: () async {
-            await globalState.handleStart([updateRunTime, updateTraffic]);
-          },
-        );
+        if (system.isAndroid) {
+          await service?.disableSocketProtection();
+        }
+        await _leafController?.stop();
+        _ref.read(isLeafRunningProvider.notifier).state = false;
+        await globalState.handleStop();
+        _ref.read(trafficsProvider.notifier).clear();
+        _ref.read(totalTrafficProvider.notifier).value = Traffic();
+        _ref.read(runTimeProvider.notifier).value = null;
+        addCheckIp();
       }
-    } else {
-      if (system.isAndroid) {
-        await service?.disableSocketProtection();
-      }
-      await _leafController?.stop();
-      _ref.read(isLeafRunningProvider.notifier).state = false;
-      await globalState.handleStop();
-      _ref.read(trafficsProvider.notifier).clear();
-      _ref.read(totalTrafficProvider.notifier).value = Traffic();
-      _ref.read(runTimeProvider.notifier).value = null;
-      addCheckIp();
+    } finally {
+      _isUpdatingStatus = false;
     }
   }
 
@@ -596,6 +606,8 @@ extension SetupControllerExt on AppController {
     // Routing rules are baked into the config at startup — changing mode
     // requires regenerating the config and restarting leaf.
     if (_leafController != null && _leafController!.isRunning) {
+      // Reset throttle so mode change takes effect immediately
+      _lastSetupTime = null;
       applyProfile(force: true);
     }
     addCheckIp();
@@ -785,11 +797,12 @@ extension SetupControllerExt on AppController {
       final homeDir = _leafController!.homeDir;
       if (homeDir != null) {
         try {
+          // ensureAvailable tries: 1) existing file, 2) bundled asset, 3) GitHub download
           mmdbPath = await MmdbManager.ensureAvailable(homeDir);
           _logger.info('setup: MMDB available at $mmdbPath');
         } catch (e) {
-          _logger.warning('setup: MMDB unavailable, falling back to global mode: $e');
-          // Fall back to global if MMDB is not available
+          _logger.warning('setup: MMDB unavailable for rule mode: $e');
+          _logger.warning('setup: Rule mode will behave like global mode (no GeoIP rules)');
         }
       }
     }

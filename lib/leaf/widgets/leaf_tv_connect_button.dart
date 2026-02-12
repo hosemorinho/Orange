@@ -1,13 +1,15 @@
 import 'dart:math';
 
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
+import 'package:fl_clash/providers/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Large circular VPN connect button for TV — leaf version.
 ///
-/// Uses leaf providers instead of Clash appController/isStartProvider.
+/// Uses appController.updateStatus() for full lifecycle management.
 class LeafTvConnectButton extends ConsumerStatefulWidget {
   const LeafTvConnectButton({super.key});
 
@@ -29,7 +31,7 @@ class _LeafTvConnectButtonState extends ConsumerState<LeafTvConnectButton>
   @override
   void initState() {
     super.initState();
-    _isStart = ref.read(isLeafRunningProvider);
+    _isStart = ref.read(isStartProvider);
 
     _iconController = AnimationController(
       vsync: this,
@@ -48,7 +50,7 @@ class _LeafTvConnectButtonState extends ConsumerState<LeafTvConnectButton>
     if (_isStart) _pulseController.repeat(reverse: true);
 
     ref.listenManual(
-      isLeafRunningProvider,
+      runTimeProvider.select((state) => state != null),
       (prev, next) {
         if (next != _isStart) {
           setState(() => _isStart = next);
@@ -70,17 +72,12 @@ class _LeafTvConnectButtonState extends ConsumerState<LeafTvConnectButton>
   Future<void> _handleSwitchStart() async {
     if (_isSwitching) return;
     _isSwitching = true;
-    try {
-      setState(() => _isStart = !_isStart);
-      _updateController();
-      if (_isStart) {
-        await startLeaf(ref);
-      } else {
-        await stopLeaf(ref);
-      }
-    } finally {
+    final targetState = !_isStart;
+    setState(() => _isStart = targetState);
+    _updateController();
+    appController.updateStatus(targetState).whenComplete(() {
       _isSwitching = false;
-    }
+    });
   }
 
   void _updateController() {

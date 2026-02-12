@@ -107,13 +107,29 @@ class ConfigWriter {
           LeafRule(
             target: 'direct',
             external: ['mmdb:$mmdbPath:cn'],
-          ),
+          )
+        else
+          // MMDB unavailable — log warning. Without GeoIP rules, rule mode
+          // would silently behave like global mode. We still add FINAL → proxy
+          // so traffic flows, but the CN-direct rule is missing.
+          ..._logMissingMmdb(),
         LeafRule.final_(target: selectorTag),
       ],
       Mode.direct => [
         LeafRule.final_(target: 'direct'),
       ],
     };
+  }
+
+  /// Log a warning when MMDB is missing in rule mode.
+  /// Returns empty list so it can be spread into the rules list.
+  static List<LeafRule> _logMissingMmdb() {
+    _logger.warning(
+      'Rule mode active but MMDB is unavailable. '
+      'CN traffic will NOT be routed directly — behaving like global mode. '
+      'Download Country.mmdb from Resources page to enable rule-based routing.',
+    );
+    return [];
   }
 
   static bool _isNfDriverAvailable() {

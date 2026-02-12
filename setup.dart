@@ -152,6 +152,7 @@ class Build {
   ///
   /// Saves to assets/data/Country.mmdb to be bundled with the app.
   /// Skips download if file already exists and is less than 7 days old.
+  /// Retries up to 3 times with different mirrors on failure.
   static Future<void> downloadCountryMmdb() async {
     final assetsDir = Directory(join(current, 'assets', 'data'));
     await assetsDir.create(recursive: true);
@@ -162,41 +163,98 @@ class Build {
     // Skip if file exists and is recent (< 7 days old)
     if (await mmdbFile.exists()) {
       final stat = await mmdbFile.stat();
+      final size = stat.size;
       final age = DateTime.now().difference(stat.modified);
-      if (age.inDays < 7) {
-        print('Country.mmdb exists and is ${age.inDays} days old, skipping download');
+      if (age.inDays < 7 && size > 100 * 1024) {
+        final sizeMb = (size / (1024 * 1024)).toStringAsFixed(2);
+        print('Country.mmdb exists ($sizeMb MB, ${age.inDays} days old), skipping download');
         return;
       }
     }
 
-    const url = 'https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb';
-    print('Downloading Country.mmdb from $url...');
+    // Try multiple URLs: GitHub releases use 302 redirects to objects.githubusercontent.com
+    // which can fail with basic HttpClient. Use explicit redirect following.
+    const urls = [
+      'https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb',
+      'https://raw.githubusercontent.com/Loyalsoldier/geoip/release/Country.mmdb',
+    ];
 
-    try {
-      final httpClient = HttpClient();
-      final request = await httpClient.getUrl(Uri.parse(url));
-      final response = await request.close();
+    for (final url in urls) {
+      print('Downloading Country.mmdb from $url...');
+      try {
+        final httpClient = HttpClient()
+          ..connectionTimeout = const Duration(seconds: 30);
+        // Follow redirects explicitly (GitHub releases do 302 → CDN)
+        var request = await httpClient.getUrl(Uri.parse(url));
+        request.followRedirects = true;
+        request.maxRedirects = 5;
+        var response = await request.close();
 
-      if (response.statusCode != 200) {
-        throw 'HTTP ${response.statusCode}: Failed to download Country.mmdb';
+        // Manual redirect following as a fallback
+        var redirectCount = 0;
+        while ((response.statusCode == 301 ||
+                response.statusCode == 302 ||
+                response.statusCode == 307 ||
+                response.statusCode == 308) &&
+            redirectCount < 5) {
+          final location = response.headers.value('location');
+          if (location == null) break;
+          await response.drain<void>();
+          final redirectUrl = Uri.parse(location);
+          request = await httpClient.getUrl(redirectUrl);
+          request.followRedirects = true;
+          request.maxRedirects = 5;
+          response = await request.close();
+          redirectCount++;
+        }
+
+        if (response.statusCode != 200) {
+          await response.drain<void>();
+          httpClient.close();
+          throw 'HTTP ${response.statusCode}';
+        }
+
+        // Stream response to temp file first, then rename
+        final tmpPath = '$mmdbPath.tmp';
+        final tmpFile = File(tmpPath);
+        final sink = tmpFile.openWrite();
+        var totalBytes = 0;
+        await for (final chunk in response) {
+          sink.add(chunk);
+          totalBytes += chunk.length;
+        }
+        await sink.close();
+        httpClient.close();
+
+        // Validate: Country.mmdb should be at least 1 MB
+        if (totalBytes < 100 * 1024) {
+          await tmpFile.delete();
+          throw 'Downloaded file too small ($totalBytes bytes), likely an error page';
+        }
+
+        // Atomically replace
+        if (await mmdbFile.exists()) {
+          await mmdbFile.delete();
+        }
+        await tmpFile.rename(mmdbPath);
+
+        final sizeMb = (totalBytes / (1024 * 1024)).toStringAsFixed(2);
+        print('Downloaded Country.mmdb ($sizeMb MB) to ${assetsDir.path}');
+        return; // Success — exit loop
+      } catch (e) {
+        print('Warning: Failed to download Country.mmdb from $url: $e');
+        // Try next URL
       }
+    }
 
-      // Stream response to file
-      final sink = mmdbFile.openWrite();
-      var totalBytes = 0;
-      await for (final chunk in response) {
-        sink.add(chunk);
-        totalBytes += chunk.length;
-      }
-      await sink.close();
-
-      final sizeMb = (totalBytes / (1024 * 1024)).toStringAsFixed(2);
-      print('Downloaded Country.mmdb ($sizeMb MB) to ${assetsDir.path}');
-
-      httpClient.close();
-    } catch (e) {
-      print('Warning: Failed to download Country.mmdb: $e');
-      print('Build will continue with bundled version (if present)');
+    // All URLs failed
+    if (await mmdbFile.exists() && (await mmdbFile.stat()).size > 100 * 1024) {
+      print('Using existing Country.mmdb (download of fresh copy failed)');
+    } else {
+      print('ERROR: Country.mmdb is not available. Rule mode will not work!');
+      print('Please manually download Country.mmdb to assets/data/');
+      print('URL: https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb');
+      // Don't exit — let the build continue but warn loudly
     }
   }
 

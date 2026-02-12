@@ -93,18 +93,15 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
   void _handleSwitchStart() {
     if (_isSwitching) return;
     _isSwitching = true;
-    setState(() => _isStart = !_isStart);
+    final targetState = !_isStart;
+    setState(() => _isStart = targetState);
     _updateController();
     // Use appController.updateStatus() like the original VpnHeroCard.
     // This handles the full lifecycle: system proxy, TUN, traffic, runtime.
-    debouncer.call(
-      FunctionTag.updateStatus,
-      () {
-        appController.updateStatus(_isStart);
-        _isSwitching = false;
-      },
-      duration: commonDuration,
-    );
+    // Capture targetState to prevent race conditions on rapid clicking.
+    appController.updateStatus(targetState).whenComplete(() {
+      _isSwitching = false;
+    });
   }
 
   void _updateController() {

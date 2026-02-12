@@ -1,10 +1,13 @@
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
+import 'package:fl_clash/providers/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Leaf connect button — replaces XBoardConnectButton and StartButton.
 ///
-/// Uses leaf providers instead of Clash appController/isStartProvider.
+/// Uses appController.updateStatus() for full lifecycle management
+/// (system proxy, TUN, traffic, runtime state).
 class LeafConnectButton extends ConsumerStatefulWidget {
   final bool isFloating;
 
@@ -27,7 +30,7 @@ class _LeafConnectButtonState extends ConsumerState<LeafConnectButton>
   @override
   void initState() {
     super.initState();
-    _isStart = ref.read(isLeafRunningProvider);
+    _isStart = ref.read(isStartProvider);
     _controller = AnimationController(
       vsync: this,
       value: _isStart ? 1 : 0,
@@ -38,7 +41,7 @@ class _LeafConnectButtonState extends ConsumerState<LeafConnectButton>
       curve: Curves.easeOutBack,
     );
     ref.listenManual(
-      isLeafRunningProvider,
+      runTimeProvider.select((state) => state != null),
       (prev, next) {
         if (next != _isStart) {
           _isStart = next;
@@ -58,17 +61,12 @@ class _LeafConnectButtonState extends ConsumerState<LeafConnectButton>
   Future<void> _handleSwitchStart() async {
     if (_isSwitching) return;
     _isSwitching = true;
-    try {
-      _isStart = !_isStart;
-      _updateController();
-      if (_isStart) {
-        await startLeaf(ref);
-      } else {
-        await stopLeaf(ref);
-      }
-    } finally {
+    final targetState = !_isStart;
+    _isStart = targetState;
+    _updateController();
+    appController.updateStatus(targetState).whenComplete(() {
       _isSwitching = false;
-    }
+    });
   }
 
   void _updateController() {

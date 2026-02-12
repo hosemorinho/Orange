@@ -256,6 +256,31 @@ class Build {
     }
   }
 
+  /// Copy wintun.dll to the leaf output directory for Windows TUN mode.
+  ///
+  /// Wintun DLLs are pre-downloaded and stored in wintun/bin/{amd64,arm64}/.
+  /// This copies the arch-specific DLL to libleaf/windows/ so CMake can
+  /// install it next to the executable.
+  static Future<void> installWintunDll({required Arch arch}) async {
+    final archName = arch == Arch.arm64 ? 'arm64' : 'amd64';
+    final srcPath = join(current, 'wintun', 'bin', archName, 'wintun.dll');
+    final srcFile = File(srcPath);
+
+    if (!await srcFile.exists()) {
+      print('WARNING: wintun.dll not found at $srcPath — TUN mode may not work on Windows.');
+      print('Download wintun from https://www.wintun.net/ and place DLLs in wintun/bin/{amd64,arm64}/');
+      return;
+    }
+
+    final destDir = Directory(join(outDir, 'windows'));
+    if (!await destDir.exists()) {
+      await destDir.create(recursive: true);
+    }
+    final destPath = join(destDir.path, 'wintun.dll');
+    await srcFile.copy(destPath);
+    print('Copied wintun.dll ($archName) -> $destPath');
+  }
+
   /// Build the leaf-ffi Rust shared library for the given platform.
   static Future<List<String>> buildCore({
     required Target target,
@@ -719,6 +744,11 @@ class BuildCommand extends Command {
     // Download Country.mmdb for leaf rule mode
     print('Downloading Country.mmdb for leaf rule mode...');
     await Build.downloadCountryMmdb();
+
+    // Copy wintun.dll for Windows TUN mode
+    if (target == Target.windows) {
+      await Build.installWintunDll(arch: arch!);
+    }
 
     if (out != 'app') {
       return;

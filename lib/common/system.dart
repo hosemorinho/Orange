@@ -58,10 +58,8 @@ class System {
 
   Future<bool> checkIsAdmin() async {
     if (system.isWindows) {
-      // Windows uses leaf NF driver for TUN — check if driver is installed
-      final systemRoot = Platform.environment['SystemRoot'] ?? r'C:\Windows';
-      final driverPath = '$systemRoot\\system32\\drivers\\nfdriver.sys';
-      return File(driverPath).existsSync();
+      // Windows: check if running with admin privileges via shell32 API
+      return windows?.isRunningAsAdmin() ?? false;
     } else if (system.isMacOS) {
       final result =
           await Process.run('stat', ['-f', '%Su:%Sg %Sp', appPath.corePath]);
@@ -94,17 +92,24 @@ class System {
     }
 
     if (system.isWindows) {
-      // Windows: leaf uses NF driver for TUN, started via FFI.
-      // No admin/helper service needed — just verify driver exists.
-      final systemRoot = Platform.environment['SystemRoot'] ?? r'C:\Windows';
-      final driverPath = '$systemRoot\\system32\\drivers\\nfdriver.sys';
-      if (File(driverPath).existsSync()) {
-        return AuthorizeCode.none;
-      }
+      // Windows: TUN via Wintun requires admin privileges.
+      // Relaunch the app elevated via UAC and exit the current process.
+      final exePath = Platform.resolvedExecutable;
       commonPrint.log(
-        'nfdriver.sys not found at $driverPath — TUN unavailable on Windows. '
-        'Install the NF driver to enable TUN.',
-        logLevel: LogLevel.error,
+        'Windows TUN: not admin, requesting elevation via UAC for $exePath',
+        logLevel: LogLevel.info,
+      );
+      final launched = windows?.runas(exePath, '') ?? false;
+      if (launched) {
+        // New elevated instance is starting — exit this non-admin one.
+        // Use a short delay to allow the UAC dialog to fully complete.
+        await Future.delayed(const Duration(milliseconds: 500));
+        exit(0);
+      }
+      // User cancelled UAC or ShellExecuteW failed
+      commonPrint.log(
+        'Windows TUN: UAC elevation failed or cancelled by user',
+        logLevel: LogLevel.warning,
       );
       return AuthorizeCode.error;
     }
@@ -188,6 +193,14 @@ class Windows {
   factory Windows() {
     _instance ??= Windows._internal();
     return _instance!;
+  }
+
+  /// Check if the current process is running with administrator privileges.
+  /// Uses shell32.dll IsUserAnAdmin() API.
+  bool isRunningAsAdmin() {
+    final isUserAnAdmin = _shell32
+        .lookupFunction<Bool Function(), bool Function()>('IsUserAnAdmin');
+    return isUserAnAdmin();
   }
 
   bool runas(String command, String arguments) {

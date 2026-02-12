@@ -33,13 +33,11 @@ class LeafConfig {
 
 class LeafLog {
   final String? level;
-  final String? output;
 
-  const LeafLog({this.level, this.output});
+  const LeafLog({this.level});
 
   Map<String, dynamic> toJson() => {
         if (level != null) 'level': level,
-        if (output != null) 'output': output,
       };
 }
 

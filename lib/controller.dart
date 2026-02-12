@@ -15,7 +15,6 @@ import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:fl_clash/xboard/core/logger/file_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yaml/yaml.dart';
 
@@ -873,12 +872,8 @@ extension CoreControllerExt on AppController {
     if (_leafInitialized) return;
 
     String homeDir;
-    String? logDir;
     if (Platform.isAndroid) {
       homeDir = await appPath.homeDirPath;
-      // Use external storage for logs (same dir as xboard.log)
-      final extDir = await getExternalStorageDirectory();
-      logDir = extDir?.path;
     } else {
       final home = Platform.environment['HOME'] ??
           Platform.environment['USERPROFILE'] ??
@@ -887,9 +882,9 @@ extension CoreControllerExt on AppController {
           '$home${Platform.pathSeparator}.config${Platform.pathSeparator}orange${Platform.pathSeparator}leaf';
     }
 
-    await _leafController?.init(homeDir, logDir: logDir);
+    await _leafController?.init(homeDir);
     _leafInitialized = true;
-    commonPrint.log('leaf core initialized: $homeDir, logDir: $logDir');
+    commonPrint.log('leaf core initialized: $homeDir');
   }
 
   Future<void> _connectCore() async {

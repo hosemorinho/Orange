@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/leaf/config/clash_proxy_converter.dart';
 import 'package:fl_clash/leaf/config/config_writer.dart';
 import 'package:fl_clash/leaf/config/leaf_config.dart';
 import 'package:fl_clash/leaf/ffi/leaf_errors.dart';
@@ -25,7 +24,6 @@ class LeafController {
 
   String? _homeDir;
   String? get homeDir => _homeDir;
-  String? _configPath;
 
   /// Nodes extracted from the last loaded Clash YAML.
   List<LeafNode> _nodes = [];
@@ -109,43 +107,32 @@ class LeafController {
     await _startWithConfig(config);
   }
 
-  /// Start leaf with a pre-built config.
+  /// Start leaf with a pre-built config — fully in-memory, no file I/O.
   Future<void> _startWithConfig(LeafConfig config) async {
     if (_homeDir == null) throw StateError('Call init() first');
 
-    // Stop existing instance if running
     if (_instance != null) {
       await stop();
     }
 
-    // Write config to temp file (cleaned up on stop)
-    _configPath = await ConfigWriter.writeToFile(
-      config: config,
-      directory: Directory.systemTemp.path,
-    );
-
-    // Log the generated config for debugging rule mode issues
     final configJson = config.toJsonString();
-    _logger.info('generated config (${ configJson.length} bytes): $_configPath');
+    _logger.info('starting leaf with in-memory config (${configJson.length} bytes)');
     if (configJson.length < 8000) {
       _logger.info('config content:\n$configJson');
     }
 
-    // Validate config
-    final testResult = _ffi.testConfig(_configPath!);
+    // Validate config from string (no file needed)
+    final testResult = _ffi.testConfigString(configJson);
     if (!LeafError.isOk(testResult)) {
       throw LeafException(testResult);
     }
 
-    // Start leaf in isolate
-    _instance = await _ffi.start(
+    // Start leaf from config string — decrypted credentials never touch disk
+    _instance = await _ffi.startWithConfigString(
       rtId: _rtId,
-      configPath: _configPath!,
+      config: configJson,
     );
 
-    // Wait for runtime manager to be ready.
-    // The isolate signals ok before leaf_run_with_options actually starts,
-    // so RUNTIME_MANAGER may not be populated yet. Poll until ready.
     await _waitForRuntimeReady();
   }
 
@@ -166,11 +153,9 @@ class LeafController {
     _logger.warning('runtime not ready after ${maxAttempts * 100}ms');
   }
 
-  /// Stop the proxy and clean up temp config.
   Future<void> stop() async {
     _instance?.shutdown();
     _instance = null;
-    await _deleteConfigFile();
   }
 
   /// Reload config from the existing config file on disk.
@@ -350,18 +335,6 @@ class LeafController {
 
   void _requireRunning() {
     if (_instance == null) throw StateError('Leaf is not running');
-  }
-
-  /// Delete the temp config file from disk.
-  Future<void> _deleteConfigFile() async {
-    if (_configPath == null) return;
-    try {
-      final file = File(_configPath!);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (_) {}
-    _configPath = null;
   }
 
   /// Parse Clash YAML `proxies:` section into a list of maps.

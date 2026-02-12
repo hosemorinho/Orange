@@ -26,6 +26,15 @@ class LeafBindings {
   late final int Function(int rtId, Pointer<Utf8> config)
       leafRunWithConfigString;
 
+  late final int Function(
+    int rtId,
+    Pointer<Utf8> config,
+    bool multiThread,
+    bool autoThreads,
+    int threads,
+    int stackSize,
+  ) leafRunWithOptionsConfigString;
+
   late final int Function(int rtId) leafReload;
 
   late final int Function(int rtId, Pointer<Utf8> config)
@@ -34,6 +43,8 @@ class LeafBindings {
   late final bool Function(int rtId) leafShutdown;
 
   late final int Function(Pointer<Utf8> configPath) leafTestConfig;
+
+  late final int Function(Pointer<Utf8> config) leafTestConfigString;
 
   // ---- Health check ----
   late final int Function(
@@ -140,6 +151,12 @@ class LeafBindings {
         .lookupFunction<Int32 Function(Uint16, Pointer<Utf8>),
             int Function(int, Pointer<Utf8>)>('leaf_run_with_config_string');
 
+    // leaf_run_with_options_config_string(rt_id, config, multi_thread, auto_threads, threads, stack_size) -> i32
+    leafRunWithOptionsConfigString = _lib.lookupFunction<
+        Int32 Function(Uint16, Pointer<Utf8>, Bool, Bool, Int32, Int32),
+        int Function(int, Pointer<Utf8>, bool, bool, int,
+            int)>('leaf_run_with_options_config_string');
+
     // leaf_reload(rt_id) -> i32
     leafReload = _lib.lookupFunction<Int32 Function(Uint16),
         int Function(int)>('leaf_reload');
@@ -157,6 +174,11 @@ class LeafBindings {
     leafTestConfig = _lib
         .lookupFunction<Int32 Function(Pointer<Utf8>),
             int Function(Pointer<Utf8>)>('leaf_test_config');
+
+    // leaf_test_config_string(config) -> i32
+    leafTestConfigString = _lib
+        .lookupFunction<Int32 Function(Pointer<Utf8>),
+            int Function(Pointer<Utf8>)>('leaf_test_config_string');
 
     // leaf_health_check(rt_id, outbound_tag, timeout_ms) -> i32
     leafHealthCheck = _lib

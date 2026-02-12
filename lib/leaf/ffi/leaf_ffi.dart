@@ -91,6 +91,72 @@ class LeafFfi {
     }
   }
 
+  /// Validates a config JSON string without starting leaf.
+  int testConfigString(String config) {
+    final configPtr = config.toNativeUtf8();
+    try {
+      return _bindings.leafTestConfigString(configPtr);
+    } finally {
+      calloc.free(configPtr);
+    }
+  }
+
+  /// Starts leaf from a JSON config string (no file I/O).
+  Future<LeafInstance> startWithConfigString({
+    required int rtId,
+    required String config,
+    bool multiThread = true,
+    bool autoThreads = true,
+    int threads = 0,
+    int stackSize = 0,
+  }) async {
+    final receivePort = ReceivePort();
+    final isolate = await Isolate.spawn(
+      _isolateEntryConfigString,
+      _LeafStartConfigStringParams(
+        rtId: rtId,
+        config: config,
+        multiThread: multiThread,
+        autoThreads: autoThreads,
+        threads: threads,
+        stackSize: stackSize,
+        sendPort: receivePort.sendPort,
+      ),
+    );
+
+    final firstMessage = await receivePort.first;
+    if (firstMessage is int && firstMessage != LeafError.ok) {
+      throw LeafException(firstMessage);
+    }
+
+    return LeafInstance._(
+      rtId: rtId,
+      isolate: isolate,
+      bindings: _bindings,
+    );
+  }
+
+  static void _isolateEntryConfigString(_LeafStartConfigStringParams params) {
+    final bindings = LeafBindings.open();
+    final configPtr = params.config.toNativeUtf8();
+
+    params.sendPort.send(LeafError.ok);
+
+    try {
+      final result = bindings.leafRunWithOptionsConfigString(
+        params.rtId,
+        configPtr,
+        params.multiThread,
+        params.autoThreads,
+        params.threads,
+        params.stackSize,
+      );
+      params.sendPort.send(result);
+    } finally {
+      calloc.free(configPtr);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Isolate entry point (runs leaf_run_with_options, blocking)
   // ---------------------------------------------------------------------------
@@ -300,6 +366,27 @@ class LeafInstance {
       calloc.free(buf);
     }
   }
+}
+
+/// Parameters for starting leaf from a config string.
+class _LeafStartConfigStringParams {
+  final int rtId;
+  final String config;
+  final bool multiThread;
+  final bool autoThreads;
+  final int threads;
+  final int stackSize;
+  final SendPort sendPort;
+
+  _LeafStartConfigStringParams({
+    required this.rtId,
+    required this.config,
+    required this.multiThread,
+    required this.autoThreads,
+    required this.threads,
+    required this.stackSize,
+    required this.sendPort,
+  });
 }
 
 /// Parameters passed to the leaf isolate.

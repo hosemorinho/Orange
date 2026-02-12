@@ -104,7 +104,8 @@ class System {
         // New elevated instance is starting — exit this non-admin one.
         // Use a short delay to allow the UAC dialog to fully complete.
         await Future.delayed(const Duration(milliseconds: 500));
-        exit(0);
+        // Terminate immediately — the elevated instance is already starting.
+        await exit();
       }
       // User cancelled UAC or ShellExecuteW failed
       commonPrint.log(

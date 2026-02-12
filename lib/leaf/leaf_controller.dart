@@ -107,6 +107,13 @@ class LeafController {
       directory: Directory.systemTemp.path,
     );
 
+    // Log the generated config for debugging rule mode issues
+    final configJson = config.toJsonString();
+    _logger.info('generated config (${ configJson.length} bytes): $_configPath');
+    if (configJson.length < 8000) {
+      _logger.info('config content:\n$configJson');
+    }
+
     // Validate config
     final testResult = _ffi.testConfig(_configPath!);
     if (!LeafError.isOk(testResult)) {

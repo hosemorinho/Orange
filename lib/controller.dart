@@ -799,7 +799,15 @@ extension SetupControllerExt on AppController {
         try {
           // ensureAvailable tries: 1) existing file, 2) bundled asset, 3) GitHub download
           mmdbPath = await MmdbManager.ensureAvailable(homeDir);
-          _logger.info('setup: MMDB available at $mmdbPath');
+          // Verify file actually exists and is readable
+          final mmdbFile = File(mmdbPath);
+          if (await mmdbFile.exists()) {
+            final stat = await mmdbFile.stat();
+            _logger.info('setup: MMDB verified at $mmdbPath (${stat.size} bytes)');
+          } else {
+            _logger.warning('setup: MMDB path returned but file missing: $mmdbPath');
+            mmdbPath = null;
+          }
         } catch (e) {
           _logger.warning('setup: MMDB unavailable for rule mode: $e');
           _logger.warning('setup: Rule mode will behave like global mode (no GeoIP rules)');

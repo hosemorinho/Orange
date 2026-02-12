@@ -71,6 +71,14 @@ class ConfigWriter {
       mmdbPath: mmdbPath,
       hasNodes: converted.nodeTags.isNotEmpty,
     );
+    _logger.info('build: mode=${mode.name}, mmdbPath=$mmdbPath, '
+        'rules=${rules.length}, nodes=${converted.nodeTags.length}');
+    if (mode == Mode.rule) {
+      for (final r in rules) {
+        _logger.info('build: rule target=${r.target}, type=${r.type}, '
+            'external=${r.external}');
+      }
+    }
     final router = LeafRouter(
       rules: rules,
       domainResolve: true,

@@ -35,7 +35,8 @@ class ConfigWriter {
     required int mixedPort,
     int? tunFd,
     bool tunEnabled = false,
-    String logLevel = 'none',
+    String logLevel = 'warn',
+    String? logOutput,
     Mode mode = Mode.global,
     bool mmdbAvailable = false,
   }) {
@@ -91,7 +92,7 @@ class ConfigWriter {
     );
 
     return LeafConfig(
-      log: LeafLog(level: logLevel),
+      log: LeafLog(level: logLevel, output: logOutput),
       inbounds: inbounds,
       outbounds: outbounds,
       router: router,

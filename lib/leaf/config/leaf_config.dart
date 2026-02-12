@@ -33,11 +33,14 @@ class LeafConfig {
 
 class LeafLog {
   final String? level;
+  /// Log output target: `"console"` for stdout, or a file path (e.g. `"/path/to/leaf.log"`).
+  final String? output;
 
-  const LeafLog({this.level});
+  const LeafLog({this.level, this.output});
 
   Map<String, dynamic> toJson() => {
         if (level != null) 'level': level,
+        if (output != null) 'output': output,
       };
 }
 

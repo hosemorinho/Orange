@@ -94,12 +94,14 @@ class LeafController {
     _lastMode = mode;
     _lastMmdbAvailable = mmdbAvailable;
 
-    // Build leaf config
+    // Build leaf config — log to leaf.log in homeDir for diagnostics
+    final logOutput = '$_homeDir${Platform.pathSeparator}leaf.log';
     final config = ConfigWriter.build(
       proxies: proxies,
       mixedPort: _mixedPort,
       tunFd: tunFd,
       tunEnabled: tunEnabled,
+      logOutput: logOutput,
       mode: mode,
       mmdbAvailable: mmdbAvailable,
     );
@@ -137,10 +139,23 @@ class LeafController {
   }
 
   /// Poll until leaf's RUNTIME_MANAGER is populated and ready for FFI calls.
+  ///
+  /// Throws [LeafException] if:
+  /// - The leaf isolate reports a startup error (e.g., TUN creation failed)
+  /// - The runtime doesn't become ready within the timeout
   Future<void> _waitForRuntimeReady() async {
     const maxAttempts = 50; // 50 × 100ms = 5 seconds max
     for (var i = 0; i < maxAttempts; i++) {
       await Future.delayed(const Duration(milliseconds: 100));
+
+      // Check if the isolate reported a startup failure
+      final startupError = _instance?.startupError;
+      if (startupError != null) {
+        _logger.error('leaf startup failed with error code $startupError '
+            '(${LeafError.message(startupError)}) after ${(i + 1) * 100}ms');
+        throw LeafException(startupError);
+      }
+
       try {
         // Try a lightweight FFI call — if it doesn't throw, runtime is ready
         _instance?.getOutboundSelected('proxy');
@@ -150,7 +165,9 @@ class LeafController {
         // Not ready yet, keep polling
       }
     }
-    _logger.warning('runtime not ready after ${maxAttempts * 100}ms');
+    _logger.error('runtime not ready after ${maxAttempts * 100}ms — '
+        'leaf likely failed to start (TUN creation or config error)');
+    throw LeafException(LeafError.config);
   }
 
   Future<void> stop() async {
@@ -192,11 +209,13 @@ class LeafController {
         'mmdb=$mmdbAvailable');
 
     // Rebuild config with new mode, same everything else
+    final logOutput = '$_homeDir${Platform.pathSeparator}leaf.log';
     final config = ConfigWriter.build(
       proxies: _lastProxies,
       mixedPort: _mixedPort,
       tunFd: _lastTunFd,
       tunEnabled: _lastTunEnabled,
+      logOutput: logOutput,
       mode: newMode,
       mmdbAvailable: mmdbAvailable,
     );

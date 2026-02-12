@@ -1,5 +1,6 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:io' as io show exit;
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:ffi/ffi.dart';
@@ -102,10 +103,14 @@ class System {
       final launched = windows?.runas(exePath, '') ?? false;
       if (launched) {
         // New elevated instance is starting — exit this non-admin one.
-        // Use a short delay to allow the UAC dialog to fully complete.
-        await Future.delayed(const Duration(milliseconds: 500));
-        // Terminate immediately — the elevated instance is already starting.
-        await exit();
+        // Use dart:io exit() for immediate process termination.
+        // Do NOT use window?.close() or System.exit() — async Flutter
+        // cleanup can interfere with or outlive the new elevated process.
+        commonPrint.log(
+          'Windows TUN: UAC accepted, terminating non-admin process',
+          logLevel: LogLevel.info,
+        );
+        io.exit(0);
       }
       // User cancelled UAC or ShellExecuteW failed
       commonPrint.log(
@@ -209,9 +214,12 @@ class Windows {
     final argumentsPtr = arguments.toNativeUtf16();
     final operationPtr = 'runas'.toNativeUtf16();
 
+    // ShellExecuteW returns HINSTANCE which is pointer-sized (IntPtr).
+    // Using Int32 on 64-bit Windows truncates the return value, potentially
+    // misinterpreting success (>32) as failure.
     final shellExecute = _shell32
         .lookupFunction<
-          Int32 Function(
+          IntPtr Function(
             Pointer<Utf16> hwnd,
             Pointer<Utf16> lpOperation,
             Pointer<Utf16> lpFile,
@@ -235,7 +243,7 @@ class Windows {
       commandPtr,
       argumentsPtr,
       nullptr,
-      1,
+      1, // SW_SHOWNORMAL
     );
 
     calloc.free(commandPtr);

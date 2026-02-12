@@ -44,8 +44,10 @@ class LeafFfi {
   // Core lifecycle
   // ---------------------------------------------------------------------------
 
-  /// Starts leaf in a background Isolate. Returns when leaf is running.
+  /// Starts leaf in a background Isolate.
   /// The returned [LeafInstance] can be used to control the running instance.
+  /// Check [LeafInstance.startupError] after [_waitForRuntimeReady] to detect
+  /// startup failures.
   Future<LeafInstance> start({
     required int rtId,
     required String configPath,
@@ -68,17 +70,20 @@ class LeafFfi {
       ),
     );
 
-    // Wait for the isolate to signal it has started (or errored)
-    final firstMessage = await receivePort.first;
-    if (firstMessage is int && firstMessage != LeafError.ok) {
-      throw LeafException(firstMessage);
-    }
-
-    return LeafInstance._(
+    final instance = LeafInstance._(
       rtId: rtId,
       isolate: isolate,
       bindings: _bindings,
     );
+
+    receivePort.listen((message) {
+      if (message is int && message != LeafError.ok) {
+        instance._startupError = message;
+      }
+      receivePort.close();
+    });
+
+    return instance;
   }
 
   /// Validates a config file without starting leaf.
@@ -102,6 +107,11 @@ class LeafFfi {
   }
 
   /// Starts leaf from a JSON config string (no file I/O).
+  ///
+  /// The isolate runs leaf_run_with_options_config_string which blocks until
+  /// leaf shuts down or fails to start. On startup failure, the blocking call
+  /// returns immediately with an error code. We listen for this error on the
+  /// port and surface it via [LeafInstance.startupError].
   Future<LeafInstance> startWithConfigString({
     required int rtId,
     required String config,
@@ -124,24 +134,34 @@ class LeafFfi {
       ),
     );
 
-    final firstMessage = await receivePort.first;
-    if (firstMessage is int && firstMessage != LeafError.ok) {
-      throw LeafException(firstMessage);
-    }
-
-    return LeafInstance._(
+    // Don't await receivePort.first — leaf_run blocks the isolate until
+    // shutdown or startup failure. Instead, listen asynchronously for
+    // error codes (startup failure) or ok (normal shutdown).
+    final instance = LeafInstance._(
       rtId: rtId,
       isolate: isolate,
       bindings: _bindings,
     );
+
+    // Listen for the leaf return code asynchronously.
+    // On startup failure, leaf returns immediately with an error code.
+    // On success, it blocks until shutdown, then returns ok.
+    receivePort.listen((message) {
+      if (message is int && message != LeafError.ok) {
+        instance._startupError = message;
+      }
+      receivePort.close();
+    });
+
+    return instance;
   }
 
   static void _isolateEntryConfigString(_LeafStartConfigStringParams params) {
     final bindings = LeafBindings.open();
     final configPtr = params.config.toNativeUtf8();
 
-    params.sendPort.send(LeafError.ok);
-
+    // Do NOT send ok prematurely. The blocking call returns when leaf
+    // finishes (either startup failure or normal shutdown).
     try {
       final result = bindings.leafRunWithOptionsConfigString(
         params.rtId,
@@ -165,9 +185,6 @@ class LeafFfi {
     final bindings = LeafBindings.open();
     final pathPtr = params.configPath.toNativeUtf8();
 
-    // Signal that we're about to start
-    params.sendPort.send(LeafError.ok);
-
     try {
       final result = bindings.leafRunWithOptions(
         params.rtId,
@@ -178,7 +195,6 @@ class LeafFfi {
         params.threads,
         params.stackSize,
       );
-      // leaf_run_with_options returns when shutdown is called
       params.sendPort.send(result);
     } finally {
       calloc.free(pathPtr);
@@ -191,6 +207,14 @@ class LeafInstance {
   final int rtId;
   final Isolate _isolate;
   final LeafBindings _bindings;
+
+  /// Set asynchronously when the leaf isolate returns a non-ok error code.
+  /// This indicates a startup failure (e.g., TUN creation failed).
+  int? _startupError;
+
+  /// If leaf failed to start, returns the error code. Null means either
+  /// still starting or started successfully.
+  int? get startupError => _startupError;
 
   LeafInstance._({
     required this.rtId,

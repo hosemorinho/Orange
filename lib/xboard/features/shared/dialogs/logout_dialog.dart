@@ -8,6 +8,7 @@ import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/providers/database.dart';
 
 /// Shows a logout confirmation dialog using FlClash's native globalState.showMessage.
 ///

@@ -749,6 +749,8 @@
   "subscriptionNotLoggedInDetail": "请先登录账户",
   "subscriptionNoSubscription": "无订阅套餐",
   "subscriptionNoSubscriptionDetail": "当前账户暂无可用的订阅套餐，请购买套餐后使用",
+  "subscriptionParseFailed": "订阅配置解析失败",
+  "subscriptionParseFailedDetail": "无法获取订阅配置，请检查网络连接或点击刷新重试",
   "subscriptionExpired": "订阅已过期",
   "subscriptionExpiredDetail": "套餐已于 {date} 过期，请续费后继续使用",
   "@subscriptionExpiredDetail": {

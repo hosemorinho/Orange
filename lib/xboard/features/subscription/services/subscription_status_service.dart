@@ -8,6 +8,7 @@ enum SubscriptionStatusType {
   expired,
   exhausted,
   notLoggedIn,
+  parseFailed,
 }
 class SubscriptionStatusResult {
   final SubscriptionStatusType type;
@@ -50,7 +51,7 @@ class SubscriptionStatusService {
         needsDialog: true,
       );
     }
-    
+
     if (!userState.isAuthenticated) {
       return SubscriptionStatusResult(
         type: SubscriptionStatusType.notLoggedIn,
@@ -59,25 +60,26 @@ class SubscriptionStatusService {
         needsDialog: false,
       );
     }
-    
-    // 只使用 profileSubscriptionInfo 作为数据源
-    // 注意：profileSubscriptionInfo 为 null 表示 Clash 核心没有解析到订阅配置
-    // 这可能是因为订阅 URL 过期、无效或无法访问
-    if (profileSubscriptionInfo == null) {
-      // 如果 XBoard API 表明用户有订阅（subscribeUrl 不为空），但 Clash 核心没有解析成功，
-      // 说明订阅 URL 可能已过期或无效，返回"无订阅"状态而不是"正常"
-      if (hasActiveSubscription) {
-        return SubscriptionStatusResult(
-          type: SubscriptionStatusType.noSubscription,
-          messageBuilder: (context) => AppLocalizations.of(context).subscriptionNoSubscription,
-          detailMessageBuilder: (context) => AppLocalizations.of(context).subscriptionNoSubscriptionDetail,
-          needsDialog: true,
-        );
-      }
+
+    // 首先检查用户是否购买了套餐（planId）
+    // 如果 planId 为 null，说明用户尚未购买任何套餐
+    final planId = userState.subscriptionInfo?.planId ?? userState.userInfo?.planId;
+    if (planId == null) {
       return SubscriptionStatusResult(
         type: SubscriptionStatusType.noSubscription,
         messageBuilder: (context) => AppLocalizations.of(context).subscriptionNoSubscription,
         detailMessageBuilder: (context) => AppLocalizations.of(context).subscriptionNoSubscriptionDetail,
+        needsDialog: true,
+      );
+    }
+
+    // 用户已购买套餐，但 Clash 核心尚未解析订阅配置
+    // 可能是网络问题、订阅 URL 问题或首次加载
+    if (profileSubscriptionInfo == null) {
+      return SubscriptionStatusResult(
+        type: SubscriptionStatusType.parseFailed,
+        messageBuilder: (context) => AppLocalizations.of(context).subscriptionParseFailed,
+        detailMessageBuilder: (context) => AppLocalizations.of(context).subscriptionParseFailedDetail,
         needsDialog: true,
       );
     }
@@ -175,6 +177,7 @@ class SubscriptionStatusService {
     // 1. 订阅已过期
     // 2. 流量已耗尽（使用超过 95%）
     // 3. 无订阅（需要购买）
+    // 4. 订阅解析失败（需要刷新）
     switch (result.type) {
       case SubscriptionStatusType.expired:
         return true;  // 订阅已过期，强制提醒
@@ -182,6 +185,8 @@ class SubscriptionStatusService {
         return true;  // 流量耗尽，强制提醒
       case SubscriptionStatusType.noSubscription:
         return true;  // 无订阅，提醒购买
+      case SubscriptionStatusType.parseFailed:
+        return true;  // 解析失败，提醒刷新
       case SubscriptionStatusType.valid:
         // 订阅正常，不需要弹窗
         return false;

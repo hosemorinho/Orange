@@ -95,6 +95,11 @@ class SubscriptionStatusDialog extends StatelessWidget {
         iconData = Icons.data_usage;
         backgroundColor = colorScheme.secondary.withValues(alpha: 0.1);
         break;
+      case SubscriptionStatusType.parseFailed:
+        iconColor = colorScheme.error;
+        iconData = Icons.error_outline;
+        backgroundColor = colorScheme.error.withValues(alpha: 0.1);
+        break;
       default:
         iconColor = colorScheme.tertiary;
         iconData = Icons.check_circle;
@@ -121,6 +126,8 @@ class SubscriptionStatusDialog extends StatelessWidget {
         return AppLocalizations.of(context).xboardSubscriptionHasExpired;
       case SubscriptionStatusType.exhausted:
         return AppLocalizations.of(context).xboardTrafficUsedUp;
+      case SubscriptionStatusType.parseFailed:
+        return statusResult.getMessage(context);
       default:
         return AppLocalizations.of(context).xboardSubscriptionStatus;
     }
@@ -223,7 +230,8 @@ class SubscriptionStatusDialog extends StatelessWidget {
   List<Widget> _buildActions(BuildContext context) {
     final actions = <Widget>[];
     if (statusResult.type == SubscriptionStatusType.expired ||
-        statusResult.type == SubscriptionStatusType.exhausted) {
+        statusResult.type == SubscriptionStatusType.exhausted ||
+        statusResult.type == SubscriptionStatusType.parseFailed) {
       actions.add(
         SizedBox(
           width: double.infinity,
@@ -284,6 +292,8 @@ class SubscriptionStatusDialog extends StatelessWidget {
         return colorScheme.error;
       case SubscriptionStatusType.exhausted:
         return colorScheme.secondary;
+      case SubscriptionStatusType.parseFailed:
+        return colorScheme.primary;
       default:
         return colorScheme.tertiary;
     }
@@ -296,6 +306,8 @@ class SubscriptionStatusDialog extends StatelessWidget {
         return AppLocalizations.of(context).xboardRenewPlan;
       case SubscriptionStatusType.exhausted:
         return AppLocalizations.of(context).xboardPurchaseTraffic;
+      case SubscriptionStatusType.parseFailed:
+        return AppLocalizations.of(context).xboardRefreshStatus;
       default:
         return AppLocalizations.of(context).xboardConfirmAction;
     }

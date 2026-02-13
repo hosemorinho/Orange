@@ -8,11 +8,15 @@ import 'package:fl_clash/xboard/features/subscription/widgets/subscription_statu
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'package:fl_clash/xboard/core/core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'subscription_status_service.dart';
 
 // 初始化文件级日志器
 final _logger = FileLogger('subscription_status_checker.dart');
+
+// SharedPreferences key for storing last shown dialog type
+const _kLastShownDialogTypeKey = 'xboard_last_shown_subscription_dialog_type';
 
 class SubscriptionStatusChecker {
   static final SubscriptionStatusChecker _instance = SubscriptionStatusChecker._internal();
@@ -61,7 +65,12 @@ class SubscriptionStatusChecker {
       );
       _logger.info('[订阅状态检查] 检查结果: ${statusResult.type}');
       _logger.info('[订阅状态检查] 是否需要弹窗: ${statusResult.shouldShowDialog}');
-      if (subscriptionStatusService.shouldShowStartupDialog(statusResult)) {
+
+      // 检查是否应该显示弹窗（防止重复弹窗）
+      final shouldShow = await _shouldShowDialog(statusResult);
+      _logger.info('[订阅状态检查] 是否实际显示弹窗: $shouldShow');
+
+      if (shouldShow && subscriptionStatusService.shouldShowStartupDialog(statusResult)) {
         await _showSubscriptionStatusDialog(
           context,
           ref,
@@ -70,7 +79,7 @@ class SubscriptionStatusChecker {
       } else {
         // 订阅状态正常，不需要额外导入配置
         // 配置导入已由 Token 验证成功后的 _silentUpdateUserData() 完成
-        _logger.info('[订阅状态检查] 订阅状态正常，无需额外操作（配置已在Token验证后导入）');
+        _logger.info('[订阅状态检查] 订阅状态正常或已提示，无需额外操作（配置已在Token验证后导入）');
       }
     } catch (e) {
       _logger.error('[订阅状态检查] 检查时出错', e);
@@ -78,6 +87,35 @@ class SubscriptionStatusChecker {
       _isChecking = false;
     }
   }
+  /// 检查是否应该显示对话框（防止重复弹窗）
+  ///
+  /// 只在以下情况显示对话框：
+  /// 1. 从未显示过此类型的对话框
+  /// 2. 状态类型发生了变化（例如从"无订阅"变成了"已过期"）
+  Future<bool> _shouldShowDialog(SubscriptionStatusResult statusResult) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final lastShownType = prefs.getString(_kLastShownDialogTypeKey);
+      final currentType = statusResult.type.name;
+
+      // 如果从未显示过对话框，或者状态类型发生了变化，则显示
+      final shouldShow = lastShownType != currentType;
+
+      if (shouldShow) {
+        // 更新最后显示的对话框类型
+        await prefs.setString(_kLastShownDialogTypeKey, currentType);
+        _logger.info('[订阅状态弹窗] 状态变化: $lastShownType -> $currentType，显示对话框');
+      } else {
+        _logger.info('[订阅状态弹窗] 状态未变化: $currentType，跳过弹窗');
+      }
+
+      return shouldShow;
+    } catch (e) {
+      _logger.error('[订阅状态弹窗] 检查弹窗状态时出错', e);
+      return true; // 出错时默认显示，避免用户错过重要通知
+    }
+  }
+
   Future<void> _showSubscriptionStatusDialog(
     BuildContext context,
     WidgetRef ref,
@@ -94,6 +132,8 @@ class SubscriptionStatusChecker {
       onRefresh: () async {
         _logger.info('[订阅状态弹窗] 刷新订阅状态...');
         await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
+        // 刷新后重置弹窗状态，以便下次检查时能再次弹窗
+        await resetDialogState();
         await Future.delayed(const Duration(seconds: 1));
         if (context.mounted) {
           context.pop();
@@ -103,6 +143,17 @@ class SubscriptionStatusChecker {
     _logger.info('[订阅状态弹窗] 操作结果: $result');
     if (result == 'later' || result == null) {
       _logger.info('[订阅状态弹窗] 用户选择稍后处理');
+    }
+  }
+
+  /// 重置弹窗状态（在用户刷新订阅或购买套餐后调用）
+  Future<void> resetDialogState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_kLastShownDialogTypeKey);
+      _logger.info('[订阅状态弹窗] 已重置弹窗状态');
+    } catch (e) {
+      _logger.error('[订阅状态弹窗] 重置弹窗状态时出错', e);
     }
   }
   

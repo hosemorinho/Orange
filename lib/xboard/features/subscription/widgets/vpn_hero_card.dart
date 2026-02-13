@@ -285,10 +285,11 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       profilesProvider.select((state) => state.isNotEmpty),
     );
     if (!hasProfile) {
-      // 用户已登录但 profile 还没加载到 provider（数据库 stream 延迟），显示加载状态
+      // 用户已登录但 profile 还没加载到 provider（数据库 stream 延迟）
+      // 需要检查是否有订阅信息来判断显示什么状态
       final userState = ref.watch(xboardUserProvider);
       if (userState.isAuthenticated) {
-        return _buildLoadingState(context);
+        return _buildNoProfileState(context);
       }
       return const SizedBox.shrink();
     }
@@ -998,6 +999,95 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       delayValue: delayState,
       onTap: () => proxies_common.proxyDelayTest(proxy, ref.read(appSettingProvider).testUrl),
       isCompact: true,
+    );
+  }
+
+  Widget _buildNoProfileState(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final userState = ref.watch(xboardUserProvider);
+    final currentProfile = ref.watch(currentProfileProvider);
+    final profileSubInfo = currentProfile?.subscriptionInfo;
+
+    // 检查订阅状态（即使 profileSubInfo 为 null 也要检查）
+    final subscriptionStatus = subscriptionStatusService.checkSubscriptionStatus(
+      userState: userState,
+      profileSubscriptionInfo: profileSubInfo,
+    );
+
+    // 如果是无订阅或解析失败，显示警告提示
+    if (subscriptionStatus.type == SubscriptionStatusType.noSubscription ||
+        subscriptionStatus.type == SubscriptionStatusType.parseFailed) {
+      return _buildSubscriptionWarningState(context, subscriptionStatus);
+    }
+
+    // 其他情况（如已过期、流量用完）或加载中，显示加载状态
+    return _buildLoadingState(context);
+  }
+
+  Widget _buildSubscriptionWarningState(
+    BuildContext context,
+    SubscriptionStatusResult status,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Icon(
+            status.type == SubscriptionStatusType.parseFailed
+                ? Icons.error_outline
+                : Icons.info_outline,
+            size: 48,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            status.getMessage(context),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            status.getDetailMessage(context) ?? '',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () async {
+              // 点击刷新，重新拉取订阅信息
+              await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
+            },
+            icon: const Icon(Icons.refresh, size: 18),
+            label: Text(
+              status.type == SubscriptionStatusType.parseFailed
+                  ? AppLocalizations.of(context).xboardRefreshStatus
+                  : AppLocalizations.of(context).xboardPurchasePlan,
+            ),
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

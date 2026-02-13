@@ -34,6 +34,10 @@ Future<void> _performLogout(BuildContext context, WidgetRef ref) async {
     if (ref.read(isStartProvider)) {
       await appController.updateStatus(false);
     }
+
+    // Clear all profiles before logout to prevent state contamination
+    await _clearAllProfiles(ref);
+
     await ref.read(xboardUserProvider.notifier).logout();
     if (context.mounted) {
       XBoardNotification.showSuccess(appLocalizations.loggedOutSuccess);
@@ -42,5 +46,27 @@ Future<void> _performLogout(BuildContext context, WidgetRef ref) async {
     if (context.mounted) {
       XBoardNotification.showError(appLocalizations.logoutFailed(ErrorSanitizer.sanitize(e.toString())));
     }
+  }
+}
+
+/// Clear all profile configurations to prevent state contamination between accounts
+Future<void> _clearAllProfiles(WidgetRef ref) async {
+  try {
+    final profiles = ref.read(profilesProvider);
+    if (profiles.isEmpty) {
+      return;
+    }
+
+    // Delete all profiles from database and file system
+    for (final profile in profiles) {
+      try {
+        await ref.read(profilesProvider.notifier).deleteProfile(profile);
+      } catch (e) {
+        // Continue deleting other profiles even if one fails
+        continue;
+      }
+    }
+  } catch (e) {
+    // Ignore profile clearing errors to not block logout
   }
 }

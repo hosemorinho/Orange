@@ -744,6 +744,8 @@
   "subscriptionNotLoggedInDetail": "Please login first",
   "subscriptionNoSubscription": "No subscription",
   "subscriptionNoSubscriptionDetail": "No available subscription plan found, please purchase a plan to use",
+  "subscriptionParseFailed": "Subscription parse failed",
+  "subscriptionParseFailedDetail": "Unable to fetch subscription configuration, please check your network or tap refresh to retry",
   "subscriptionExpired": "Subscription expired",
   "subscriptionExpiredDetail": "Plan expired on {date}, please renew to continue using",
   "@subscriptionExpiredDetail": {

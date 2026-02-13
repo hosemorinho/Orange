@@ -245,6 +245,20 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       return;
     }
 
+    // 检查用户是否有订阅 URL，如果没有立即检查状态，不等待导入
+    final subscriptionInfo = ref.read(subscriptionInfoProvider);
+    final hasSubscribeUrl = subscriptionInfo?.subscribeUrl.isNotEmpty == true;
+
+    // 如果没有订阅 URL，立即检查状态，不等待导入
+    if (!hasSubscribeUrl) {
+      if (_hasCheckedSubscriptionStatus) return;
+      _hasCheckedSubscriptionStatus = true;
+      if (mounted) {
+        subscriptionStatusChecker.checkSubscriptionStatusOnStartup(context, ref);
+      }
+      return;
+    }
+
     // If import is still in progress, wait for it (up to 30 more seconds)
     final importState = ref.read(profileImportProvider);
     if (importState.isImporting) {

@@ -526,14 +526,21 @@ extension SetupControllerExt on AppController {
           if (!_ref.read(initProvider)) {
             return;
           }
-          await globalState.handleStart([updateRunTime, updateTraffic]);
+          final started = await globalState.handleStart([updateRunTime, updateTraffic]);
+          if (!started) {
+            _logger.warning('updateStatus: VPN service failed to start (permission denied?)');
+            return;
+          }
           applyProfileDebounce(force: true, silence: true);
         } else {
           globalState.needInitStatus = false;
           await applyProfile(
             force: true,
             preloadInvoke: () async {
-              await globalState.handleStart([updateRunTime, updateTraffic]);
+              final started = await globalState.handleStart([updateRunTime, updateTraffic]);
+              if (!started) {
+                _logger.warning('updateStatus(init): VPN service failed to start');
+              }
             },
           );
         }
@@ -658,7 +665,7 @@ extension SetupControllerExt on AppController {
   Future<void> applyProfile({
     bool silence = false,
     bool force = false,
-    VoidCallback? preloadInvoke,
+    Future<void> Function()? preloadInvoke,
   }) async {
     if (_isApplyingProfile) {
       commonPrint.log('applyProfile: skipping concurrent call');
@@ -733,7 +740,7 @@ extension SetupControllerExt on AppController {
     return res;
   }
 
-  Future<void> _setupConfig([VoidCallback? preloadInvoke]) async {
+  Future<void> _setupConfig([Future<void> Function()? preloadInvoke]) async {
     // Throttle: skip if setup completed less than 2 seconds ago
     final now = DateTime.now();
     if (_lastSetupTime != null &&
@@ -793,19 +800,35 @@ extension SetupControllerExt on AppController {
       preferences.saveShareState(this.sharedState);
     }
 
-    if (preloadInvoke != null) preloadInvoke();
+    if (preloadInvoke != null) await preloadInvoke();
 
     // TUN mode configuration
-    var tunEnabled = _ref.read(patchClashConfigProvider).tun.enable;
+    // On Android, TUN is ALWAYS required when VPN is active — the VPN service
+    // creates a TUN interface that captures all traffic, so leaf must read from
+    // it. The patchClashConfig.tun.enable setting only applies to desktop.
+    var tunEnabled = system.isAndroid
+        ? true
+        : _ref.read(patchClashConfigProvider).tun.enable;
     int? tunFd;
     if (system.isAndroid && tunEnabled) {
       await service?.enableSocketProtection();
-      tunFd = await service?.getTunFd();
+      // Retry getTunFd — VPN service may still be establishing after
+      // permission grant. Poll for up to 5 seconds as a safety net.
+      for (var attempt = 0; attempt < 25; attempt++) {
+        tunFd = await service?.getTunFd();
+        if (tunFd != null) break;
+        if (attempt < 24) {
+          await Future.delayed(const Duration(milliseconds: 200));
+        }
+      }
       if (tunFd == null) {
-        _logger.warning('setup: TUN enabled but no VPN fd available — '
-            'VPN service may have failed to establish. Disabling TUN.');
-        tunEnabled = false;
+        _logger.warning('setup: Android TUN fd not available — '
+            'VPN service failed to establish. Cannot start.');
         await service?.disableSocketProtection();
+        await globalState.handleStop();
+        _ref.read(runTimeProvider.notifier).value = null;
+        globalState.showNotifier('VPN启动失败，无法获取TUN设备');
+        return;
       } else {
         _logger.info('setup: got TUN fd=$tunFd from VPN service');
       }
@@ -856,10 +879,9 @@ extension SetupControllerExt on AppController {
         mmdbAvailable: mmdbAvailable,
       );
     } catch (e) {
-      // If TUN is enabled and startup failed, retry without TUN.
-      // TUN failures are common: missing admin rights, wintun.dll issues,
-      // or platform-specific TUN creation errors.
-      if (tunEnabled) {
+      if (tunEnabled && !system.isAndroid) {
+        // Desktop: TUN failures are common (missing admin rights, wintun.dll
+        // issues). Retry without TUN — desktop can fall back to system proxy.
         _logger.warning('setup: leaf start failed with TUN ($e), retrying without TUN');
         try {
           await _leafController!.startWithClashYaml(
@@ -869,7 +891,6 @@ extension SetupControllerExt on AppController {
             mode: mode,
             mmdbAvailable: mmdbAvailable,
           );
-          // TUN-less start succeeded — update UI state to reflect TUN is off
           _ref.read(patchClashConfigProvider.notifier)
               .update((state) => state.copyWith.tun(enable: false));
           _ref.read(realTunEnableProvider.notifier).value = false;
@@ -880,6 +901,15 @@ extension SetupControllerExt on AppController {
           _logger.error('setup: leaf start failed even without TUN', e2);
           return;
         }
+      } else if (system.isAndroid) {
+        // Android: VPN captures all traffic via TUN — cannot fall back to
+        // non-TUN mode. Stop VPN and reset state.
+        _logger.error('setup: leaf TUN start failed on Android, stopping VPN', e);
+        await service?.disableSocketProtection();
+        await globalState.handleStop();
+        _ref.read(runTimeProvider.notifier).value = null;
+        globalState.showNotifier('VPN启动失败: $e');
+        return;
       } else {
         _logger.error('setup: leaf start failed', e);
         return;

@@ -402,9 +402,11 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
             if (resultCode == FlutterActivity.RESULT_OK) {
                 invokeVpnPrepareCallback()
             } else {
-                // User denied VPN permission — clear the callback so state
-                // doesn't stay stuck in PENDING forever.
+                // User denied VPN permission — clear the callback and transition
+                // state back to STOP so ServicePlugin.handleStart() can return.
                 vpnPrepareCallback = null
+                com.follow.clash.State.runStateFlow.tryEmit(com.follow.clash.RunState.STOP)
+                com.follow.clash.State.startResultDeferred?.complete(false)
             }
         }
         return true

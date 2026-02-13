@@ -141,10 +141,15 @@ class GlobalState {
     timer = null;
   }
 
-  Future<void> handleStart([UpdateTasks? tasks]) async {
+  Future<bool> handleStart([UpdateTasks? tasks]) async {
     startTime ??= DateTime.now();
-    await service?.start();
-    startUpdateTasks(tasks);
+    final started = await service?.start() ?? true;
+    if (started) {
+      startUpdateTasks(tasks);
+    } else {
+      startTime = null;
+    }
+    return started;
   }
 
   Future updateStartTime() async {

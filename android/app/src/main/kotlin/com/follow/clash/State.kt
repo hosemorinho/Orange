@@ -8,6 +8,7 @@ import com.follow.clash.plugins.TilePlugin
 import com.follow.clash.service.models.NotificationParams
 import com.google.gson.Gson
 import io.flutter.embedding.engine.FlutterEngine
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -35,6 +36,9 @@ object State {
 
     val tilePlugin: TilePlugin?
         get() = flutterEngine?.plugin<TilePlugin>()
+
+    /** Deferred that completes when VPN start finishes (true=success, false=failed/denied). */
+    var startResultDeferred: CompletableDeferred<Boolean>? = null
 
     suspend fun handleToggleAction() {
         var action: (suspend () -> Unit)?
@@ -95,6 +99,7 @@ object State {
     }
 
     fun handleStartService() {
+        startResultDeferred = CompletableDeferred()
         val appPlugin = flutterEngine?.plugin<AppPlugin>()
         if (appPlugin != null) {
             appPlugin.requestNotificationsPermission {
@@ -158,37 +163,47 @@ object State {
         GlobalState.launch {
             runLock.withLock {
                 if (runStateFlow.value != RunState.STOP) {
+                    startResultDeferred?.complete(false)
                     return@launch
                 }
-                try {
-                    runStateFlow.tryEmit(RunState.PENDING)
-                    val options = sharedState.vpnOptions ?: return@launch
-                    appPlugin?.let {
-                        it.prepare(options.enable) {
-                            try {
-                                runTime = Service.startService(options, runTime)
-                                runStateFlow.tryEmit(RunState.START)
-                            } catch (e: Exception) {
-                                GlobalState.log("VPN service start failed: ${e.message}")
-                                runStateFlow.tryEmit(RunState.STOP)
-                            }
-                        }
-                    } ?: run {
-                        val intent = VpnService.prepare(GlobalState.application)
-                        if (intent != null) {
-                            return@launch
-                        }
+                runStateFlow.tryEmit(RunState.PENDING)
+                val options = sharedState.vpnOptions
+                if (options == null) {
+                    GlobalState.log("startService: vpnOptions is null")
+                    runStateFlow.tryEmit(RunState.STOP)
+                    startResultDeferred?.complete(false)
+                    return@launch
+                }
+                appPlugin?.let {
+                    // prepare() returns immediately — the VPN permission callback
+                    // runs asynchronously. Do NOT reset PENDING here; the callback
+                    // or onActivityResult (VPN denied) will complete the deferred.
+                    it.prepare(options.enable) {
                         try {
                             runTime = Service.startService(options, runTime)
                             runStateFlow.tryEmit(RunState.START)
+                            startResultDeferred?.complete(true)
                         } catch (e: Exception) {
-                            GlobalState.log("VPN service start failed (no plugin): ${e.message}")
+                            GlobalState.log("VPN service start failed: ${e.message}")
                             runStateFlow.tryEmit(RunState.STOP)
+                            startResultDeferred?.complete(false)
                         }
                     }
-                } finally {
-                    if (runStateFlow.value == RunState.PENDING) {
+                } ?: run {
+                    val intent = VpnService.prepare(GlobalState.application)
+                    if (intent != null) {
                         runStateFlow.tryEmit(RunState.STOP)
+                        startResultDeferred?.complete(false)
+                        return@launch
+                    }
+                    try {
+                        runTime = Service.startService(options, runTime)
+                        runStateFlow.tryEmit(RunState.START)
+                        startResultDeferred?.complete(true)
+                    } catch (e: Exception) {
+                        GlobalState.log("VPN service start failed (no plugin): ${e.message}")
+                        runStateFlow.tryEmit(RunState.STOP)
+                        startResultDeferred?.complete(false)
                     }
                 }
             }

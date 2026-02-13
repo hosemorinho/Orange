@@ -16,6 +16,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withTimeoutOrNull
 
 class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
@@ -96,7 +97,19 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     private fun handleStart(result: MethodChannel.Result) {
         State.handleStartService()
-        result.success(true)
+        // Wait for VPN to actually establish (or fail) before returning to Flutter.
+        // Without this, _setupConfig() calls getTunFd() before VPN is ready → null →
+        // leaf starts without TUN → VPN later captures all traffic → network death.
+        launch {
+            try {
+                val success = withTimeoutOrNull(60_000L) {
+                    State.startResultDeferred?.await()
+                } ?: false
+                result.success(success)
+            } catch (e: Exception) {
+                result.success(false)
+            }
+        }
     }
 
     private fun handleStop(result: MethodChannel.Result) {

@@ -234,26 +234,28 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       try {
         _logger.info('开始获取用户信息...');
         ref.invalidate(getUserInfoProvider);
-        userInfo = await ref.read(getUserInfoProvider.future);
+        final fetchedUserInfo = await ref.read(getUserInfoProvider.future);
+        userInfo = fetchedUserInfo;
 
         _logger.info('用户信息API调用完成');
-        ref.read(userInfoProvider.notifier).state = userInfo;
-        await _storageService.saveDomainUser(userInfo);
-        _logger.info('用户信息已保存: ${userInfo.email}');
+        ref.read(userInfoProvider.notifier).state = fetchedUserInfo;
+        await _storageService.saveDomainUser(fetchedUserInfo);
+        _logger.info('用户信息已保存: ${fetchedUserInfo.email}');
 
         _logger.info('开始获取订阅信息...');
         ref.invalidate(getSubscriptionProvider);
-        subscriptionInfo = await ref.read(getSubscriptionProvider.future);
+        final fetchedSubscription = await ref.read(getSubscriptionProvider.future);
+        subscriptionInfo = fetchedSubscription;
 
         _logger.info('订阅信息API调用完成');
-        ref.read(subscriptionInfoProvider.notifier).state = subscriptionInfo;
-        await _storageService.saveDomainSubscription(subscriptionInfo);
-        _logger.info('订阅信息已保存，subscribeUrl: ${subscriptionInfo.subscribeUrl}');
+        ref.read(subscriptionInfoProvider.notifier).state = fetchedSubscription;
+        await _storageService.saveDomainSubscription(fetchedSubscription);
+        _logger.info('订阅信息已保存，subscribeUrl: ${fetchedSubscription.subscribeUrl}');
 
         // 登录成功后自动导入订阅配置
-        if (subscriptionInfo.subscribeUrl.isNotEmpty) {
-          _logger.info('[登录成功] 开始自动导入订阅配置: ${subscriptionInfo.subscribeUrl}');
-          ref.read(profileImportProvider.notifier).importSubscription(subscriptionInfo.subscribeUrl);
+        if (fetchedSubscription.subscribeUrl.isNotEmpty) {
+          _logger.info('[登录成功] 开始自动导入订阅配置: ${fetchedSubscription.subscribeUrl}');
+          ref.read(profileImportProvider.notifier).importSubscription(fetchedSubscription.subscribeUrl);
         } else {
           _logger.info('[登录成功] 订阅URL为空，跳过配置导入');
         }

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/features/subscription/widgets/subscription_status_dialog.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
+import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

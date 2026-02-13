@@ -65,7 +65,7 @@ Future<void> _clearAllProfiles(WidgetRef ref) async {
     // Delete all profiles from database and file system
     for (final profile in profiles) {
       try {
-        await ref.read(profilesProvider.notifier).deleteProfile(profile);
+        ref.read(profilesProvider.notifier).del(profile.id);
       } catch (e) {
         // Continue deleting other profiles even if one fails
         continue;

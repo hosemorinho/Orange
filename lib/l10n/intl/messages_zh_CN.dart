@@ -829,6 +829,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionNotLoggedInDetail": MessageLookupByLibrary.simpleMessage(
       "请先登录账户",
     ),
+    "subscriptionParseFailed": MessageLookupByLibrary.simpleMessage("订阅配置解析失败"),
+    "subscriptionParseFailedDetail": MessageLookupByLibrary.simpleMessage(
+      "无法获取订阅配置，请检查网络连接或点击刷新重试",
+    ),
     "subscriptionTrafficExhausted": MessageLookupByLibrary.simpleMessage(
       "流量已用完",
     ),

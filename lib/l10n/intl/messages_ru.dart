@@ -51,6 +51,14 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m24(count) => "Выбрано ${count} элементов";
 
+  static String m26(date) =>
+      "Срок действия плана истек ${date}, пожалуйста, продлите для продолжения использования";
+
+  static String m27(days) =>
+      "Срок действия плана истекает через ${days} дней, пожалуйста, продлите вовремя";
+
+  static String m28(days) => "Истекает через ${days} дней";
+
   static String m37(label) => "${label} должен быть URL";
 
   static String m56(count) =>
@@ -833,6 +841,48 @@ class MessageLookup extends MessageLookupByLibrary {
     "style": MessageLookupByLibrary.simpleMessage("Стиль"),
     "subRule": MessageLookupByLibrary.simpleMessage("Подправило"),
     "submit": MessageLookupByLibrary.simpleMessage("Отправить"),
+    "subscriptionExpired": MessageLookupByLibrary.simpleMessage(
+      "Срок действия подписки истек",
+    ),
+    "subscriptionExpiredDetail": m26,
+    "subscriptionExpiresToday": MessageLookupByLibrary.simpleMessage(
+      "Срок действия подписки истекает сегодня",
+    ),
+    "subscriptionExpiresTodayDetail": MessageLookupByLibrary.simpleMessage(
+      "Срок действия плана истекает сегодня, пожалуйста, продлите немедленно, чтобы избежать прерывания обслуживания",
+    ),
+    "subscriptionExpiringInDays": MessageLookupByLibrary.simpleMessage(
+      "Срок действия подписки истекает",
+    ),
+    "subscriptionExpiringInDaysDetail": m27,
+    "subscriptionNoSubscription": MessageLookupByLibrary.simpleMessage(
+      "Нет подписки",
+    ),
+    "subscriptionNoSubscriptionDetail": MessageLookupByLibrary.simpleMessage(
+      "Нет доступного плана подписки, пожалуйста, приобретите план для использования",
+    ),
+    "subscriptionNotLoggedIn": MessageLookupByLibrary.simpleMessage(
+      "Не вошел в систему",
+    ),
+    "subscriptionNotLoggedInDetail": MessageLookupByLibrary.simpleMessage(
+      "Пожалуйста, сначала войдите",
+    ),
+    "subscriptionParseFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось разобрать конфигурацию подписки",
+    ),
+    "subscriptionParseFailedDetail": MessageLookupByLibrary.simpleMessage(
+      "Не удалось получить конфигурацию подписки, проверьте сетевое подключение или нажмите обновление, чтобы повторить попытку",
+    ),
+    "subscriptionTrafficExhausted": MessageLookupByLibrary.simpleMessage(
+      "Трафик исчерпан",
+    ),
+    "subscriptionTrafficExhaustedDetail": MessageLookupByLibrary.simpleMessage(
+      "Трафик плана израсходован, пожалуйста, купите больше трафика или обновите план",
+    ),
+    "subscriptionValid": MessageLookupByLibrary.simpleMessage(
+      "Подписка действительна",
+    ),
+    "subscriptionValidDetail": m28,
     "sync": MessageLookupByLibrary.simpleMessage("Синхронизация"),
     "system": MessageLookupByLibrary.simpleMessage("Система"),
     "systemApp": MessageLookupByLibrary.simpleMessage("Системное приложение"),

@@ -46,6 +46,12 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m24(count) => "${count} 項目が選択されています";
 
+  static String m26(date) => "プランは ${date} に期限切れになりました。継続して利用するには更新してください";
+
+  static String m27(days) => "プランは ${days} 日後に期限切れになります。及时に更新してください";
+
+  static String m28(days) => "${days} 日後に期限切れになります";
+
   static String m37(label) => "${label}はURLである必要があります";
 
   static String m56(count) => "${count}年前";
@@ -585,6 +591,46 @@ class MessageLookup extends MessageLookupByLibrary {
     "style": MessageLookupByLibrary.simpleMessage("スタイル"),
     "subRule": MessageLookupByLibrary.simpleMessage("サブルール"),
     "submit": MessageLookupByLibrary.simpleMessage("送信"),
+    "subscriptionExpired": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションの有効期限が切れています",
+    ),
+    "subscriptionExpiredDetail": m26,
+    "subscriptionExpiresToday": MessageLookupByLibrary.simpleMessage(
+      "本日サブスクリプションの有効期限が切れます",
+    ),
+    "subscriptionExpiresTodayDetail": MessageLookupByLibrary.simpleMessage(
+      "プランは本日に期限切れになります。サービス中断を避けるため、直ちに更新してください",
+    ),
+    "subscriptionExpiringInDays": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションの有効期限が近づいています",
+    ),
+    "subscriptionExpiringInDaysDetail": m27,
+    "subscriptionNoSubscription": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションなし",
+    ),
+    "subscriptionNoSubscriptionDetail": MessageLookupByLibrary.simpleMessage(
+      "現在ご利用可能なサブスクリプションプランがありません。プランを購入してください",
+    ),
+    "subscriptionNotLoggedIn": MessageLookupByLibrary.simpleMessage(
+      "ログインしていません",
+    ),
+    "subscriptionNotLoggedInDetail": MessageLookupByLibrary.simpleMessage(
+      "先にログインしてください",
+    ),
+    "subscriptionParseFailed": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプション設定の解析に失敗しました",
+    ),
+    "subscriptionParseFailedDetail": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプション設定を取得できません。ネットワーク接続を確認するか、更新をクリックして再試行してください",
+    ),
+    "subscriptionTrafficExhausted": MessageLookupByLibrary.simpleMessage(
+      "トラフィックを使い切りました",
+    ),
+    "subscriptionTrafficExhaustedDetail": MessageLookupByLibrary.simpleMessage(
+      "プランのトラフィックを使い切りました。より多くのトラフィックを購入するか、プランをアップグレードしてください",
+    ),
+    "subscriptionValid": MessageLookupByLibrary.simpleMessage("サブスクリプションは有効です"),
+    "subscriptionValidDetail": m28,
     "sync": MessageLookupByLibrary.simpleMessage("同期"),
     "system": MessageLookupByLibrary.simpleMessage("システム"),
     "systemApp": MessageLookupByLibrary.simpleMessage("システムアプリ"),

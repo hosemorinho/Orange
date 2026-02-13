@@ -6144,6 +6144,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Subscription parse failed`
+  String get subscriptionParseFailed {
+    return Intl.message(
+      'Subscription parse failed',
+      name: 'subscriptionParseFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to fetch subscription configuration, please check your network or tap refresh to retry`
+  String get subscriptionParseFailedDetail {
+    return Intl.message(
+      'Unable to fetch subscription configuration, please check your network or tap refresh to retry',
+      name: 'subscriptionParseFailedDetail',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Subscription expired`
   String get subscriptionExpired {
     return Intl.message(

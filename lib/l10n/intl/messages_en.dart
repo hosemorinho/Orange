@@ -1221,6 +1221,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "subscriptionNotLoggedInDetail": MessageLookupByLibrary.simpleMessage(
       "Please login first",
     ),
+    "subscriptionParseFailed": MessageLookupByLibrary.simpleMessage(
+      "Subscription parse failed",
+    ),
+    "subscriptionParseFailedDetail": MessageLookupByLibrary.simpleMessage(
+      "Unable to fetch subscription configuration, please check your network or tap refresh to retry",
+    ),
     "subscriptionTrafficExhausted": MessageLookupByLibrary.simpleMessage(
       "Traffic exhausted",
     ),

@@ -77,6 +77,8 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
           isAuthenticated: true,
           isInitialized: true,
           email: email,
+          userInfo: userInfo,
+          subscriptionInfo: subscriptionInfo,
         );
 
         if (userInfo != null) {
@@ -144,12 +146,18 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
 
         await _storageService.saveDomainUser(userInfoData);
         ref.read(userInfoProvider.notifier).state = userInfoData;
+        state = state.copyWith(userInfo: userInfoData);
       } catch (e) {
         _logger.info('静默更新用户信息失败: $e');
       }
 
       await _storageService.saveDomainSubscription(subscriptionData);
       ref.read(subscriptionInfoProvider.notifier).state = subscriptionData;
+
+      // Sync to UserAuthState so subscription status checks can access the data
+      state = state.copyWith(
+        subscriptionInfo: subscriptionData,
+      );
 
       if (subscriptionData.subscribeUrl.isNotEmpty) {
         // Only import if no import is currently in progress (avoid conflicting with quickAuth import)

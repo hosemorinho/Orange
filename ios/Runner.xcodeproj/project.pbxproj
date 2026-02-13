@@ -117,6 +117,7 @@
 				93A5DAC8F4B21CE7DB479790 /* PacketTunnel.entitlements */,
 			);
 			name = PacketTunnel;
+			path = PacketTunnel;
 			sourceTree = "<group>";
 		};
 		26289E4274D73B7041543EB3 /* iOS */ = {

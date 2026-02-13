@@ -19,6 +19,9 @@ runner_group = project.main_group.find_subpath('Runner', true)
 packet_group = project.main_group.find_subpath('PacketTunnel', true)
 products_group = project.products_group
 
+# Keep PacketTunnel files under ios/PacketTunnel/* instead of ios/*
+packet_group.path = 'PacketTunnel'
+
 # Ensure file references exist
 service_plugin_ref = runner_group.files.find { |f| f.path == 'ServicePlugin.swift' } ||
   runner_group.new_file('ServicePlugin.swift')

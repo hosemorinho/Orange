@@ -1272,13 +1272,37 @@
   "xboardAddingProfile": "正在添加配置文件",
   "xboardInitializing": "正在初始化",
   "xboardInitializationFailed": "初始化失败",
+  "xboardUnknownTime": "未知时间",
+  "xboardNoContent": "暂无内容",
+  "xboardImportantNotice": "重要通知",
   "xboardNoTitle": "无标题",
+  "xboardCannotOpenLinkError": "无法打开链接：{url}",
+  "@xboardCannotOpenLinkError": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardInvalidLinkError": "链接格式错误：{url}",
+  "@xboardInvalidLinkError": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
   "xboardClose": "关闭",
   "xboardCloseTicket": "关闭工单",
+  "xboardCloseFailed": "关闭工单失败",
   "xboardReply": "回复",
   "xboardSend": "发送",
+  "xboardEnterReplyContent": "请输入回复内容...",
   "xboardEnterMessage": "请输入消息",
   "xboardEnterSubject": "请输入主题",
+  "xboardTicketSubjectHint": "简要描述您的问题",
+  "xboardDetailedDescription": "详细描述",
+  "xboardTicketMessageHint": "请详细描述您遇到的问题...",
   "xboardSelectPriority": "选择优先级",
   "xboardTicketClosed": "工单已关闭",
   "xboardTicketStatus": "工单状态",
@@ -1286,6 +1310,8 @@
   "xboardClosed": "已关闭",
   "xboardPending": "待处理",
   "xboardReplied": "已回复",
+  "xboardNoMessages": "暂无消息",
+  "xboardWaitingForAdminReply": "请等待管理员回复后再继续发送消息",
   "xboardNoTickets": "暂无工单",
   "xboardNoTicketsDesc": "创建您的第一个工单以获取支持",
   "xboardCreateYourFirstTicket": "创建您的第一个工单",

@@ -767,7 +767,7 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
   }
   Widget _buildNoticeContent(dynamic notice) {
     String formatTime(dynamic timeValue) {
-      if (timeValue == null) return '未知时间';
+      if (timeValue == null) return AppLocalizations.of(context).xboardUnknownTime;
       try {
         DateTime dateTime;
         if (timeValue is int) {
@@ -804,7 +804,7 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
   }
   /// 根据配置构建内容Widget（Markdown或HTML）
   Widget _buildContentWidget(dynamic notice) {
-    final content = notice.content ?? '暂无内容';
+    final content = notice.content ?? AppLocalizations.of(context).xboardNoContent;
     
     // 如果配置为 null，自动检测内容格式
     final renderType = kNoticeRenderType ?? _detectContentType(content);
@@ -888,13 +888,17 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
       } else {
         // 如果无法打开，显示提示
         if (mounted) {
-          XBoardNotification.showError('无法打开链接: $href');
+          XBoardNotification.showError(
+            AppLocalizations.of(context).xboardCannotOpenLinkError(href),
+          );
         }
       }
     } catch (e) {
       // 处理无效URL或其他错误
       if (mounted) {
-        XBoardNotification.showError('链接格式错误: $href');
+        XBoardNotification.showError(
+          AppLocalizations.of(context).xboardInvalidLinkError(href),
+        );
       }
     }
   }
@@ -950,7 +954,7 @@ class NoticePopupDialog extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                    notice.title ?? '重要通知',
+                    notice.title ?? AppLocalizations.of(context).xboardImportantNotice,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.onSurface,
@@ -1003,7 +1007,7 @@ class NoticePopupDialog extends StatelessWidget {
   }
 
   Widget _buildNoticeContent(BuildContext context, dynamic notice) {
-    final content = notice.content ?? '暂无内容';
+    final content = notice.content ?? AppLocalizations.of(context).xboardNoContent;
 
     // 自动检测内容类型
     final isHtml = _isHtmlContent(content);
@@ -1044,12 +1048,16 @@ class NoticePopupDialog extends StatelessWidget {
         );
       } else {
         if (context.mounted) {
-          XBoardNotification.showError('无法打开链接: $href');
+          XBoardNotification.showError(
+            AppLocalizations.of(context).xboardCannotOpenLinkError(href),
+          );
         }
       }
     } catch (e) {
       if (context.mounted) {
-        XBoardNotification.showError('链接格式错误: $href');
+        XBoardNotification.showError(
+          AppLocalizations.of(context).xboardInvalidLinkError(href),
+        );
       }
     }
   }

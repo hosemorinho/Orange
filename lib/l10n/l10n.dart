@@ -9289,9 +9289,59 @@ class AppLocalizations {
     );
   }
 
+  /// `Unknown time`
+  String get xboardUnknownTime {
+    return Intl.message(
+      'Unknown time',
+      name: 'xboardUnknownTime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No content`
+  String get xboardNoContent {
+    return Intl.message(
+      'No content',
+      name: 'xboardNoContent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Important Notice`
+  String get xboardImportantNotice {
+    return Intl.message(
+      'Important Notice',
+      name: 'xboardImportantNotice',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `No Title`
   String get xboardNoTitle {
     return Intl.message('No Title', name: 'xboardNoTitle', desc: '', args: []);
+  }
+
+  /// `Cannot open link: {url}`
+  String xboardCannotOpenLinkError(String url) {
+    return Intl.message(
+      'Cannot open link: $url',
+      name: 'xboardCannotOpenLinkError',
+      desc: '',
+      args: [url],
+    );
+  }
+
+  /// `Invalid link: {url}`
+  String xboardInvalidLinkError(String url) {
+    return Intl.message(
+      'Invalid link: $url',
+      name: 'xboardInvalidLinkError',
+      desc: '',
+      args: [url],
+    );
   }
 
   /// `Close`
@@ -9309,6 +9359,16 @@ class AppLocalizations {
     );
   }
 
+  /// `Failed to close ticket`
+  String get xboardCloseFailed {
+    return Intl.message(
+      'Failed to close ticket',
+      name: 'xboardCloseFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Reply`
   String get xboardReply {
     return Intl.message('Reply', name: 'xboardReply', desc: '', args: []);
@@ -9317,6 +9377,16 @@ class AppLocalizations {
   /// `Send`
   String get xboardSend {
     return Intl.message('Send', name: 'xboardSend', desc: '', args: []);
+  }
+
+  /// `Enter your reply...`
+  String get xboardEnterReplyContent {
+    return Intl.message(
+      'Enter your reply...',
+      name: 'xboardEnterReplyContent',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Please enter a message`
@@ -9334,6 +9404,36 @@ class AppLocalizations {
     return Intl.message(
       'Please enter a subject',
       name: 'xboardEnterSubject',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Briefly describe your issue`
+  String get xboardTicketSubjectHint {
+    return Intl.message(
+      'Briefly describe your issue',
+      name: 'xboardTicketSubjectHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Detailed Description`
+  String get xboardDetailedDescription {
+    return Intl.message(
+      'Detailed Description',
+      name: 'xboardDetailedDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please describe your issue in detail...`
+  String get xboardTicketMessageHint {
+    return Intl.message(
+      'Please describe your issue in detail...',
+      name: 'xboardTicketMessageHint',
       desc: '',
       args: [],
     );
@@ -9387,6 +9487,26 @@ class AppLocalizations {
   /// `Replied`
   String get xboardReplied {
     return Intl.message('Replied', name: 'xboardReplied', desc: '', args: []);
+  }
+
+  /// `No messages`
+  String get xboardNoMessages {
+    return Intl.message(
+      'No messages',
+      name: 'xboardNoMessages',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Wait for admin reply before sending more messages`
+  String get xboardWaitingForAdminReply {
+    return Intl.message(
+      'Wait for admin reply before sending more messages',
+      name: 'xboardWaitingForAdminReply',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `No tickets`

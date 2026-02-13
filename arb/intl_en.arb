@@ -1271,13 +1271,37 @@
   "xboardAddingProfile": "Adding profile",
   "xboardInitializing": "Initializing",
   "xboardInitializationFailed": "Initialization Failed",
+  "xboardUnknownTime": "Unknown time",
+  "xboardNoContent": "No content",
+  "xboardImportantNotice": "Important Notice",
   "xboardNoTitle": "No Title",
+  "xboardCannotOpenLinkError": "Cannot open link: {url}",
+  "@xboardCannotOpenLinkError": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "xboardInvalidLinkError": "Invalid link: {url}",
+  "@xboardInvalidLinkError": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
   "xboardClose": "Close",
   "xboardCloseTicket": "Close Ticket",
+  "xboardCloseFailed": "Failed to close ticket",
   "xboardReply": "Reply",
   "xboardSend": "Send",
+  "xboardEnterReplyContent": "Enter your reply...",
   "xboardEnterMessage": "Please enter a message",
   "xboardEnterSubject": "Please enter a subject",
+  "xboardTicketSubjectHint": "Briefly describe your issue",
+  "xboardDetailedDescription": "Detailed Description",
+  "xboardTicketMessageHint": "Please describe your issue in detail...",
   "xboardSelectPriority": "Select priority",
   "xboardTicketClosed": "Ticket closed",
   "xboardTicketStatus": "Ticket Status",
@@ -1285,6 +1309,8 @@
   "xboardClosed": "Closed",
   "xboardPending": "Pending",
   "xboardReplied": "Replied",
+  "xboardNoMessages": "No messages",
+  "xboardWaitingForAdminReply": "Wait for admin reply before sending more messages",
   "xboardNoTickets": "No tickets",
   "xboardNoTicketsDesc": "Create your first ticket to get support",
   "xboardCreateYourFirstTicket": "Create your first ticket",

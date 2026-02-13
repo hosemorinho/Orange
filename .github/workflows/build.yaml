@@ -328,15 +328,22 @@ jobs:
           flutter build ipa --release --no-codesign "${DART_DEFINES[@]}"
 
           mkdir -p dist
+          app_name="${APP_NAME:-Orange}"
+          app_version="$(grep -m1 '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*([^+[:space:]]+).*/\1/')"
+          if [[ -z "$app_version" ]]; then
+            app_version="unknown"
+          fi
+          ios_artifact_name="${app_name}-${app_version}-ios-arm64-unsigned.ipa"
           if compgen -G "build/ios/ipa/*.ipa" > /dev/null; then
-            cp build/ios/ipa/*.ipa dist/
+            source_ipa="$(ls build/ios/ipa/*.ipa | head -n1)"
+            cp "$source_ipa" "dist/$ios_artifact_name"
           elif [[ -d "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" ]]; then
             tmp_payload_dir="$(mktemp -d)"
             mkdir -p "$tmp_payload_dir/Payload"
             cp -R "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" "$tmp_payload_dir/Payload/"
             (
               cd "$tmp_payload_dir"
-              /usr/bin/zip -qry "$GITHUB_WORKSPACE/dist/Runner-unsigned.ipa" Payload
+              /usr/bin/zip -qry "$GITHUB_WORKSPACE/dist/$ios_artifact_name" Payload
             )
             rm -rf "$tmp_payload_dir"
           else

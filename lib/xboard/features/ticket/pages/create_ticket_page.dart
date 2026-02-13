@@ -98,8 +98,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
         TextFormField(
           controller: _subjectController,
           decoration: InputDecoration(
-            // TODO: Add xboardTicketSubjectHint key to ARB files
-            hintText: '简要描述您的问题',  // EN: "Briefly describe your issue"
+            hintText: AppLocalizations.of(context).xboardTicketSubjectHint,
             filled: true,
             fillColor: colorScheme.surface,
             contentPadding: const EdgeInsets.symmetric(
@@ -141,8 +140,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              // TODO: Add xboardPleaseEnterSubject key to ARB files
-              return '请输入主题';  // EN: "Please enter subject"
+              return AppLocalizations.of(context).xboardEnterSubject;
             }
             return null;
           },
@@ -246,8 +244,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          // TODO: Add xboardDetailedDescription key to ARB files
-          '详细描述',  // EN: "Detailed Description"
+          AppLocalizations.of(context).xboardDetailedDescription,
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -257,8 +254,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
           controller: _messageController,
           maxLines: 8,
           decoration: InputDecoration(
-            // TODO: Add xboardDescribeIssueHint key to ARB files
-            hintText: '请详细描述您遇到的问题...',  // EN: "Please describe your issue in detail..."
+            hintText: AppLocalizations.of(context).xboardTicketMessageHint,
             filled: true,
             fillColor: colorScheme.surface,
             contentPadding: const EdgeInsets.symmetric(
@@ -300,8 +296,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              // TODO: Add xboardPleaseEnterDescription key to ARB files
-              return '请输入详细描述';  // EN: "Please enter detailed description"
+              return AppLocalizations.of(context).xboardEnterMessage;
             }
             return null;
           },

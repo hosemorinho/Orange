@@ -18,6 +18,7 @@ class TicketDetailPage extends ConsumerStatefulWidget {
 class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
+  String _draftMessage = '';
 
   @override
   void initState() {
@@ -48,7 +49,10 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
 
   Future<void> _sendReply() async {
     final message = _messageController.text.trim();
-    if (message.isEmpty) return;
+    if (message.isEmpty) {
+      XBoardNotification.showInfo(AppLocalizations.of(context).xboardEnterMessage);
+      return;
+    }
 
     final success = await ref.read(ticketProvider.notifier).replyTicket(
           widget.ticketId,
@@ -57,6 +61,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
 
     if (success) {
       _messageController.clear();
+      setState(() => _draftMessage = '');
       _scrollToBottom();
     } else {
       final error = ref.read(ticketProvider).errorMessage;
@@ -73,11 +78,11 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
     if (confirmed) {
       final success = await ref.read(ticketProvider.notifier).closeTicket(widget.ticketId);
       if (success) {
+        await ref.read(ticketProvider.notifier).loadTicketDetail(widget.ticketId);
         XBoardNotification.showSuccess(AppLocalizations.of(context).xboardTicketClosed);
       } else {
         final error = ref.read(ticketProvider).errorMessage;
-        // TODO: Add xboardCloseFailed key to ARB files
-        XBoardNotification.showError(error ?? '关闭失败');  // EN: "Close failed"
+        XBoardNotification.showError(error ?? AppLocalizations.of(context).xboardCloseFailed);
       }
     }
   }
@@ -204,8 +209,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
     if (ticket.messages.isEmpty) {
       return Center(
         child: Text(
-          // TODO: Add xboardNoMessages key to ARB files or reuse onlineSupportNoMessages
-          '暂无消息',  // EN: "No messages"
+          AppLocalizations.of(context).xboardNoMessages,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
           ),
@@ -285,8 +289,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              // TODO: Add xboardWaitingForAdminReply key to ARB files
-              '等待管理员回复后才能继续发送消息',  // EN: "Waiting for admin reply before sending more messages"
+              AppLocalizations.of(context).xboardWaitingForAdminReply,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -319,8 +322,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
             child: TextField(
               controller: _messageController,
               decoration: InputDecoration(
-                // TODO: Add xboardEnterReplyContent key to ARB files or reuse onlineSupportInputHint
-                hintText: '输入回复内容...',  // EN: "Enter reply content..."
+                hintText: AppLocalizations.of(context).xboardEnterReplyContent,
                 hintStyle: TextStyle(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
@@ -350,12 +352,16 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
               maxLines: 3,
               minLines: 1,
               textInputAction: TextInputAction.send,
-              onSubmitted: (_) => _sendReply(),
+              onChanged: (value) => setState(() => _draftMessage = value),
+              onSubmitted: (_) {
+                if (!_canSendReply(state)) return;
+                _sendReply();
+              },
             ),
           ),
           const SizedBox(width: 4),
           IconButton(
-            onPressed: state.isSending ? null : _sendReply,
+            onPressed: _canSendReply(state) ? _sendReply : null,
             icon: state.isSending
                 ? SizedBox(
                     width: 20,
@@ -374,6 +380,10 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
         ],
       ),
     );
+  }
+
+  bool _canSendReply(TicketState state) {
+    return !state.isSending && _draftMessage.trim().isNotEmpty;
   }
 
   String _getPriorityLabel(int priority) {
@@ -411,7 +421,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
     final yesterday = now.subtract(const Duration(days: 1));
     if (_isSameDay(dateTime, yesterday)) return AppLocalizations.of(context).xboardYesterday;
 
-    return '${dateTime.month}月${dateTime.day}日';
+    return MaterialLocalizations.of(context).formatShortDate(dateTime);
   }
 
   String _formatDateTime(DateTime dateTime) {

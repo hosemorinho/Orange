@@ -147,6 +147,10 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m56(count) =>
       "${Intl.plural(count, one: '1 year ago', other: '${count} years ago')}";
 
+  static String m57(url) => "Cannot open link: ${url}";
+
+  static String m58(url) => "Invalid link: ${url}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("About"),
@@ -1505,6 +1509,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardCannotOpenPaymentLink": MessageLookupByLibrary.simpleMessage(
       "Cannot open payment link",
     ),
+    "xboardCannotOpenLinkError": m57,
     "xboardCannotOpenPaymentUrl": MessageLookupByLibrary.simpleMessage(
       "Cannot open payment link",
     ),
@@ -1533,6 +1538,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Click to setup nodes",
     ),
     "xboardClose": MessageLookupByLibrary.simpleMessage("Close"),
+    "xboardCloseFailed": MessageLookupByLibrary.simpleMessage(
+      "Failed to close ticket",
+    ),
     "xboardCloseTicket": MessageLookupByLibrary.simpleMessage("Close Ticket"),
     "xboardCloseTicketConfirm": MessageLookupByLibrary.simpleMessage(
       "Are you sure you want to close this ticket? You won\'t be able to reply after closing.",
@@ -1686,6 +1694,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Deductible during payment",
     ),
     "xboardDetail": MessageLookupByLibrary.simpleMessage("Detail"),
+    "xboardDetailedDescription": MessageLookupByLibrary.simpleMessage(
+      "Detailed Description",
+    ),
     "xboardDeviceLimitCount": m44,
     "xboardDevices": MessageLookupByLibrary.simpleMessage("devices"),
     "xboardDirectConnectionLabel": MessageLookupByLibrary.simpleMessage(
@@ -1729,6 +1740,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardEnterMessage": MessageLookupByLibrary.simpleMessage(
       "Please enter a message",
+    ),
+    "xboardEnterReplyContent": MessageLookupByLibrary.simpleMessage(
+      "Enter your reply...",
     ),
     "xboardEnterSubject": MessageLookupByLibrary.simpleMessage(
       "Please enter a subject",
@@ -1877,6 +1891,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardInvalidOrExpiredCoupon": MessageLookupByLibrary.simpleMessage(
       "Invalid or expired coupon code",
     ),
+    "xboardInvalidLinkError": m58,
     "xboardInvalidResponseFormat": MessageLookupByLibrary.simpleMessage(
       "Invalid response format from server",
     ),
@@ -2027,6 +2042,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNoInternetConnection": MessageLookupByLibrary.simpleMessage(
       "No internet connection, please check network settings",
     ),
+    "xboardNoContent": MessageLookupByLibrary.simpleMessage("No content"),
     "xboardNoInviteCodes": MessageLookupByLibrary.simpleMessage(
       "No invite codes yet",
     ),
@@ -2049,6 +2065,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNoSubscriptionPlans": MessageLookupByLibrary.simpleMessage(
       "No subscription plans",
     ),
+    "xboardNoMessages": MessageLookupByLibrary.simpleMessage("No messages"),
     "xboardNoTickets": MessageLookupByLibrary.simpleMessage("No tickets"),
     "xboardNoTicketsDesc": MessageLookupByLibrary.simpleMessage(
       "Create your first ticket to get support",
@@ -2061,6 +2078,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardNone": MessageLookupByLibrary.simpleMessage("None"),
     "xboardNotLoggedIn": MessageLookupByLibrary.simpleMessage("Not Logged In"),
     "xboardNoticeDialogGotIt": MessageLookupByLibrary.simpleMessage("Got it"),
+    "xboardImportantNotice": MessageLookupByLibrary.simpleMessage(
+      "Important Notice",
+    ),
     "xboardNotificationUpdateError": MessageLookupByLibrary.simpleMessage(
       "Failed to update notification settings",
     ),
@@ -2586,6 +2606,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTicketDetail": MessageLookupByLibrary.simpleMessage(
       "Ticket Details",
     ),
+    "xboardTicketMessageHint": MessageLookupByLibrary.simpleMessage(
+      "Please describe your issue in detail...",
+    ),
     "xboardTicketMessage": MessageLookupByLibrary.simpleMessage("Message"),
     "xboardTicketStatus": MessageLookupByLibrary.simpleMessage("Ticket Status"),
     "xboardTicketStatusClosed": MessageLookupByLibrary.simpleMessage("Closed"),
@@ -2593,6 +2616,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Pending",
     ),
     "xboardTicketSubject": MessageLookupByLibrary.simpleMessage("Subject"),
+    "xboardTicketSubjectHint": MessageLookupByLibrary.simpleMessage(
+      "Briefly describe your issue",
+    ),
     "xboardTickets": MessageLookupByLibrary.simpleMessage("Tickets"),
     "xboardTimeInfo": MessageLookupByLibrary.simpleMessage("Time Information"),
     "xboardTimeout": MessageLookupByLibrary.simpleMessage("Timeout"),
@@ -2671,6 +2697,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardUnknownErrorRetry": MessageLookupByLibrary.simpleMessage(
       "Unknown error, please retry",
     ),
+    "xboardUnknownTime": MessageLookupByLibrary.simpleMessage("Unknown time"),
     "xboardUnknownPriority": MessageLookupByLibrary.simpleMessage("Unknown"),
     "xboardUnknownUser": MessageLookupByLibrary.simpleMessage("Unknown User"),
     "xboardUnlimited": MessageLookupByLibrary.simpleMessage("Unlimited"),
@@ -2722,6 +2749,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardWaitingForPayment": MessageLookupByLibrary.simpleMessage(
       "Waiting for payment...",
+    ),
+    "xboardWaitingForAdminReply": MessageLookupByLibrary.simpleMessage(
+      "Wait for admin reply before sending more messages",
     ),
     "xboardWaitingPaymentCompletion": MessageLookupByLibrary.simpleMessage(
       "Waiting for payment completion",

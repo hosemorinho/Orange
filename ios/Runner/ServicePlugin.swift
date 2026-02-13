@@ -145,7 +145,11 @@ final class TunnelManager {
     guard let data = try? JSONSerialization.data(withJSONObject: body) else {
       return false
     }
-    session.sendProviderMessage(data) { _ in }
+    do {
+      try session.sendProviderMessage(data) { _ in }
+    } catch {
+      return false
+    }
     return true
   }
 

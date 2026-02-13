@@ -36,8 +36,6 @@ class SubscriptionStatusService {
   SubscriptionStatusResult checkSubscriptionStatus({
     required UserAuthState userState,
     fl_models.SubscriptionInfo? profileSubscriptionInfo,
-    bool isRefreshing = false,
-    bool hasActiveSubscription = false,
   }) {
     // 🔧 DEBUG: 强制显示过期提醒对话框，方便调试
     const bool debugForceExpired = false;

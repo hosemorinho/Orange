@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/features/subscription/widgets/subscription_status_dialog.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
-import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -53,15 +52,9 @@ class SubscriptionStatusChecker {
       final updatedUserState = userState;
       final profileSubscriptionInfo = ref.read(currentProfileProvider)?.subscriptionInfo;
 
-      // 检查 XBoard API 缓存的订阅信息：如果有 subscribeUrl，说明用户确实有订阅，
-      // 只是 Clash 核心可能还没解析完 profile（profileSubscriptionInfo 暂时为 null）
-      final cachedSubscription = ref.read(subscriptionInfoProvider);
-      final hasActiveSubscription = cachedSubscription?.subscribeUrl.isNotEmpty == true;
-
       final statusResult = subscriptionStatusService.checkSubscriptionStatus(
         userState: updatedUserState,
         profileSubscriptionInfo: profileSubscriptionInfo,
-        hasActiveSubscription: hasActiveSubscription,
       );
       _logger.info('[订阅状态检查] 检查结果: ${statusResult.type}');
       _logger.info('[订阅状态检查] 是否需要弹窗: ${statusResult.shouldShowDialog}');
@@ -214,12 +207,9 @@ class SubscriptionStatusChecker {
       final userState = ref.read(xboardUserProvider);
       if (!userState.isAuthenticated) return false;
       final profileSubscriptionInfo = ref.read(currentProfileProvider)?.subscriptionInfo;
-      final cachedSubscription = ref.read(subscriptionInfoProvider);
-      final hasActiveSubscription = cachedSubscription?.subscribeUrl.isNotEmpty == true;
       final statusResult = subscriptionStatusService.checkSubscriptionStatus(
         userState: userState,
         profileSubscriptionInfo: profileSubscriptionInfo,
-        hasActiveSubscription: hasActiveSubscription,
       );
       return subscriptionStatusService.shouldShowStartupDialog(statusResult);
     } catch (e) {
@@ -232,12 +222,9 @@ class SubscriptionStatusChecker {
       final userState = ref.read(xboardUserProvider);
       if (!userState.isAuthenticated) return '未登录';
       final profileSubscriptionInfo = ref.read(currentProfileProvider)?.subscriptionInfo;
-      final cachedSubscription = ref.read(subscriptionInfoProvider);
-      final hasActiveSubscription = cachedSubscription?.subscribeUrl.isNotEmpty == true;
       final statusResult = subscriptionStatusService.checkSubscriptionStatus(
         userState: userState,
         profileSubscriptionInfo: profileSubscriptionInfo,
-        hasActiveSubscription: hasActiveSubscription,
       );
       return statusResult.getMessage(context);
     } catch (e) {

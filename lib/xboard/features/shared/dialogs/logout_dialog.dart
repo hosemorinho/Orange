@@ -3,6 +3,7 @@ import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
+import 'package:fl_clash/xboard/features/subscription/services/subscription_status_checker.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/controller.dart';
@@ -37,6 +38,9 @@ Future<void> _performLogout(BuildContext context, WidgetRef ref) async {
 
     // Clear all profiles before logout to prevent state contamination
     await _clearAllProfiles(ref);
+
+    // Reset subscription dialog state to prevent cross-account suppression
+    await subscriptionStatusChecker.resetDialogState();
 
     await ref.read(xboardUserProvider.notifier).logout();
     if (context.mounted) {

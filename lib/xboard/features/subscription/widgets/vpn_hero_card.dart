@@ -21,6 +21,7 @@ import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 final _logger = FileLogger('vpn_hero_card.dart');
@@ -1071,10 +1072,20 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () async {
-              // 点击刷新，重新拉取订阅信息
-              await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
+              if (status.type == SubscriptionStatusType.noSubscription) {
+                // 无订阅，跳转到购买页面
+                context.push('/plans');
+              } else {
+                // 解析失败，刷新订阅信息
+                await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
+              }
             },
-            icon: const Icon(Icons.refresh, size: 18),
+            icon: Icon(
+              status.type == SubscriptionStatusType.parseFailed
+                  ? Icons.refresh
+                  : Icons.shopping_cart_outlined,
+              size: 18,
+            ),
             label: Text(
               status.type == SubscriptionStatusType.parseFailed
                   ? AppLocalizations.of(context).xboardRefreshStatus
@@ -1208,7 +1219,8 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   bool _shouldShowWarning(SubscriptionStatusResult status) {
     return status.type == SubscriptionStatusType.expired ||
         status.type == SubscriptionStatusType.exhausted ||
-        status.type == SubscriptionStatusType.noSubscription;
+        status.type == SubscriptionStatusType.noSubscription ||
+        status.type == SubscriptionStatusType.parseFailed;
   }
 
   /// 构建订阅状态警告组件
@@ -1236,6 +1248,11 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         warningIcon = Icons.error_outline;
         warningColor = theme.colorScheme.error;
         warningText = AppLocalizations.of(context).xboardTrafficExhausted;
+        break;
+      case SubscriptionStatusType.parseFailed:
+        warningIcon = Icons.error_outline;
+        warningColor = theme.colorScheme.error;
+        warningText = AppLocalizations.of(context).subscriptionParseFailed;
         break;
       default:
         return const SizedBox.shrink();

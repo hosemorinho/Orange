@@ -466,6 +466,31 @@ extension ProxiesControllerExt on AppController {
     _ref.read(delayDataSourceProvider.notifier).setDelay(delay);
   }
 
+  /// Returns the currently selected leaf node tag if available.
+  ///
+  /// This reads runtime state only and does not depend on profile selectedMap.
+  String? getSelectedNodeTag() {
+    if (_leafController != null && _leafController!.isRunning) {
+      return _leafController!.getSelectedNode();
+    }
+    return _ref.read(selectedNodeTagProvider);
+  }
+
+  /// Selects a node in the running core without mutating profile selectedMap.
+  ///
+  /// Used by latency probes to avoid persisting temporary probe selections.
+  Future<void> selectNodeForLatencyTest(String nodeTag) async {
+    if (_leafController != null && _leafController!.isRunning) {
+      await _leafController!.selectNode(nodeTag);
+      _ref.read(selectedNodeTagProvider.notifier).state = nodeTag;
+      return;
+    }
+    if (Platform.isIOS) {
+      await service?.selectNode(nodeTag);
+      _ref.read(selectedNodeTagProvider.notifier).state = nodeTag;
+    }
+  }
+
   Future<void> changeProxy({
     required String groupName,
     required String proxyName,

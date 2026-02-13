@@ -16,6 +16,7 @@ import 'package:intl/intl.dart';
 import 'package:fl_clash/xboard/features/shared/dialogs/theme_dialog.dart';
 import 'package:fl_clash/views/hotkey.dart';
 import 'package:fl_clash/views/config/advanced.dart';
+import 'package:fl_clash/views/access.dart' show AccessView;
 
 import '../widgets/bypass_domain_card.dart';
 import '../widgets/lan_sharing_widgets.dart';
@@ -235,6 +236,23 @@ class XBoardSettingsPage extends ConsumerWidget {
                         },
                       ),
                     ),
+                    // Access Control (Android only)
+                    if (system.isAndroid) ...[
+                      _SettingDivider(),
+                      _SettingTile(
+                        icon: Icons.app_blocking_outlined,
+                        title: appLocalizations.accessControl,
+                        subtitle: appLocalizations.accessControlDesc,
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const AccessView(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ),

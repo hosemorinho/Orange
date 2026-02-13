@@ -12,6 +12,8 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-    ServicePlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "ServicePlugin"))
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "ServicePlugin") {
+      ServicePlugin.register(with: registrar)
+    }
   }
 }

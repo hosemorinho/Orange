@@ -1,9 +1,10 @@
 import Foundation
 import NetworkExtension
-import os.log
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
-  private let logger = Logger(subsystem: "com.follow.clash", category: "PacketTunnel")
+  private func log(_ message: String) {
+    NSLog("[PacketTunnel] %@", message)
+  }
 
   override func startTunnel(options: [String: NSObject]?, completionHandler: @escaping (Error?) -> Void) {
     let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "198.18.0.1")
@@ -18,17 +19,17 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     setTunnelNetworkSettings(settings) { error in
       if let error {
-        self.logger.error("Failed to apply tunnel settings: \(error.localizedDescription, privacy: .public)")
+        self.log("Failed to apply tunnel settings: \(error.localizedDescription)")
         completionHandler(error)
         return
       }
-      self.logger.info("Packet tunnel started")
+      self.log("Packet tunnel started")
       completionHandler(nil)
     }
   }
 
   override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
-    logger.info("Packet tunnel stopped, reason=\(reason.rawValue)")
+    log("Packet tunnel stopped, reason=\(reason.rawValue)")
     completionHandler()
   }
 

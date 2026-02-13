@@ -62,6 +62,21 @@ class Service {
         '';
   }
 
+  /// Sync leaf runtime config JSON for iOS packet tunnel extension.
+  Future<String> syncLeafConfig(String configJson) async {
+    return await methodChannel.invokeMethod<String>(
+          'syncLeafConfig',
+          configJson,
+        ) ??
+        '';
+  }
+
+  /// Select node tag in iOS packet tunnel extension runtime.
+  Future<bool> selectNode(String nodeTag) async {
+    return await methodChannel.invokeMethod<bool>('selectNode', nodeTag) ??
+        false;
+  }
+
   Future<bool> shutdown() async {
     return await methodChannel.invokeMethod<bool>('shutdown') ?? true;
   }

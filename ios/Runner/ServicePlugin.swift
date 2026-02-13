@@ -2,6 +2,13 @@ import Flutter
 import Foundation
 import NetworkExtension
 
+private enum SharedKeys {
+  static let appGroupId = "group.com.follow.flClash"
+  static let sharedState = "shared_state"
+  static let leafConfig = "leaf_config_json"
+  static let leafSelectedTag = "leaf_selected_tag"
+}
+
 final class ServicePlugin: NSObject, FlutterPlugin {
   private let tunnelManager = TunnelManager.shared
 
@@ -22,6 +29,20 @@ final class ServicePlugin: NSObject, FlutterPlugin {
         tunnelManager.storeSharedState(state)
       }
       result("")
+    case "syncLeafConfig":
+      if let config = call.arguments as? String {
+        tunnelManager.storeLeafConfig(config)
+        tunnelManager.reloadConfigIfConnected(config)
+      }
+      result("")
+    case "selectNode":
+      if let nodeTag = call.arguments as? String, !nodeTag.isEmpty {
+        tunnelManager.storeSelectedNode(nodeTag)
+        tunnelManager.selectNodeIfConnected(nodeTag)
+        result(true)
+      } else {
+        result(false)
+      }
     case "start":
       tunnelManager.start { success in
         result(success)
@@ -47,12 +68,18 @@ final class TunnelManager {
   private var manager: NETunnelProviderManager?
   private var startDate: Date?
 
-  private let appGroupId = "group.com.follow.flClash"
-
   private init() {}
 
   func storeSharedState(_ state: String) {
-    UserDefaults(suiteName: appGroupId)?.set(state, forKey: "shared_state")
+    UserDefaults(suiteName: SharedKeys.appGroupId)?.set(state, forKey: SharedKeys.sharedState)
+  }
+
+  func storeLeafConfig(_ config: String) {
+    UserDefaults(suiteName: SharedKeys.appGroupId)?.set(config, forKey: SharedKeys.leafConfig)
+  }
+
+  func storeSelectedNode(_ nodeTag: String) {
+    UserDefaults(suiteName: SharedKeys.appGroupId)?.set(nodeTag, forKey: SharedKeys.leafSelectedTag)
   }
 
   func startTimestampMs() -> Int64? {
@@ -87,9 +114,39 @@ final class TunnelManager {
     }
   }
 
+  func reloadConfigIfConnected(_ config: String) {
+    _ = sendProviderCommand(
+      type: "reload_config",
+      payload: ["config": config]
+    )
+  }
+
+  func selectNodeIfConnected(_ nodeTag: String) {
+    _ = sendProviderCommand(
+      type: "select_node",
+      payload: ["tag": nodeTag]
+    )
+  }
+
   private func providerBundleIdentifier() -> String? {
     guard let appBundleId = Bundle.main.bundleIdentifier else { return nil }
     return "\(appBundleId).PacketTunnel"
+  }
+
+  private func sendProviderCommand(type: String, payload: [String: Any]) -> Bool {
+    guard let session = manager?.connection as? NETunnelProviderSession else {
+      return false
+    }
+    guard session.status == .connected else {
+      return false
+    }
+    var body = payload
+    body["type"] = type
+    guard let data = try? JSONSerialization.data(withJSONObject: body) else {
+      return false
+    }
+    session.sendProviderMessage(data) { _ in }
+    return true
   }
 
   private func loadOrCreateManager(completion: @escaping (NETunnelProviderManager?, Error?) -> Void) {

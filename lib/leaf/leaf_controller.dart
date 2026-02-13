@@ -271,6 +271,23 @@ class LeafController {
   /// The list of proxy nodes from the current subscription.
   List<LeafNode> get nodes => List.unmodifiable(_nodes);
 
+  /// Parse Clash YAML `proxies` into raw proxy maps without starting leaf.
+  static List<Map<String, dynamic>> parseClashProxies(String yamlContent) {
+    return _parseClashProxies(yamlContent);
+  }
+
+  /// Extract supported nodes from parsed Clash proxy entries.
+  static List<LeafNode> extractNodesFromProxies(
+    List<Map<String, dynamic>> proxies,
+  ) {
+    return _extractNodes(proxies);
+  }
+
+  /// Parse Clash YAML and extract supported nodes without starting leaf.
+  static List<LeafNode> parseNodesFromClashYaml(String yamlContent) {
+    return _extractNodes(_parseClashProxies(yamlContent));
+  }
+
   // ---------------------------------------------------------------------------
   // Node selection (via FFI)
   // ---------------------------------------------------------------------------

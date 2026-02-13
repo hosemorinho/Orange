@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/leaf/config/config_writer.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/plugins/app.dart';
@@ -473,6 +474,9 @@ extension ProxiesControllerExt on AppController {
     if (_leafController != null && _leafController!.isRunning) {
       await _leafController!.selectNode(proxyName);
       _ref.read(selectedNodeTagProvider.notifier).state = proxyName;
+    } else if (Platform.isIOS) {
+      _ref.read(selectedNodeTagProvider.notifier).state = proxyName;
+      await service?.selectNode(proxyName);
     }
     // Also persist in the profile's selectedMap
     updateCurrentSelectedMap(groupName, proxyName);
@@ -588,6 +592,11 @@ extension SetupControllerExt on AppController {
   }
 
   Future<void> _updateConfigImmediate() async {
+    if (Platform.isIOS) {
+      await applyProfile(force: true, silence: true);
+      return;
+    }
+
     // Leaf does not support runtime config hot-reload for most parameters
     // (mode, allowLan, etc.). These are UI-only state changes.
     // However, port changes require a leaf restart because the inbound
@@ -644,6 +653,11 @@ extension SetupControllerExt on AppController {
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
 
+    if (Platform.isIOS) {
+      await applyProfile(force: true, silence: true);
+      return;
+    }
+
     if (_leafController != null && _leafController!.isRunning) {
       _logger.info(
         'changeMode: ${_leafController!.currentMode.name} → ${mode.name}',
@@ -667,6 +681,20 @@ extension SetupControllerExt on AppController {
 
   /// Ensure a valid proxy node is selected in the leaf core.
   Future<void> _ensureValidSelection() async {
+    if (Platform.isIOS) {
+      final nodes = _ref.read(leafNodesProvider);
+      if (nodes.isEmpty) return;
+
+      final current = _ref.read(selectedNodeTagProvider);
+      final selected = (current != null && nodes.any((n) => n.tag == current))
+          ? current
+          : nodes.first.tag;
+
+      _ref.read(selectedNodeTagProvider.notifier).state = selected;
+      await service?.selectNode(selected);
+      return;
+    }
+
     if (_leafController == null || !_leafController!.isRunning) return;
 
     final currentSelected = _leafController!.getSelectedNode();
@@ -908,6 +936,41 @@ extension SetupControllerExt on AppController {
           );
         }
       }
+    }
+
+    if (Platform.isIOS) {
+      final proxies = LeafController.parseClashProxies(yamlContent);
+      final nodes = LeafController.extractNodesFromProxies(proxies);
+      final configJson = ConfigWriter.build(
+        proxies: proxies,
+        mixedPort: mixedPort,
+        tunEnabled: false,
+        mode: mode,
+        mmdbAvailable: mmdbAvailable,
+      ).toJsonString();
+
+      await service?.syncLeafConfig(configJson);
+      _ref.read(leafNodesProvider.notifier).state = nodes;
+
+      final previousSelected = _ref.read(selectedNodeTagProvider);
+      final selectedTag = switch (nodes.any((n) => n.tag == previousSelected)) {
+        true => previousSelected,
+        false => nodes.isNotEmpty ? nodes.first.tag : null,
+      };
+      _ref.read(selectedNodeTagProvider.notifier).state = selectedTag;
+      if (selectedTag != null) {
+        await service?.selectNode(selectedTag);
+      }
+
+      _ref.read(isLeafRunningProvider.notifier).state = globalState.isStart;
+      _activePort = mixedPort;
+      _ref.read(activePortProvider.notifier).state = mixedPort;
+      _lastSetupTime = DateTime.now();
+      _logger.info(
+        'setup: iOS config synced to packet tunnel, '
+        'nodes=${nodes.length}, mode=${mode.name}, start=${globalState.isStart}',
+      );
+      return;
     }
 
     // Start leaf with the subscription YAML

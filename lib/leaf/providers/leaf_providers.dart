@@ -126,6 +126,14 @@ Future<void> selectLeafNode(WidgetRef ref, String nodeTag) async {
 /// Helper to run health checks (TCP ping) on all nodes.
 Future<void> runHealthChecks(WidgetRef ref) async {
   final controller = ref.read(leafControllerProvider);
-  final results = await controller.tcpPingAll();
+  final results = <String, int?>{};
+  if (controller.nodes.isNotEmpty) {
+    results.addAll(await controller.tcpPingAll());
+  } else {
+    final nodes = ref.read(leafNodesProvider);
+    for (final node in nodes) {
+      results[node.tag] = await controller.tcpPing(node);
+    }
+  }
   ref.read(nodeDelaysProvider.notifier).state = results;
 }

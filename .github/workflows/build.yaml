@@ -184,8 +184,19 @@ jobs:
         if: matrix.platform != 'ios'
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Setup Rust (iOS)
+        if: matrix.platform == 'ios'
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Rust Cache
         if: matrix.platform != 'ios'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: leaf
+          cache-on-failure: true
+
+      - name: Rust Cache (iOS)
+        if: matrix.platform == 'ios'
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: leaf
@@ -290,6 +301,12 @@ jobs:
           THEME_COLOR: ${{ secrets.THEME_COLOR }}
           CRISP_WEBSITE_ID: ${{ env.CRISP_WEBSITE_ID }}
         run: |
+          chmod +x scripts/ios/build_leaf_xcframework.sh
+          ./scripts/ios/build_leaf_xcframework.sh
+
+          sudo gem install xcodeproj
+          ruby scripts/ios/configure_packet_tunnel.rb
+
           DART_DEFINES=(--dart-define=APP_ENV=stable)
 
           if [[ -n "$API_BASE_URL" ]]; then

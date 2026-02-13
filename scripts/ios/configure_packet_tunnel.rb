@@ -50,6 +50,11 @@ unless runner_target.source_build_phase.files_references.include?(service_plugin
   runner_target.source_build_phase.add_file_reference(service_plugin_ref)
 end
 
+# Avoid Runner <-> app extension build cycle when archiving with Flutter's
+# "Thin Binary" script phase.
+thin_binary_phase = runner_target.shell_script_build_phases.find { |bp| bp.name == 'Thin Binary' }
+thin_binary_phase.input_paths = [] if thin_binary_phase
+
 # Runner: link NetworkExtension framework
 unless runner_target.frameworks_build_phase.files_references.include?(network_ext_ref)
   runner_target.frameworks_build_phase.add_file_reference(network_ext_ref)

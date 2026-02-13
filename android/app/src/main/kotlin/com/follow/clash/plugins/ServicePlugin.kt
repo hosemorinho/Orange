@@ -165,13 +165,6 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     }
 
     private fun handleGetTunFd(result: MethodChannel.Result) {
-        launch {
-            try {
-                val fd = Service.getTunFd()
-                result.success(fd)
-            } catch (e: Exception) {
-                result.success(null)
-            }
-        }
+        result.success(com.follow.clash.service.State.tunFd)
     }
 }

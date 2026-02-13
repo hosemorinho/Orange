@@ -22,10 +22,10 @@ object State {
 
     var intent: Intent? = null
 
-    var tunFd: Int? = null
+    @Volatile var tunFd: Int? = null
 
     /** The TUN ParcelFileDescriptor from VpnService.Builder.establish(). */
-    var tunPfd: ParcelFileDescriptor? = null
+    @Volatile var tunPfd: ParcelFileDescriptor? = null
 
-    var vpnService: VpnService? = null
+    @Volatile var vpnService: VpnService? = null
 }

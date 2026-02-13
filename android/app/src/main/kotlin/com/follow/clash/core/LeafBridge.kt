@@ -1,8 +1,6 @@
 package com.follow.clash.core
 
 import android.util.Log
-import com.follow.clash.Service
-import kotlinx.coroutines.runBlocking
 
 /**
  * JNI bridge to libleaf.so (Rust proxy core).
@@ -13,9 +11,8 @@ import kotlinx.coroutines.runBlocking
  * Leaf calls [protectSocket] from native code when it needs to
  * protect a socket from being routed through the VPN tunnel.
  *
- * Since the VPN service runs in the :remote process and leaf runs
- * in the :app process via FFI, socket protection is forwarded
- * across the process boundary via AIDL.
+ * All services run in the same process, so socket protection is
+ * a direct in-process call to VpnService.protect().
  */
 object LeafBridge {
     private const val TAG = "LeafBridge"
@@ -45,9 +42,7 @@ object LeafBridge {
 
     /**
      * Called from native code (Rust/JNI) when leaf needs to protect a socket fd.
-     * Forwards the request to the VPN service in the :remote process via AIDL.
-     *
-     * This method blocks the calling (native) thread until protection completes.
+     * Direct in-process call to VpnService.protect() — thread-safe per Android docs.
      *
      * @param fd The raw file descriptor of the socket to protect.
      * @return true if protection succeeded, false otherwise.
@@ -59,9 +54,7 @@ object LeafBridge {
             return false
         }
         return try {
-            runBlocking {
-                Service.protectSocket(fd)
-            }
+            com.follow.clash.service.State.vpnService?.protect(fd) ?: false
         } catch (e: Exception) {
             Log.w(TAG, "protectSocket failed for fd=$fd: $e")
             false

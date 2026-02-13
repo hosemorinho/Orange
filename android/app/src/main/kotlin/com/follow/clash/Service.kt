@@ -161,7 +161,10 @@ object Service {
             awaitIResultInterface { callback ->
                 it.startService(options, runTime, callback)
             }
-        }.getOrNull() ?: 0L
+        }.getOrElse {
+            GlobalState.log("startService failed: ${it.message}")
+            0L
+        }
     }
 
     suspend fun stopService(): Long {

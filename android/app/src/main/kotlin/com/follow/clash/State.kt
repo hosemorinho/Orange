@@ -40,6 +40,12 @@ object State {
     /** Deferred that completes when VPN start finishes (true=success, false=failed/denied). */
     var startResultDeferred: CompletableDeferred<Boolean>? = null
 
+    private fun ensureStartDeferred() {
+        if (startResultDeferred == null || startResultDeferred?.isCompleted == true) {
+            startResultDeferred = CompletableDeferred()
+        }
+    }
+
     suspend fun handleToggleAction() {
         var action: (suspend () -> Unit)?
         runLock.withLock {
@@ -99,7 +105,8 @@ object State {
     }
 
     fun handleStartService() {
-        startResultDeferred = CompletableDeferred()
+        ensureStartDeferred()
+        Service.bind()
         val appPlugin = flutterEngine?.plugin<AppPlugin>()
         if (appPlugin != null) {
             appPlugin.requestNotificationsPermission {
@@ -180,7 +187,11 @@ object State {
                     // or onActivityResult (VPN denied) will complete the deferred.
                     it.prepare(options.enable) {
                         try {
-                            runTime = Service.startService(options, runTime)
+                            val nextRunTime = Service.startService(options, runTime)
+                            if (nextRunTime <= 0L) {
+                                throw IllegalStateException("remote service start returned 0")
+                            }
+                            runTime = nextRunTime
                             runStateFlow.tryEmit(RunState.START)
                             startResultDeferred?.complete(true)
                         } catch (e: Exception) {
@@ -197,7 +208,11 @@ object State {
                         return@launch
                     }
                     try {
-                        runTime = Service.startService(options, runTime)
+                        val nextRunTime = Service.startService(options, runTime)
+                        if (nextRunTime <= 0L) {
+                            throw IllegalStateException("remote service start returned 0")
+                        }
+                        runTime = nextRunTime
                         runStateFlow.tryEmit(RunState.START)
                         startResultDeferred?.complete(true)
                     } catch (e: Exception) {
@@ -229,6 +244,5 @@ object State {
         }
     }
 }
-
 
 

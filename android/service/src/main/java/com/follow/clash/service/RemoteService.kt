@@ -20,13 +20,47 @@ import kotlinx.coroutines.sync.withLock
 
 class RemoteService : Service(),
     CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
+
+    private fun resetVpnState() {
+        try {
+            State.tunPfd?.close()
+        } catch (_: Exception) {
+        }
+        State.tunPfd = null
+        State.tunFd = null
+        State.vpnService = null
+    }
+
+    private fun buildDelegate(serviceIntent: Intent): ServiceDelegate<IBaseService> {
+        return ServiceDelegate(serviceIntent, ::handleServiceDisconnected) { binder ->
+            when (binder) {
+                is VpnService.LocalBinder -> binder.getService()
+                is CommonService.LocalBinder -> binder.getService()
+                else -> throw IllegalArgumentException("Invalid binder type")
+            }
+        }
+    }
+
+    private fun needsDelegateRebuild(serviceIntent: Intent): Boolean {
+        return delegate == null || intent?.component != serviceIntent.component
+    }
+
+    private fun vpnStartedSuccessfully(): Boolean {
+        return State.tunPfd != null && State.tunFd != null && State.vpnService != null
+    }
+
     private fun handleStopService(result: IResultInterface) {
         launch {
             runLock.withLock {
-                delegate?.useService { service ->
-                    service.stop()
-                    delegate?.unbind()
+                runCatching {
+                    delegate?.useService { service ->
+                        service.stop()
+                    }
+                }.onFailure {
+                    GlobalState.log("handleStopService failed: ${it.message}")
                 }
+                delegate?.unbind()
+                resetVpnState()
                 State.runTime = 0
                 result.onResult(0)
             }
@@ -37,31 +71,47 @@ class RemoteService : Service(),
         GlobalState.log("Background service disconnected: $message")
         intent = null
         delegate = null
+        State.runTime = 0
+        resetVpnState()
     }
 
     private fun handleStartService(runTime: Long, result: IResultInterface) {
         launch {
             runLock.withLock {
                 try {
+                    val options = State.options
                     val nextIntent = when (State.options?.enable == true) {
                         true -> VpnService::class.intent
                         false -> CommonService::class.intent
                     }
-                    if (intent != nextIntent) {
+                    if (needsDelegateRebuild(nextIntent)) {
                         delegate?.unbind()
-                        delegate =
-                            ServiceDelegate(nextIntent, ::handleServiceDisconnected) { binder ->
-                                when (binder) {
-                                    is VpnService.LocalBinder -> binder.getService()
-                                    is CommonService.LocalBinder -> binder.getService()
-                                    else -> throw IllegalArgumentException("Invalid binder type")
-                                }
-                            }
+                        delegate = buildDelegate(nextIntent)
                         intent = nextIntent
-                        delegate?.bind()
                     }
-                    delegate?.useService { service ->
+                    // stop() may unbind the delegate; always bind before useService.
+                    delegate?.bind()
+                    val started = delegate?.useService { service ->
                         service.start()
+                        when (options?.enable == true) {
+                            true -> vpnStartedSuccessfully()
+                            false -> true
+                        }
+                    }?.getOrElse {
+                        GlobalState.log("startService RPC failed: ${it.message}")
+                        false
+                    } ?: false
+                    if (!started) {
+                        runCatching {
+                            delegate?.useService { service ->
+                                service.stop()
+                            }
+                        }
+                        delegate?.unbind()
+                        resetVpnState()
+                        State.runTime = 0
+                        result.onResult(0)
+                        return@withLock
                     }
                     State.runTime = when (runTime != 0L) {
                         true -> runTime
@@ -70,6 +120,7 @@ class RemoteService : Service(),
                     result.onResult(State.runTime)
                 } catch (e: Exception) {
                     GlobalState.log("handleStartService failed: ${e.message}")
+                    resetVpnState()
                     result.onResult(0)
                 }
             }

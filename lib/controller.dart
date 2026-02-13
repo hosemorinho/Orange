@@ -588,6 +588,7 @@ extension SetupControllerExt on AppController {
           if (!_ref.read(initProvider)) {
             return;
           }
+          await _syncSharedStateBeforeStart(trigger: trigger);
           final started = await globalState.handleStart([
             updateRunTime,
             updateTraffic,
@@ -595,10 +596,14 @@ extension SetupControllerExt on AppController {
           if (!started) {
             _logger.warning(
               'updateStatus: VPN service failed to start '
-              '(permission denied?) trigger=$trigger',
+              '(permission, native start, or system establish failure) '
+              'trigger=$trigger',
             );
             _setLeafStoppedState(
               reason: 'updateStatus(start,handleStartFailed,trigger=$trigger)',
+              // Keep last parsed nodes so user can still switch/check nodes
+              // after a VPN permission/startup failure.
+              clearNodes: false,
             );
             updateRunTime();
             return;
@@ -623,6 +628,7 @@ extension SetupControllerExt on AppController {
             bypassThrottle: true,
             reason: 'updateStatus(start,isInit=true,trigger=$trigger)',
             preloadInvoke: () async {
+              await _syncSharedStateBeforeStart(trigger: trigger);
               final started = await globalState.handleStart([
                 updateRunTime,
                 updateTraffic,
@@ -630,6 +636,7 @@ extension SetupControllerExt on AppController {
               if (!started) {
                 _logger.warning(
                   'updateStatus(init): VPN service failed to start '
+                  '(permission, native start, or system establish failure) '
                   'trigger=$trigger',
                 );
               }
@@ -646,6 +653,9 @@ extension SetupControllerExt on AppController {
               _setLeafStoppedState(
                 reason:
                     'updateStatus(start,preloadNotStarted,isInit=true,trigger=$trigger)',
+                // preloadInvoke may fail before setup; preserve previously
+                // loaded nodes to avoid empty node list on Android start fail.
+                clearNodes: false,
               );
               updateRunTime();
             }
@@ -721,6 +731,18 @@ extension SetupControllerExt on AppController {
     _ref.read(checkIpNumProvider.notifier).add();
   }
 
+  Future<void> _syncSharedStateBeforeStart({required String trigger}) async {
+    if (!system.isAndroid) return;
+    try {
+      await service?.syncState(sharedState.needSyncSharedState);
+    } catch (e) {
+      _logger.warning(
+        'updateStatus: failed to sync shared state before start '
+        '(trigger=$trigger): $e',
+      );
+    }
+  }
+
   void _setLeafStoppedState({
     required String reason,
     bool clearNodes = true,
@@ -765,7 +787,10 @@ extension SetupControllerExt on AppController {
     updateRunTime();
     _ref.read(trafficsProvider.notifier).clear();
     _ref.read(totalTrafficProvider.notifier).value = Traffic();
-    _setLeafStoppedState(reason: 'rollback($reason)');
+    _setLeafStoppedState(
+      reason: 'rollback($reason)',
+      clearNodes: false,
+    );
     addCheckIp();
     _logStartupSnapshot('rollback complete: $reason');
   }

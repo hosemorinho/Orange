@@ -36,7 +36,7 @@ class _AndroidContainerState extends ConsumerState<AndroidManager>
           service?.syncState(next.needSyncSharedState);
         }
       }
-    });
+    }, fireImmediately: true);
     service?.addListener(this);
   }
 

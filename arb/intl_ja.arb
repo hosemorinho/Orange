@@ -478,5 +478,21 @@
   "xboardUnlimited": "無制限",
   "xboardUnlimitedTime": "無制限",
   "xboardUnlimitedDevices": "デバイス数無制限",
-  "xboardDevices": "台デバイス"
+  "xboardDevices": "台デバイス",
+  "subscriptionNotLoggedIn": "ログインしていません",
+  "subscriptionNotLoggedInDetail": "先にログインしてください",
+  "subscriptionNoSubscription": "サブスクリプションなし",
+  "subscriptionNoSubscriptionDetail": "現在ご利用可能なサブスクリプションプランがありません。プランを購入してください",
+  "subscriptionParseFailed": "サブスクリプション設定の解析に失敗しました",
+  "subscriptionParseFailedDetail": "サブスクリプション設定を取得できません。ネットワーク接続を確認するか、更新をクリックして再試行してください",
+  "subscriptionExpired": "サブスクリプションの有効期限が切れています",
+  "subscriptionExpiredDetail": "プランは {date} に期限切れになりました。継続して利用するには更新してください",
+  "subscriptionExpiresToday": "本日サブスクリプションの有効期限が切れます",
+  "subscriptionExpiresTodayDetail": "プランは本日に期限切れになります。サービス中断を避けるため、直ちに更新してください",
+  "subscriptionExpiringInDays": "サブスクリプションの有効期限が近づいています",
+  "subscriptionExpiringInDaysDetail": "プランは {days} 日後に期限切れになります。及时に更新してください",
+  "subscriptionTrafficExhausted": "トラフィックを使い切りました",
+  "subscriptionTrafficExhaustedDetail": "プランのトラフィックを使い切りました。より多くのトラフィックを購入するか、プランをアップグレードしてください",
+  "subscriptionValid": "サブスクリプションは有効です",
+  "subscriptionValidDetail": "{days} 日後に期限切れになります"
 }

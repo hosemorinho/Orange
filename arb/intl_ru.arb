@@ -486,5 +486,21 @@
   "xboardUnlimited": "Безлимитный",
   "xboardUnlimitedTime": "Безлимитный",
   "xboardUnlimitedDevices": "Неограниченное количество устройств",
-  "xboardDevices": "устройств"
+  "xboardDevices": "устройств",
+  "subscriptionNotLoggedIn": "Не вошел в систему",
+  "subscriptionNotLoggedInDetail": "Пожалуйста, сначала войдите",
+  "subscriptionNoSubscription": "Нет подписки",
+  "subscriptionNoSubscriptionDetail": "Нет доступного плана подписки, пожалуйста, приобретите план для использования",
+  "subscriptionParseFailed": "Не удалось разобрать конфигурацию подписки",
+  "subscriptionParseFailedDetail": "Не удалось получить конфигурацию подписки, проверьте сетевое подключение или нажмите обновление, чтобы повторить попытку",
+  "subscriptionExpired": "Срок действия подписки истек",
+  "subscriptionExpiredDetail": "Срок действия плана истек {date}, пожалуйста, продлите для продолжения использования",
+  "subscriptionExpiresToday": "Срок действия подписки истекает сегодня",
+  "subscriptionExpiresTodayDetail": "Срок действия плана истекает сегодня, пожалуйста, продлите немедленно, чтобы избежать прерывания обслуживания",
+  "subscriptionExpiringInDays": "Срок действия подписки истекает",
+  "subscriptionExpiringInDaysDetail": "Срок действия плана истекает через {days} дней, пожалуйста, продлите вовремя",
+  "subscriptionTrafficExhausted": "Трафик исчерпан",
+  "subscriptionTrafficExhaustedDetail": "Трафик плана израсходован, пожалуйста, купите больше трафика или обновите план",
+  "subscriptionValid": "Подписка действительна",
+  "subscriptionValidDetail": "Истекает через {days} дней"
 }

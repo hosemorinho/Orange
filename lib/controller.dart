@@ -658,7 +658,12 @@ extension SetupControllerExt on AppController {
           await service?.disableSocketProtection();
         }
         await _leafController?.stop();
-        _setLeafStoppedState(reason: 'updateStatus(stop,trigger=$trigger)');
+        // Preserve last parsed nodes/selection so UI can still show
+        // selected node and node list after manual disconnect.
+        _setLeafStoppedState(
+          reason: 'updateStatus(stop,trigger=$trigger)',
+          clearNodes: false,
+        );
         await globalState.handleStop();
         _ref.read(trafficsProvider.notifier).clear();
         _ref.read(totalTrafficProvider.notifier).value = Traffic();

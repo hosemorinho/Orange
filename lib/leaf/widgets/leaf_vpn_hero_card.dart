@@ -233,8 +233,8 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
 
     if (nodes.isEmpty) {
       // Show loading only when import is really in progress or profile data
-      // is not ready yet. Avoid showing infinite "loading subscription" when
-      // user manually stops proxy (leaf nodes are expected to be empty).
+      // is not ready yet. Manual disconnect keeps last nodes in memory, but
+      // this empty branch still covers initial startup/error edge cases.
       if (isImporting || (userState.isAuthenticated && !hasProfile)) {
         return _buildLoadingState(context);
       }

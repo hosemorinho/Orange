@@ -6,6 +6,8 @@ import 'package:fl_clash/xboard/core/core.dart';
 // 初始化文件级日志器
 final _logger = FileLogger('profile_import_provider.dart');
 class ProfileImportNotifier extends Notifier<ImportState> {
+  static const Duration _dedupeWindow = Duration(seconds: 30);
+
   @override
   ImportState build() => const ImportState();
   
@@ -16,6 +18,14 @@ class ProfileImportNotifier extends Notifier<ImportState> {
     if (state.isImporting && !forceRefresh) {
       _logger.info('导入已在进行中，跳过重复请求');
       return false;
+    }
+    if (!forceRefresh &&
+        state.lastResult?.isSuccess == true &&
+        state.currentUrl == url &&
+        state.lastSuccessTime != null &&
+        DateTime.now().difference(state.lastSuccessTime!) < _dedupeWindow) {
+      _logger.info('30秒内已成功导入相同订阅，跳过重复请求');
+      return true;
     }
 
     state = state.copyWith(
@@ -108,4 +118,4 @@ extension ProfileImportProviderExtension on WidgetRef {
   double get importProgress => watch(profileImportProvider.select((state) => state.progress));
   String get importStatusText => watch(profileImportProvider.select((state) => state.statusText));
   bool get hasImportError => watch(profileImportProvider.select((state) => state.lastResult?.isSuccess == false));
-} 
+}

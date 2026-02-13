@@ -14,6 +14,7 @@ import 'package:fl_clash/widgets/tab.dart';
 import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/xboard/domain/models/models.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
+import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/tun_introduction_dialog.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_status_service.dart';
 import 'package:fl_clash/xboard/services/services.dart';
@@ -222,13 +223,24 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
     final delays = ref.watch(nodeDelaysProvider);
     final tunEnabled = ref.watch(
         patchClashConfigProvider.select((state) => state.tun.enable));
+    final isImporting = ref.watch(
+      profileImportProvider.select((state) => state.isImporting),
+    );
+    final hasProfile = ref.watch(
+      profilesProvider.select((state) => state.isNotEmpty),
+    );
+    final userState = ref.watch(xboardUserProvider);
 
     if (nodes.isEmpty) {
-      final userState = ref.watch(xboardUserProvider);
-      if (userState.isAuthenticated) {
+      // Show loading only when import is really in progress or profile data
+      // is not ready yet. Avoid showing infinite "loading subscription" when
+      // user manually stops proxy (leaf nodes are expected to be empty).
+      if (isImporting || (userState.isAuthenticated && !hasProfile)) {
         return _buildLoadingState(context);
       }
-      return const SizedBox.shrink();
+      final fallbackNodeName = selectedTag ?? '--';
+      final delayMs = selectedTag == null ? null : delays[selectedTag];
+      return _buildCard(context, fallbackNodeName, delayMs, tunEnabled);
     }
 
     final selectedNode = nodes.where((n) => n.tag == selectedTag).firstOrNull;

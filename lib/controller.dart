@@ -1103,6 +1103,16 @@ extension SetupControllerExt on AppController {
       'isStart=${globalState.isStart}, preloadInvoke=${preloadInvoke != null}, '
       'configTun=${_ref.read(patchClashConfigProvider).tun.enable}, reason=$reason',
     );
+
+    // Stop any running leaf instance BEFORE enabling socket protection.
+    // enableSocketProtection() → nativeSetProtectSocketCallback() modifies
+    // global native state via JNI. Calling it while a leaf runtime is active
+    // causes a native crash on Android.
+    if (_leafController != null && _leafController!.isRunning) {
+      _logger.info('setup: stopping running leaf before reconfiguration');
+      await _leafController!.stop();
+    }
+
     int? tunFd;
     if (system.isAndroid && tunEnabled) {
       await service?.enableSocketProtection();

@@ -213,6 +213,10 @@ class Build {
         env['CGO_ENABLED'] = '1';
         env['CC'] = _getCc(item);
         env['CFLAGS'] = '-O3 -Werror';
+        // Statically link C runtime on Windows to eliminate vcredist dependency
+        if (item.target == Target.windows) {
+          env['CGO_LDFLAGS'] = '-static-libgcc -static-libstdc++';
+        }
       } else {
         env['CGO_ENABLED'] = '0';
       }

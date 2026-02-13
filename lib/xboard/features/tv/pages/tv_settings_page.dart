@@ -1,3 +1,4 @@
+import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
@@ -63,18 +64,20 @@ class TvSettingsPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
 
-                // TUN mode
-                _TvSettingRow(
-                  icon: Icons.security,
-                  title: 'TUN',
-                  trailing: _TunToggle(tun: tun),
-                  onPressed: () {
-                    ref.read(patchClashConfigProvider.notifier).update(
-                          (state) => state.copyWith.tun(enable: !tun),
-                        );
-                  },
-                ),
-                const SizedBox(height: 8),
+                // TUN mode (desktop only)
+                if (!system.isAndroid) ...[
+                  _TvSettingRow(
+                    icon: Icons.security,
+                    title: 'TUN',
+                    trailing: _TunToggle(tun: tun),
+                    onPressed: () {
+                      ref.read(patchClashConfigProvider.notifier).update(
+                            (state) => state.copyWith.tun(enable: !tun),
+                          );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                ],
 
                 // Proxy mode
                 _TvSettingRow(

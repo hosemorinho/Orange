@@ -99,7 +99,10 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     debouncer.call(
       FunctionTag.updateStatus,
       () {
-        appController.updateStatus(_isStart);
+        appController.updateStatus(
+          _isStart,
+          trigger: 'xboard.vpn_hero_card',
+        );
       },
       duration: commonDuration,
     );
@@ -142,6 +145,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   }
 
   Future<void> _handleTunToggle(bool selected) async {
+    if (system.isAndroid) {
+      return;
+    }
     if (selected) {
       final storageService = ref.read(storageServiceProvider);
       final hasShownResult = await storageService.hasTunFirstUseShown();
@@ -807,17 +813,18 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           ),
         ),
         const SizedBox(width: 8),
-        FilterChip(
-          label: const Text('TUN', style: TextStyle(fontSize: 12)),
-          selected: tunEnabled,
-          onSelected: (selected) {
-            _handleTunToggle(selected);
-          },
-          visualDensity: VisualDensity.compact,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          selectedColor: colorScheme.tertiaryContainer,
-          checkmarkColor: colorScheme.onTertiaryContainer,
-        ),
+        if (!system.isAndroid)
+          FilterChip(
+            label: const Text('TUN', style: TextStyle(fontSize: 12)),
+            selected: tunEnabled,
+            onSelected: (selected) {
+              _handleTunToggle(selected);
+            },
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            selectedColor: colorScheme.tertiaryContainer,
+            checkmarkColor: colorScheme.onTertiaryContainer,
+          ),
       ],
     );
   }
@@ -955,17 +962,18 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
               ),
             ),
             const SizedBox(width: 8),
-            FilterChip(
-              label: const Text('TUN', style: TextStyle(fontSize: 12)),
-              selected: tunEnabled,
-              onSelected: (selected) {
-                _handleTunToggle(selected);
-              },
-              visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              selectedColor: colorScheme.tertiaryContainer,
-              checkmarkColor: colorScheme.onTertiaryContainer,
-            ),
+            if (!system.isAndroid)
+              FilterChip(
+                label: const Text('TUN', style: TextStyle(fontSize: 12)),
+                selected: tunEnabled,
+                onSelected: (selected) {
+                  _handleTunToggle(selected);
+                },
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                selectedColor: colorScheme.tertiaryContainer,
+                checkmarkColor: colorScheme.onTertiaryContainer,
+              ),
           ],
         ),
         const SizedBox(height: 6),

@@ -29,7 +29,7 @@ class _TileContainerState extends ConsumerState<TileManager> with TileListener {
     if (isStart) {
       return;
     }
-    appController.updateStatus(true);
+    appController.updateStatus(true, trigger: 'tile_manager.onStart');
     app?.tip(appLocalizations.startVpn);
     super.onStart();
   }
@@ -39,7 +39,7 @@ class _TileContainerState extends ConsumerState<TileManager> with TileListener {
     if (!isStart) {
       return;
     }
-    appController.updateStatus(false);
+    appController.updateStatus(false, trigger: 'tile_manager.onStop');
     app?.tip(appLocalizations.stopVpn);
     super.onStop();
   }

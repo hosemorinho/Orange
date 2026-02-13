@@ -64,7 +64,9 @@ class _LeafConnectButtonState extends ConsumerState<LeafConnectButton>
     final targetState = !_isStart;
     _isStart = targetState;
     _updateController();
-    appController.updateStatus(targetState).whenComplete(() {
+    appController
+        .updateStatus(targetState, trigger: 'leaf_connect_button.switch')
+        .whenComplete(() {
       _isSwitching = false;
     });
   }

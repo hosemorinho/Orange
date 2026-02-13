@@ -51,7 +51,10 @@ class _VpnContainerState extends ConsumerState<VpnManager> {
             actionText: appLocalizations.restart,
             action: () async {
               await globalState.handleStop();
-              await appController.updateStatus(true);
+              await appController.updateStatus(
+                true,
+                trigger: 'vpn_manager.restart_tip',
+              );
             },
           ),
         );

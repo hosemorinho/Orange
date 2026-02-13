@@ -1,3 +1,4 @@
+import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -27,6 +28,9 @@ class XBoardOutboundMode extends StatelessWidget {
 
   Future<void> _handleTunToggle(
       BuildContext context, WidgetRef ref, bool selected) async {
+    if (system.isAndroid) {
+      return;
+    }
     if (selected) {
       final storageService = ref.read(storageServiceProvider);
       final hasShownResult = await storageService.hasTunFirstUseShown();
@@ -64,6 +68,7 @@ class XBoardOutboundMode extends StatelessWidget {
             patchClashConfigProvider.select((state) => state.mode));
         final tunEnabled = ref.watch(patchClashConfigProvider
             .select((state) => state.tun.enable));
+        final showTun = !system.isAndroid;
         return LayoutBuilder(
           builder: (context, constraints) {
             // 根据可用宽度调整布局
@@ -114,11 +119,13 @@ class XBoardOutboundMode extends StatelessWidget {
                     child: _buildModeSelector(context, mode, isNarrow, ref),
                   ),
                   SizedBox(height: isNarrow ? 10 : 12),
-                  _buildTunRow(context, tunEnabled, isNarrow, ref),
-                  const SizedBox(height: 6),
+                  if (showTun) ...[
+                    _buildTunRow(context, tunEnabled, isNarrow, ref),
+                    const SizedBox(height: 6),
+                  ],
                   Flexible(
                     child: Text(
-                      _getModeDescription(mode, tunEnabled, l10n),
+                      _getModeDescription(mode, showTun ? tunEnabled : false, l10n),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurface.withValues(alpha: 0.65),
                             fontSize: 12,

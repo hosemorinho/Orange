@@ -14,6 +14,9 @@ class TUNButton extends StatelessWidget {
       height: getWidgetHeight(1),
       child: CommonCard(
         onPressed: () {
+          if (system.isAndroid) {
+            return;
+          }
           showSheet(
             context: context,
             builder: (_, type) {
@@ -65,11 +68,15 @@ class TUNButton extends StatelessWidget {
                   );
                   return Switch(
                     value: enable,
-                    onChanged: (value) {
-                      ref
-                          .read(patchClashConfigProvider.notifier)
-                          .update((state) => state.copyWith.tun(enable: value));
-                    },
+                    onChanged: system.isAndroid
+                        ? null
+                        : (value) {
+                            ref
+                                .read(patchClashConfigProvider.notifier)
+                                .update(
+                                  (state) => state.copyWith.tun(enable: value),
+                                );
+                          },
                   );
                 },
               ),

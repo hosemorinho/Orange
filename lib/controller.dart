@@ -39,6 +39,20 @@ dynamic _convertYamlValue(dynamic v) {
   return v;
 }
 
+String _callerStackSummary([int maxFrames = 4]) {
+  final lines = StackTrace.current.toString().split('\n');
+  final frames = <String>[];
+  for (final line in lines.skip(1)) {
+    final frame = line.trim();
+    if (frame.isEmpty) continue;
+    if (frame.contains('dart:async')) continue;
+    if (frame.contains('package:flutter/')) continue;
+    frames.add(frame);
+    if (frames.length >= maxFrames) break;
+  }
+  return frames.join(' | ');
+}
+
 class AppController {
   late final BuildContext _context;
   late final WidgetRef _ref;
@@ -133,9 +147,13 @@ extension InitControllerExt on AppController {
         ? true
         : _ref.read(appSettingProvider).autoRun;
     if (status == true) {
-      await updateStatus(true, isInit: true);
+      await updateStatus(
+        true,
+        isInit: true,
+        trigger: 'initStatus(autoStartOrResume)',
+      );
     } else {
-      await applyProfile(force: true);
+      await applyProfile(force: true, reason: 'initStatus(noAutoStart)');
     }
   }
 
@@ -261,7 +279,10 @@ extension ProfilesControllerExt on AppController {
         _ref.read(currentProfileIdProvider.notifier).value = updateId;
       } else {
         _ref.read(currentProfileIdProvider.notifier).value = null;
-        updateStatus(false);
+        updateStatus(
+          false,
+          trigger: 'profiles.deleteProfile(lastProfileRemoved)',
+        );
       }
     }
   }
@@ -310,7 +331,10 @@ extension ProfilesControllerExt on AppController {
       final newProfile = await profile.update();
       _ref.read(profilesProvider.notifier).put(newProfile);
       if (profile.id == _ref.read(currentProfileIdProvider)) {
-        await applyProfile(silence: true);
+        await applyProfile(
+          silence: true,
+          reason: 'profiles.updateProfile(id=${profile.id})',
+        );
       }
     } finally {
       _ref.read(isUpdatingProvider(profile.updatingKey).notifier).value = false;
@@ -333,7 +357,7 @@ extension ProfilesControllerExt on AppController {
   void setProfileAndAutoApply(Profile profile) {
     _ref.read(profilesProvider.notifier).put(profile);
     if (profile.id == _ref.read(currentProfileIdProvider)) {
-      applyProfileDebounce();
+      applyProfileDebounce(reason: 'profiles.setProfileAndAutoApply');
     }
   }
 
@@ -535,16 +559,27 @@ extension SetupControllerExt on AppController {
       return;
     }
     _ref.read(delayDataSourceProvider.notifier).value = {};
-    applyProfile(force: true);
+    applyProfile(force: true, reason: 'fullSetup');
     _ref.read(logsProvider.notifier).value = FixedList(500);
     _ref.read(requestsProvider.notifier).value = FixedList(500);
   }
 
-  Future<void> updateStatus(bool isStart, {bool isInit = false}) async {
+  Future<void> updateStatus(
+    bool isStart, {
+    bool isInit = false,
+    String trigger = 'unknown',
+  }) async {
     if (_isUpdatingStatus) {
-      _logger.info('updateStatus: skipping concurrent call (isStart=$isStart)');
+      _logger.info(
+        'updateStatus: skipping concurrent call '
+        '(isStart=$isStart, isInit=$isInit, trigger=$trigger)',
+      );
       return;
     }
+    _logger.info(
+      'updateStatus: requested isStart=$isStart, isInit=$isInit, '
+      'trigger=$trigger, caller=${_callerStackSummary()}',
+    );
     _isUpdatingStatus = true;
     try {
       if (isStart) {
@@ -562,15 +597,21 @@ extension SetupControllerExt on AppController {
           ]);
           if (!started) {
             _logger.warning(
-              'updateStatus: VPN service failed to start (permission denied?)',
+              'updateStatus: VPN service failed to start '
+              '(permission denied?) trigger=$trigger',
             );
             return;
           }
-          applyProfileDebounce(force: true, silence: true);
+          applyProfileDebounce(
+            force: true,
+            silence: true,
+            reason: 'updateStatus(start,isInit=false,trigger=$trigger)',
+          );
         } else {
           globalState.needInitStatus = false;
           await applyProfile(
             force: true,
+            reason: 'updateStatus(start,isInit=true,trigger=$trigger)',
             preloadInvoke: () async {
               final started = await globalState.handleStart([
                 updateRunTime,
@@ -578,7 +619,8 @@ extension SetupControllerExt on AppController {
               ]);
               if (!started) {
                 _logger.warning(
-                  'updateStatus(init): VPN service failed to start',
+                  'updateStatus(init): VPN service failed to start '
+                  'trigger=$trigger',
                 );
               }
             },
@@ -598,6 +640,9 @@ extension SetupControllerExt on AppController {
       }
     } finally {
       _isUpdatingStatus = false;
+      _logger.info(
+        'updateStatus: completed isStart=$isStart, isInit=$isInit, trigger=$trigger',
+      );
     }
   }
 
@@ -618,7 +663,11 @@ extension SetupControllerExt on AppController {
 
   Future<void> _updateConfigImmediate() async {
     if (Platform.isIOS) {
-      await applyProfile(force: true, silence: true);
+      await applyProfile(
+        force: true,
+        silence: true,
+        reason: 'updateConfigImmediate(iOS)',
+      );
       return;
     }
 
@@ -631,7 +680,7 @@ extension SetupControllerExt on AppController {
     final configPort = _ref.read(patchClashConfigProvider).mixedPort;
     if (_activePort != null && _activePort != configPort) {
       _logger.info('port changed: $_activePort → $configPort, restarting leaf');
-      applyProfile(force: true);
+      applyProfile(force: true, reason: 'updateConfigImmediate(portChanged)');
     }
   }
 
@@ -651,10 +700,18 @@ extension SetupControllerExt on AppController {
     _ref.read(checkIpNumProvider.notifier).add();
   }
 
-  void applyProfileDebounce({bool silence = false, bool force = false}) {
-    debouncer.call(FunctionTag.applyProfile, (silence, force) {
-      applyProfile(silence: silence, force: force);
-    }, args: [silence, force]);
+  void applyProfileDebounce({
+    bool silence = false,
+    bool force = false,
+    String reason = 'unspecified',
+  }) {
+    debouncer.call(FunctionTag.applyProfile, (
+      bool silence,
+      bool force,
+      String reason,
+    ) {
+      applyProfile(silence: silence, force: force, reason: reason);
+    }, args: [silence, force, reason]);
   }
 
   Future<void> changeMode(Mode mode) {
@@ -679,7 +736,11 @@ extension SetupControllerExt on AppController {
         .update((state) => state.copyWith(mode: mode));
 
     if (Platform.isIOS) {
-      await applyProfile(force: true, silence: true);
+      await applyProfile(
+        force: true,
+        silence: true,
+        reason: 'changeMode(iOS)',
+      );
       return;
     }
 
@@ -741,27 +802,36 @@ extension SetupControllerExt on AppController {
 
   void autoApplyProfile() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      applyProfile();
+      applyProfile(reason: 'autoApplyProfile');
     });
   }
 
   Future<void> applyProfile({
     bool silence = false,
     bool force = false,
+    String reason = 'unspecified',
     Future<void> Function()? preloadInvoke,
   }) async {
     if (_isApplyingProfile) {
-      commonPrint.log('applyProfile: skipping concurrent call');
+      _logger.info(
+        'applyProfile: skipping concurrent call '
+        '(force=$force, silence=$silence, reason=$reason)',
+      );
       return;
     }
     if (!force && !await needSetup()) {
+      _logger.info('applyProfile: skipped (needSetup=false, reason=$reason)');
       return;
     }
+    _logger.info(
+      'applyProfile: start force=$force, silence=$silence, reason=$reason, '
+      'preloadInvoke=${preloadInvoke != null}, caller=${_callerStackSummary()}',
+    );
     _isApplyingProfile = true;
     try {
       await loadingRun(
         () async {
-          await _setupConfig(preloadInvoke);
+          await _setupConfig(preloadInvoke, reason);
           await updateGroups();
           await _ensureValidSelection();
         },
@@ -770,6 +840,7 @@ extension SetupControllerExt on AppController {
       );
     } finally {
       _isApplyingProfile = false;
+      _logger.info('applyProfile: complete reason=$reason');
     }
   }
 
@@ -823,18 +894,25 @@ extension SetupControllerExt on AppController {
     return res;
   }
 
-  Future<void> _setupConfig([Future<void> Function()? preloadInvoke]) async {
+  Future<void> _setupConfig(
+    [Future<void> Function()? preloadInvoke,
+    String reason = 'unspecified']
+  ) async {
     // Throttle: skip if setup completed less than 2 seconds ago
     final now = DateTime.now();
     if (_lastSetupTime != null &&
         now.difference(_lastSetupTime!).inSeconds < 2) {
       _logger.info(
-        'setup: throttled (last ran ${now.difference(_lastSetupTime!).inMilliseconds}ms ago)',
+        'setup: throttled (last ran '
+        '${now.difference(_lastSetupTime!).inMilliseconds}ms ago, reason=$reason)',
       );
       return;
     }
 
-    _logger.info('setup ===>');
+    _logger.info(
+      'setup ===> reason=$reason, isStart=${globalState.isStart}, '
+      'preloadInvoke=${preloadInvoke != null}, caller=${_callerStackSummary()}',
+    );
     var profile = _ref.read(currentProfileProvider);
     if (profile == null) {
       _logger.warning('setup: no current profile');
@@ -902,6 +980,11 @@ extension SetupControllerExt on AppController {
     var tunEnabled = system.isAndroid
         ? (globalState.isStart || preloadInvoke != null)
         : _ref.read(patchClashConfigProvider).tun.enable;
+    _logger.info(
+      'setup: tun decision enabled=$tunEnabled, android=${system.isAndroid}, '
+      'isStart=${globalState.isStart}, preloadInvoke=${preloadInvoke != null}, '
+      'configTun=${_ref.read(patchClashConfigProvider).tun.enable}, reason=$reason',
+    );
     int? tunFd;
     if (system.isAndroid && tunEnabled) {
       await service?.enableSocketProtection();
@@ -1176,9 +1259,13 @@ extension CoreControllerExt on AppController {
     await _connectCore();
     await _initCore();
     if (start || _ref.read(isStartProvider)) {
-      await updateStatus(true, isInit: true);
+      await updateStatus(
+        true,
+        isInit: true,
+        trigger: 'restartCore(start=$start)',
+      );
     } else {
-      await applyProfile(force: true);
+      await applyProfile(force: true, reason: 'restartCore(start=$start)');
     }
   }
 
@@ -1266,6 +1353,12 @@ extension SystemControllerExt on AppController {
   }
 
   Future<void> updateTun() async {
+    if (system.isAndroid) {
+      _logger.info(
+        'updateTun: ignored on Android (TUN is managed by VpnService lifecycle)',
+      );
+      return;
+    }
     final newEnable = !_ref.read(patchClashConfigProvider).tun.enable;
     _ref
         .read(patchClashConfigProvider.notifier)
@@ -1281,7 +1374,7 @@ extension SystemControllerExt on AppController {
       if (result.isError) return; // restartCore() already called
     }
 
-    applyProfile(force: true);
+    applyProfile(force: true, reason: 'updateTun(newEnable=$newEnable)');
   }
 
   void updateSystemProxy() {
@@ -1450,7 +1543,10 @@ extension CommonControllerExt on AppController {
   }
 
   void updateStart() {
-    updateStatus(!_ref.read(isStartProvider));
+    updateStatus(
+      !_ref.read(isStartProvider),
+      trigger: 'controller.updateStart',
+    );
   }
 
   void updateSpeedStatistics() {

@@ -32,7 +32,10 @@ Future<void> _performLogout(BuildContext context, WidgetRef ref) async {
   try {
     // Stop proxy before clearing auth
     if (ref.read(isStartProvider)) {
-      await appController.updateStatus(false);
+      await appController.updateStatus(
+        false,
+        trigger: 'xboard.logout_dialog',
+      );
     }
     await ref.read(xboardUserProvider.notifier).logout();
     if (context.mounted) {

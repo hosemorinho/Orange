@@ -99,7 +99,12 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
     // Use appController.updateStatus() like the original VpnHeroCard.
     // This handles the full lifecycle: system proxy, TUN, traffic, runtime.
     // Capture targetState to prevent race conditions on rapid clicking.
-    appController.updateStatus(targetState).whenComplete(() {
+    appController
+        .updateStatus(
+          targetState,
+          trigger: 'leaf_vpn_hero_card.switch_button',
+        )
+        .whenComplete(() {
       _isSwitching = false;
     });
   }
@@ -126,6 +131,9 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
   }
 
   Future<void> _handleTunToggle(bool selected) async {
+    if (system.isAndroid) {
+      return;
+    }
     if (selected) {
       final storageService = ref.read(storageServiceProvider);
       final hasShownResult = await storageService.hasTunFirstUseShown();
@@ -398,19 +406,22 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
 
         // Controls row: TUN toggle + switch node
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: system.isAndroid
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.spaceBetween,
           children: [
-            FilterChip(
-              label: const Text('TUN', style: TextStyle(fontSize: 12)),
-              selected: tunEnabled,
-              onSelected: (selected) {
-                _handleTunToggle(selected);
-              },
-              visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              selectedColor: colorScheme.tertiaryContainer,
-              checkmarkColor: colorScheme.onTertiaryContainer,
-            ),
+            if (!system.isAndroid)
+              FilterChip(
+                label: const Text('TUN', style: TextStyle(fontSize: 12)),
+                selected: tunEnabled,
+                onSelected: (selected) {
+                  _handleTunToggle(selected);
+                },
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                selectedColor: colorScheme.tertiaryContainer,
+                checkmarkColor: colorScheme.onTertiaryContainer,
+              ),
             TextButton.icon(
               onPressed: _navigateToNodes,
               icon: const Icon(Icons.swap_horiz, size: 16),
@@ -516,18 +527,20 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
                   Row(
                     children: [
                       _buildLatencyChip(context, nodeName, delayMs),
-                      const SizedBox(width: 8),
-                      FilterChip(
-                        label: const Text('TUN', style: TextStyle(fontSize: 12)),
-                        selected: tunEnabled,
-                        onSelected: (selected) {
-                          _handleTunToggle(selected);
-                        },
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        selectedColor: colorScheme.tertiaryContainer,
-                        checkmarkColor: colorScheme.onTertiaryContainer,
-                      ),
+                      if (!system.isAndroid) ...[
+                        const SizedBox(width: 8),
+                        FilterChip(
+                          label: const Text('TUN', style: TextStyle(fontSize: 12)),
+                          selected: tunEnabled,
+                          onSelected: (selected) {
+                            _handleTunToggle(selected);
+                          },
+                          visualDensity: VisualDensity.compact,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          selectedColor: colorScheme.tertiaryContainer,
+                          checkmarkColor: colorScheme.onTertiaryContainer,
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 8),

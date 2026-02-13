@@ -74,7 +74,10 @@ class _TvConnectButtonState extends ConsumerState<TvConnectButton>
     _updateController();
     debouncer.call(
       FunctionTag.updateStatus,
-      () => appController.updateStatus(_isStart),
+      () => appController.updateStatus(
+        _isStart,
+        trigger: 'xboard.tv_connect_button',
+      ),
       duration: commonDuration,
     );
   }

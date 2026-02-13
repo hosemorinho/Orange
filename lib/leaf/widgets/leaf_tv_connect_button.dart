@@ -75,7 +75,9 @@ class _LeafTvConnectButtonState extends ConsumerState<LeafTvConnectButton>
     final targetState = !_isStart;
     setState(() => _isStart = targetState);
     _updateController();
-    appController.updateStatus(targetState).whenComplete(() {
+    appController
+        .updateStatus(targetState, trigger: 'leaf_tv_connect_button.switch')
+        .whenComplete(() {
       _isSwitching = false;
     });
   }

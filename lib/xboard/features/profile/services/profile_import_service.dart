@@ -151,7 +151,11 @@ class XBoardProfileImportService {
     if (appController.isAttach) {
       _logger.info('应用配置...');
       try {
-        await appController.applyProfile(silence: true, force: true);
+        await appController.applyProfile(
+          silence: true,
+          force: true,
+          reason: 'profile_import_service.waitForAttachAndApply',
+        );
         _logger.info('配置应用成功');
       } catch (e) {
         _logger.error('配置应用失败', e);

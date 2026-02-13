@@ -82,7 +82,9 @@ class _LeafConnectionStatusCardState
     final targetState = !_isStart;
     setState(() => _isStart = targetState);
     _updateController();
-    appController.updateStatus(targetState).whenComplete(() {
+    appController
+        .updateStatus(targetState, trigger: 'leaf_connection_status_card.switch')
+        .whenComplete(() {
       _isSwitching = false;
     });
   }

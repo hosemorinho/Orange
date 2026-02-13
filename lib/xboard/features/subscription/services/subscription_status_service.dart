@@ -61,15 +61,17 @@ class SubscriptionStatusService {
     }
     
     // 只使用 profileSubscriptionInfo 作为数据源
+    // 注意：profileSubscriptionInfo 为 null 表示 Clash 核心没有解析到订阅配置
+    // 这可能是因为订阅 URL 过期、无效或无法访问
     if (profileSubscriptionInfo == null) {
-      // 如果正在刷新订阅，或者 XBoard API 表明用户有有效订阅（只是 Clash 核心还没解析完），
-      // 返回"正常"状态，避免 UI 短暂显示购买订阅
-      if (isRefreshing || hasActiveSubscription) {
+      // 如果 XBoard API 表明用户有订阅（subscribeUrl 不为空），但 Clash 核心没有解析成功，
+      // 说明订阅 URL 可能已过期或无效，返回"无订阅"状态而不是"正常"
+      if (hasActiveSubscription) {
         return SubscriptionStatusResult(
-          type: SubscriptionStatusType.valid,
-          messageBuilder: (context) => AppLocalizations.of(context).subscriptionValid,
-          detailMessageBuilder: null,
-          needsDialog: false,
+          type: SubscriptionStatusType.noSubscription,
+          messageBuilder: (context) => AppLocalizations.of(context).subscriptionNoSubscription,
+          detailMessageBuilder: (context) => AppLocalizations.of(context).subscriptionNoSubscriptionDetail,
+          needsDialog: true,
         );
       }
       return SubscriptionStatusResult(

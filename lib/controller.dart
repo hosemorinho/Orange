@@ -803,11 +803,13 @@ extension SetupControllerExt on AppController {
     if (preloadInvoke != null) await preloadInvoke();
 
     // TUN mode configuration
-    // On Android, TUN is ALWAYS required when VPN is active — the VPN service
-    // creates a TUN interface that captures all traffic, so leaf must read from
-    // it. The patchClashConfig.tun.enable setting only applies to desktop.
+    // On Android, TUN is required when VPN is active — the VPN service creates
+    // a TUN interface that captures all traffic, so leaf must read from it.
+    // But only enable TUN if VPN is currently running or about to start
+    // (via preloadInvoke). When _setupConfig is called just to load a profile
+    // (e.g. on init with autoRun=false), VPN isn't running so TUN is skipped.
     var tunEnabled = system.isAndroid
-        ? true
+        ? (globalState.isStart || preloadInvoke != null)
         : _ref.read(patchClashConfigProvider).tun.enable;
     int? tunFd;
     if (system.isAndroid && tunEnabled) {

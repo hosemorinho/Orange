@@ -12,15 +12,17 @@ const _probeTimeout = Duration(seconds: 8);
 
 Future<void> _latencyQueue = Future.value();
 
-Future<T> _enqueueLatencyTask<T>(Future<T> Function() task) {
-  final completer = Completer<T>();
+Future<void> _enqueueLatencyTask(Future<void> Function() task) {
+  final completer = Completer<void>();
   _latencyQueue = _latencyQueue
       .catchError((_) {})
       .then((_) async {
         try {
-          completer.complete(await task());
-        } catch (e, s) {
-          completer.completeError(e, s);
+          await task();
+          completer.complete();
+        } catch (e) {
+          commonPrint.log('latency task failed: $e', logLevel: LogLevel.warning);
+          if (!completer.isCompleted) completer.complete();
         }
       });
   return completer.future;
@@ -60,9 +62,30 @@ Future<int> _httpHeadLatencyViaLocalProxy() async {
 }
 
 Future<int> _probeNodeLatency(String nodeTag) async {
-  if (!appController.isStart) return -1;
-  await appController.selectNodeForLatencyTest(nodeTag);
-  return _httpHeadLatencyViaLocalProxy();
+  try {
+    if (!appController.isStart) return -1;
+    await appController.selectNodeForLatencyTest(nodeTag);
+    return await _httpHeadLatencyViaLocalProxy();
+  } catch (e) {
+    commonPrint.log(
+      'probe node failed ($nodeTag): $e',
+      logLevel: LogLevel.warning,
+    );
+    return -1;
+  }
+}
+
+Future<void> _tryRestoreNode(String? nodeTag, [String? currentNode]) async {
+  if (nodeTag == null || nodeTag.isEmpty) return;
+  if (currentNode != null && currentNode == nodeTag) return;
+  try {
+    await appController.selectNodeForLatencyTest(nodeTag);
+  } catch (e) {
+    commonPrint.log(
+      'restore node failed ($nodeTag): $e',
+      logLevel: LogLevel.warning,
+    );
+  }
 }
 
 double get listHeaderHeight {
@@ -105,9 +128,7 @@ Future<void> proxyDelayTest(Proxy proxy, [String? testUrl]) async {
     try {
       delay = await _probeNodeLatency(nodeTag);
     } finally {
-      if (originalNode != null && originalNode.isNotEmpty && originalNode != nodeTag) {
-        await appController.selectNodeForLatencyTest(originalNode);
-      }
+      await _tryRestoreNode(originalNode, nodeTag);
     }
     appController.setDelay(
       Delay(url: currentTestUrl, name: nodeTag, value: delay),
@@ -152,9 +173,8 @@ Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
         appController.addSortNum();
       }
     } finally {
-      if (originalNode != null && originalNode.isNotEmpty) {
-        await appController.selectNodeForLatencyTest(originalNode);
-      }
+      final currentNode = appController.getSelectedNodeTag();
+      await _tryRestoreNode(originalNode, currentNode);
     }
   });
 }

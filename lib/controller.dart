@@ -67,7 +67,10 @@ class AppController {
     try {
       _leafController = ref.read(leafControllerProvider);
     } catch (e) {
-      _logger.error('failed to initialize LeafController (native library may be missing)', e);
+      _logger.error(
+        'failed to initialize LeafController (native library may be missing)',
+        e,
+      );
       // Continue without leaf — the app can still show UI, manage subscriptions, etc.
       // Proxy functionality will be unavailable.
     }
@@ -404,10 +407,7 @@ extension ProxiesControllerExt on AppController {
   }) {
     debouncer.call(
       FunctionTag.changeProxy,
-      (
-        String groupName,
-        String proxyName,
-      ) async {
+      (String groupName, String proxyName) async {
         await changeProxy(groupName: groupName, proxyName: proxyName);
         updateGroupsDebounce();
       },
@@ -423,8 +423,8 @@ extension ProxiesControllerExt on AppController {
     commonPrint.log('updateGroups (leaf: no-op, using leafNodesProvider)');
     if (_leafController != null && _leafController!.isRunning) {
       _ref.read(leafNodesProvider.notifier).state = _leafController!.nodes;
-      _ref.read(selectedNodeTagProvider.notifier).state =
-          _leafController!.getSelectedNode();
+      _ref.read(selectedNodeTagProvider.notifier).state = _leafController!
+          .getSelectedNode();
     }
   }
 
@@ -526,9 +526,14 @@ extension SetupControllerExt on AppController {
           if (!_ref.read(initProvider)) {
             return;
           }
-          final started = await globalState.handleStart([updateRunTime, updateTraffic]);
+          final started = await globalState.handleStart([
+            updateRunTime,
+            updateTraffic,
+          ]);
           if (!started) {
-            _logger.warning('updateStatus: VPN service failed to start (permission denied?)');
+            _logger.warning(
+              'updateStatus: VPN service failed to start (permission denied?)',
+            );
             return;
           }
           applyProfileDebounce(force: true, silence: true);
@@ -537,9 +542,14 @@ extension SetupControllerExt on AppController {
           await applyProfile(
             force: true,
             preloadInvoke: () async {
-              final started = await globalState.handleStart([updateRunTime, updateTraffic]);
+              final started = await globalState.handleStart([
+                updateRunTime,
+                updateTraffic,
+              ]);
               if (!started) {
-                _logger.warning('updateStatus(init): VPN service failed to start');
+                _logger.warning(
+                  'updateStatus(init): VPN service failed to start',
+                );
               }
             },
           );
@@ -617,7 +627,9 @@ extension SetupControllerExt on AppController {
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
     if (_leafController != null && _leafController!.isRunning) {
-      _logger.info('changeMode: ${_leafController!.currentMode.name} → ${mode.name}');
+      _logger.info(
+        'changeMode: ${_leafController!.currentMode.name} → ${mode.name}',
+      );
       final mmdbAvailable = await _isMmdbAvailable();
       await _leafController!.updateMode(mode, mmdbAvailable: mmdbAvailable);
     }
@@ -745,7 +757,9 @@ extension SetupControllerExt on AppController {
     final now = DateTime.now();
     if (_lastSetupTime != null &&
         now.difference(_lastSetupTime!).inSeconds < 2) {
-      _logger.info('setup: throttled (last ran ${now.difference(_lastSetupTime!).inMilliseconds}ms ago)');
+      _logger.info(
+        'setup: throttled (last ran ${now.difference(_lastSetupTime!).inMilliseconds}ms ago)',
+      );
       return;
     }
 
@@ -767,7 +781,10 @@ extension SetupControllerExt on AppController {
     try {
       yamlContent = await _getProfileYaml(profile!);
     } catch (e) {
-      _logger.error('setup: failed to read/decrypt YAML for profile ${profile.id}', e);
+      _logger.error(
+        'setup: failed to read/decrypt YAML for profile ${profile.id}',
+        e,
+      );
       return;
     }
     if (yamlContent == null || yamlContent.isEmpty) {
@@ -785,10 +802,13 @@ extension SetupControllerExt on AppController {
     // random fallback port, and system proxy would desync.
     final leafOccupyingSamePort =
         _leafController?.isRunning == true && _activePort == mixedPort;
-    if (!system.isAndroid && !leafOccupyingSamePort &&
+    if (!system.isAndroid &&
+        !leafOccupyingSamePort &&
         !await isPortAvailable(mixedPort)) {
       final newPort = await findAvailablePort(mixedPort);
-      _logger.warning('Port $mixedPort occupied, using $newPort (local only, not persisted)');
+      _logger.warning(
+        'Port $mixedPort occupied, using $newPort (local only, not persisted)',
+      );
       mixedPort = newPort;
     }
 
@@ -824,8 +844,10 @@ extension SetupControllerExt on AppController {
         }
       }
       if (tunFd == null) {
-        _logger.warning('setup: Android TUN fd not available — '
-            'VPN service failed to establish. Cannot start.');
+        _logger.warning(
+          'setup: Android TUN fd not available — '
+          'VPN service failed to establish. Cannot start.',
+        );
         await service?.disableSocketProtection();
         await globalState.handleStop();
         _ref.read(runTimeProvider.notifier).value = null;
@@ -836,7 +858,9 @@ extension SetupControllerExt on AppController {
       }
     }
     if (tunEnabled && !system.isAndroid) {
-      _logger.info('setup: TUN mode enabled for desktop (${Platform.operatingSystem})');
+      _logger.info(
+        'setup: TUN mode enabled for desktop (${Platform.operatingSystem})',
+      );
     }
 
     // MMDB for rule mode — ensure geo.mmdb is in ASSET_LOCATION
@@ -850,27 +874,45 @@ extension SetupControllerExt on AppController {
           final mmdbFile = File(mmdbPath);
           if (await mmdbFile.exists()) {
             final stat = await mmdbFile.stat();
-            _logger.info('setup: geo.mmdb verified at $mmdbPath (${stat.size} bytes)');
+            _logger.info(
+              'setup: geo.mmdb verified at $mmdbPath (${stat.size} bytes)',
+            );
             mmdbAvailable = true;
           } else {
-            _logger.warning('setup: geo.mmdb path returned but file missing: $mmdbPath');
+            _logger.warning(
+              'setup: geo.mmdb path returned but file missing: $mmdbPath',
+            );
           }
         } catch (e) {
           _logger.warning('setup: geo.mmdb unavailable for rule mode: $e');
-          _logger.warning('setup: Rule mode will behave like global mode (no GeoIP rules)');
+          _logger.warning(
+            'setup: Rule mode will behave like global mode (no GeoIP rules)',
+          );
         }
       }
     }
 
     // Start leaf with the subscription YAML
     if (_leafController == null) {
-      throw StateError('LeafController not initialized');
+      _logger.warning(
+        'setup: LeafController unavailable on ${Platform.operatingSystem}, '
+        'skipping leaf startup',
+      );
+      _ref.read(isLeafRunningProvider.notifier).state = false;
+      _ref.read(leafNodesProvider.notifier).state = const [];
+      _ref.read(selectedNodeTagProvider.notifier).state = null;
+      _activePort = null;
+      _ref.read(activePortProvider.notifier).state = null;
+      _lastSetupTime = DateTime.now();
+      return;
     }
     if (_leafController!.isRunning) {
       await _leafController!.stop();
     }
-    _logger.info('setup: starting leaf on mixed port $mixedPort, mode=${mode.name}, '
-        'tun=$tunEnabled, with YAML (${yamlContent.length} bytes)');
+    _logger.info(
+      'setup: starting leaf on mixed port $mixedPort, mode=${mode.name}, '
+      'tun=$tunEnabled, with YAML (${yamlContent.length} bytes)',
+    );
     try {
       await _leafController!.startWithClashYaml(
         yamlContent,
@@ -884,7 +926,9 @@ extension SetupControllerExt on AppController {
       if (tunEnabled && !system.isAndroid) {
         // Desktop: TUN failures are common (missing admin rights, wintun.dll
         // issues). Retry without TUN — desktop can fall back to system proxy.
-        _logger.warning('setup: leaf start failed with TUN ($e), retrying without TUN');
+        _logger.warning(
+          'setup: leaf start failed with TUN ($e), retrying without TUN',
+        );
         try {
           await _leafController!.startWithClashYaml(
             yamlContent,
@@ -893,12 +937,11 @@ extension SetupControllerExt on AppController {
             mode: mode,
             mmdbAvailable: mmdbAvailable,
           );
-          _ref.read(patchClashConfigProvider.notifier)
+          _ref
+              .read(patchClashConfigProvider.notifier)
               .update((state) => state.copyWith.tun(enable: false));
           _ref.read(realTunEnableProvider.notifier).value = false;
-          globalState.showNotifier(
-            'TUN启动失败，已降级为系统代理模式: $e',
-          );
+          globalState.showNotifier('TUN启动失败，已降级为系统代理模式: $e');
         } catch (e2) {
           _logger.error('setup: leaf start failed even without TUN', e2);
           return;
@@ -906,7 +949,10 @@ extension SetupControllerExt on AppController {
       } else if (system.isAndroid) {
         // Android: VPN captures all traffic via TUN — cannot fall back to
         // non-TUN mode. Stop VPN and reset state.
-        _logger.error('setup: leaf TUN start failed on Android, stopping VPN', e);
+        _logger.error(
+          'setup: leaf TUN start failed on Android, stopping VPN',
+          e,
+        );
         await service?.disableSocketProtection();
         await globalState.handleStop();
         _ref.read(runTimeProvider.notifier).value = null;
@@ -921,15 +967,16 @@ extension SetupControllerExt on AppController {
     // Update leaf providers
     _ref.read(isLeafRunningProvider.notifier).state = true;
     _ref.read(leafNodesProvider.notifier).state = _leafController!.nodes;
-    _ref.read(selectedNodeTagProvider.notifier).state =
-        _leafController!.getSelectedNode();
+    _ref.read(selectedNodeTagProvider.notifier).state = _leafController!
+        .getSelectedNode();
 
     // Track the actual port the proxy is running on (may differ from config)
     _activePort = mixedPort;
     _ref.read(activePortProvider.notifier).state = mixedPort;
 
     addCheckIp();
-    _lastSetupTime = DateTime.now(); // Only throttle after successful completion
+    _lastSetupTime =
+        DateTime.now(); // Only throttle after successful completion
     _logger.info('setup complete: ${_leafController!.nodes.length} nodes');
   }
 }
@@ -942,7 +989,8 @@ extension CoreControllerExt on AppController {
     if (Platform.isAndroid) {
       homeDir = await appPath.homeDirPath;
     } else {
-      final home = Platform.environment['HOME'] ??
+      final home =
+          Platform.environment['HOME'] ??
           Platform.environment['USERPROFILE'] ??
           '.';
       homeDir =
@@ -1307,7 +1355,9 @@ extension CommonControllerExt on AppController {
 
   Future<void> updateMode() async {
     // Leaf uses a single select outbound — mode switching is a UI-only concept.
-    final currentMode = _ref.read(patchClashConfigProvider.select((state) => state.mode));
+    final currentMode = _ref.read(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
     final index = Mode.values.indexWhere((item) => item == currentMode);
     if (index == -1) {
       return;
@@ -1331,10 +1381,7 @@ extension CommonControllerExt on AppController {
   Future<void> updateTraffic() async {
     if (_leafController == null || !_leafController!.isRunning) return;
     final totals = _leafController!.getTrafficTotals();
-    final traffic = Traffic(
-      up: totals.bytesSent,
-      down: totals.bytesRecvd,
-    );
+    final traffic = Traffic(up: totals.bytesSent, down: totals.bytesRecvd);
     _ref.read(trafficsProvider.notifier).addTraffic(traffic);
     _ref.read(totalTrafficProvider.notifier).value = traffic;
   }

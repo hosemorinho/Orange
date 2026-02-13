@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:fl_clash/common/common.dart';
@@ -103,4 +104,5 @@ class Service {
   }
 }
 
-Service? get service => system.isAndroid ? Service() : null;
+Service? get service =>
+    (Platform.isAndroid || Platform.isIOS) ? Service() : null;

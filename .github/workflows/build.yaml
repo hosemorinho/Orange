@@ -146,6 +146,9 @@ jobs:
           - platform: macos
             os: macos-latest
             arch: arm64
+          - platform: ios
+            os: macos-latest
+            arch: arm64
 
     steps:
       - name: Checkout
@@ -178,9 +181,11 @@ jobs:
           fi
 
       - name: Setup Rust
+        if: matrix.platform != 'ios'
         uses: dtolnay/rust-toolchain@stable
 
       - name: Rust Cache
+        if: matrix.platform != 'ios'
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: leaf
@@ -262,6 +267,7 @@ jobs:
         run: echo "::add-mask::$API_BASE_URL"
 
       - name: Build
+        if: matrix.platform != 'ios'
         shell: bash
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
@@ -273,6 +279,44 @@ jobs:
           CRISP_WEBSITE_ID: ${{ env.CRISP_WEBSITE_ID }}
         run: |
           dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }} --env stable
+
+      - name: Build iOS IPA
+        if: matrix.platform == 'ios'
+        shell: bash
+        env:
+          API_BASE_URL: ${{ env.API_BASE_URL }}
+          API_TEXT_DOMAIN: ${{ env.API_TEXT_DOMAIN }}
+          APP_NAME: ${{ secrets.APP_NAME }}
+          THEME_COLOR: ${{ secrets.THEME_COLOR }}
+          CRISP_WEBSITE_ID: ${{ env.CRISP_WEBSITE_ID }}
+        run: |
+          DART_DEFINES=(--dart-define=APP_ENV=stable)
+
+          if [[ -n "$API_BASE_URL" ]]; then
+            DART_DEFINES+=("--dart-define=API_BASE_URL=$API_BASE_URL")
+          fi
+          if [[ -n "$API_TEXT_DOMAIN" ]]; then
+            DART_DEFINES+=("--dart-define=API_TEXT_DOMAIN=$API_TEXT_DOMAIN")
+          fi
+          if [[ -n "$APP_NAME" ]]; then
+            DART_DEFINES+=("--dart-define=APP_NAME=$APP_NAME")
+          fi
+          if [[ -n "$THEME_COLOR" ]]; then
+            DART_DEFINES+=("--dart-define=THEME_COLOR=$THEME_COLOR")
+          fi
+          if [[ -n "$CRISP_WEBSITE_ID" ]]; then
+            DART_DEFINES+=("--dart-define=CRISP_WEBSITE_ID=$CRISP_WEBSITE_ID")
+          fi
+
+          flutter build ipa --release --no-codesign "${DART_DEFINES[@]}"
+
+          mkdir -p dist
+          if compgen -G "build/ios/ipa/*.ipa" > /dev/null; then
+            cp build/ios/ipa/*.ipa dist/
+          else
+            echo "No IPA artifact found under build/ios/ipa"
+            exit 1
+          fi
 
       - name: Clean env.json
         if: always()

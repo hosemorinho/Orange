@@ -211,7 +211,7 @@ class LeafController {
   /// Reload config from a JSON string via FFI (no file I/O).
   Future<void> reloadWithConfigString(String configJson) async {
     _requireRunning();
-    final result = _instance!.reloadWithConfigString(configJson);
+    final result = await _instance!.reloadWithConfigStringAsync(configJson);
     if (!LeafError.isOk(result)) {
       throw LeafException(result);
     }
@@ -248,7 +248,10 @@ class LeafController {
     // Send config directly via FFI — no file I/O needed
     final configJson = config.toJsonString();
     _logger.info('hotReload: sending config via FFI (${configJson.length} bytes)');
+    final stopwatch = Stopwatch()..start();
     await reloadWithConfigString(configJson);
+    stopwatch.stop();
+    _logger.info('hotReload: reload finished in ${stopwatch.elapsedMilliseconds}ms');
 
     // Update remembered state
     _lastMode = newMode;

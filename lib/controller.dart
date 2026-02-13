@@ -44,6 +44,7 @@ class AppController {
   bool isAttach = false;
   bool _isApplyingProfile = false;
   bool _isUpdatingStatus = false;
+  Future<void> _modeChangeQueue = Future.value();
   DateTime? _lastSetupTime;
   LeafController? _leafController;
   bool _leafInitialized = false;
@@ -622,10 +623,27 @@ extension SetupControllerExt on AppController {
     }, args: [silence, force]);
   }
 
-  Future<void> changeMode(Mode mode) async {
+  Future<void> changeMode(Mode mode) {
+    _modeChangeQueue = _modeChangeQueue
+        .catchError((e, _) {
+          _logger.warning('changeMode: previous queued task failed: $e');
+        })
+        .then((_) => _changeModeInternal(mode));
+    return _modeChangeQueue;
+  }
+
+  Future<void> _changeModeInternal(Mode mode) async {
+    final currentMode = _ref.read(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
+    if (currentMode == mode) {
+      return;
+    }
+
     _ref
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
+
     if (_leafController != null && _leafController!.isRunning) {
       _logger.info(
         'changeMode: ${_leafController!.currentMode.name} → ${mode.name}',

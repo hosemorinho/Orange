@@ -236,6 +236,24 @@ class LeafInstance {
     }
   }
 
+  /// Reload config from a JSON string on a background isolate.
+  ///
+  /// `leaf_reload_with_config_string` is a synchronous FFI call and may block
+  /// while core tasks are in progress. Running it off the UI isolate prevents
+  /// desktop "application not responding" freezes during mode switching.
+  Future<int> reloadWithConfigStringAsync(String config) async {
+    final runtimeId = rtId;
+    return Isolate.run(() {
+      final bindings = LeafBindings.open();
+      final configPtr = config.toNativeUtf8();
+      try {
+        return bindings.leafReloadWithConfigString(runtimeId, configPtr);
+      } finally {
+        calloc.free(configPtr);
+      }
+    });
+  }
+
   /// Graceful shutdown.
   bool shutdown() {
     final result = _bindings.leafShutdown(rtId);

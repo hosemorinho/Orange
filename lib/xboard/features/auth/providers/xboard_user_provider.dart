@@ -229,10 +229,12 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       await _storageService.saveUserEmail(email);
 
       // 获取用户信息和订阅信息
+      DomainUser? userInfo;
+      DomainSubscription? subscriptionInfo;
       try {
         _logger.info('开始获取用户信息...');
         ref.invalidate(getUserInfoProvider);
-        final userInfo = await ref.read(getUserInfoProvider.future);
+        userInfo = await ref.read(getUserInfoProvider.future);
 
         _logger.info('用户信息API调用完成');
         ref.read(userInfoProvider.notifier).state = userInfo;
@@ -241,7 +243,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
 
         _logger.info('开始获取订阅信息...');
         ref.invalidate(getSubscriptionProvider);
-        final subscriptionInfo = await ref.read(getSubscriptionProvider.future);
+        subscriptionInfo = await ref.read(getSubscriptionProvider.future);
 
         _logger.info('订阅信息API调用完成');
         ref.read(subscriptionInfoProvider.notifier).state = subscriptionInfo;
@@ -266,6 +268,8 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
           isInitialized: true,
           email: email,
           isLoading: false,
+          userInfo: userInfo,
+          subscriptionInfo: subscriptionInfo,
         );
         state = newState;
         _logger.info('===== 认证状态已更新! =====');

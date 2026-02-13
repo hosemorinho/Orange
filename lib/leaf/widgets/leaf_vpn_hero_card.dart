@@ -69,10 +69,10 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
     );
     if (_isStart) _ringController.repeat(reverse: true);
 
-    // Watch runTimeProvider like the original VpnHeroCard — this drives
-    // isStartProvider, which in turn drives proxyStateProvider (system proxy).
+    // Watch isStartProvider (runtime + leaf running) to avoid UI showing
+    // connected when runtime exists but leaf failed to start.
     ref.listenManual(
-      runTimeProvider.select((state) => state != null),
+      isStartProvider,
       (prev, next) {
         if (next != _isStart) {
           setState(() => _isStart = next);
@@ -105,6 +105,11 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
           trigger: 'leaf_vpn_hero_card.switch_button',
         )
         .whenComplete(() {
+      final actualState = ref.read(isStartProvider);
+      if (mounted && actualState != _isStart) {
+        setState(() => _isStart = actualState);
+        _updateController();
+      }
       _isSwitching = false;
     });
   }
@@ -131,7 +136,7 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
   }
 
   Future<void> _handleTunToggle(bool selected) async {
-    if (system.isAndroid) {
+    if (!system.isDesktop) {
       return;
     }
     if (selected) {
@@ -406,11 +411,11 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
 
         // Controls row: TUN toggle + switch node
         Row(
-          mainAxisAlignment: system.isAndroid
-              ? MainAxisAlignment.end
-              : MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: system.isDesktop
+              ? MainAxisAlignment.spaceBetween
+              : MainAxisAlignment.end,
           children: [
-            if (!system.isAndroid)
+            if (system.isDesktop)
               FilterChip(
                 label: const Text('TUN', style: TextStyle(fontSize: 12)),
                 selected: tunEnabled,
@@ -527,7 +532,7 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
                   Row(
                     children: [
                       _buildLatencyChip(context, nodeName, delayMs),
-                      if (!system.isAndroid) ...[
+                      if (system.isDesktop) ...[
                         const SizedBox(width: 8),
                         FilterChip(
                           label: const Text('TUN', style: TextStyle(fontSize: 12)),

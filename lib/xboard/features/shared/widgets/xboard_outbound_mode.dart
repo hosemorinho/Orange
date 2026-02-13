@@ -28,7 +28,7 @@ class XBoardOutboundMode extends StatelessWidget {
 
   Future<void> _handleTunToggle(
       BuildContext context, WidgetRef ref, bool selected) async {
-    if (system.isAndroid) {
+    if (!system.isDesktop) {
       return;
     }
     if (selected) {
@@ -68,7 +68,7 @@ class XBoardOutboundMode extends StatelessWidget {
             patchClashConfigProvider.select((state) => state.mode));
         final tunEnabled = ref.watch(patchClashConfigProvider
             .select((state) => state.tun.enable));
-        final showTun = !system.isAndroid;
+        final showTun = system.isDesktop;
         return LayoutBuilder(
           builder: (context, constraints) {
             // 根据可用宽度调整布局

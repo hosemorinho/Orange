@@ -41,7 +41,7 @@ class _LeafConnectButtonState extends ConsumerState<LeafConnectButton>
       curve: Curves.easeOutBack,
     );
     ref.listenManual(
-      runTimeProvider.select((state) => state != null),
+      isStartProvider,
       (prev, next) {
         if (next != _isStart) {
           _isStart = next;
@@ -67,6 +67,11 @@ class _LeafConnectButtonState extends ConsumerState<LeafConnectButton>
     appController
         .updateStatus(targetState, trigger: 'leaf_connect_button.switch')
         .whenComplete(() {
+      final actualState = ref.read(isStartProvider);
+      if (actualState != _isStart) {
+        _isStart = actualState;
+        _updateController();
+      }
       _isSwitching = false;
     });
   }

@@ -60,7 +60,7 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
     }
 
     ref.listenManual(
-      runTimeProvider.select((state) => state != null),
+      isStartProvider,
       (prev, next) {
         if (next != _isStart) {
           setState(() {
@@ -88,10 +88,20 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
     debouncer.call(
       FunctionTag.updateStatus,
       () {
-        appController.updateStatus(
-          _isStart,
-          trigger: 'xboard.connection_status_card',
-        );
+        appController
+            .updateStatus(
+              _isStart,
+              trigger: 'xboard.connection_status_card',
+            )
+            .whenComplete(() {
+              final actualState = ref.read(isStartProvider);
+              if (mounted && actualState != _isStart) {
+                setState(() {
+                  _isStart = actualState;
+                });
+                _updateController();
+              }
+            });
       },
       duration: commonDuration,
     );
@@ -276,7 +286,7 @@ class _ConnectionStatusCardState extends ConsumerState<ConnectionStatusCard>
                   label: Intl.message(mode.name),
                   color: colorScheme.primary,
                 ),
-                if (tunEnabled) ...[
+                if (system.isDesktop && tunEnabled) ...[
                   const SizedBox(width: 6),
                   _ModeLabel(
                     label: 'TUN',

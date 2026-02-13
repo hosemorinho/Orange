@@ -65,7 +65,7 @@ class TvSettingsPage extends ConsumerWidget {
                 const SizedBox(height: 8),
 
                 // TUN mode (desktop only)
-                if (!system.isAndroid) ...[
+                if (system.isDesktop) ...[
                   _TvSettingRow(
                     icon: Icons.security,
                     title: 'TUN',

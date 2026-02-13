@@ -50,7 +50,7 @@ class _TvConnectButtonState extends ConsumerState<TvConnectButton>
     if (_isStart) _pulseController.repeat(reverse: true);
 
     ref.listenManual(
-      runTimeProvider.select((state) => state != null),
+      isStartProvider,
       (prev, next) {
         if (next != _isStart) {
           setState(() => _isStart = next);
@@ -74,10 +74,18 @@ class _TvConnectButtonState extends ConsumerState<TvConnectButton>
     _updateController();
     debouncer.call(
       FunctionTag.updateStatus,
-      () => appController.updateStatus(
-        _isStart,
-        trigger: 'xboard.tv_connect_button',
-      ),
+      () => appController
+          .updateStatus(
+            _isStart,
+            trigger: 'xboard.tv_connect_button',
+          )
+          .whenComplete(() {
+            final actualState = ref.read(isStartProvider);
+            if (mounted && actualState != _isStart) {
+              setState(() => _isStart = actualState);
+              _updateController();
+            }
+          }),
       duration: commonDuration,
     );
   }

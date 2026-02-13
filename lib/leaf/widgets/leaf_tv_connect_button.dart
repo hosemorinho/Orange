@@ -50,7 +50,7 @@ class _LeafTvConnectButtonState extends ConsumerState<LeafTvConnectButton>
     if (_isStart) _pulseController.repeat(reverse: true);
 
     ref.listenManual(
-      runTimeProvider.select((state) => state != null),
+      isStartProvider,
       (prev, next) {
         if (next != _isStart) {
           setState(() => _isStart = next);
@@ -78,6 +78,11 @@ class _LeafTvConnectButtonState extends ConsumerState<LeafTvConnectButton>
     appController
         .updateStatus(targetState, trigger: 'leaf_tv_connect_button.switch')
         .whenComplete(() {
+      final actualState = ref.read(isStartProvider);
+      if (mounted && actualState != _isStart) {
+        setState(() => _isStart = actualState);
+        _updateController();
+      }
       _isSwitching = false;
     });
   }

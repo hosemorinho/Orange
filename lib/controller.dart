@@ -584,10 +584,7 @@ extension SetupControllerExt on AppController {
     try {
       if (isStart) {
         if (!isInit) {
-          final res = await tryStartCore(true);
-          if (res) {
-            return;
-          }
+          await _ensureCoreReady();
           if (!_ref.read(initProvider)) {
             return;
           }
@@ -600,17 +597,30 @@ extension SetupControllerExt on AppController {
               'updateStatus: VPN service failed to start '
               '(permission denied?) trigger=$trigger',
             );
+            _setLeafStoppedState(
+              reason: 'updateStatus(start,handleStartFailed,trigger=$trigger)',
+            );
+            updateRunTime();
             return;
           }
-          applyProfileDebounce(
+          final setupOk = await applyProfile(
             force: true,
             silence: true,
+            bypassThrottle: true,
             reason: 'updateStatus(start,isInit=false,trigger=$trigger)',
           );
+          if (!setupOk) {
+            await _rollbackStartState(
+              reason:
+                  'updateStatus(start,setupFailed,isInit=false,trigger=$trigger)',
+            );
+            return;
+          }
         } else {
           globalState.needInitStatus = false;
-          await applyProfile(
+          final setupOk = await applyProfile(
             force: true,
+            bypassThrottle: true,
             reason: 'updateStatus(start,isInit=true,trigger=$trigger)',
             preloadInvoke: () async {
               final started = await globalState.handleStart([
@@ -623,20 +633,38 @@ extension SetupControllerExt on AppController {
                   'trigger=$trigger',
                 );
               }
+              return started;
             },
           );
+          if (!setupOk) {
+            if (globalState.isStart) {
+              await _rollbackStartState(
+                reason:
+                    'updateStatus(start,setupFailed,isInit=true,trigger=$trigger)',
+              );
+            } else {
+              _setLeafStoppedState(
+                reason:
+                    'updateStatus(start,preloadNotStarted,isInit=true,trigger=$trigger)',
+              );
+              updateRunTime();
+            }
+            return;
+          }
         }
+        _logStartupSnapshot('updateStatus(start): success trigger=$trigger');
       } else {
         if (system.isAndroid) {
           await service?.disableSocketProtection();
         }
         await _leafController?.stop();
-        _ref.read(isLeafRunningProvider.notifier).state = false;
+        _setLeafStoppedState(reason: 'updateStatus(stop,trigger=$trigger)');
         await globalState.handleStop();
         _ref.read(trafficsProvider.notifier).clear();
         _ref.read(totalTrafficProvider.notifier).value = Traffic();
-        _ref.read(runTimeProvider.notifier).value = null;
+        updateRunTime();
         addCheckIp();
+        _logStartupSnapshot('updateStatus(stop): complete trigger=$trigger');
       }
     } finally {
       _isUpdatingStatus = false;
@@ -686,6 +714,66 @@ extension SetupControllerExt on AppController {
 
   void addCheckIp() {
     _ref.read(checkIpNumProvider.notifier).add();
+  }
+
+  void _setLeafStoppedState({
+    required String reason,
+    bool clearNodes = true,
+  }) {
+    _ref.read(isLeafRunningProvider.notifier).state = false;
+    if (clearNodes) {
+      _ref.read(leafNodesProvider.notifier).state = const [];
+      _ref.read(selectedNodeTagProvider.notifier).state = null;
+    }
+    _activePort = null;
+    _ref.read(activePortProvider.notifier).state = null;
+    _logger.warning(
+      'leaf state reset: reason=$reason, clearNodes=$clearNodes',
+    );
+  }
+
+  void _setLeafStartedState({
+    required int activePort,
+    required String reason,
+  }) {
+    if (_leafController == null) return;
+    final nodes = _leafController!.nodes;
+    final selectedTag = _leafController!.getSelectedNode();
+    _ref.read(isLeafRunningProvider.notifier).state = true;
+    _ref.read(leafNodesProvider.notifier).state = nodes;
+    _ref.read(selectedNodeTagProvider.notifier).state = selectedTag;
+    _activePort = activePort;
+    _ref.read(activePortProvider.notifier).state = activePort;
+    _logger.info(
+      'leaf state ready: reason=$reason, nodes=${nodes.length}, '
+      'selected=$selectedTag, port=$activePort',
+    );
+  }
+
+  Future<void> _rollbackStartState({required String reason}) async {
+    _logger.warning('rollback start state: reason=$reason');
+    if (system.isAndroid) {
+      await service?.disableSocketProtection();
+    }
+    await _leafController?.stop();
+    await globalState.handleStop();
+    updateRunTime();
+    _ref.read(trafficsProvider.notifier).clear();
+    _ref.read(totalTrafficProvider.notifier).value = Traffic();
+    _setLeafStoppedState(reason: 'rollback($reason)');
+    addCheckIp();
+    _logStartupSnapshot('rollback complete: $reason');
+  }
+
+  void _logStartupSnapshot(String label) {
+    final runtimeReady = _ref.read(runTimeProvider) != null;
+    final leafRunning = _ref.read(isLeafRunningProvider);
+    final nodes = _ref.read(leafNodesProvider);
+    final selected = _ref.read(selectedNodeTagProvider);
+    _logger.info(
+      '$label :: runtimeReady=$runtimeReady, leafRunning=$leafRunning, '
+      'nodes=${nodes.length}, selected=$selected, activePort=$_activePort',
+    );
   }
 
   void tryCheckIp() {
@@ -806,41 +894,49 @@ extension SetupControllerExt on AppController {
     });
   }
 
-  Future<void> applyProfile({
+  Future<bool> applyProfile({
     bool silence = false,
     bool force = false,
     String reason = 'unspecified',
-    Future<void> Function()? preloadInvoke,
+    Future<bool> Function()? preloadInvoke,
+    bool bypassThrottle = false,
   }) async {
     if (_isApplyingProfile) {
       _logger.info(
         'applyProfile: skipping concurrent call '
         '(force=$force, silence=$silence, reason=$reason)',
       );
-      return;
+      return true;
     }
     if (!force && !await needSetup()) {
       _logger.info('applyProfile: skipped (needSetup=false, reason=$reason)');
-      return;
+      return true;
     }
     _logger.info(
       'applyProfile: start force=$force, silence=$silence, reason=$reason, '
-      'preloadInvoke=${preloadInvoke != null}, caller=${_callerStackSummary()}',
+      'preloadInvoke=${preloadInvoke != null}, bypassThrottle=$bypassThrottle, '
+      'caller=${_callerStackSummary()}',
     );
+    var setupOk = false;
     _isApplyingProfile = true;
     try {
-      await loadingRun(
+      final result = await loadingRun<bool>(
         () async {
-          await _setupConfig(preloadInvoke, reason);
+          final ok = await _setupConfig(preloadInvoke, reason, bypassThrottle);
+          if (!ok) return false;
           await updateGroups();
           await _ensureValidSelection();
+          return true;
         },
         silence: true,
         tag: !silence ? LoadingTag.proxies : null,
       );
+      setupOk = result ?? false;
+      _logStartupSnapshot('applyProfile: result=$setupOk reason=$reason');
+      return setupOk;
     } finally {
       _isApplyingProfile = false;
-      _logger.info('applyProfile: complete reason=$reason');
+      _logger.info('applyProfile: complete reason=$reason, ok=$setupOk');
     }
   }
 
@@ -894,19 +990,21 @@ extension SetupControllerExt on AppController {
     return res;
   }
 
-  Future<void> _setupConfig(
-    [Future<void> Function()? preloadInvoke,
-    String reason = 'unspecified']
+  Future<bool> _setupConfig(
+    [Future<bool> Function()? preloadInvoke,
+    String reason = 'unspecified',
+    bool bypassThrottle = false]
   ) async {
     // Throttle: skip if setup completed less than 2 seconds ago
     final now = DateTime.now();
-    if (_lastSetupTime != null &&
+    if (!bypassThrottle &&
+        _lastSetupTime != null &&
         now.difference(_lastSetupTime!).inSeconds < 2) {
       _logger.info(
         'setup: throttled (last ran '
         '${now.difference(_lastSetupTime!).inMilliseconds}ms ago, reason=$reason)',
       );
-      return;
+      return true;
     }
 
     _logger.info(
@@ -916,7 +1014,7 @@ extension SetupControllerExt on AppController {
     var profile = _ref.read(currentProfileProvider);
     if (profile == null) {
       _logger.warning('setup: no current profile');
-      return;
+      return false;
     }
 
     final nextProfile = await profile.checkAndUpdateAndCopy();
@@ -934,11 +1032,11 @@ extension SetupControllerExt on AppController {
         'setup: failed to read/decrypt YAML for profile ${profile.id}',
         e,
       );
-      return;
+      return false;
     }
     if (yamlContent == null || yamlContent.isEmpty) {
       _logger.warning('setup: empty YAML for profile ${profile.id}');
-      return;
+      return false;
     }
 
     // Port configuration — single mixed port for HTTP+SOCKS5
@@ -969,7 +1067,22 @@ extension SetupControllerExt on AppController {
       preferences.saveShareState(this.sharedState);
     }
 
-    if (preloadInvoke != null) await preloadInvoke();
+    var preloadStarted = false;
+    if (preloadInvoke != null) {
+      preloadStarted = await preloadInvoke();
+      if (system.isAndroid && !preloadStarted) {
+        _logger.warning(
+          'setup: preloadInvoke reported VPN start failure, aborting setup '
+          '(reason=$reason)',
+        );
+        _setLeafStoppedState(
+          reason: 'setup(preloadFailed,reason=$reason)',
+          clearNodes: false,
+        );
+        updateRunTime();
+        return false;
+      }
+    }
 
     // TUN mode configuration
     // On Android, TUN is required when VPN is active — the VPN service creates
@@ -978,7 +1091,7 @@ extension SetupControllerExt on AppController {
     // (via preloadInvoke). When _setupConfig is called just to load a profile
     // (e.g. on init with autoRun=false), VPN isn't running so TUN is skipped.
     var tunEnabled = system.isAndroid
-        ? (globalState.isStart || preloadInvoke != null)
+        ? (globalState.isStart || preloadStarted)
         : _ref.read(patchClashConfigProvider).tun.enable;
     _logger.info(
       'setup: tun decision enabled=$tunEnabled, android=${system.isAndroid}, '
@@ -1002,11 +1115,8 @@ extension SetupControllerExt on AppController {
           'setup: Android TUN fd not available — '
           'VPN service failed to establish. Cannot start.',
         );
-        await service?.disableSocketProtection();
-        await globalState.handleStop();
-        _ref.read(runTimeProvider.notifier).value = null;
         globalState.showNotifier('VPN启动失败，无法获取TUN设备');
-        return;
+        return false;
       } else {
         _logger.info('setup: got TUN fd=$tunFd from VPN service');
       }
@@ -1060,6 +1170,12 @@ extension SetupControllerExt on AppController {
       await service?.syncLeafConfig(configJson);
       _ref.read(leafNodesProvider.notifier).state = nodes;
 
+      if (nodes.isEmpty) {
+        _logger.warning('setup: iOS parsed 0 supported nodes from profile');
+        _setLeafStoppedState(reason: 'setup(iOS,nodesEmpty,reason=$reason)');
+        return false;
+      }
+
       final previousSelected = _ref.read(selectedNodeTagProvider);
       final selectedTag = switch (nodes.any((n) => n.tag == previousSelected)) {
         true => previousSelected,
@@ -1078,7 +1194,7 @@ extension SetupControllerExt on AppController {
         'setup: iOS config synced to packet tunnel, '
         'nodes=${nodes.length}, mode=${mode.name}, start=${globalState.isStart}',
       );
-      return;
+      return true;
     }
 
     // Start leaf with the subscription YAML
@@ -1087,13 +1203,8 @@ extension SetupControllerExt on AppController {
         'setup: LeafController unavailable on ${Platform.operatingSystem}, '
         'skipping leaf startup',
       );
-      _ref.read(isLeafRunningProvider.notifier).state = false;
-      _ref.read(leafNodesProvider.notifier).state = const [];
-      _ref.read(selectedNodeTagProvider.notifier).state = null;
-      _activePort = null;
-      _ref.read(activePortProvider.notifier).state = null;
-      _lastSetupTime = DateTime.now();
-      return;
+      _setLeafStoppedState(reason: 'setup(leafUnavailable,reason=$reason)');
+      return false;
     }
     if (_leafController!.isRunning) {
       await _leafController!.stop();
@@ -1133,7 +1244,10 @@ extension SetupControllerExt on AppController {
           globalState.showNotifier('TUN启动失败，已降级为系统代理模式: $e');
         } catch (e2) {
           _logger.error('setup: leaf start failed even without TUN', e2);
-          return;
+          _setLeafStoppedState(
+            reason: 'setup(startFailedAfterTunFallback,reason=$reason)',
+          );
+          return false;
         }
       } else if (system.isAndroid) {
         // Android: VPN captures all traffic via TUN — cannot fall back to
@@ -1142,31 +1256,34 @@ extension SetupControllerExt on AppController {
           'setup: leaf TUN start failed on Android, stopping VPN',
           e,
         );
-        await service?.disableSocketProtection();
-        await globalState.handleStop();
-        _ref.read(runTimeProvider.notifier).value = null;
         globalState.showNotifier('VPN启动失败: $e');
-        return;
+        _setLeafStoppedState(
+          reason: 'setup(androidTunStartFailed,reason=$reason)',
+        );
+        return false;
       } else {
         _logger.error('setup: leaf start failed', e);
-        return;
+        _setLeafStoppedState(reason: 'setup(startFailed,reason=$reason)');
+        return false;
       }
     }
 
-    // Update leaf providers
-    _ref.read(isLeafRunningProvider.notifier).state = true;
-    _ref.read(leafNodesProvider.notifier).state = _leafController!.nodes;
-    _ref.read(selectedNodeTagProvider.notifier).state = _leafController!
-        .getSelectedNode();
+    if (_leafController!.nodes.isEmpty) {
+      _logger.error(
+        'setup: leaf started but parsed 0 supported nodes, stopping core',
+      );
+      await _leafController!.stop();
+      _setLeafStoppedState(reason: 'setup(startedButNoNodes,reason=$reason)');
+      return false;
+    }
 
-    // Track the actual port the proxy is running on (may differ from config)
-    _activePort = mixedPort;
-    _ref.read(activePortProvider.notifier).state = mixedPort;
+    _setLeafStartedState(activePort: mixedPort, reason: reason);
 
     addCheckIp();
     _lastSetupTime =
         DateTime.now(); // Only throttle after successful completion
     _logger.info('setup complete: ${_leafController!.nodes.length} nodes');
+    return true;
   }
 }
 
@@ -1202,6 +1319,13 @@ extension CoreControllerExt on AppController {
       _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
       commonPrint.log('leaf connect failed: $e');
     }
+  }
+
+  Future<void> _ensureCoreReady() async {
+    if (_leafInitialized) return;
+    _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
+    await _connectCore();
+    await _initCore();
   }
 
   /// Request admin authorization for TUN on desktop.
@@ -1353,9 +1477,9 @@ extension SystemControllerExt on AppController {
   }
 
   Future<void> updateTun() async {
-    if (system.isAndroid) {
+    if (!system.isDesktop) {
       _logger.info(
-        'updateTun: ignored on Android (TUN is managed by VpnService lifecycle)',
+        'updateTun: ignored on mobile (TUN is managed by VPN service lifecycle)',
       );
       return;
     }

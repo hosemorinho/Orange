@@ -71,7 +71,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     }
 
     ref.listenManual(
-      runTimeProvider.select((state) => state != null),
+      isStartProvider,
       (prev, next) {
         if (next != _isStart) {
           setState(() {
@@ -99,10 +99,20 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     debouncer.call(
       FunctionTag.updateStatus,
       () {
-        appController.updateStatus(
-          _isStart,
-          trigger: 'xboard.vpn_hero_card',
-        );
+        appController
+            .updateStatus(
+              _isStart,
+              trigger: 'xboard.vpn_hero_card',
+            )
+            .whenComplete(() {
+          final actualState = ref.read(isStartProvider);
+          if (mounted && actualState != _isStart) {
+            setState(() {
+              _isStart = actualState;
+            });
+            _updateController();
+          }
+        });
       },
       duration: commonDuration,
     );
@@ -145,7 +155,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   }
 
   Future<void> _handleTunToggle(bool selected) async {
-    if (system.isAndroid) {
+    if (!system.isDesktop) {
       return;
     }
     if (selected) {
@@ -813,7 +823,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           ),
         ),
         const SizedBox(width: 8),
-        if (!system.isAndroid)
+        if (system.isDesktop)
           FilterChip(
             label: const Text('TUN', style: TextStyle(fontSize: 12)),
             selected: tunEnabled,
@@ -962,7 +972,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
               ),
             ),
             const SizedBox(width: 8),
-            if (!system.isAndroid)
+            if (system.isDesktop)
               FilterChip(
                 label: const Text('TUN', style: TextStyle(fontSize: 12)),
                 selected: tunEnabled,

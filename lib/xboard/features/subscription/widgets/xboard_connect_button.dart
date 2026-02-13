@@ -35,7 +35,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
       curve: Curves.easeOutBack,
     );
     ref.listenManual(
-      runTimeProvider.select((state) => state != null),
+      isStartProvider,
       (prev, next) {
         if (next != isStart) {
           isStart = next;
@@ -56,10 +56,19 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
     debouncer.call(
       FunctionTag.updateStatus,
       () {
-        appController.updateStatus(
-          isStart,
-          trigger: 'xboard.connect_button',
-        );
+        appController
+            .updateStatus(
+              isStart,
+              trigger: 'xboard.connect_button',
+            )
+            .whenComplete(() {
+          if (!mounted) return;
+          final actualState = ref.read(isStartProvider);
+          if (actualState != isStart) {
+            isStart = actualState;
+            updateController();
+          }
+        });
       },
       duration: commonDuration,
     );

@@ -58,7 +58,7 @@ class _LeafConnectionStatusCardState
     if (_isStart) _ringController.repeat(reverse: true);
 
     ref.listenManual(
-      runTimeProvider.select((state) => state != null),
+      isStartProvider,
       (prev, next) {
         if (next != _isStart) {
           setState(() => _isStart = next);
@@ -85,6 +85,11 @@ class _LeafConnectionStatusCardState
     appController
         .updateStatus(targetState, trigger: 'leaf_connection_status_card.switch')
         .whenComplete(() {
+      final actualState = ref.read(isStartProvider);
+      if (mounted && actualState != _isStart) {
+        setState(() => _isStart = actualState);
+        _updateController();
+      }
       _isSwitching = false;
     });
   }

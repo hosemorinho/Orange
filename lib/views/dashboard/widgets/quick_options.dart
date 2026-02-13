@@ -14,7 +14,7 @@ class TUNButton extends StatelessWidget {
       height: getWidgetHeight(1),
       child: CommonCard(
         onPressed: () {
-          if (system.isAndroid) {
+          if (!system.isDesktop) {
             return;
           }
           showSheet(
@@ -68,7 +68,7 @@ class TUNButton extends StatelessWidget {
                   );
                   return Switch(
                     value: enable,
-                    onChanged: system.isAndroid
+                    onChanged: !system.isDesktop
                         ? null
                         : (value) {
                             ref

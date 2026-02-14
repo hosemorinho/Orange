@@ -306,14 +306,27 @@ class Build {
       return;
     }
 
-    print('Downloading VC++ runtime...');
+    print('Downloading VC++ runtime from $_vcRedistUrl...');
     final client = HttpClient();
+    // Follow redirects automatically
     final request = await client.getUrl(Uri.parse(_vcRedistUrl));
     final response = await request.close();
-    final file = File(vcRedistPath);
-    await for (final chunk in response) {
-      file.writeAsBytesSync(chunk, mode: FileMode.append);
+
+    // Check response status
+    if (response.statusCode != 200) {
+      throw Exception('Failed to download VC++ runtime: ${response.statusCode}');
     }
+
+    // Download to file
+    final file = File(vcRedistPath);
+    final sink = file.openWrite();
+    try {
+      await response.forEach(sink.add);
+    } finally {
+      await sink.close();
+    }
+    client.close();
+
     print('VC++ runtime downloaded to $vcRedistPath');
   }
 

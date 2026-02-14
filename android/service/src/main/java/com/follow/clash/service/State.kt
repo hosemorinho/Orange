@@ -6,6 +6,7 @@ import com.follow.clash.common.LeafBridge
 import com.follow.clash.common.LeafPreferences
 import com.follow.clash.service.models.NotificationParams
 import com.follow.clash.service.models.VpnOptions
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 
 object State {
@@ -67,5 +68,16 @@ object State {
             "mode" to LeafPreferences.mode,
             "lastStartTime" to LeafPreferences.lastStartTime
         )
+    }
+
+    fun ensureOptionsFromPrefs() {
+        if (options != null) return
+        val raw = LeafPreferences.vpnOptionsJson
+        if (raw.isEmpty()) return
+        try {
+            options = Gson().fromJson(raw, VpnOptions::class.java)
+        } catch (_: Exception) {
+            // Ignore malformed cached options.
+        }
     }
 }

@@ -3,8 +3,8 @@ package com.follow.clash.service
 import android.content.Context
 import android.util.Log
 import com.follow.clash.common.GlobalState
+import com.follow.clash.common.LeafBridge
 import com.follow.clash.common.LeafPreferences
-import com.follow.clash.core.ICoreService
 import com.follow.clash.core.ICoreServiceCallback
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -12,7 +12,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.io.FileOutputStream
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Manages the Leaf proxy process in the :core service.
@@ -35,14 +37,25 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
     @Volatile private var currentMode: String = "rule"
     @Volatile private var selectedNodeTag: String = ""
 
-    // Callback for status changes
-    private var callback: ICoreServiceCallback? = null
+    // Registered IPC callbacks from UI process.
+    private val callbacks = CopyOnWriteArrayList<ICoreServiceCallback>()
 
     /**
      * Set the callback for status changes.
      */
-    fun setCallback(cb: ICoreServiceCallback?) {
-        callback = cb
+    fun registerCallback(cb: ICoreServiceCallback?) {
+        if (cb == null) return
+        val incomingBinder = cb.asBinder()
+        val exists = callbacks.any { it.asBinder() == incomingBinder }
+        if (!exists) {
+            callbacks.add(cb)
+        }
+    }
+
+    fun unregisterCallback(cb: ICoreServiceCallback?) {
+        if (cb == null) return
+        val binder = cb.asBinder()
+        callbacks.removeAll { it.asBinder() == binder }
     }
 
     /**
@@ -56,6 +69,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
      * Start leaf with the given config JSON.
      * In dual-process mode, uses local tunPfd from State.
      */
+    @Synchronized
     fun startLeaf(configJson: String): Boolean {
         if (isRunning) {
             Log.w(TAG, "startLeaf: already running")
@@ -66,7 +80,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
         val tunPfd = State.tunPfd
         if (tunPfd == null) {
             Log.e(TAG, "startLeaf: TUN not ready (tunPfd is null)")
-            callback?.onError("TUN not ready, start VPN first")
+            notifyError("TUN not ready, start VPN first")
             return false
         }
 
@@ -88,12 +102,12 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
                 System.loadLibrary("leaf")
             } catch (e: UnsatisfiedLinkError) {
                 Log.e(TAG, "Failed to load libleaf.so", e)
-                callback?.onError("Failed to load leaf library: ${e.message}")
+                notifyError("Failed to load leaf library: ${e.message}")
                 return false
             }
 
             // Start leaf via LeafBridge JNI
-            val rtId = com.follow.clash.core.LeafBridge.leafRunWithOptions(
+            val rtId = LeafBridge.leafRunWithOptions(
                 rtId = 0, // 0 = create new runtime
                 configPath = configFile.absolutePath,
                 autoReload = true,
@@ -105,7 +119,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
 
             if (rtId < 0) {
                 Log.e(TAG, "startLeaf: leafRunWithOptions returned $rtId")
-                callback?.onError("Failed to start leaf: return code $rtId")
+                notifyError("Failed to start leaf: return code $rtId")
                 return false
             }
 
@@ -116,7 +130,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
 
             // Enable socket protection
             try {
-                com.follow.clash.core.LeafBridge.enableProtection()
+                LeafBridge.enableProtection()
             } catch (e: Exception) {
                 Log.w(TAG, "enableProtection failed", e)
             }
@@ -126,7 +140,19 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
             true
         } catch (e: Exception) {
             Log.e(TAG, "startLeaf failed", e)
-            callback?.onError("Failed to start leaf: ${e.message}")
+            notifyError("Failed to start leaf: ${e.message}")
+            false
+        }
+    }
+
+    @Synchronized
+    fun startLeafFromFile(configPath: String): Boolean {
+        return try {
+            val config = File(configPath).readText(StandardCharsets.UTF_8)
+            startLeaf(config)
+        } catch (e: Exception) {
+            Log.e(TAG, "startLeafFromFile failed: $configPath", e)
+            notifyError("Failed to read config file: ${e.message}")
             false
         }
     }
@@ -162,6 +188,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
     /**
      * Stop the running leaf instance.
      */
+    @Synchronized
     fun stopLeaf(): Boolean {
         if (!isRunning) {
             return true
@@ -169,7 +196,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
 
         return try {
             if (leafRtId >= 0) {
-                com.follow.clash.core.LeafBridge.leafShutdown(leafRtId)
+                LeafBridge.leafShutdown(leafRtId)
             }
             leafRtId = -1
             isRunning = false
@@ -179,7 +206,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
             true
         } catch (e: Exception) {
             Log.e(TAG, "stopLeaf failed", e)
-            callback?.onError("Failed to stop leaf: ${e.message}")
+            notifyError("Failed to stop leaf: ${e.message}")
             false
         }
     }
@@ -187,24 +214,34 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
     /**
      * Reload leaf with new config.
      */
+    @Synchronized
     fun reloadLeaf(configJson: String): Boolean {
         if (!isRunning) {
             return startLeaf(configJson)
         }
 
         return try {
+            val tunPfd = State.tunPfd
+            if (tunPfd == null) {
+                Log.e(TAG, "reloadLeaf: TUN not ready (tunPfd is null)")
+                notifyError("TUN not ready, cannot reload")
+                return false
+            }
+
+            val processedConfig = processConfigWithTunFd(configJson, tunPfd)
+
             // Save new config to file
             val configFile = File(context.filesDir, CONFIG_FILE_NAME)
-            FileOutputStream(configFile).use { it.write(configJson.toByteArray()) }
+            FileOutputStream(configFile).use { it.write(processedConfig.toByteArray()) }
 
             // Cache config in preferences
-            LeafPreferences.configJson = configJson
+            LeafPreferences.configJson = processedConfig
 
             // Reload via JNI
-            val result = com.follow.clash.core.LeafBridge.leafReload(leafRtId)
+            val result = LeafBridge.leafReload(leafRtId)
             if (result < 0) {
                 Log.e(TAG, "reloadLeaf: leafReload returned $result")
-                callback?.onError("Failed to reload leaf: return code $result")
+                notifyError("Failed to reload leaf: return code $result")
                 return false
             }
 
@@ -213,7 +250,19 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
             true
         } catch (e: Exception) {
             Log.e(TAG, "reloadLeaf failed", e)
-            callback?.onError("Failed to reload leaf: ${e.message}")
+            notifyError("Failed to reload leaf: ${e.message}")
+            false
+        }
+    }
+
+    @Synchronized
+    fun reloadLeafFromFile(configPath: String): Boolean {
+        return try {
+            val config = File(configPath).readText(StandardCharsets.UTF_8)
+            reloadLeaf(config)
+        } catch (e: Exception) {
+            Log.e(TAG, "reloadLeafFromFile failed: $configPath", e)
+            notifyError("Failed to read config file: ${e.message}")
             false
         }
     }
@@ -256,7 +305,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
      */
     fun protectSocket(fd: Int): Boolean {
         return try {
-            com.follow.clash.core.LeafBridge.protectSocket(fd)
+            LeafBridge.protectSocket(fd)
         } catch (e: Exception) {
             Log.e(TAG, "protectSocket failed for fd=$fd", e)
             false
@@ -316,10 +365,24 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
     }
 
     private fun notifyStatusChanged() {
-        try {
-            callback?.onStatusChanged(isRunning, currentMode, selectedNodeTag)
-        } catch (e: Exception) {
-            Log.w(TAG, "notifyStatusChanged failed", e)
+        callbacks.forEach { cb ->
+            try {
+                cb.onStatusChanged(isRunning, currentMode, selectedNodeTag)
+            } catch (e: Exception) {
+                Log.w(TAG, "notifyStatusChanged failed", e)
+                callbacks.remove(cb)
+            }
+        }
+    }
+
+    private fun notifyError(message: String) {
+        callbacks.forEach { cb ->
+            try {
+                cb.onError(message)
+            } catch (e: Exception) {
+                Log.w(TAG, "notifyError failed", e)
+                callbacks.remove(cb)
+            }
         }
     }
 

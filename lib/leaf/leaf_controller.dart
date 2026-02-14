@@ -26,6 +26,8 @@ class LeafController {
 
   final LeafFfi _ffi;
   LeafInstance? _instance;
+  bool _remoteRunning = false;
+  String? _remoteSelectedNode;
 
   /// Whether to use dual-process mode (Android with :core process).
   /// When true, leaf is started in :core process via AIDL.
@@ -61,6 +63,23 @@ class LeafController {
     await Directory(homeDir).create(recursive: true);
     _ffi.setEnv('ASSET_LOCATION', homeDir);
     _logger.info('init: homeDir=$homeDir, ASSET_LOCATION set');
+  }
+
+  /// Synchronize cached dual-process runtime state from :core service.
+  Future<void> syncRemoteStatus() async {
+    if (!useDualProcessMode) return;
+    final svc = service;
+    if (svc == null) {
+      _remoteRunning = false;
+      _remoteSelectedNode = null;
+      return;
+    }
+    final status = await svc.getCoreStatus();
+    _remoteRunning = status['isRunning'] == true;
+    final selectedNode = status['selectedNode'];
+    if (selectedNode is String && selectedNode.isNotEmpty) {
+      _remoteSelectedNode = selectedNode;
+    }
   }
 
   /// Load a Clash YAML subscription and start the proxy.
@@ -130,7 +149,7 @@ class LeafController {
 
   /// Start leaf in remote :core process via AIDL.
   Future<void> _startRemote(LeafConfig config) async {
-    if (_instance != null) {
+    if (_instance != null || _remoteRunning) {
       await stop();
     }
 
@@ -150,6 +169,12 @@ class LeafController {
     final success = await svc.startCore(configJson);
     if (!success) {
       throw LeafException(LeafError.runtimeManager);
+    }
+
+    _remoteRunning = true;
+    final status = await svc.getCoreStatus();
+    if (status['selectedNode'] is String) {
+      _remoteSelectedNode = status['selectedNode'] as String;
     }
 
     _logger.info('leaf started in :core process successfully');
@@ -259,6 +284,8 @@ class LeafController {
         await svc.stopCore();
         _logger.info('leaf stopped in :core process');
       }
+      _remoteRunning = false;
+      _remoteSelectedNode = null;
     } else {
       _instance?.shutdown();
       _instance = null;
@@ -275,6 +302,17 @@ class LeafController {
 
   /// Reload config from a JSON string via FFI (no file I/O).
   Future<void> reloadWithConfigString(String configJson) async {
+    if (useDualProcessMode) {
+      final svc = service;
+      if (svc == null) {
+        throw StateError('Service not available');
+      }
+      final success = await svc.syncConfig(configJson);
+      if (!success) {
+        throw LeafException(LeafError.runtimeManager);
+      }
+      return;
+    }
     _requireRunning();
     final result = await _instance!.reloadWithConfigStringAsync(configJson);
     if (!LeafError.isOk(result)) {
@@ -349,9 +387,7 @@ class LeafController {
 
   bool get isRunning {
     if (useDualProcessMode) {
-      // In dual-process mode, check via service
-      // For now, just return based on local instance
-      return _instance != null;
+      return _remoteRunning;
     }
     return _instance != null;
   }
@@ -389,6 +425,29 @@ class LeafController {
   /// If core is not running, this is a no-op (UI state is updated separately).
   /// The selection will be applied when core starts via [_ensureValidSelection].
   Future<void> selectNode(String nodeTag) async {
+    if (useDualProcessMode) {
+      if (!isRunning) {
+        _logger.info(
+          'selectNode: core not running, skipping remote call (requested=$nodeTag)',
+        );
+        return;
+      }
+      final svc = service;
+      if (svc == null) {
+        throw StateError('Service not available');
+      }
+      final success = await svc.selectCoreNode(nodeTag);
+      if (!success) {
+        throw StateError('selectCoreNode failed for $nodeTag');
+      }
+      final before = _remoteSelectedNode;
+      _remoteSelectedNode = nodeTag;
+      _logger.info(
+        'selectNode(remote): $before -> $_remoteSelectedNode (requested=$nodeTag)',
+      );
+      return;
+    }
+
     if (!isRunning) {
       _logger.info(
         'selectNode: core not running, skipping FFI call (requested=$nodeTag)',
@@ -426,12 +485,18 @@ class LeafController {
 
   /// Get the currently selected node tag.
   String? getSelectedNode() {
+    if (useDualProcessMode) {
+      return _remoteSelectedNode;
+    }
     if (_instance == null) return null;
     return _instance!.getOutboundSelected(ConfigWriter.selectorTag);
   }
 
   /// Get the list of available node tags from leaf's runtime.
   List<String> getAvailableNodes() {
+    if (useDualProcessMode) {
+      return _nodes.map((node) => node.tag).toList(growable: false);
+    }
     if (_instance == null) return [];
     return _instance!.getOutboundSelects(ConfigWriter.selectorTag);
   }
@@ -523,6 +588,10 @@ class LeafController {
   // ---------------------------------------------------------------------------
 
   void _requireRunning() {
+    if (useDualProcessMode) {
+      if (!_remoteRunning) throw StateError('Leaf is not running');
+      return;
+    }
     if (_instance == null) throw StateError('Leaf is not running');
     // Detect post-startup crashes (e.g. TUN creation failed asynchronously
     // after the runtime was briefly registered in RUNTIME_MANAGER).

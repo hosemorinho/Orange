@@ -17,15 +17,26 @@ object LeafPreferences {
     private const val KEY_CONFIG_VERSION = "config_version"
     private const val KEY_LAST_START_TIME = "last_start_time"
     private const val KEY_CONFIG_JSON = "config_json"
+    private const val KEY_VPN_OPTIONS_JSON = "vpn_options_json"
 
     @Volatile
     private var prefs: SharedPreferences? = null
+    @Volatile
+    private var appContext: Context? = null
+
+    @Suppress("DEPRECATION")
+    private fun prefsMode(): Int {
+        // MODE_MULTI_PROCESS is deprecated, but it still improves cross-process
+        // refresh behavior for SharedPreferences-backed state in dual-process mode.
+        return Context.MODE_PRIVATE or Context.MODE_MULTI_PROCESS
+    }
 
     /**
      * Initialize LeafPreferences. Must be called once at app startup.
      */
     fun init(context: Context) {
-        prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_MULTI_PROCESS)
+        appContext = context.applicationContext
+        prefs = appContext?.getSharedPreferences(PREFS_NAME, prefsMode())
     }
 
     /**
@@ -45,6 +56,9 @@ object LeafPreferences {
     }
 
     private fun getPrefs(): SharedPreferences {
+        appContext?.let { ctx ->
+            prefs = ctx.getSharedPreferences(PREFS_NAME, prefsMode())
+        }
         return prefs ?: throw IllegalStateException(
             "LeafPreferences not initialized. Call init(context) first."
         )
@@ -57,7 +71,7 @@ object LeafPreferences {
     var shouldRun: Boolean
         get() = getPrefs().getBoolean(KEY_SHOULD_RUN, false)
         set(value) {
-            getPrefs().edit().putBoolean(KEY_SHOULD_RUN, value).apply()
+            getPrefs().edit().putBoolean(KEY_SHOULD_RUN, value).commit()
         }
 
     /**
@@ -66,7 +80,7 @@ object LeafPreferences {
     var selectedNodeTag: String
         get() = getPrefs().getString(KEY_SELECTED_NODE_TAG, "") ?: ""
         set(value) {
-            getPrefs().edit().putString(KEY_SELECTED_NODE_TAG, value).apply()
+            getPrefs().edit().putString(KEY_SELECTED_NODE_TAG, value).commit()
         }
 
     /**
@@ -75,7 +89,7 @@ object LeafPreferences {
     var mode: String
         get() = getPrefs().getString(KEY_MODE, "rule") ?: "rule"
         set(value) {
-            getPrefs().edit().putString(KEY_MODE, value).apply()
+            getPrefs().edit().putString(KEY_MODE, value).commit()
         }
 
     /**
@@ -84,7 +98,7 @@ object LeafPreferences {
     var configVersion: Long
         get() = getPrefs().getLong(KEY_CONFIG_VERSION, 0)
         set(value) {
-            getPrefs().edit().putLong(KEY_CONFIG_VERSION, value).apply()
+            getPrefs().edit().putLong(KEY_CONFIG_VERSION, value).commit()
         }
 
     /**
@@ -93,7 +107,7 @@ object LeafPreferences {
     var lastStartTime: Long
         get() = getPrefs().getLong(KEY_LAST_START_TIME, 0)
         set(value) {
-            getPrefs().edit().putLong(KEY_LAST_START_TIME, value).apply()
+            getPrefs().edit().putLong(KEY_LAST_START_TIME, value).commit()
         }
 
     /**
@@ -102,14 +116,23 @@ object LeafPreferences {
     var configJson: String
         get() = getPrefs().getString(KEY_CONFIG_JSON, "") ?: ""
         set(value) {
-            getPrefs().edit().putString(KEY_CONFIG_JSON, value).apply()
+            getPrefs().edit().putString(KEY_CONFIG_JSON, value).commit()
+        }
+
+    /**
+     * Cached VPN options JSON for process/boot recovery.
+     */
+    var vpnOptionsJson: String
+        get() = getPrefs().getString(KEY_VPN_OPTIONS_JSON, "") ?: ""
+        set(value) {
+            getPrefs().edit().putString(KEY_VPN_OPTIONS_JSON, value).commit()
         }
 
     /**
      * Clear all persisted state.
      */
     fun clear() {
-        getPrefs().edit().clear().apply()
+        getPrefs().edit().clear().commit()
     }
 
     /**
@@ -130,7 +153,7 @@ object LeafPreferences {
             putLong(KEY_CONFIG_VERSION, configVersion)
             putLong(KEY_LAST_START_TIME, lastStartTime)
             putString(KEY_CONFIG_JSON, configJson)
-            apply()
+            commit()
         }
     }
 }

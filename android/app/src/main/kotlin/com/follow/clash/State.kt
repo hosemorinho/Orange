@@ -1,23 +1,34 @@
 package com.follow.clash
 
 import android.content.Intent
+import android.content.ComponentName
+import android.content.Context
+import android.content.ServiceConnection
 import android.net.VpnService
+import android.os.Build
+import android.os.IBinder
 import com.follow.clash.common.GlobalState
 import com.follow.clash.common.LeafPreferences
-import com.follow.clash.common.ServiceDelegate
 import com.follow.clash.common.intent
+import com.follow.clash.core.ICoreService
 import com.follow.clash.models.SharedState
 import com.follow.clash.plugins.AppPlugin
 import com.follow.clash.plugins.TilePlugin
 import com.follow.clash.service.CommonService
-import com.follow.clash.service.IBaseService
 import com.follow.clash.service.models.NotificationParams
+import com.google.gson.Gson
 import io.flutter.embedding.engine.FlutterEngine
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.resume
 
 enum class RunState {
     START, PENDING, STOP
@@ -44,32 +55,15 @@ object State {
     /** Deferred that completes when VPN start finishes (true=success, false=failed/denied). */
     var startResultDeferred: CompletableDeferred<Boolean>? = null
 
-    // --- Service delegate (absorbed from RemoteService) ---
-
-    private var serviceDelegate: ServiceDelegate<IBaseService>? = null
     private var serviceIntent: Intent? = null
 
     /** Set by ServicePlugin to forward disconnect events to Flutter. */
     var onServiceDisconnected: ((String) -> Unit)? = null
 
-    private fun buildDelegate(intent: Intent): ServiceDelegate<IBaseService> {
-        return ServiceDelegate(intent, ::handleServiceDisconnected) { binder ->
-            when (binder) {
-                is com.follow.clash.service.VpnService.LocalBinder -> binder.getService()
-                is CommonService.LocalBinder -> binder.getService()
-                else -> throw IllegalArgumentException("Invalid binder type")
-            }
-        }
-    }
-
-    private fun needsDelegateRebuild(intent: Intent): Boolean {
-        return serviceDelegate == null || serviceIntent?.component != intent.component
-    }
-
-    private fun vpnStartedSuccessfully(): Boolean {
-        return com.follow.clash.service.State.tunPfd != null &&
-                com.follow.clash.service.State.vpnService != null
-    }
+    private data class BoundCoreService(
+        val service: ICoreService,
+        val connection: ServiceConnection
+    )
 
     private fun resetVpnState() {
         com.follow.clash.service.State.vpnService = null
@@ -80,22 +74,93 @@ object State {
         com.follow.clash.service.State.tunPfd = null
     }
 
-    private fun handleServiceDisconnected(message: String) {
-        GlobalState.log("Background service disconnected: $message")
-        serviceIntent = null
-        serviceDelegate = null
-        runTime = 0
-        resetVpnState()
-        onServiceDisconnected?.invoke(message)
+    private suspend fun bindCoreService(timeoutMs: Long = 5_000L): BoundCoreService? {
+        return withContext(Dispatchers.Main) {
+            withTimeoutOrNull(timeoutMs) {
+                suspendCancellableCoroutine { continuation ->
+                    val app = GlobalState.application
+                    lateinit var connection: ServiceConnection
+                    connection = object : ServiceConnection {
+                        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                            if (continuation.isCompleted) return
+                            val core = ICoreService.Stub.asInterface(service)
+                            continuation.resume(
+                                if (core != null) BoundCoreService(core, connection) else null
+                            )
+                        }
+
+                        override fun onServiceDisconnected(name: ComponentName?) {
+                            if (!continuation.isCompleted) {
+                                continuation.resume(null)
+                            }
+                        }
+
+                        override fun onBindingDied(name: ComponentName?) {
+                            if (!continuation.isCompleted) {
+                                continuation.resume(null)
+                            }
+                        }
+
+                        override fun onNullBinding(name: ComponentName?) {
+                            if (!continuation.isCompleted) {
+                                continuation.resume(null)
+                            }
+                        }
+                    }
+
+                    val bound = runCatching {
+                        app.bindService(
+                            Intent(app, com.follow.clash.service.CoreServiceHost::class.java),
+                            connection,
+                            Context.BIND_AUTO_CREATE
+                        )
+                    }.getOrDefault(false)
+
+                    if (!bound) {
+                        continuation.resume(null)
+                        return@suspendCancellableCoroutine
+                    }
+
+                    continuation.invokeOnCancellation {
+                        runCatching {
+                            app.unbindService(connection)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun unbindCoreService(connection: ServiceConnection) {
+        withContext(Dispatchers.Main) {
+            runCatching {
+                GlobalState.application.unbindService(connection)
+            }
+        }
+    }
+
+    private suspend fun waitForVpnTunReady(timeoutMs: Long = 20_000L): Boolean {
+        val boundCore = bindCoreService() ?: return false
+        return try {
+            val deadline = System.currentTimeMillis() + timeoutMs
+            while (System.currentTimeMillis() < deadline) {
+                val ready = runCatching {
+                    boundCore.service.isTunReady()
+                }.getOrDefault(false)
+                if (ready) {
+                    return true
+                }
+                delay(200L)
+            }
+            false
+        } finally {
+            unbindCoreService(boundCore.connection)
+        }
     }
 
     fun shutdown() {
-        serviceDelegate?.unbind()
-        serviceDelegate = null
         serviceIntent = null
     }
-
-    // --- End service delegate ---
 
     private fun ensureStartDeferred() {
         if (startResultDeferred == null || startResultDeferred?.isCompleted == true) {
@@ -208,28 +273,41 @@ object State {
             true -> com.follow.clash.service.VpnService::class.intent
             false -> CommonService::class.intent
         }
-        if (needsDelegateRebuild(nextIntent)) {
-            serviceDelegate?.unbind()
-            serviceDelegate = buildDelegate(nextIntent)
-            serviceIntent = nextIntent
-        }
+        serviceIntent = nextIntent
         com.follow.clash.service.State.options = options
-        serviceDelegate?.bind()
-        val started = serviceDelegate?.useService { service ->
-            service.start()
-            when (options.enable) {
-                true -> vpnStartedSuccessfully()
-                false -> true
+        LeafPreferences.vpnOptionsJson = Gson().toJson(options)
+        val startAction = when (options.enable) {
+            true -> com.follow.clash.service.VpnService.ACTION_START
+            false -> CommonService.ACTION_START
+        }
+        val startIntent = Intent(nextIntent).apply {
+            action = startAction
+        }
+        runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                GlobalState.application.startForegroundService(startIntent)
+            } else {
+                GlobalState.application.startService(startIntent)
             }
-        }?.getOrElse {
-            GlobalState.log("startService failed: ${it.message}")
-            false
-        } ?: false
+        }.onFailure {
+            GlobalState.log("startService intent failed: ${it.message}")
+            return 0L
+        }
+        val started = when (options.enable) {
+            true -> waitForVpnTunReady()
+            false -> true
+        }
         if (!started) {
-            runCatching {
-                serviceDelegate?.useService { it.stop() }
+            GlobalState.log("startService verify failed: vpn tun not ready")
+            val stopAction = when (options.enable) {
+                true -> com.follow.clash.service.VpnService.ACTION_STOP
+                false -> CommonService.ACTION_STOP
             }
-            serviceDelegate?.unbind()
+            runCatching {
+                GlobalState.application.startService(Intent(nextIntent).apply {
+                    action = stopAction
+                })
+            }
             resetVpnState()
             return 0L
         }
@@ -310,12 +388,20 @@ object State {
                     LeafPreferences.shouldRun = false
                     GlobalState.log("User stopped service, shouldRun=false")
 
-                    runCatching {
-                        serviceDelegate?.useService { it.stop() }
-                    }.onFailure {
-                        GlobalState.log("handleStopService failed: ${it.message}")
+                    val stopAction = when (com.follow.clash.service.State.options?.enable == true) {
+                        true -> com.follow.clash.service.VpnService.ACTION_STOP
+                        false -> CommonService.ACTION_STOP
                     }
-                    serviceDelegate?.unbind()
+                    serviceIntent?.let { intent ->
+                        runCatching {
+                            GlobalState.application.startService(Intent(intent).apply {
+                                action = stopAction
+                            })
+                        }.onFailure {
+                            GlobalState.log("stopService intent failed: ${it.message}")
+                        }
+                    }
+
                     resetVpnState()
                     runTime = 0
                     runStateFlow.tryEmit(RunState.STOP)

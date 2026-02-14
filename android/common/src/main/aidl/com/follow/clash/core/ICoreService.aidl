@@ -1,6 +1,8 @@
 // ICoreService.aidl
 package com.follow.clash.core;
 
+import com.follow.clash.core.ICoreServiceCallback;
+
 /**
  * AIDL interface for communication between UI process and :core process.
  * Used to control the leaf proxy core running in the separate :core process.
@@ -21,6 +23,12 @@ interface ICoreService {
     boolean startLeaf(String configJson);
 
     /**
+     * Start leaf with a config file path.
+     * Avoids large Binder payloads for big subscription configs.
+     */
+    boolean startLeafFromFile(String configPath);
+
+    /**
      * Stop the running leaf instance.
      * @return true if stopped successfully, false otherwise
      */
@@ -32,6 +40,12 @@ interface ICoreService {
      * @return true if reloaded successfully, false otherwise
      */
     boolean reloadLeaf(String configJson);
+
+    /**
+     * Reload leaf with config from file.
+     * Avoids large Binder payloads for big subscription configs.
+     */
+    boolean reloadLeafFromFile(String configPath);
 
     /**
      * Get current core status.
@@ -65,6 +79,16 @@ interface ICoreService {
      * @return true if tunPfd is available
      */
     boolean isTunReady();
+
+    /**
+     * Register callback for core status/error events.
+     */
+    void registerCallback(ICoreServiceCallback callback);
+
+    /**
+     * Unregister callback for core status/error events.
+     */
+    void unregisterCallback(ICoreServiceCallback callback);
 
     /**
      * Request the core process to exit.

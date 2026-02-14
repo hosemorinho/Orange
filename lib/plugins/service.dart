@@ -30,6 +30,10 @@ class Service {
 
   final ObserverList<ServiceListener> _listeners =
       ObserverList<ServiceListener>();
+  final ObserverList<void Function(Map<String, dynamic>)>
+      _coreStatusListeners = ObserverList<void Function(Map<String, dynamic>)>();
+  final ObserverList<void Function(String)> _coreErrorListeners =
+      ObserverList<void Function(String)>();
 
   factory Service() {
     _instance ??= Service._internal();
@@ -64,6 +68,9 @@ class Service {
           final args = call.arguments;
           if (args is Map) {
             final status = Map<String, dynamic>.from(args);
+            for (final listener in _coreStatusListeners) {
+              listener(status);
+            }
             for (final listener in _listeners) {
               listener.onCoreStatusChanged(status);
             }
@@ -72,6 +79,9 @@ class Service {
         case 'coreError':
           // Core error in :core process
           final message = call.arguments as String? ?? '';
+          for (final listener in _coreErrorListeners) {
+            listener(message);
+          }
           for (final listener in _listeners) {
             listener.onCoreError(message);
           }
@@ -157,13 +167,22 @@ class Service {
 
   /// Add listener for core status changes from :core process.
   void addCoreStatusListener(void Function(Map<String, dynamic>) listener) {
-    // This will be called when core status changes
-    // Implementation via MethodChannel handler
+    _coreStatusListeners.add(listener);
   }
 
   /// Add listener for core errors from :core process.
   void addCoreErrorListener(void Function(String) listener) {
-    // This will be called when core encounters an error
+    _coreErrorListeners.add(listener);
+  }
+
+  /// Remove listener for core status changes from :core process.
+  void removeCoreStatusListener(void Function(Map<String, dynamic>) listener) {
+    _coreStatusListeners.remove(listener);
+  }
+
+  /// Remove listener for core errors from :core process.
+  void removeCoreErrorListener(void Function(String) listener) {
+    _coreErrorListeners.remove(listener);
   }
 
   // --- Dual-process core service methods ---
@@ -199,6 +218,20 @@ class Service {
     final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
         'getCoreStatus');
     return Map<String, dynamic>.from(result ?? {});
+  }
+
+  /// Select node tag in :core process.
+  Future<bool> selectCoreNode(String nodeTag) async {
+    return await methodChannel.invokeMethod<bool>(
+          'selectCoreNode',
+          {'nodeTag': nodeTag},
+        ) ??
+        false;
+  }
+
+  /// Get currently selected node tag from :core process.
+  Future<String> getCoreSelectedNode() async {
+    return await methodChannel.invokeMethod<String>('getCoreSelectedNode') ?? '';
   }
 
   /// Get the TUN file descriptor from the core service.

@@ -8,7 +8,6 @@ import android.os.IBinder
 import com.follow.clash.RunState
 import com.follow.clash.State
 import com.follow.clash.common.Components
-import com.follow.clash.common.LeafPreferences
 import com.follow.clash.common.XBoardLog
 import com.follow.clash.core.ICoreService
 import com.follow.clash.core.ICoreServiceCallback
@@ -21,14 +20,36 @@ import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import java.io.File
 
 class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
     private lateinit var flutterMethodChannel: MethodChannel
+    private lateinit var appContext: Context
     private var coreService: ICoreService? = null
     private var isBound = false
+
+    private val coreCallback = object : ICoreServiceCallback.Stub() {
+        override fun onStatusChanged(isRunning: Boolean, mode: String?, selectedNode: String?) {
+            val payload = mapOf(
+                "isRunning" to isRunning,
+                "mode" to (mode ?: ""),
+                "selectedNode" to (selectedNode ?: "")
+            )
+            flutterMethodChannel.invokeMethodOnMainThread<Any>("coreStatus", payload)
+        }
+
+        override fun onError(error: String?) {
+            flutterMethodChannel.invokeMethodOnMainThread<Any>("coreError", error ?: "")
+        }
+
+        override fun onCrash(message: String?) {
+            flutterMethodChannel.invokeMethodOnMainThread<Any>("crash", message ?: "Core crashed")
+        }
+    }
 
     // AIDL connection to :core process
     private val coreServiceConnection = object : ServiceConnection {
@@ -36,6 +57,11 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             XBoardLog.i("ServicePlugin", "CoreService connected")
             coreService = ICoreService.Stub.asInterface(service)
             isBound = true
+            runCatching {
+                coreService?.registerCallback(coreCallback)
+            }.onFailure {
+                XBoardLog.e("ServicePlugin", "registerCallback failed", it)
+            }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -45,28 +71,44 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             // Notify Flutter about disconnection
             onServiceDisconnected("CoreService disconnected")
         }
+
+        override fun onBindingDied(name: ComponentName?) {
+            XBoardLog.e("ServicePlugin", "CoreService binding died")
+            coreService = null
+            isBound = false
+            onServiceDisconnected("CoreService binding died")
+        }
+
+        override fun onNullBinding(name: ComponentName?) {
+            XBoardLog.e("ServicePlugin", "CoreService returned null binding")
+            coreService = null
+            isBound = false
+            onServiceDisconnected("CoreService null binding")
+        }
     }
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        appContext = flutterPluginBinding.applicationContext
         flutterMethodChannel = MethodChannel(
             flutterPluginBinding.binaryMessenger, "${Components.PACKAGE_NAME}/service"
         )
         flutterMethodChannel.setMethodCallHandler(this)
 
         // Bind to CoreService in :core process
-        bindCoreService(flutterPluginBinding.applicationContext)
+        bindCoreService(appContext)
     }
 
     override fun onDetachedFromEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         flutterMethodChannel.setMethodCallHandler(null)
-        unbindCoreService(flutterPluginBinding.applicationContext)
+        unbindCoreService(appContext)
     }
 
     private fun bindCoreService(context: Context) {
-        val intent = Intent(context, com.follow.clash.service.CoreService::class.java)
+        val intent = Intent(context, com.follow.clash.service.CoreServiceHost::class.java)
         try {
-            context.bindService(intent, coreServiceConnection, Context.BIND_AUTO_CREATE)
+            isBound = context.bindService(intent, coreServiceConnection, Context.BIND_AUTO_CREATE)
         } catch (e: Exception) {
+            isBound = false
             XBoardLog.e("ServicePlugin", "Failed to bind CoreService", e)
         }
     }
@@ -74,15 +116,53 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     private fun unbindCoreService(context: Context) {
         if (isBound) {
             try {
+                runCatching {
+                    coreService?.unregisterCallback(coreCallback)
+                }.onFailure {
+                    XBoardLog.e("ServicePlugin", "unregisterCallback failed", it)
+                }
                 context.unbindService(coreServiceConnection)
             } catch (e: Exception) {
                 // Ignore
             }
             isBound = false
+            coreService = null
         }
     }
 
-    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) = when (call.method) {
+    private fun persistConfigForCore(configJson: String): String {
+        val dir = File(appContext.cacheDir, "core-config")
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+        val file = File(dir, "leaf_config.json")
+        val temp = File(dir, "leaf_config.tmp")
+        temp.writeText(configJson)
+        if (file.exists()) {
+            file.delete()
+        }
+        if (!temp.renameTo(file)) {
+            file.writeText(configJson)
+            temp.delete()
+        }
+        return file.absolutePath
+    }
+
+    private suspend fun awaitCoreService(timeoutMs: Long = 5_000L): ICoreService? {
+        coreService?.let { return it }
+        if (!isBound) {
+            bindCoreService(appContext)
+        }
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            coreService?.let { return it }
+            delay(100L)
+        }
+        return null
+    }
+
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        when (call.method) {
         "init" -> {
             handleInit(result)
         }
@@ -156,7 +236,9 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             launch {
                 try {
                     val configJson = call.argument<String>("configJson") ?: ""
-                    val success = coreService?.startLeaf(configJson) ?: false
+                    val configPath = persistConfigForCore(configJson)
+                    val core = awaitCoreService()
+                    val success = core?.startLeafFromFile(configPath) ?: false
                     result.success(success)
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "startCore failed", e)
@@ -169,7 +251,8 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             // Stop core service via AIDL
             launch {
                 try {
-                    val success = coreService?.stopLeaf() ?: false
+                    val core = awaitCoreService()
+                    val success = core?.stopLeaf() ?: false
                     result.success(success)
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "stopCore failed", e)
@@ -183,7 +266,9 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             launch {
                 try {
                     val configJson = call.argument<String>("configJson") ?: ""
-                    val success = coreService?.reloadLeaf(configJson) ?: false
+                    val configPath = persistConfigForCore(configJson)
+                    val core = awaitCoreService()
+                    val success = core?.reloadLeafFromFile(configPath) ?: false
                     result.success(success)
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "syncConfig failed", e)
@@ -196,11 +281,40 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             // Get core status via AIDL
             launch {
                 try {
-                    val status = coreService?.status ?: emptyMap<String, Any>()
-                    result.success(status)
+                    val core = awaitCoreService()
+                    val status = core?.status ?: hashMapOf<Any?, Any?>()
+                    val normalized = status.entries.associate { it.key.toString() to it.value }
+                    result.success(normalized)
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "getCoreStatus failed", e)
                     result.success(emptyMap<String, Any>())
+                }
+            }
+        }
+
+        "selectCoreNode" -> {
+            launch {
+                try {
+                    val nodeTag = call.argument<String>("nodeTag") ?: ""
+                    val core = awaitCoreService()
+                    val success = core?.selectNode(nodeTag) ?: false
+                    result.success(success)
+                } catch (e: Exception) {
+                    XBoardLog.e("ServicePlugin", "selectCoreNode failed", e)
+                    result.success(false)
+                }
+            }
+        }
+
+        "getCoreSelectedNode" -> {
+            launch {
+                try {
+                    val core = awaitCoreService()
+                    val node = core?.selectedNode ?: ""
+                    result.success(node)
+                } catch (e: Exception) {
+                    XBoardLog.e("ServicePlugin", "getCoreSelectedNode failed", e)
+                    result.success("")
                 }
             }
         }
@@ -213,17 +327,21 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
         "isTunReady" -> {
             // Check if TUN is ready in :core process
-            try {
-                val ready = coreService?.isTunReady() ?: false
-                result.success(ready)
-            } catch (e: Exception) {
-                XBoardLog.e("ServicePlugin", "isTunReady failed", e)
-                result.success(false)
+            launch {
+                try {
+                    val core = awaitCoreService()
+                    val ready = core?.isTunReady() ?: false
+                    result.success(ready)
+                } catch (e: Exception) {
+                    XBoardLog.e("ServicePlugin", "isTunReady failed", e)
+                    result.success(false)
+                }
             }
         }
 
-        else -> {
-            result.notImplemented()
+            else -> {
+                result.notImplemented()
+            }
         }
     }
 
@@ -281,22 +399,23 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     }
 
     private fun handleGetTunFd(result: MethodChannel.Result) {
-        // In dual-process mode, we don't need to get fd here
-        // :core process will use its local tunPfd
-        // Return -1 as placeholder - :core will replace with actual fd
-        if (coreService != null && isBound) {
-            // Check if TUN is ready in :core
-            try {
-                val ready = coreService?.isTunReady() ?: false
-                if (ready) {
-                    // Return 0 as placeholder - :core will replace with actual fd
-                    result.success(0)
-                    return
+        launch {
+            // In dual-process mode, we don't need to get fd here.
+            // :core process will use its local tunPfd.
+            val core = awaitCoreService()
+            if (core != null) {
+                try {
+                    val ready = core.isTunReady()
+                    if (ready) {
+                        // Return 0 as placeholder - :core will replace with actual fd.
+                        result.success(0)
+                        return@launch
+                    }
+                } catch (e: Exception) {
+                    XBoardLog.e("ServicePlugin", "isTunReady check failed", e)
                 }
-            } catch (e: Exception) {
-                XBoardLog.e("ServicePlugin", "isTunReady check failed", e)
             }
+            result.success(null)
         }
-        result.success(null)
     }
 }

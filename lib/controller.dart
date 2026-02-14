@@ -1506,6 +1506,7 @@ extension CoreControllerExt on AppController {
     try {
       // Leaf FFI library is loaded when LeafController is constructed.
       // No separate connect step needed.
+      await _leafController?.syncRemoteStatus();
       await Future.delayed(const Duration(milliseconds: 100));
       _ref.read(coreStatusProvider.notifier).value = CoreStatus.connected;
     } catch (e) {

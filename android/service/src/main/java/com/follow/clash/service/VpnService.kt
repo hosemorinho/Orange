@@ -57,6 +57,7 @@ class VpnService : SystemVpnService(), IBaseService,
                 // Already initialized
             }
         }
+        State.ensureOptionsFromPrefs()
         handleCreate()
     }
 

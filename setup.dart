@@ -778,7 +778,7 @@ class BuildCommand extends Command {
     ]);
   }
 
-  List<String> _resolveIosExportArgs() {
+  Future<List<String>> _resolveIosExportArgs() async {
     String normalize(String? value) {
       final v = (value ?? '').trim();
       if (v.isEmpty) return '';
@@ -799,13 +799,37 @@ class BuildCommand extends Command {
 
     final exportOptionsPlist = cliPlist.isNotEmpty ? cliPlist : envPlist;
     if (exportOptionsPlist.isNotEmpty) {
-      return ['--export-options-plist', exportOptionsPlist];
+      return ['--build-export-options-plist', exportOptionsPlist];
     }
 
     final exportMethod = cliMethod.isNotEmpty
         ? cliMethod
         : (envMethod.isNotEmpty ? envMethod : 'ad-hoc');
-    return ['--export-method', exportMethod];
+    final tempDir = Directory(join(current, '.dart_tool'))
+      ..createSync(recursive: true);
+    final plistPath = join(
+      tempDir.path,
+      'ios_export_options_${exportMethod.replaceAll(RegExp(r'[^a-zA-Z0-9_.-]'), '_')}.plist',
+    );
+    final plist =
+        '''
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>method</key>
+  <string>$exportMethod</string>
+  <key>signingStyle</key>
+  <string>automatic</string>
+  <key>stripSwiftSymbols</key>
+  <true/>
+  <key>compileBitcode</key>
+  <false/>
+</dict>
+</plist>
+''';
+    await File(plistPath).writeAsString(plist);
+    return ['--build-export-options-plist', plistPath];
   }
 
   Future<String?> get systemArch async {
@@ -867,12 +891,7 @@ class BuildCommand extends Command {
 
     switch (target) {
       case Target.windows:
-        await _buildDistributor(
-          target: target,
-          targets: 'exe,zip',
-          packageArgs: ['--description', archName ?? 'unknown'],
-          env: env,
-        );
+        await _buildDistributor(target: target, targets: 'exe,zip', env: env);
         return;
       case Target.linux:
         final targetMap = {Arch.arm64: 'linux-arm64', Arch.amd64: 'linux-x64'};
@@ -886,12 +905,7 @@ class BuildCommand extends Command {
         await _buildDistributor(
           target: target,
           targets: targets,
-          packageArgs: [
-            '--description',
-            archName ?? 'unknown',
-            '--build-target-platform',
-            defaultTarget!,
-          ],
+          packageArgs: ['--build-target-platform', defaultTarget!],
           env: env,
         );
         return;
@@ -916,20 +930,15 @@ class BuildCommand extends Command {
         return;
       case Target.macos:
         await _getMacosDependencies();
-        await _buildDistributor(
-          target: target,
-          targets: 'dmg',
-          packageArgs: ['--description', archName ?? 'unknown'],
-          env: env,
-        );
+        await _buildDistributor(target: target, targets: 'dmg', env: env);
         return;
       case Target.ios:
-        final iosExportArgs = _resolveIosExportArgs();
+        final iosExportArgs = await _resolveIosExportArgs();
         await _buildDistributor(
           target: target,
           targets: 'ipa',
           flutterBuildArgs: const ['no-codesign'],
-          packageArgs: ['--description', 'arm64-unsigned', ...iosExportArgs],
+          packageArgs: [...iosExportArgs],
           env: env,
         );
         return;

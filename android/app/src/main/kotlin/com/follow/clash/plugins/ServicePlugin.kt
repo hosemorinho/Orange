@@ -1,7 +1,6 @@
 package com.follow.clash.plugins
 
 import com.follow.clash.RunState
-import com.follow.clash.Service
 import com.follow.clash.State
 import com.follow.clash.common.Components
 import com.follow.clash.invokeMethodOnMainThread
@@ -14,8 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withTimeoutOrNull
 
 class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
@@ -40,10 +37,6 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
         "shutdown" -> {
             handleShutdown(result)
-        }
-
-        "invokeAction" -> {
-            handleInvokeAction(call, result)
         }
 
         "getRunTime" -> {
@@ -90,17 +83,8 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         }
     }
 
-    private fun handleInvokeAction(call: MethodCall, result: MethodChannel.Result) {
-        launch {
-            val data = call.arguments<String>()!!
-            Service.invokeAction(data) {
-                result.success(it)
-            }
-        }
-    }
-
     private fun handleShutdown(result: MethodChannel.Result) {
-        Service.unbind()
+        State.shutdown()
         result.success(true)
     }
 
@@ -126,16 +110,6 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         result.success(true)
     }
 
-    val semaphore = Semaphore(10)
-
-    fun handleSendEvent(value: String?) {
-        launch(Dispatchers.Main) {
-            semaphore.withPermit {
-                flutterMethodChannel.invokeMethod("event", value)
-            }
-        }
-    }
-
     private fun onServiceDisconnected(message: String) {
         State.runStateFlow.tryEmit(RunState.STOP)
         State.startResultDeferred?.complete(false)
@@ -145,26 +119,14 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     private fun handleSyncState(call: MethodCall, result: MethodChannel.Result) {
         val data = call.arguments<String>()!!
         State.sharedState = Gson().fromJson(data, SharedState::class.java)
-        launch {
-            State.syncState()
-            result.success("")
-        }
+        State.syncState()
+        result.success("")
     }
 
 
     fun handleInit(result: MethodChannel.Result) {
-        Service.bind()
-        launch {
-            Service.setEventListener {
-                handleSendEvent(it)
-            }.onSuccess {
-                result.success("")
-            }.onFailure {
-                result.success(it.message)
-            }
-
-        }
-        Service.onServiceDisconnected = ::onServiceDisconnected
+        State.onServiceDisconnected = ::onServiceDisconnected
+        result.success("")
     }
 
     private fun handleGetRunTime(result: MethodChannel.Result) {
@@ -175,6 +137,18 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     }
 
     private fun handleGetTunFd(result: MethodChannel.Result) {
-        result.success(com.follow.clash.service.State.tunFd)
+        val pfd = com.follow.clash.service.State.tunPfd
+        if (pfd == null) {
+            result.success(null)
+            return
+        }
+        try {
+            val dupPfd = pfd.dup()
+            val fd = dupPfd.detachFd()
+            result.success(fd)
+        } catch (e: Exception) {
+            com.follow.clash.common.XBoardLog.e("ServicePlugin", "handleGetTunFd dup failed", e)
+            result.success(null)
+        }
     }
 }

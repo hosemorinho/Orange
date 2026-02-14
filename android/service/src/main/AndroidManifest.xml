@@ -26,11 +26,6 @@
                 android:value="proxy" />
         </service>
 
-        <service
-            android:name=".RemoteService"
-            android:enabled="true"
-            android:exported="false" />
-
         <provider
             android:name=".FilesProvider"
             android:authorities="${applicationId}.files"

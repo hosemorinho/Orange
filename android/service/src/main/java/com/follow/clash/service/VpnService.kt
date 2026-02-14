@@ -222,10 +222,7 @@ class VpnService : SystemVpnService(), IBaseService,
             establish()
                 ?: throw NullPointerException("Establish VPN rejected by system")
         }
-        // Keep the PFD so it can be dup'd and sent to the :app process via AIDL.
-        // The raw fd is also stored for backward compatibility.
         State.tunPfd = pfd
-        State.tunFd = pfd.fd
         State.vpnService = this
     }
 
@@ -247,10 +244,11 @@ class VpnService : SystemVpnService(), IBaseService,
 
     override fun stop() {
         loader.cancel()
-        State.tunPfd?.close()
-        State.tunPfd = null
-        State.tunFd = null
         State.vpnService = null
+        try {
+            State.tunPfd?.close()
+        } catch (_: Exception) {}
+        State.tunPfd = null
         stopSelf()
     }
 

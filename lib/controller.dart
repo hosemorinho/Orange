@@ -734,7 +734,9 @@ extension SetupControllerExt on AppController {
   Future<void> _syncSharedStateBeforeStart({required String trigger}) async {
     if (!system.isAndroid) return;
     try {
-      await service?.syncState(sharedState.needSyncSharedState);
+      await service?.syncState(
+        _ref.read(sharedStateProvider).needSyncSharedState,
+      );
     } catch (e) {
       _logger.warning(
         'updateStatus: failed to sync shared state before start '

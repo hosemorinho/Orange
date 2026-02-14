@@ -2083,6 +2083,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOneTimePayment": MessageLookupByLibrary.simpleMessage("One-time"),
     "xboardOnetimePayment": MessageLookupByLibrary.simpleMessage("One-time"),
     "xboardOnline": MessageLookupByLibrary.simpleMessage("online"),
+    "xboardOnlineSupport": MessageLookupByLibrary.simpleMessage(
+      "Online Support",
+    ),
     "xboardOpen": MessageLookupByLibrary.simpleMessage("Open"),
     "xboardOpenPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to open payment page",
@@ -2277,6 +2280,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPlanWithId": m50,
     "xboardPlans": MessageLookupByLibrary.simpleMessage("Plans"),
     "xboardPleaseLogin": MessageLookupByLibrary.simpleMessage(
+      "Please login first",
+    ),
+    "xboardPleaseLoginFirst": MessageLookupByLibrary.simpleMessage(
       "Please login first",
     ),
     "xboardPleaseSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage(

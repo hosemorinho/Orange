@@ -1446,6 +1446,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardOneTimePayment": MessageLookupByLibrary.simpleMessage("一次性"),
     "xboardOnetimePayment": MessageLookupByLibrary.simpleMessage("一次性"),
     "xboardOnline": MessageLookupByLibrary.simpleMessage("在线"),
+    "xboardOnlineSupport": MessageLookupByLibrary.simpleMessage("在线客服"),
     "xboardOpen": MessageLookupByLibrary.simpleMessage("打开"),
     "xboardOpenPaymentFailed": MessageLookupByLibrary.simpleMessage("打开支付页面失败"),
     "xboardOpenPaymentLinkError": m46,
@@ -1572,6 +1573,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPlanWithId": m50,
     "xboardPlans": MessageLookupByLibrary.simpleMessage("套餐"),
     "xboardPleaseLogin": MessageLookupByLibrary.simpleMessage("请先登录"),
+    "xboardPleaseLoginFirst": MessageLookupByLibrary.simpleMessage("请先登录"),
     "xboardPleaseSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage(
       "请选择购买周期",
     ),

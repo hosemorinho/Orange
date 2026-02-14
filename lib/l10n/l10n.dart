@@ -8934,6 +8934,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Please login first`
+  String get xboardPleaseLoginFirst {
+    return Intl.message(
+      'Please login first',
+      name: 'xboardPleaseLoginFirst',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Online Support`
+  String get xboardOnlineSupport {
+    return Intl.message(
+      'Online Support',
+      name: 'xboardOnlineSupport',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Tickets`
   String get xboardTickets {
     return Intl.message('Tickets', name: 'xboardTickets', desc: '', args: []);

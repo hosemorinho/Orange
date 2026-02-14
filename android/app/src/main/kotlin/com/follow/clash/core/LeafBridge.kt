@@ -1,6 +1,7 @@
 package com.follow.clash.core
 
 import android.util.Log
+import com.follow.clash.common.XBoardLog
 
 /**
  * JNI bridge to libleaf.so (Rust proxy core).
@@ -26,7 +27,7 @@ object LeafBridge {
             System.loadLibrary("leaf")
             libraryLoaded = true
         } catch (e: UnsatisfiedLinkError) {
-            Log.e(TAG, "Failed to load libleaf.so: ${e.message}", e)
+            XBoardLog.e(TAG, "Failed to load libleaf.so: ${e.message}", e)
         }
     }
 
@@ -37,16 +38,17 @@ object LeafBridge {
      */
     fun enableProtection() {
         if (!libraryLoaded) {
-            Log.e(TAG, "enableProtection: libleaf.so not loaded, skipping")
+            XBoardLog.e(TAG, "enableProtection: libleaf.so not loaded, skipping")
             return
         }
         protectionEnabled = true
         try {
             nativeSetProtectSocketCallback()
+            XBoardLog.i(TAG, "enableProtection: socket protection callback registered")
         } catch (e: UnsatisfiedLinkError) {
-            Log.e(TAG, "nativeSetProtectSocketCallback failed: ${e.message}", e)
+            XBoardLog.e(TAG, "nativeSetProtectSocketCallback failed", e)
         } catch (e: Exception) {
-            Log.e(TAG, "enableProtection failed: ${e.message}", e)
+            XBoardLog.e(TAG, "enableProtection failed", e)
         }
     }
 
@@ -73,7 +75,7 @@ object LeafBridge {
         return try {
             com.follow.clash.service.State.vpnService?.protect(fd) ?: false
         } catch (e: Exception) {
-            Log.w(TAG, "protectSocket failed for fd=$fd: $e")
+            XBoardLog.e(TAG, "protectSocket failed for fd=$fd", e)
             false
         }
     }

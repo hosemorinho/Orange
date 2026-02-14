@@ -71,7 +71,7 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                 com.follow.clash.core.LeafBridge.enableProtection()
                 result.success(null)
             } catch (e: Throwable) {
-                android.util.Log.e("ServicePlugin", "enableSocketProtection failed", e)
+                com.follow.clash.common.XBoardLog.e("ServicePlugin", "enableSocketProtection failed", e)
                 result.error("SOCKET_PROTECTION_FAILED", e.message, null)
             }
         }
@@ -80,7 +80,7 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             try {
                 com.follow.clash.core.LeafBridge.disableProtection()
             } catch (e: Throwable) {
-                android.util.Log.e("ServicePlugin", "disableSocketProtection failed", e)
+                com.follow.clash.common.XBoardLog.e("ServicePlugin", "disableSocketProtection failed", e)
             }
             result.success(null)
         }

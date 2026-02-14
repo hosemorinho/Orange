@@ -76,13 +76,14 @@ class SubscriptionStatusService {
 
     // 使用 DomainSubscription 对象检查订阅状态
     if (subscriptionInfo == null) {
+      // API 获取失败，假设为有效状态，允许用户使用已有的本地订阅配置
+      // 不显示弹窗（needsDialog: false），只显示基本信息
       return SubscriptionStatusResult(
-        type: SubscriptionStatusType.parseFailed,
+        type: SubscriptionStatusType.valid,
         messageBuilder: (context) =>
-            AppLocalizations.of(context).subscriptionParseFailed,
-        detailMessageBuilder: (context) =>
-            AppLocalizations.of(context).subscriptionParseFailedDetail,
-        needsDialog: true,
+            AppLocalizations.of(context).subscriptionValid,
+        detailMessageBuilder: null,  // 不显示详情，避免误导用户
+        needsDialog: false,  // 关键：不弹窗，避免中断用户使用
       );
     }
 
@@ -219,7 +220,8 @@ class SubscriptionStatusService {
       case SubscriptionStatusType.noSubscription:
         return true;
       case SubscriptionStatusType.parseFailed:
-        return true;
+        // API 获取失败不应该弹窗，避免中断用户使用已有的本地订阅配置
+        return false;
       case SubscriptionStatusType.valid:
         return false;
       case SubscriptionStatusType.notLoggedIn:

@@ -92,7 +92,7 @@ class SubscriptionStatusService {
     if (expiredAt != null) {
       final now = DateTime.now();
       final isExpired = subscriptionInfo.isExpired;
-      final remainingDays = subscriptionInfo.daysRemaining;
+      final remainingDays = subscriptionInfo.daysRemaining ?? 0;
 
       if (isExpired) {
         return SubscriptionStatusResult(

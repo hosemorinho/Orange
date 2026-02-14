@@ -117,10 +117,14 @@ jobs:
             lib/l10n/
             lib/models/generated/
             lib/database/generated/
+            lib/providers/generated/
             lib/xboard/domain/models/generated/
             lib/xboard/adapter/state/generated/
             lib/xboard/adapter/initialization/generated/
             lib/xboard/database/generated/
+            lib/xboard/features/initialization/models/generated/
+            lib/xboard/features/invite/providers/generated/
+            lib/xboard/features/order/providers/generated/
           retention-days: 1
 
   build:

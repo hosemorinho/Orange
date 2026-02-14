@@ -615,7 +615,12 @@ class BuildCommand extends Command {
 
     switch (target) {
       case Target.windows:
-        await _buildDistributor(target: target, targets: 'exe,zip', env: env);
+        await _buildDistributor(
+          target: target,
+          targets: 'exe,zip',
+          args: ' --description $archName',
+          env: env,
+        );
         return;
       case Target.linux:
         final targetMap = {Arch.arm64: 'linux-arm64', Arch.amd64: 'linux-x64'};
@@ -629,7 +634,8 @@ class BuildCommand extends Command {
         await _buildDistributor(
           target: target,
           targets: targets,
-          args: ' --build-target-platform $defaultTarget',
+          args:
+              ' --description $archName --build-target-platform $defaultTarget',
           env: env,
         );
         return;
@@ -654,7 +660,12 @@ class BuildCommand extends Command {
         return;
       case Target.macos:
         await _getMacosDependencies();
-        await _buildDistributor(target: target, targets: 'dmg', env: env);
+        await _buildDistributor(
+          target: target,
+          targets: 'dmg',
+          args: ' --description $archName',
+          env: env,
+        );
         return;
     }
   }

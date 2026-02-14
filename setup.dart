@@ -295,39 +295,49 @@ class Build {
 
   static const String _vcRedistUrl =
       'https://aka.ms/vs/17/release/vc_redist.x64.exe';
+  static const String _vcRedistFileName = 'vc_redist.x64.exe';
 
   static Future<void> downloadVCRedist() async {
     final packagingDir = join(current, 'windows', 'packaging', 'exe');
-    final vcRedistPath = join(packagingDir, 'vc_redist.x64.exe');
+    final packagingVcRedistPath = join(packagingDir, _vcRedistFileName);
+    final distDirectory = Directory(join(current, 'dist'));
+    final distVcRedistPath = join(distDirectory.path, _vcRedistFileName);
+    final packagingVcRedistFile = File(packagingVcRedistPath);
 
-    // Check if already exists
-    if (await File(vcRedistPath).exists()) {
-      print('VC++ redist already exists, skipping download');
-      return;
+    if (!await packagingVcRedistFile.exists()) {
+      print('Downloading VC++ runtime from $_vcRedistUrl...');
+      final client = HttpClient();
+      try {
+        final request = await client.getUrl(Uri.parse(_vcRedistUrl));
+        final response = await request.close();
+
+        if (response.statusCode != 200) {
+          throw Exception(
+            'Failed to download VC++ runtime: ${response.statusCode}',
+          );
+        }
+
+        final sink = packagingVcRedistFile.openWrite();
+        try {
+          await response.forEach(sink.add);
+        } finally {
+          await sink.close();
+        }
+      } finally {
+        client.close();
+      }
+      print('VC++ runtime downloaded to $packagingVcRedistPath');
+    } else {
+      print('VC++ redist already exists in packaging directory');
     }
 
-    print('Downloading VC++ runtime from $_vcRedistUrl...');
-    final client = HttpClient();
-    // Follow redirects automatically
-    final request = await client.getUrl(Uri.parse(_vcRedistUrl));
-    final response = await request.close();
-
-    // Check response status
-    if (response.statusCode != 200) {
-      throw Exception('Failed to download VC++ runtime: ${response.statusCode}');
+    await distDirectory.create(recursive: true);
+    final distVcRedistFile = File(distVcRedistPath);
+    if (await distVcRedistFile.exists()) {
+      await distVcRedistFile.delete();
     }
-
-    // Download to file
-    final file = File(vcRedistPath);
-    final sink = file.openWrite();
-    try {
-      await response.forEach(sink.add);
-    } finally {
-      await sink.close();
-    }
-    client.close();
-
-    print('VC++ runtime downloaded to $vcRedistPath');
+    await packagingVcRedistFile.copy(distVcRedistPath);
+    print('VC++ runtime prepared for Inno Setup at $distVcRedistPath');
   }
 
   static List<String> getExecutable(String command) {

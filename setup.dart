@@ -832,6 +832,111 @@ class BuildCommand extends Command {
     return ['--build-export-options-plist', plistPath];
   }
 
+  bool _isTruthyEnv(String name) {
+    final value = (Platform.environment[name] ?? '').trim().toLowerCase();
+    return value == '1' || value == 'true' || value == 'yes' || value == 'on';
+  }
+
+  bool get _useSignedIosPackaging => _isTruthyEnv('IOS_SIGNED');
+
+  String _readAppVersion() {
+    final pubspecFile = File(join(current, 'pubspec.yaml'));
+    if (!pubspecFile.existsSync()) {
+      return '0.0.0+0';
+    }
+    for (final line in pubspecFile.readAsLinesSync()) {
+      final trimmed = line.trimLeft();
+      if (!trimmed.startsWith('version:')) continue;
+      final value = trimmed.substring('version:'.length).trim();
+      if (value.isNotEmpty) return value;
+    }
+    return '0.0.0+0';
+  }
+
+  Future<void> _buildUnsignedIosIpa() async {
+    if (!Platform.isMacOS) {
+      throw 'Unsigned iOS packaging is only supported on macOS runners';
+    }
+
+    await Build.exec([
+      'flutter',
+      'build',
+      'ipa',
+      '--release',
+      '--verbose',
+      '--dart-define-from-file=env.json',
+      '--no-codesign',
+    ], name: 'build unsigned ios ipa');
+
+    final candidates = <Directory>[];
+    final archiveDir = Directory(join(current, 'build', 'ios', 'archive'));
+    if (archiveDir.existsSync()) {
+      candidates.addAll(
+        archiveDir
+            .listSync(recursive: true, followLinks: false)
+            .whereType<Directory>()
+            .where(
+              (d) =>
+                  d.path.endsWith('.app') &&
+                  d.path.contains(
+                    '${Platform.pathSeparator}Applications${Platform.pathSeparator}',
+                  ),
+            ),
+      );
+    }
+    final iphoneOsDir = Directory(join(current, 'build', 'ios', 'iphoneos'));
+    if (iphoneOsDir.existsSync()) {
+      candidates.addAll(
+        iphoneOsDir
+            .listSync(recursive: false, followLinks: false)
+            .whereType<Directory>()
+            .where((d) => d.path.endsWith('.app')),
+      );
+    }
+    if (candidates.isEmpty) {
+      throw 'Could not find built iOS .app bundle for unsigned packaging';
+    }
+    candidates.sort(
+      (a, b) => b.statSync().modified.compareTo(a.statSync().modified),
+    );
+    final appBundle = candidates.first;
+
+    final tempDir = Directory(join(current, '.dart_tool', 'ios_unsigned_ipa'));
+    if (tempDir.existsSync()) {
+      await tempDir.delete(recursive: true);
+    }
+    await tempDir.create(recursive: true);
+    final payloadDir = Directory(join(tempDir.path, 'Payload'))
+      ..createSync(recursive: true);
+
+    final payloadAppPath = join(payloadDir.path, basename(appBundle.path));
+    await Build.exec([
+      'ditto',
+      appBundle.path,
+      payloadAppPath,
+    ], name: 'copy app bundle into ipa payload');
+
+    final distDir = Directory(Build.distPath)..createSync(recursive: true);
+    final version = _readAppVersion().replaceAll('+', '_');
+    final app = Build.appName.replaceAll(RegExp(r'\s+'), '_');
+    final ipaPath = join(distDir.path, '$app-$version-ios-arm64-unsigned.ipa');
+
+    await Build.exec(
+      [
+        'ditto',
+        '-c',
+        '-k',
+        '--sequesterRsrc',
+        '--keepParent',
+        'Payload',
+        ipaPath,
+      ],
+      workingDirectory: tempDir.path,
+      name: 'package unsigned ipa',
+    );
+    print('Unsigned iOS artifact created: $ipaPath');
+  }
+
   Future<String?> get systemArch async {
     if (Platform.isWindows) {
       return Platform.environment['PROCESSOR_ARCHITECTURE'];
@@ -933,14 +1038,17 @@ class BuildCommand extends Command {
         await _buildDistributor(target: target, targets: 'dmg', env: env);
         return;
       case Target.ios:
-        final iosExportArgs = await _resolveIosExportArgs();
-        await _buildDistributor(
-          target: target,
-          targets: 'ipa',
-          flutterBuildArgs: const ['no-codesign'],
-          packageArgs: [...iosExportArgs],
-          env: env,
-        );
+        if (_useSignedIosPackaging) {
+          final iosExportArgs = await _resolveIosExportArgs();
+          await _buildDistributor(
+            target: target,
+            targets: 'ipa',
+            packageArgs: [...iosExportArgs],
+            env: env,
+          );
+        } else {
+          await _buildUnsignedIosIpa();
+        }
         return;
     }
   }

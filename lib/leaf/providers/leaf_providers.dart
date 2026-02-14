@@ -6,6 +6,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/models/leaf_node.dart';
 import 'package:fl_clash/providers/state.dart';
+import 'package:fl_clash/xboard/core/logger/file_logger.dart';
 import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

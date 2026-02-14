@@ -47,6 +47,8 @@ class System {
 
   bool get isLinux => Platform.isLinux;
 
+  bool get isIOS => Platform.isIOS;
+
   Future<int> get version async {
     final deviceInfo = await DeviceInfoPlugin().deviceInfo;
     return switch (Platform.operatingSystem) {

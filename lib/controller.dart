@@ -366,10 +366,7 @@ extension ProxiesControllerExt on AppController {
   }) {
     debouncer.call(
       FunctionTag.changeProxy,
-      (
-        String groupName,
-        String proxyName,
-      ) async {
+      (String groupName, String proxyName) async {
         await changeProxy(groupName: groupName, proxyName: proxyName);
         updateGroupsDebounce();
       },
@@ -624,7 +621,10 @@ extension SetupControllerExt on AppController {
       final exists = globalGroup.all.any((p) => p.name == currentSelected);
       if (exists && upper != 'DIRECT' && upper != 'REJECT') {
         if (immediate) {
-          await changeProxy(groupName: globalGroup.name, proxyName: currentSelected);
+          await changeProxy(
+            groupName: globalGroup.name,
+            proxyName: currentSelected,
+          );
           updateGroupsDebounce();
         } else {
           changeProxyDebounce(globalGroup.name, currentSelected);
@@ -655,8 +655,7 @@ extension SetupControllerExt on AppController {
     final selectedMap = _ref.read(selectedMapProvider);
 
     // If already on a non-GLOBAL group, push its current selection to core
-    if (currentGroupName != null &&
-        currentGroupName != GroupName.GLOBAL.name) {
+    if (currentGroupName != null && currentGroupName != GroupName.GLOBAL.name) {
       final currentGroup = groups.firstWhere(
         (g) => g.name == currentGroupName,
         orElse: () => groups.first,
@@ -670,7 +669,9 @@ extension SetupControllerExt on AppController {
           if (exists && upper != 'DIRECT' && upper != 'REJECT') {
             if (immediate) {
               await changeProxy(
-                  groupName: currentGroupName, proxyName: currentSelected);
+                groupName: currentGroupName,
+                proxyName: currentSelected,
+              );
               updateGroupsDebounce();
             } else {
               changeProxyDebounce(currentGroupName, currentSelected);
@@ -685,7 +686,9 @@ extension SetupControllerExt on AppController {
             updateCurrentSelectedMap(currentGroupName, proxy.name);
             if (immediate) {
               await changeProxy(
-                  groupName: currentGroupName, proxyName: proxy.name);
+                groupName: currentGroupName,
+                proxyName: proxy.name,
+              );
               updateGroupsDebounce();
             } else {
               changeProxyDebounce(currentGroupName, proxy.name);
@@ -710,7 +713,9 @@ extension SetupControllerExt on AppController {
             if (exists && upper != 'DIRECT' && upper != 'REJECT') {
               if (immediate) {
                 await changeProxy(
-                    groupName: group.name, proxyName: groupSelected);
+                  groupName: group.name,
+                  proxyName: groupSelected,
+                );
                 updateGroupsDebounce();
               } else {
                 changeProxyDebounce(group.name, groupSelected);
@@ -724,8 +729,7 @@ extension SetupControllerExt on AppController {
             if (upper != 'DIRECT' && upper != 'REJECT') {
               updateCurrentSelectedMap(group.name, proxy.name);
               if (immediate) {
-                await changeProxy(
-                    groupName: group.name, proxyName: proxy.name);
+                await changeProxy(groupName: group.name, proxyName: proxy.name);
                 updateGroupsDebounce();
               } else {
                 changeProxyDebounce(group.name, proxy.name);
@@ -791,7 +795,8 @@ extension SetupControllerExt on AppController {
     final sel = selectedMap[group.name];
     if (sel != null && sel.isNotEmpty) {
       final upper = sel.toUpperCase();
-      if (upper != 'DIRECT' && upper != 'REJECT' &&
+      if (upper != 'DIRECT' &&
+          upper != 'REJECT' &&
           group.all.any((p) => p.name == sel)) {
         // Valid selection — Go core already applied it via setupConfig
         return;
@@ -807,13 +812,10 @@ extension SetupControllerExt on AppController {
       }
     }
     // Fallback to first non-DIRECT/REJECT proxy
-    fallback ??= group.all.cast<Proxy?>().firstWhere(
-      (p) {
-        final upper = p!.name.toUpperCase();
-        return upper != 'DIRECT' && upper != 'REJECT';
-      },
-      orElse: () => null,
-    )?.name;
+    fallback ??= group.all.cast<Proxy?>().firstWhere((p) {
+      final upper = p!.name.toUpperCase();
+      return upper != 'DIRECT' && upper != 'REJECT';
+    }, orElse: () => null)?.name;
 
     if (fallback != null) {
       updateCurrentSelectedMap(group.name, fallback);
@@ -933,7 +935,9 @@ extension SetupControllerExt on AppController {
 
     // File is encrypted — find the subscription token from the profile URL
     final profile = _ref.read(profilesProvider).getProfile(profileId);
-    final token = profile != null ? ProfileCipher.extractToken(profile.url) : null;
+    final token = profile != null
+        ? ProfileCipher.extractToken(profile.url)
+        : null;
     if (token == null || token.isEmpty) {
       // Can't decrypt, try loading as-is (will likely fail)
       return await coreController.getConfig(profileId);
@@ -982,17 +986,6 @@ extension SetupControllerExt on AppController {
     }
     final realTunEnable = _ref.read(realTunEnableProvider);
     var realPatchConfig = patchConfig.copyWith.tun(enable: realTunEnable);
-    if (!system.isAndroid &&
-        !await isPortAvailable(realPatchConfig.mixedPort)) {
-      final newPort = await findAvailablePort(realPatchConfig.mixedPort);
-      commonPrint.log(
-        'Port ${realPatchConfig.mixedPort} is occupied, using $newPort',
-        logLevel: LogLevel.warning,
-      );
-      realPatchConfig = realPatchConfig.copyWith(mixedPort: newPort);
-      _ref.read(patchClashConfigProvider.notifier).value =
-          patchConfig.copyWith(mixedPort: newPort);
-    }
     final setupState = await _ref.read(setupStateProvider(profile?.id).future);
     globalState.lastSetupState = setupState;
     if (system.isAndroid) {
@@ -1346,7 +1339,9 @@ extension CommonControllerExt on AppController {
   }
 
   Future<void> updateMode() async {
-    final currentMode = _ref.read(patchClashConfigProvider.select((state) => state.mode));
+    final currentMode = _ref.read(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
     final index = Mode.values.indexWhere((item) => item == currentMode);
     if (index == -1) {
       return;

@@ -19,18 +19,15 @@ class AllowLanCard extends ConsumerWidget {
     );
 
     return SwitchListTile(
-      secondary: Icon(
-        Icons.wifi,
-        color: theme.colorScheme.primary,
-      ),
+      secondary: Icon(Icons.wifi, color: theme.colorScheme.primary),
       title: Text(appLocalizations.xboardAllowLan),
       subtitle: Text(appLocalizations.xboardLanSharingDesc),
       value: allowLan,
       contentPadding: EdgeInsets.zero,
       onChanged: (value) {
-        ref.read(patchClashConfigProvider.notifier).update(
-              (state) => state.copyWith(allowLan: value),
-            );
+        ref
+            .read(patchClashConfigProvider.notifier)
+            .update((state) => state.copyWith(allowLan: value));
       },
     );
   }
@@ -43,28 +40,17 @@ class LanPortCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final appLocalizations = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final allowLan = ref.watch(
-      patchClashConfigProvider.select((state) => state.allowLan),
-    );
     final mixedPort = ref.watch(
       patchClashConfigProvider.select((state) => state.mixedPort),
     );
 
     return ListTile(
-      enabled: allowLan,
       contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        Icons.settings_ethernet,
-        color: allowLan
-            ? theme.colorScheme.primary
-            : theme.colorScheme.onSurfaceVariant,
-      ),
+      leading: Icon(Icons.settings_ethernet, color: theme.colorScheme.primary),
       title: Text(appLocalizations.xboardProxyPort),
       subtitle: Text('$mixedPort'),
       trailing: const Icon(Icons.edit),
-      onTap: allowLan
-          ? () => _showPortDialog(context, ref, mixedPort)
-          : null,
+      onTap: () => _showPortDialog(context, ref, mixedPort),
     );
   }
 
@@ -105,9 +91,9 @@ class LanPortCard extends ConsumerWidget {
                   );
                   return;
                 }
-                ref.read(patchClashConfigProvider.notifier).update(
-                      (state) => state.copyWith(mixedPort: port),
-                    );
+                ref
+                    .read(patchClashConfigProvider.notifier)
+                    .update((state) => state.copyWith(mixedPort: port));
                 Navigator.pop(context);
               },
               child: Text(appLocalizations.confirm),
@@ -169,71 +155,65 @@ class _LanInfoCardState extends ConsumerState<LanInfoCard> {
         ),
       ),
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 18,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 18,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                appLocalizations.xboardProxyInfo,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
                   color: theme.colorScheme.primary,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  appLocalizations.xboardProxyInfo,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _ProxyInfoRow(
-              label: 'HTTP/HTTPS',
-              value: httpProxy,
-            ),
-            const SizedBox(height: 6),
-            _ProxyInfoRow(
-              label: 'SOCKS5',
-              value: socksProxy,
-            ),
-            const Divider(height: 24),
-            Text(
-              appLocalizations.xboardProxyCommands,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _CommandBlock(
-              platform: 'Unix (Bash/Zsh)',
-              command:
-                  'export HTTP_PROXY=$httpProxy\nexport HTTPS_PROXY=$httpProxy\nexport ALL_PROXY=$socksProxy',
-            ),
-            const SizedBox(height: 8),
-            _CommandBlock(
-              platform: 'Windows (PowerShell)',
-              command:
-                  '\$env:HTTP_PROXY="$httpProxy"\n\$env:HTTPS_PROXY="$httpProxy"\n\$env:ALL_PROXY="$socksProxy"',
-            ),
-            const SizedBox(height: 8),
-            _CommandBlock(
-              platform: 'Windows (CMD)',
-              command:
-                  'set HTTP_PROXY=$httpProxy\nset HTTPS_PROXY=$httpProxy\nset ALL_PROXY=$socksProxy',
-            ),
-            if (Platform.isMacOS) ...[
-              const SizedBox(height: 8),
-              _CommandBlock(
-                platform: 'macOS System Proxy',
-                command:
-                    'networksetup -setwebproxy "Wi-Fi" $ip $mixedPort\nnetworksetup -setsecurewebproxy "Wi-Fi" $ip $mixedPort\nnetworksetup -setsocksfirewallproxy "Wi-Fi" $ip $mixedPort',
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          _ProxyInfoRow(label: 'HTTP/HTTPS', value: httpProxy),
+          const SizedBox(height: 6),
+          _ProxyInfoRow(label: 'SOCKS5', value: socksProxy),
+          const Divider(height: 24),
+          Text(
+            appLocalizations.xboardProxyCommands,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _CommandBlock(
+            platform: 'Unix (Bash/Zsh)',
+            command:
+                'export HTTP_PROXY=$httpProxy\nexport HTTPS_PROXY=$httpProxy\nexport ALL_PROXY=$socksProxy',
+          ),
+          const SizedBox(height: 8),
+          _CommandBlock(
+            platform: 'Windows (PowerShell)',
+            command:
+                '\$env:HTTP_PROXY="$httpProxy"\n\$env:HTTPS_PROXY="$httpProxy"\n\$env:ALL_PROXY="$socksProxy"',
+          ),
+          const SizedBox(height: 8),
+          _CommandBlock(
+            platform: 'Windows (CMD)',
+            command:
+                'set HTTP_PROXY=$httpProxy\nset HTTPS_PROXY=$httpProxy\nset ALL_PROXY=$socksProxy',
+          ),
+          if (Platform.isMacOS) ...[
+            const SizedBox(height: 8),
+            _CommandBlock(
+              platform: 'macOS System Proxy',
+              command:
+                  'networksetup -setwebproxy "Wi-Fi" $ip $mixedPort\nnetworksetup -setsecurewebproxy "Wi-Fi" $ip $mixedPort\nnetworksetup -setsocksfirewallproxy "Wi-Fi" $ip $mixedPort',
+            ),
           ],
-        ),
+        ],
+      ),
     );
   }
 }
@@ -242,10 +222,7 @@ class _ProxyInfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _ProxyInfoRow({
-    required this.label,
-    required this.value,
-  });
+  const _ProxyInfoRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -296,10 +273,7 @@ class _CommandBlock extends StatelessWidget {
   final String platform;
   final String command;
 
-  const _CommandBlock({
-    required this.platform,
-    required this.command,
-  });
+  const _CommandBlock({required this.platform, required this.command});
 
   @override
   Widget build(BuildContext context) {

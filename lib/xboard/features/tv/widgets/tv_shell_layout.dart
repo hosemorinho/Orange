@@ -21,14 +21,16 @@ class TvShellLayout extends StatelessWidget {
                 index,
                 initialLocation: index == navigationShell.currentIndex,
               );
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                FocusScope.of(context).nextFocus();
+              });
             },
           ),
           Divider(
             height: 1,
-            color: Theme.of(context)
-                .colorScheme
-                .outlineVariant
-                .withValues(alpha: 0.3),
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.3),
           ),
           Expanded(child: navigationShell),
         ],
@@ -137,6 +139,7 @@ class _TabButtonState extends State<_TabButton> {
     }
 
     return Focus(
+      autofocus: widget.isSelected,
       onFocusChange: (f) => setState(() => _isFocused = f),
       onKeyEvent: _handleKeyEvent,
       child: GestureDetector(

@@ -63,7 +63,7 @@ class TvTrafficBar extends ConsumerWidget {
                 minHeight: 8,
                 backgroundColor: colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  progress > 0.9 ? colorScheme.error : colorScheme.primary,
+                  progress >= 0.95 ? colorScheme.error : colorScheme.primary,
                 ),
               ),
             ),
@@ -71,8 +71,7 @@ class TvTrafficBar extends ConsumerWidget {
           if (daysRemaining != null) ...[
             const SizedBox(width: 16),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 color: daysRemaining <= 7
                     ? colorScheme.errorContainer

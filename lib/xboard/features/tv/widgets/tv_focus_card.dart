@@ -10,6 +10,7 @@ class TvFocusCard extends StatefulWidget {
   final bool isSelected;
   final bool autofocus;
   final FocusNode? focusNode;
+  final ValueChanged<bool>? onFocusChange;
   final EdgeInsetsGeometry? padding;
   final BorderRadius? borderRadius;
 
@@ -20,6 +21,7 @@ class TvFocusCard extends StatefulWidget {
     this.isSelected = false,
     this.autofocus = false,
     this.focusNode,
+    this.onFocusChange,
     this.padding,
     this.borderRadius,
   });
@@ -46,6 +48,7 @@ class _TvFocusCardState extends State<TvFocusCard> {
 
   void _handleFocusChange(bool hasFocus) {
     setState(() => _isFocused = hasFocus);
+    widget.onFocusChange?.call(hasFocus);
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
@@ -76,7 +79,9 @@ class _TvFocusCardState extends State<TvFocusCard> {
     } else if (widget.isSelected) {
       bgColor = colorScheme.primaryContainer.withValues(alpha: 0.5);
       border = Border.all(
-          color: colorScheme.primary.withValues(alpha: 0.3), width: 1);
+        color: colorScheme.primary.withValues(alpha: 0.3),
+        width: 1,
+      );
     } else {
       bgColor = Colors.transparent;
       border = null;
@@ -91,10 +96,9 @@ class _TvFocusCardState extends State<TvFocusCard> {
         onTap: widget.onPressed,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding: widget.padding ?? const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
+          padding:
+              widget.padding ??
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: radius,

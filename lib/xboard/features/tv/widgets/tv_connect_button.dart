@@ -1,10 +1,9 @@
 import 'dart:math';
 
-import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/providers/database.dart';
+import 'package:fl_clash/state.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +24,7 @@ class _TvConnectButtonState extends ConsumerState<TvConnectButton>
   late Animation<double> _iconAnimation;
   late AnimationController _pulseController;
   bool _isStart = false;
+  bool _isSwitching = false;
   bool _isFocused = false;
   final _focusNode = FocusNode();
 
@@ -49,16 +49,12 @@ class _TvConnectButtonState extends ConsumerState<TvConnectButton>
     );
     if (_isStart) _pulseController.repeat(reverse: true);
 
-    ref.listenManual(
-      runTimeProvider.select((state) => state != null),
-      (prev, next) {
-        if (next != _isStart) {
-          setState(() => _isStart = next);
-          _updateController();
-        }
-      },
-      fireImmediately: true,
-    );
+    ref.listenManual(isStartProvider, (prev, next) {
+      if (next != _isStart) {
+        setState(() => _isStart = next);
+        _updateController();
+      }
+    }, fireImmediately: true);
   }
 
   @override
@@ -69,14 +65,25 @@ class _TvConnectButtonState extends ConsumerState<TvConnectButton>
     super.dispose();
   }
 
-  void _handleSwitchStart() {
-    setState(() => _isStart = !_isStart);
-    _updateController();
-    debouncer.call(
-      FunctionTag.updateStatus,
-      () => appController.updateStatus(_isStart),
-      duration: commonDuration,
-    );
+  Future<void> _handleSwitchStart() async {
+    if (_isSwitching) return;
+    final targetStatus = !_isStart;
+    setState(() => _isSwitching = true);
+    try {
+      await appController.updateStatus(targetStatus);
+    } catch (e) {
+      if (mounted) {
+        globalState.showNotifier(e.toString());
+      }
+    } finally {
+      if (!mounted) return;
+      final latest = ref.read(isStartProvider);
+      setState(() {
+        _isSwitching = false;
+        _isStart = latest;
+      });
+      _updateController();
+    }
   }
 
   void _updateController() {
@@ -97,7 +104,9 @@ class _TvConnectButtonState extends ConsumerState<TvConnectButton>
         (event.logicalKey == LogicalKeyboardKey.select ||
             event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.gameButtonA)) {
-      _handleSwitchStart();
+      if (!_isSwitching) {
+        _handleSwitchStart();
+      }
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -128,16 +137,14 @@ class _TvConnectButtonState extends ConsumerState<TvConnectButton>
       onFocusChange: (f) => setState(() => _isFocused = f),
       onKeyEvent: _handleKeyEvent,
       child: GestureDetector(
-        onTap: _handleSwitchStart,
+        onTap: _isSwitching ? null : () => _handleSwitchStart(),
         child: AnimatedBuilder(
           animation: _pulseController,
           builder: (context, child) {
-            final scale =
-                _isFocused ? 1.05 : (_isStart ? 1.0 + _pulseController.value * 0.02 : 1.0);
-            return Transform.scale(
-              scale: scale,
-              child: child,
-            );
+            final scale = _isFocused
+                ? 1.05
+                : (_isStart ? 1.0 + _pulseController.value * 0.02 : 1.0);
+            return Transform.scale(scale: scale, child: child);
           },
           child: SizedBox(
             width: 160,
@@ -159,12 +166,21 @@ class _TvConnectButtonState extends ConsumerState<TvConnectButton>
                     shape: BoxShape.circle,
                   ),
                   child: Center(
-                    child: AnimatedIcon(
-                      icon: AnimatedIcons.play_pause,
-                      progress: _iconAnimation,
-                      size: 72,
-                      color: fgColor,
-                    ),
+                    child: _isSwitching
+                        ? SizedBox(
+                            width: 34,
+                            height: 34,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: fgColor,
+                            ),
+                          )
+                        : AnimatedIcon(
+                            icon: AnimatedIcons.play_pause,
+                            progress: _iconAnimation,
+                            size: 72,
+                            color: fgColor,
+                          ),
                   ),
                 ),
               ),

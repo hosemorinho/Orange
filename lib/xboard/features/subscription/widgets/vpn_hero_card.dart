@@ -71,18 +71,17 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       _ringController.repeat(reverse: true);
     }
 
-    ref.listenManual(
-      runTimeProvider.select((state) => state != null),
-      (prev, next) {
-        if (next != _isStart) {
-          setState(() {
-            _isStart = next;
-          });
-          _updateController();
-        }
-      },
-      fireImmediately: true,
-    );
+    ref.listenManual(runTimeProvider.select((state) => state != null), (
+      prev,
+      next,
+    ) {
+      if (next != _isStart) {
+        setState(() {
+          _isStart = next;
+        });
+        _updateController();
+      }
+    }, fireImmediately: true);
   }
 
   @override
@@ -97,13 +96,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       _isStart = !_isStart;
     });
     _updateController();
-    debouncer.call(
-      FunctionTag.updateStatus,
-      () {
-        appController.updateStatus(_isStart);
-      },
-      duration: commonDuration,
-    );
+    debouncer.call(FunctionTag.updateStatus, () {
+      appController.updateStatus(_isStart);
+    }, duration: commonDuration);
   }
 
   void _updateController() {
@@ -120,19 +115,18 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   }
 
   void _navigateToProxies() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const FlatNodeListView(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const FlatNodeListView()));
   }
 
   // --- Mode change logic (ported from XBoardOutboundMode) ---
 
   Future<void> _handleModeChange(Mode modeOption) async {
     _logger.debug('[VpnHeroCard] Mode change to: $modeOption');
-    final currentMode =
-        ref.read(patchClashConfigProvider.select((state) => state.mode));
+    final currentMode = ref.read(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
     if (currentMode != modeOption) {
       // Carry over node selection between modes (data only, no core push).
       // changeMode() handles pushing to core via _ensureGlobalProxySelection
@@ -152,27 +146,24 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           final shouldEnable = await TunIntroductionDialog.show(context);
           if (shouldEnable == true) {
             await storageService.markTunFirstUseShown();
-            ref.read(patchClashConfigProvider.notifier).update(
-                  (state) => state.copyWith.tun(enable: true),
-                );
+            ref
+                .read(patchClashConfigProvider.notifier)
+                .update((state) => state.copyWith.tun(enable: true));
           }
         }
       } else {
-        ref.read(patchClashConfigProvider.notifier).update(
-              (state) => state.copyWith.tun(enable: true),
-            );
+        ref
+            .read(patchClashConfigProvider.notifier)
+            .update((state) => state.copyWith.tun(enable: true));
       }
     } else {
-      ref.read(patchClashConfigProvider.notifier).update(
-            (state) => state.copyWith.tun(enable: false),
-          );
+      ref
+          .read(patchClashConfigProvider.notifier)
+          .update((state) => state.copyWith.tun(enable: false));
     }
   }
 
-  void _syncNodeSelectionOnModeChange({
-    required Mode from,
-    required Mode to,
-  }) {
+  void _syncNodeSelectionOnModeChange({required Mode from, required Mode to}) {
     final groups = ref.read(groupsProvider);
     final selectedMap = ref.read(selectedMapProvider);
     if (groups.isEmpty) return;
@@ -209,8 +200,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           orElse: () => globalGroup,
         );
         if (ruleGroup.name != globalGroup.name) {
-          final nodeExists =
-              ruleGroup.all.any((p) => p.name == globalSelected);
+          final nodeExists = ruleGroup.all.any((p) => p.name == globalSelected);
           if (nodeExists) {
             appController.updateCurrentSelectedMap(
               ruleGroup.name,
@@ -240,7 +230,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   }
 
   double _getTotalTraffic(
-      SubscriptionInfo? profileSubInfo, DomainUser? userInfo) {
+    SubscriptionInfo? profileSubInfo,
+    DomainUser? userInfo,
+  ) {
     if (profileSubInfo != null && profileSubInfo.total > 0) {
       return profileSubInfo.total.toDouble();
     }
@@ -248,11 +240,14 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   }
 
   int? _calculateRemainingDays(
-      SubscriptionInfo? profileSubInfo, DomainSubscription? subscriptionInfo) {
+    SubscriptionInfo? profileSubInfo,
+    DomainSubscription? subscriptionInfo,
+  ) {
     DateTime? expiredAt;
     if (profileSubInfo?.expire != null && profileSubInfo!.expire != 0) {
-      expiredAt =
-          DateTime.fromMillisecondsSinceEpoch(profileSubInfo.expire * 1000);
+      expiredAt = DateTime.fromMillisecondsSinceEpoch(
+        profileSubInfo.expire * 1000,
+      );
     } else if (subscriptionInfo?.expiredAt != null) {
       expiredAt = subscriptionInfo!.expiredAt;
     }
@@ -297,10 +292,12 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
 
     final groups = ref.watch(groupsProvider);
     final selectedMap = ref.watch(selectedMapProvider);
-    final mode =
-        ref.watch(patchClashConfigProvider.select((state) => state.mode));
+    final mode = ref.watch(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
     final tunEnabled = ref.watch(
-        patchClashConfigProvider.select((state) => state.tun.enable));
+      patchClashConfigProvider.select((state) => state.tun.enable),
+    );
 
     if (groups.isEmpty) {
       // profile 已存在但 Clash 内核还没解析完（groups 为空），显示加载状态
@@ -321,16 +318,21 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   }
 
   Widget _buildCard(
-      BuildContext context, Proxy proxy, Mode mode, bool tunEnabled) {
+    BuildContext context,
+    Proxy proxy,
+    Mode mode,
+    bool tunEnabled,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
 
-    final bgColor =
-        _isStart ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
-    final statusColor =
-        _isStart ? colorScheme.tertiary : colorScheme.primary;
-    final onStatusColor =
-        _isStart ? colorScheme.onTertiary : colorScheme.onPrimary;
+    final bgColor = _isStart
+        ? colorScheme.tertiaryContainer
+        : colorScheme.primaryContainer;
+    final statusColor = _isStart ? colorScheme.tertiary : colorScheme.primary;
+    final onStatusColor = _isStart
+        ? colorScheme.onTertiary
+        : colorScheme.onPrimary;
 
     // Subscription data
     final currentProfile = ref.watch(currentProfileProvider);
@@ -341,8 +343,10 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     final progress = _getProgressValue(profileSubInfo);
     final usedTraffic = _getUsedTraffic(profileSubInfo);
     final totalTraffic = _getTotalTraffic(profileSubInfo, userInfo);
-    final remainingDays =
-        _calculateRemainingDays(profileSubInfo, subscriptionInfo);
+    final remainingDays = _calculateRemainingDays(
+      profileSubInfo,
+      subscriptionInfo,
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -355,22 +359,40 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           ],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: statusColor.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: _isDesktop
             ? _buildDesktopLayout(
-                context, theme, colorScheme, proxy, mode, tunEnabled,
-                statusColor, onStatusColor, bgColor,
-                progress, usedTraffic, totalTraffic, remainingDays)
+                context,
+                theme,
+                colorScheme,
+                proxy,
+                mode,
+                tunEnabled,
+                statusColor,
+                onStatusColor,
+                bgColor,
+                progress,
+                usedTraffic,
+                totalTraffic,
+                remainingDays,
+              )
             : _buildMobileLayout(
-                context, theme, colorScheme, proxy, mode, tunEnabled,
-                statusColor, onStatusColor,
-                progress, usedTraffic, totalTraffic, remainingDays),
+                context,
+                theme,
+                colorScheme,
+                proxy,
+                mode,
+                tunEnabled,
+                statusColor,
+                onStatusColor,
+                progress,
+                usedTraffic,
+                totalTraffic,
+                remainingDays,
+              ),
       ),
     );
   }
@@ -479,12 +501,19 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         const SizedBox(height: 14),
 
         // 订阅状态警告提示
-        if (subscriptionStatus != null && _shouldShowWarning(subscriptionStatus))
+        if (subscriptionStatus != null &&
+            _shouldShowWarning(subscriptionStatus))
           _buildSubscriptionWarning(context, theme, subscriptionStatus),
 
         // Compact traffic text
         _buildCompactTrafficText(
-            theme, colorScheme, progress, usedTraffic, totalTraffic, remainingDays),
+          theme,
+          colorScheme,
+          progress,
+          usedTraffic,
+          totalTraffic,
+          remainingDays,
+        ),
         const SizedBox(height: 16),
 
         // Controls row
@@ -529,7 +558,8 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     return Column(
       children: [
         // 订阅状态警告提示（桌面端显示在顶部）
-        if (subscriptionStatus != null && _shouldShowWarning(subscriptionStatus)) ...[
+        if (subscriptionStatus != null &&
+            _shouldShowWarning(subscriptionStatus)) ...[
           _buildSubscriptionWarning(context, theme, subscriptionStatus),
           const SizedBox(height: 12),
         ],
@@ -583,7 +613,12 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                   _buildLatency(proxy),
                   const SizedBox(height: 12),
                   // Desktop controls (no switch node button)
-                  _buildDesktopControlsRow(theme, colorScheme, mode, tunEnabled),
+                  _buildDesktopControlsRow(
+                    theme,
+                    colorScheme,
+                    mode,
+                    tunEnabled,
+                  ),
                 ],
               ),
             ),
@@ -657,7 +692,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                     ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       visualDensity: VisualDensity.compact,
                       side: BorderSide(
                         color: colorScheme.outline.withValues(alpha: 0.3),
@@ -677,7 +714,12 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
 
         // Full-width subscription row
         _buildSubscriptionRow(
-          theme, colorScheme, progress, usedTraffic, totalTraffic, remainingDays,
+          theme,
+          colorScheme,
+          progress,
+          usedTraffic,
+          totalTraffic,
+          remainingDays,
         ),
       ],
     );
@@ -756,7 +798,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           ),
           child: Text(
             remainingDays != null
-                ? AppLocalizations.of(context).xboardRemainingDaysCount(remainingDays)
+                ? AppLocalizations.of(
+                    context,
+                  ).xboardRemainingDaysCount(remainingDays)
                 : '${(progress * 100).toInt()}%',
             style: theme.textTheme.labelSmall?.copyWith(
               color: progressColor,
@@ -805,7 +849,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
               if (value != null) _handleModeChange(value);
             },
             thumbColor: thumbColor,
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.3,
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -881,8 +927,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                   child: LinearProgressIndicator(
                     value: progress,
                     minHeight: 4,
-                    backgroundColor:
-                        colorScheme.primary.withValues(alpha: 0.12),
+                    backgroundColor: colorScheme.primary.withValues(
+                      alpha: 0.12,
+                    ),
                     valueColor: AlwaysStoppedAnimation<Color>(progressColor),
                   ),
                 ),
@@ -953,7 +1000,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                   if (value != null) _handleModeChange(value);
                 },
                 thumbColor: thumbColor,
-                backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -992,13 +1041,18 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   }
 
   Widget _buildLatency(Proxy proxy) {
-    final delayState = ref.watch(getDelayProvider(
-      proxyName: proxy.name,
-      testUrl: ref.read(appSettingProvider).testUrl,
-    ));
+    final delayState = ref.watch(
+      getDelayProvider(
+        proxyName: proxy.name,
+        testUrl: ref.read(appSettingProvider).testUrl,
+      ),
+    );
     return LatencyIndicator(
       delayValue: delayState,
-      onTap: () => proxies_common.proxyDelayTest(proxy, ref.read(appSettingProvider).testUrl),
+      onTap: () => proxies_common.proxyDelayTest(
+        proxy,
+        ref.read(appSettingProvider).testUrl,
+      ),
       isCompact: true,
     );
   }
@@ -1011,10 +1065,11 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     final profileSubInfo = currentProfile?.subscriptionInfo;
 
     // 检查订阅状态（即使 profileSubInfo 为 null 也要检查）
-    final subscriptionStatus = subscriptionStatusService.checkSubscriptionStatus(
-      userState: userState,
-      profileSubscriptionInfo: profileSubInfo,
-    );
+    final subscriptionStatus = subscriptionStatusService
+        .checkSubscriptionStatus(
+          userState: userState,
+          profileSubscriptionInfo: profileSubInfo,
+        );
 
     // 如果是无订阅或解析失败，显示警告提示
     if (subscriptionStatus.type == SubscriptionStatusType.noSubscription ||
@@ -1077,7 +1132,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                 context.push('/plans');
               } else {
                 // 解析失败，刷新订阅信息
-                await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
+                await ref
+                    .read(xboardUserProvider.notifier)
+                    .refreshSubscriptionInfo();
               }
             },
             icon: Icon(
@@ -1204,10 +1261,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
             ),
             child: Text(
               AppLocalizations.of(context).xboardSetup,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -1218,6 +1272,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   /// 判断是否需要显示订阅状态警告
   bool _shouldShowWarning(SubscriptionStatusResult status) {
     return status.type == SubscriptionStatusType.expired ||
+        status.type == SubscriptionStatusType.lowTraffic ||
         status.type == SubscriptionStatusType.exhausted ||
         status.type == SubscriptionStatusType.noSubscription ||
         status.type == SubscriptionStatusType.parseFailed;
@@ -1237,12 +1292,19 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       case SubscriptionStatusType.noSubscription:
         warningIcon = Icons.info_outline;
         warningColor = theme.colorScheme.primary;
-        warningText = AppLocalizations.of(context).xboardNoAvailableSubscription;
+        warningText = AppLocalizations.of(
+          context,
+        ).xboardNoAvailableSubscription;
         break;
       case SubscriptionStatusType.expired:
         warningIcon = Icons.warning_amber_rounded;
         warningColor = theme.colorScheme.error;
         warningText = AppLocalizations.of(context).xboardSubscriptionExpired;
+        break;
+      case SubscriptionStatusType.lowTraffic:
+        warningIcon = Icons.warning_amber_rounded;
+        warningColor = theme.colorScheme.secondary;
+        warningText = AppLocalizations.of(context).xboardRemindTraffic;
         break;
       case SubscriptionStatusType.exhausted:
         warningIcon = Icons.error_outline;
@@ -1271,11 +1333,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            warningIcon,
-            size: 16,
-            color: warningColor,
-          ),
+          Icon(warningIcon, size: 16, color: warningColor),
           const SizedBox(width: 6),
           Flexible(
             child: Text(
@@ -1333,16 +1391,14 @@ class _ProgressRingPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
         ..strokeCap = StrokeCap.round
-        ..shader = SweepGradient(
-          startAngle: startAngle,
-          endAngle: startAngle + sweepAngle,
-          colors: [
-            color,
-            color.withValues(alpha: 0.7),
-          ],
-        ).createShader(
-          Rect.fromCircle(center: center, radius: effectiveRadius),
-        );
+        ..shader =
+            SweepGradient(
+              startAngle: startAngle,
+              endAngle: startAngle + sweepAngle,
+              colors: [color, color.withValues(alpha: 0.7)],
+            ).createShader(
+              Rect.fromCircle(center: center, radius: effectiveRadius),
+            );
 
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: effectiveRadius),

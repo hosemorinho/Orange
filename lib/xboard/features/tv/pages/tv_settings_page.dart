@@ -21,10 +21,12 @@ class TvSettingsPage extends ConsumerWidget {
     final appLocalizations = AppLocalizations.of(context);
     final userInfo = ref.watch(userInfoProvider);
     final subscription = ref.watch(subscriptionInfoProvider);
-    final mode =
-        ref.watch(patchClashConfigProvider.select((state) => state.mode));
+    final mode = ref.watch(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
     final tun = ref.watch(
-        patchClashConfigProvider.select((state) => state.tun.enable));
+      patchClashConfigProvider.select((state) => state.tun.enable),
+    );
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -58,6 +60,7 @@ class TvSettingsPage extends ConsumerWidget {
                 _TvSettingRow(
                   icon: Icons.brightness_6,
                   title: appLocalizations.switchTheme,
+                  autofocus: true,
                   trailing: const _ThemeLabel(),
                   onPressed: () => showThemeDialog(context, ref),
                 ),
@@ -69,9 +72,9 @@ class TvSettingsPage extends ConsumerWidget {
                   title: 'TUN',
                   trailing: _TunToggle(tun: tun),
                   onPressed: () {
-                    ref.read(patchClashConfigProvider.notifier).update(
-                          (state) => state.copyWith.tun(enable: !tun),
-                        );
+                    ref
+                        .read(patchClashConfigProvider.notifier)
+                        .update((state) => state.copyWith.tun(enable: !tun));
                   },
                 ),
                 const SizedBox(height: 8),
@@ -90,8 +93,7 @@ class TvSettingsPage extends ConsumerWidget {
                     ),
                   ),
                   onPressed: () {
-                    final newMode =
-                        mode == Mode.rule ? Mode.global : Mode.rule;
+                    final newMode = mode == Mode.rule ? Mode.global : Mode.rule;
                     appController.changeMode(newMode);
                   },
                 ),
@@ -172,7 +174,9 @@ class _UserInfoCard extends StatelessWidget {
                     if (planName != null) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(6),
@@ -207,12 +211,14 @@ class _UserInfoCard extends StatelessWidget {
 class _TvSettingRow extends StatelessWidget {
   final IconData icon;
   final String title;
+  final bool autofocus;
   final Widget? trailing;
   final VoidCallback? onPressed;
 
   const _TvSettingRow({
     required this.icon,
     required this.title,
+    this.autofocus = false,
     this.trailing,
     this.onPressed,
   });
@@ -225,6 +231,7 @@ class _TvSettingRow extends StatelessWidget {
     return SizedBox(
       height: 72,
       child: TvFocusCard(
+        autofocus: autofocus,
         onPressed: onPressed,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Row(
@@ -289,17 +296,19 @@ class _TunToggle extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: tun ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
+        color: tun
+            ? colorScheme.primaryContainer
+            : colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
         tun ? 'ON' : 'OFF',
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: tun
-                  ? colorScheme.onPrimaryContainer
-                  : colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.bold,
-            ),
+          color: tun
+              ? colorScheme.onPrimaryContainer
+              : colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -358,9 +367,9 @@ class _TvLogoutButtonState extends ConsumerState<_TvLogoutButton> {
             child: Text(
               appLocalizations.logout,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: colorScheme.error,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: colorScheme.error,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),

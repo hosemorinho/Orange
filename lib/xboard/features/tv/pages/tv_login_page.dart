@@ -33,7 +33,6 @@ class _TvLoginPageState extends ConsumerState<TvLoginPage> {
     super.initState();
     _storageService = ref.read(storageServiceProvider);
     _loadSavedCredentials();
-    _initializeXBoard();
   }
 
   @override
@@ -44,20 +43,6 @@ class _TvLoginPageState extends ConsumerState<TvLoginPage> {
     _passwordFocus.dispose();
     _loginButtonFocus.dispose();
     super.dispose();
-  }
-
-  Future<void> _initializeXBoard() async {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      try {
-        await ref.read(initializationProvider.notifier).initialize();
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            _errorMessage = ErrorSanitizer.sanitize(e.toString());
-          });
-        }
-      }
-    });
   }
 
   Future<void> _loadSavedCredentials() async {
@@ -156,11 +141,7 @@ class _TvLoginPageState extends ConsumerState<TvLoginPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.vpn_key,
-                        size: 64,
-                        color: colorScheme.primary,
-                      ),
+                      Icon(Icons.vpn_key, size: 64, color: colorScheme.primary),
                       const SizedBox(width: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,8 +190,11 @@ class _TvLoginPageState extends ConsumerState<TvLoginPage> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.error_outline,
-                              color: colorScheme.error, size: 24),
+                          Icon(
+                            Icons.error_outline,
+                            color: colorScheme.error,
+                            size: 24,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -238,10 +222,10 @@ class _TvLoginPageState extends ConsumerState<TvLoginPage> {
                       textInputAction: TextInputAction.next,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return appLocalizations.xboardEmail;
+                          return appLocalizations.pleaseEnterEmail;
                         }
                         if (!value.contains('@')) {
-                          return appLocalizations.xboardEmail;
+                          return appLocalizations.pleaseEnterValidEmail;
                         }
                         return null;
                       },
@@ -261,7 +245,7 @@ class _TvLoginPageState extends ConsumerState<TvLoginPage> {
                       onFieldSubmitted: (_) => _login(),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return appLocalizations.xboardPassword;
+                          return appLocalizations.pleaseEnterPassword;
                         }
                         return null;
                       },
@@ -274,7 +258,8 @@ class _TvLoginPageState extends ConsumerState<TvLoginPage> {
                     order: const NumericFocusOrder(3),
                     child: _TvFocusButton(
                       focusNode: _loginButtonFocus,
-                      onPressed: !userState.isLoading && !initState.isInitializing
+                      onPressed:
+                          !userState.isLoading && !initState.isInitializing
                           ? _login
                           : null,
                       isLoading: userState.isLoading,
@@ -337,21 +322,14 @@ class _TvTextField extends StatelessWidget {
           horizontal: 20,
           vertical: 20,
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: colorScheme.primary,
-            width: 3,
-          ),
+          borderSide: BorderSide(color: colorScheme.primary, width: 3),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: colorScheme.outlineVariant,
-          ),
+          borderSide: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
     );
@@ -410,10 +388,7 @@ class _TvFocusButtonState extends State<_TvFocusButton> {
                 : widget.colorScheme.primary.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(12),
             border: _isFocused
-                ? Border.all(
-                    color: widget.colorScheme.onSurface,
-                    width: 3,
-                  )
+                ? Border.all(color: widget.colorScheme.onSurface, width: 3)
                 : null,
           ),
           child: Center(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/subscription_status_service.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+
 class SubscriptionStatusDialog extends StatelessWidget {
   final SubscriptionStatusResult statusResult;
   final VoidCallback? onPurchase;
@@ -27,19 +28,15 @@ class SubscriptionStatusDialog extends StatelessWidget {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       icon: _buildIcon(context),
       title: Text(
         _getTitle(context),
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         textAlign: TextAlign.center,
       ),
       content: SingleChildScrollView(
@@ -48,9 +45,12 @@ class SubscriptionStatusDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              statusResult.getDetailMessage(context) ?? statusResult.getMessage(context),
+              statusResult.getDetailMessage(context) ??
+                  statusResult.getMessage(context),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.8),
               ),
               textAlign: TextAlign.center,
             ),
@@ -74,6 +74,7 @@ class SubscriptionStatusDialog extends StatelessWidget {
       ],
     );
   }
+
   Widget _buildIcon(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     Color iconColor;
@@ -89,6 +90,11 @@ class SubscriptionStatusDialog extends StatelessWidget {
         iconColor = colorScheme.error;
         iconData = Icons.schedule;
         backgroundColor = colorScheme.error.withValues(alpha: 0.1);
+        break;
+      case SubscriptionStatusType.lowTraffic:
+        iconColor = colorScheme.secondary;
+        iconData = Icons.warning_amber_rounded;
+        backgroundColor = colorScheme.secondary.withValues(alpha: 0.1);
         break;
       case SubscriptionStatusType.exhausted:
         iconColor = colorScheme.secondary;
@@ -111,19 +117,18 @@ class SubscriptionStatusDialog extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Icon(
-        iconData,
-        color: iconColor,
-        size: 32,
-      ),
+      child: Icon(iconData, color: iconColor, size: 32),
     );
   }
+
   String _getTitle(BuildContext context) {
     switch (statusResult.type) {
       case SubscriptionStatusType.noSubscription:
         return AppLocalizations.of(context).xboardNoAvailablePlan;
       case SubscriptionStatusType.expired:
         return AppLocalizations.of(context).xboardSubscriptionHasExpired;
+      case SubscriptionStatusType.lowTraffic:
+        return AppLocalizations.of(context).xboardRemindTraffic;
       case SubscriptionStatusType.exhausted:
         return AppLocalizations.of(context).xboardTrafficUsedUp;
       case SubscriptionStatusType.parseFailed:
@@ -132,14 +137,18 @@ class SubscriptionStatusDialog extends StatelessWidget {
         return AppLocalizations.of(context).xboardSubscriptionStatus;
     }
   }
+
   bool _shouldShowFeatureList() {
     return statusResult.type == SubscriptionStatusType.noSubscription;
   }
+
   Widget _buildFeatureList(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -184,6 +193,7 @@ class SubscriptionStatusDialog extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildFeatureItem(
     BuildContext context,
     IconData icon,
@@ -211,14 +221,16 @@ class SubscriptionStatusDialog extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               Text(
                 description,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -227,9 +239,11 @@ class SubscriptionStatusDialog extends StatelessWidget {
       ],
     );
   }
+
   List<Widget> _buildActions(BuildContext context) {
     final actions = <Widget>[];
     if (statusResult.type == SubscriptionStatusType.expired ||
+        statusResult.type == SubscriptionStatusType.lowTraffic ||
         statusResult.type == SubscriptionStatusType.exhausted ||
         statusResult.type == SubscriptionStatusType.parseFailed) {
       actions.add(
@@ -243,7 +257,9 @@ class SubscriptionStatusDialog extends StatelessWidget {
             child: Text(
               AppLocalizations.of(context).xboardRefreshStatus,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -259,7 +275,9 @@ class SubscriptionStatusDialog extends StatelessWidget {
           child: Text(
             AppLocalizations.of(context).xboardHandleLater,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ),
@@ -275,7 +293,9 @@ class SubscriptionStatusDialog extends StatelessWidget {
             onPurchase?.call();
           },
           style: FilledButton.styleFrom(
-            backgroundColor: _getPrimaryButtonColor(Theme.of(context).colorScheme),
+            backgroundColor: _getPrimaryButtonColor(
+              Theme.of(context).colorScheme,
+            ),
             foregroundColor: Theme.of(context).colorScheme.onPrimary,
           ),
           child: Text(_getPrimaryButtonText(context)),
@@ -284,12 +304,15 @@ class SubscriptionStatusDialog extends StatelessWidget {
     );
     return actions;
   }
+
   Color _getPrimaryButtonColor(ColorScheme colorScheme) {
     switch (statusResult.type) {
       case SubscriptionStatusType.noSubscription:
         return colorScheme.primary;
       case SubscriptionStatusType.expired:
         return colorScheme.error;
+      case SubscriptionStatusType.lowTraffic:
+        return colorScheme.secondary;
       case SubscriptionStatusType.exhausted:
         return colorScheme.secondary;
       case SubscriptionStatusType.parseFailed:
@@ -298,11 +321,14 @@ class SubscriptionStatusDialog extends StatelessWidget {
         return colorScheme.tertiary;
     }
   }
+
   String _getPrimaryButtonText(BuildContext context) {
     switch (statusResult.type) {
       case SubscriptionStatusType.noSubscription:
         return AppLocalizations.of(context).xboardPurchasePlan;
       case SubscriptionStatusType.expired:
+        return AppLocalizations.of(context).xboardRenewPlan;
+      case SubscriptionStatusType.lowTraffic:
         return AppLocalizations.of(context).xboardRenewPlan;
       case SubscriptionStatusType.exhausted:
         return AppLocalizations.of(context).xboardPurchaseTraffic;

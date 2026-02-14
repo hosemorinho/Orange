@@ -1187,7 +1187,13 @@ extension SetupControllerExt on AppController {
     int? tunFd;
     if (system.isAndroid && tunEnabled) {
       _logger.info('setup: enabling socket protection');
-      await service?.enableSocketProtection();
+      try {
+        await service?.enableSocketProtection();
+      } catch (e) {
+        _logger.error('setup: enableSocketProtection failed', e);
+        globalState.showNotifier('VPN启动失败：socket保护初始化错误');
+        return false;
+      }
       _logger.info('setup: socket protection enabled');
       // Retry getTunFd — VPN service may still be establishing after
       // permission grant. Poll for up to 5 seconds as a safety net.

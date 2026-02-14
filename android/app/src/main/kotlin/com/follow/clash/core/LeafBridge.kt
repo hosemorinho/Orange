@@ -19,8 +19,15 @@ object LeafBridge {
 
     private var protectionEnabled = false
 
+    private var libraryLoaded = false
+
     init {
-        System.loadLibrary("leaf")
+        try {
+            System.loadLibrary("leaf")
+            libraryLoaded = true
+        } catch (e: UnsatisfiedLinkError) {
+            Log.e(TAG, "Failed to load libleaf.so: ${e.message}", e)
+        }
     }
 
     /**
@@ -29,8 +36,18 @@ object LeafBridge {
      * Registers the JNI callback so leaf's Rust code can call [protectSocket].
      */
     fun enableProtection() {
+        if (!libraryLoaded) {
+            Log.e(TAG, "enableProtection: libleaf.so not loaded, skipping")
+            return
+        }
         protectionEnabled = true
-        nativeSetProtectSocketCallback()
+        try {
+            nativeSetProtectSocketCallback()
+        } catch (e: UnsatisfiedLinkError) {
+            Log.e(TAG, "nativeSetProtectSocketCallback failed: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e(TAG, "enableProtection failed: ${e.message}", e)
+        }
     }
 
     /**

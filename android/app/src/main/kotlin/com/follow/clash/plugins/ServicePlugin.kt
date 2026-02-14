@@ -67,12 +67,21 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         }
 
         "enableSocketProtection" -> {
-            com.follow.clash.core.LeafBridge.enableProtection()
-            result.success(null)
+            try {
+                com.follow.clash.core.LeafBridge.enableProtection()
+                result.success(null)
+            } catch (e: Throwable) {
+                android.util.Log.e("ServicePlugin", "enableSocketProtection failed", e)
+                result.error("SOCKET_PROTECTION_FAILED", e.message, null)
+            }
         }
 
         "disableSocketProtection" -> {
-            com.follow.clash.core.LeafBridge.disableProtection()
+            try {
+                com.follow.clash.core.LeafBridge.disableProtection()
+            } catch (e: Throwable) {
+                android.util.Log.e("ServicePlugin", "disableSocketProtection failed", e)
+            }
             result.success(null)
         }
 

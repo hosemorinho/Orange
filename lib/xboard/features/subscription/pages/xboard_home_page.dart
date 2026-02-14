@@ -322,6 +322,10 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         if (userState.isAuthenticated) {
           try {
             await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
+            // 刷新后检查订阅状态，如有变化则弹窗提醒
+            if (mounted) {
+              subscriptionStatusChecker.checkSubscriptionStatusOnStartup(context, ref);
+            }
           } catch (e) {
             // 静默失败，不影响用户体验
           }

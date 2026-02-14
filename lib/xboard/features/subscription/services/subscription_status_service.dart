@@ -7,6 +7,7 @@ enum SubscriptionStatusType {
   valid,
   noSubscription,
   expired,
+  expiringSoon,
   lowTraffic,
   exhausted,
   notLoggedIn,
@@ -93,7 +94,7 @@ class SubscriptionStatusService {
       final isExpired = subscriptionInfo.isExpired;
       final remainingDays = subscriptionInfo.daysRemaining;
 
-      if (isExpired || remainingDays! < 0) {
+      if (isExpired) {
         return SubscriptionStatusResult(
           type: SubscriptionStatusType.expired,
           messageBuilder: (context) =>
@@ -122,7 +123,7 @@ class SubscriptionStatusService {
 
       if (remainingDays <= 3) {
         return SubscriptionStatusResult(
-          type: SubscriptionStatusType.valid,
+          type: SubscriptionStatusType.expiringSoon,
           messageBuilder: (context) =>
               AppLocalizations.of(context).subscriptionExpiringInDays,
           detailMessageBuilder: (context) => AppLocalizations.of(
@@ -221,6 +222,8 @@ class SubscriptionStatusService {
         return true;
       case SubscriptionStatusType.parseFailed:
         // API 获取失败不应该弹窗，避免中断用户使用已有的本地订阅配置
+        return false;
+      case SubscriptionStatusType.expiringSoon:
         return false;
       case SubscriptionStatusType.valid:
         return false;

@@ -95,21 +95,27 @@ class SubscriptionStatusChecker {
       final lastShownType = prefs.getString(_kLastShownDialogTypeKey);
       final currentType = statusResult.type.name;
 
-      // 如果从未显示过对话框，或者状态类型发生了变化，则显示
-      final shouldShow = lastShownType != currentType;
+      // 状态正常时清除弹窗记录，确保下次出问题时能再次弹窗
+      if (!subscriptionStatusService.shouldShowStartupDialog(statusResult)) {
+        if (lastShownType != null) {
+          await prefs.remove(_kLastShownDialogTypeKey);
+          _logger.info('[订阅状态弹窗] 状态正常($currentType)，清除弹窗记录');
+        }
+        return false;
+      }
 
+      // 问题状态：检查去重
+      final shouldShow = lastShownType != currentType;
       if (shouldShow) {
-        // 更新最后显示的对话框类型
         await prefs.setString(_kLastShownDialogTypeKey, currentType);
         _logger.info('[订阅状态弹窗] 状态变化: $lastShownType -> $currentType，显示对话框');
       } else {
         _logger.info('[订阅状态弹窗] 状态未变化: $currentType，跳过弹窗');
       }
-
       return shouldShow;
     } catch (e) {
       _logger.error('[订阅状态弹窗] 检查弹窗状态时出错', e);
-      return true; // 出错时默认显示，避免用户错过重要通知
+      return true;
     }
   }
 

@@ -13,6 +13,7 @@ import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart'
 import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/tun_introduction_dialog.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
+import 'package:fl_clash/xboard/features/profile/profile.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_status_service.dart';
 import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
@@ -296,7 +297,12 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     );
 
     if (groups.isEmpty) {
-      // profile 已存在但 Clash 内核还没解析完（groups 为空），显示加载状态
+      // profile 已存在但 Clash 内核还没解析完（groups 为空）
+      // 检查导入状态：如果导入失败，显示错误+重试，而不是无限转圈
+      final importState = ref.watch(profileImportProvider);
+      if (importState.status == ImportStatus.failed) {
+        return _buildImportFailedState(context, importState);
+      }
       return _buildLoadingState(context);
     }
 
@@ -1062,13 +1068,23 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           subscriptionInfo: domainSubscriptionInfo,
         );
 
-    // 如果是无订阅或解析失败，显示警告提示
+    // 对所有非正常订阅状态，显示对应的警告提示
     if (subscriptionStatus.type == SubscriptionStatusType.noSubscription ||
-        subscriptionStatus.type == SubscriptionStatusType.parseFailed) {
+        subscriptionStatus.type == SubscriptionStatusType.parseFailed ||
+        subscriptionStatus.type == SubscriptionStatusType.expired ||
+        subscriptionStatus.type == SubscriptionStatusType.exhausted ||
+        subscriptionStatus.type == SubscriptionStatusType.lowTraffic ||
+        subscriptionStatus.type == SubscriptionStatusType.expiringSoon) {
       return _buildSubscriptionWarningState(context, subscriptionStatus);
     }
 
-    // 其他情况（如已过期、流量用完）或加载中，显示加载状态
+    // 检查导入状态：如果导入失败，显示错误+重试
+    final importState = ref.watch(profileImportProvider);
+    if (importState.status == ImportStatus.failed) {
+      return _buildImportFailedState(context, importState);
+    }
+
+    // 其他情况（加载中），显示加载状态
     return _buildLoadingState(context);
   }
 
@@ -1092,9 +1108,14 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       child: Column(
         children: [
           Icon(
-            status.type == SubscriptionStatusType.parseFailed
-                ? Icons.error_outline
-                : Icons.info_outline,
+            switch (status.type) {
+              SubscriptionStatusType.parseFailed => Icons.error_outline,
+              SubscriptionStatusType.expired => Icons.timer_off_outlined,
+              SubscriptionStatusType.exhausted => Icons.timer_off_outlined,
+              SubscriptionStatusType.expiringSoon => Icons.schedule,
+              SubscriptionStatusType.lowTraffic => Icons.data_usage,
+              _ => Icons.info_outline,
+            },
             size: 48,
             color: colorScheme.primary,
           ),
@@ -1118,14 +1139,12 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () async {
-              if (status.type == SubscriptionStatusType.noSubscription) {
-                // 无订阅，跳转到购买页面
-                context.push('/plans');
-              } else {
-                // 解析失败，刷新订阅信息
+              if (status.type == SubscriptionStatusType.parseFailed) {
                 await ref
                     .read(xboardUserProvider.notifier)
                     .refreshSubscriptionInfo();
+              } else {
+                context.push('/plans');
               }
             },
             icon: Icon(
@@ -1179,6 +1198,66 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
             AppLocalizations.of(context).xboardImportingSubscription,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImportFailedState(BuildContext context, ImportState importState) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colorScheme.error.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Icon(
+            Icons.cloud_off_outlined,
+            size: 48,
+            color: colorScheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            AppLocalizations.of(context).xboardImportFailed,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            importState.message ??
+                AppLocalizations.of(context).xboardImportErrorUnknown,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () {
+              ref.read(profileImportProvider.notifier).retryLastImport();
+            },
+            icon: const Icon(Icons.refresh, size: 18),
+            label: Text(AppLocalizations.of(context).xboardRetry),
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
             ),
           ),
         ],
@@ -1263,6 +1342,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   /// 判断是否需要显示订阅状态警告
   bool _shouldShowWarning(SubscriptionStatusResult status) {
     return status.type == SubscriptionStatusType.expired ||
+        status.type == SubscriptionStatusType.expiringSoon ||
         status.type == SubscriptionStatusType.lowTraffic ||
         status.type == SubscriptionStatusType.exhausted ||
         status.type == SubscriptionStatusType.noSubscription ||
@@ -1306,6 +1386,11 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         warningIcon = Icons.error_outline;
         warningColor = theme.colorScheme.error;
         warningText = AppLocalizations.of(context).subscriptionParseFailed;
+        break;
+      case SubscriptionStatusType.expiringSoon:
+        warningIcon = Icons.schedule;
+        warningColor = theme.colorScheme.secondary;
+        warningText = status.getMessage(context);
         break;
       default:
         return const SizedBox.shrink();

@@ -293,6 +293,30 @@ class Build {
     await File(outPath).copy(targetPath);
   }
 
+  static const String _vcRedistUrl =
+      'https://aka.ms/vs/17/release/vc_redist.x64.exe';
+
+  static Future<void> downloadVCRedist() async {
+    final packagingDir = join(current, 'windows', 'packaging', 'exe');
+    final vcRedistPath = join(packagingDir, 'vc_redist.x64.exe');
+
+    // Check if already exists
+    if (await File(vcRedistPath).exists()) {
+      print('VC++ redist already exists, skipping download');
+      return;
+    }
+
+    print('Downloading VC++ runtime...');
+    final client = HttpClient();
+    final request = await client.getUrl(Uri.parse(_vcRedistUrl));
+    final response = await request.close();
+    final file = File(vcRedistPath);
+    await for (final chunk in response) {
+      file.writeAsBytesSync(chunk, mode: FileMode.append);
+    }
+    print('VC++ runtime downloaded to $vcRedistPath');
+  }
+
   static List<String> getExecutable(String command) {
     return command.split(' ');
   }
@@ -615,6 +639,7 @@ class BuildCommand extends Command {
 
     switch (target) {
       case Target.windows:
+        await Build.downloadVCRedist();
         await _buildDistributor(
           target: target,
           targets: 'exe,zip',

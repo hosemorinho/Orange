@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/leaf/config/config_writer.dart';
@@ -73,8 +74,10 @@ class LeafController {
     // Parse Clash YAML proxies
     final proxies = _parseClashProxies(yamlContent);
     if (proxies.isEmpty) {
-      _logger.warning('parsed 0 proxies from YAML (${yamlContent.length} bytes). '
-          'First 200 chars: ${yamlContent.substring(0, yamlContent.length.clamp(0, 200))}');
+      _logger.warning(
+        'parsed 0 proxies from YAML (${yamlContent.length} bytes). '
+        'First 200 chars: ${yamlContent.substring(0, yamlContent.length.clamp(0, 200))}',
+      );
     } else {
       // Log protocol distribution for debugging
       final typeCounts = <String, int>{};
@@ -85,7 +88,9 @@ class LeafController {
       _logger.info('parsed ${proxies.length} proxies: $typeCounts');
     }
     _nodes = _extractNodes(proxies);
-    _logger.info('supported nodes: ${_nodes.length} / ${proxies.length} total proxies, mode: ${mode.name}');
+    _logger.info(
+      'supported nodes: ${_nodes.length} / ${proxies.length} total proxies, mode: ${mode.name}',
+    );
 
     // Remember parameters for hot-reload
     _lastProxies = proxies;
@@ -118,7 +123,9 @@ class LeafController {
     }
 
     final configJson = config.toJsonString();
-    _logger.info('starting leaf with in-memory config (${configJson.length} bytes)');
+    _logger.info(
+      'starting leaf with in-memory config (${configJson.length} bytes)',
+    );
     if (configJson.length < 8000) {
       _logger.info('config content:\n$configJson');
     }
@@ -142,8 +149,10 @@ class LeafController {
       await Future.delayed(const Duration(milliseconds: 500));
       final startupError = _instance?.startupError;
       if (startupError != null) {
-        _logger.error('leaf crashed after runtime ready (likely TUN failure): '
-            'error $startupError (${LeafError.message(startupError)})');
+        _logger.error(
+          'leaf crashed after runtime ready (likely TUN failure): '
+          'error $startupError (${LeafError.message(startupError)})',
+        );
         await _dumpLeafLog('TUN startup failure');
         _instance?.shutdown();
         _instance = null;
@@ -171,8 +180,10 @@ class LeafController {
       // Check if the isolate reported a startup failure
       final startupError = _instance?.startupError;
       if (startupError != null) {
-        _logger.error('leaf startup failed with error code $startupError '
-            '(${LeafError.message(startupError)}) after ${(i + 1) * 100}ms');
+        _logger.error(
+          'leaf startup failed with error code $startupError '
+          '(${LeafError.message(startupError)}) after ${(i + 1) * 100}ms',
+        );
         throw LeafException(startupError);
       }
 
@@ -181,16 +192,20 @@ class LeafController {
         // is alive AND the outbound manager is populated with our config.
         final selects = _instance?.getOutboundSelects(ConfigWriter.selectorTag);
         if (selects != null && selects.isNotEmpty) {
-          _logger.info('runtime ready after ${(i + 1) * 100}ms '
-              '(${selects.length} nodes in selector)');
+          _logger.info(
+            'runtime ready after ${(i + 1) * 100}ms '
+            '(${selects.length} nodes in selector)',
+          );
           return;
         }
       } catch (_) {
         // Not ready yet, keep polling
       }
     }
-    _logger.error('runtime not ready after ${maxAttempts * 100}ms — '
-        'leaf likely failed to start (TUN creation or config error)');
+    _logger.error(
+      'runtime not ready after ${maxAttempts * 100}ms — '
+      'leaf likely failed to start (TUN creation or config error)',
+    );
     await _dumpLeafLog('runtime timeout');
     throw LeafException(LeafError.runtimeManager);
   }
@@ -230,28 +245,48 @@ class LeafController {
   Future<void> updateMode(Mode newMode, {required bool mmdbAvailable}) async {
     _requireRunning();
 
-    _logger.info('hotReload: mode ${_lastMode.name} → ${newMode.name}, '
-        'mmdb=$mmdbAvailable');
-
-    // Rebuild config with new mode, same everything else
-    final logOutput = '$_homeDir${Platform.pathSeparator}leaf.log';
-    final config = ConfigWriter.build(
-      proxies: _lastProxies,
-      mixedPort: _mixedPort,
-      tunFd: _lastTunFd,
-      tunEnabled: _lastTunEnabled,
-      logOutput: logOutput,
-      mode: newMode,
-      mmdbAvailable: mmdbAvailable,
+    _logger.info(
+      'hotReload: mode ${_lastMode.name} → ${newMode.name}, '
+      'mmdb=$mmdbAvailable',
     );
 
-    // Send config directly via FFI — no file I/O needed
-    final configJson = config.toJsonString();
-    _logger.info('hotReload: sending config via FFI (${configJson.length} bytes)');
+    // Build and serialize config off the UI isolate to avoid visible freezes
+    // when users toggle modes rapidly on large subscription configs.
+    final modeName = newMode.name;
+    final proxies = _lastProxies
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList(growable: false);
+    final mixedPort = _mixedPort;
+    final tunFd = _lastTunFd;
+    final tunEnabled = _lastTunEnabled;
+    final homeDir = _homeDir ?? '.';
+    final configJson = await Isolate.run(() {
+      final mode = Mode.values.firstWhere(
+        (m) => m.name == modeName,
+        orElse: () => Mode.global,
+      );
+      final logOutput = '$homeDir${Platform.pathSeparator}leaf.log';
+      return ConfigWriter.build(
+        proxies: proxies,
+        mixedPort: mixedPort,
+        tunFd: tunFd,
+        tunEnabled: tunEnabled,
+        logOutput: logOutput,
+        mode: mode,
+        mmdbAvailable: mmdbAvailable,
+      ).toJsonString();
+    });
+
+    // Send config directly via FFI — no file I/O needed.
+    _logger.info(
+      'hotReload: sending config via FFI (${configJson.length} bytes)',
+    );
     final stopwatch = Stopwatch()..start();
     await reloadWithConfigString(configJson);
     stopwatch.stop();
-    _logger.info('hotReload: reload finished in ${stopwatch.elapsedMilliseconds}ms');
+    _logger.info(
+      'hotReload: reload finished in ${stopwatch.elapsedMilliseconds}ms',
+    );
 
     // Update remembered state
     _lastMode = newMode;
@@ -298,7 +333,9 @@ class LeafController {
   /// The selection will be applied when core starts via [_ensureValidSelection].
   Future<void> selectNode(String nodeTag) async {
     if (!isRunning) {
-      _logger.info('selectNode: core not running, skipping FFI call (requested=$nodeTag)');
+      _logger.info(
+        'selectNode: core not running, skipping FFI call (requested=$nodeTag)',
+      );
       return;
     }
     final before = getSelectedNode();
@@ -311,7 +348,9 @@ class LeafController {
       throw LeafException(result);
     }
     final after = getSelectedNode();
-    _logger.info('selectNode: $before → $after (requested=$nodeTag, match=${after == nodeTag})');
+    _logger.info(
+      'selectNode: $before → $after (requested=$nodeTag, match=${after == nodeTag})',
+    );
 
     // Cancel existing TCP relay connections so new connections use the new node
     closeConnections();
@@ -432,8 +471,10 @@ class LeafController {
     // after the runtime was briefly registered in RUNTIME_MANAGER).
     final startupError = _instance!.startupError;
     if (startupError != null) {
-      _logger.error('leaf runtime has crashed: error $startupError '
-          '(${LeafError.message(startupError)})');
+      _logger.error(
+        'leaf runtime has crashed: error $startupError '
+        '(${LeafError.message(startupError)})',
+      );
       _instance!.shutdown();
       _instance = null;
       throw LeafException(startupError);
@@ -449,10 +490,14 @@ class LeafController {
         final tail = content.length > 2000
             ? content.substring(content.length - 2000)
             : content;
-        _logger.error('=== leaf.log ($context) last ${tail.length} chars ===\n$tail');
+        _logger.error(
+          '=== leaf.log ($context) last ${tail.length} chars ===\n$tail',
+        );
       } else {
-        _logger.error('leaf.log not found at ${logFile.path} — '
-            'leaf may have crashed before writing any logs');
+        _logger.error(
+          'leaf.log not found at ${logFile.path} — '
+          'leaf may have crashed before writing any logs',
+        );
       }
     } catch (e) {
       _logger.error('failed to read leaf.log: $e');
@@ -490,7 +535,10 @@ class LeafController {
   /// (`  name: value`) entries.
   static String _quoteProxyNames(String yaml) {
     return yaml.replaceAllMapped(
-      RegExp(r'name:\s*([^"''\n,}]+)'),
+      RegExp(
+        r'name:\s*([^"'
+        '\n,}]+)',
+      ),
       (m) {
         final value = m.group(1)!.trim();
         if (value.isEmpty) return m.group(0)!;
@@ -528,7 +576,9 @@ class LeafController {
       }
       // Only include protocols we support
       if (type != 'ss' && type != 'vmess' && type != 'trojan') continue;
-      nodes.add(LeafNode(tag: name, protocol: type, server: server, port: port));
+      nodes.add(
+        LeafNode(tag: name, protocol: type, server: server, port: port),
+      );
     }
     return nodes;
   }

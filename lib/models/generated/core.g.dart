@@ -111,78 +111,6 @@ Map<String, dynamic> _$VpnOptionsToJson(_VpnOptions instance) =>
       'routeAddress': instance.routeAddress,
     };
 
-_InitParams _$InitParamsFromJson(Map<String, dynamic> json) => _InitParams(
-  homeDir: json['home-dir'] as String,
-  version: (json['version'] as num).toInt(),
-);
-
-Map<String, dynamic> _$InitParamsToJson(_InitParams instance) =>
-    <String, dynamic>{
-      'home-dir': instance.homeDir,
-      'version': instance.version,
-    };
-
-_ChangeProxyParams _$ChangeProxyParamsFromJson(Map<String, dynamic> json) =>
-    _ChangeProxyParams(
-      groupName: json['group-name'] as String,
-      proxyName: json['proxy-name'] as String,
-    );
-
-Map<String, dynamic> _$ChangeProxyParamsToJson(_ChangeProxyParams instance) =>
-    <String, dynamic>{
-      'group-name': instance.groupName,
-      'proxy-name': instance.proxyName,
-    };
-
-_UpdateGeoDataParams _$UpdateGeoDataParamsFromJson(Map<String, dynamic> json) =>
-    _UpdateGeoDataParams(
-      geoType: json['geo-type'] as String,
-      geoName: json['geo-name'] as String,
-    );
-
-Map<String, dynamic> _$UpdateGeoDataParamsToJson(
-  _UpdateGeoDataParams instance,
-) => <String, dynamic>{
-  'geo-type': instance.geoType,
-  'geo-name': instance.geoName,
-};
-
-_CoreEvent _$CoreEventFromJson(Map<String, dynamic> json) => _CoreEvent(
-  type: $enumDecode(_$CoreEventTypeEnumMap, json['type']),
-  data: json['data'],
-);
-
-Map<String, dynamic> _$CoreEventToJson(_CoreEvent instance) =>
-    <String, dynamic>{
-      'type': _$CoreEventTypeEnumMap[instance.type]!,
-      'data': instance.data,
-    };
-
-const _$CoreEventTypeEnumMap = {
-  CoreEventType.log: 'log',
-  CoreEventType.delay: 'delay',
-  CoreEventType.request: 'request',
-  CoreEventType.loaded: 'loaded',
-  CoreEventType.crash: 'crash',
-};
-
-_InvokeMessage _$InvokeMessageFromJson(Map<String, dynamic> json) =>
-    _InvokeMessage(
-      type: $enumDecode(_$InvokeMessageTypeEnumMap, json['type']),
-      data: json['data'],
-    );
-
-Map<String, dynamic> _$InvokeMessageToJson(_InvokeMessage instance) =>
-    <String, dynamic>{
-      'type': _$InvokeMessageTypeEnumMap[instance.type]!,
-      'data': instance.data,
-    };
-
-const _$InvokeMessageTypeEnumMap = {
-  InvokeMessageType.protect: 'protect',
-  InvokeMessageType.process: 'process',
-};
-
 _Delay _$DelayFromJson(Map<String, dynamic> json) => _Delay(
   name: json['name'] as String,
   url: json['url'] as String,
@@ -195,41 +123,17 @@ Map<String, dynamic> _$DelayToJson(_Delay instance) => <String, dynamic>{
   'value': instance.value,
 };
 
-_Now _$NowFromJson(Map<String, dynamic> json) =>
-    _Now(name: json['name'] as String, value: json['value'] as String);
-
-Map<String, dynamic> _$NowToJson(_Now instance) => <String, dynamic>{
-  'name': instance.name,
-  'value': instance.value,
-};
-
-_ProviderSubscriptionInfo _$ProviderSubscriptionInfoFromJson(
-  Map<String, dynamic> json,
-) => _ProviderSubscriptionInfo(
-  upload: (json['UPLOAD'] as num?)?.toInt() ?? 0,
-  download: (json['DOWNLOAD'] as num?)?.toInt() ?? 0,
-  total: (json['TOTAL'] as num?)?.toInt() ?? 0,
-  expire: (json['EXPIRE'] as num?)?.toInt() ?? 0,
-);
-
-Map<String, dynamic> _$ProviderSubscriptionInfoToJson(
-  _ProviderSubscriptionInfo instance,
-) => <String, dynamic>{
-  'UPLOAD': instance.upload,
-  'DOWNLOAD': instance.download,
-  'TOTAL': instance.total,
-  'EXPIRE': instance.expire,
-};
-
 _ExternalProvider _$ExternalProviderFromJson(Map<String, dynamic> json) =>
     _ExternalProvider(
       name: json['name'] as String,
       type: json['type'] as String,
       path: json['path'] as String?,
       count: (json['count'] as num).toInt(),
-      subscriptionInfo: subscriptionInfoFormCore(
-        json['subscription-info'] as Map<String, Object?>?,
-      ),
+      subscriptionInfo: json['subscriptionInfo'] == null
+          ? null
+          : SubscriptionInfo.fromJson(
+              json['subscriptionInfo'] as Map<String, dynamic>,
+            ),
       vehicleType: json['vehicle-type'] as String,
       updateAt: DateTime.parse(json['update-at'] as String),
     );
@@ -240,89 +144,7 @@ Map<String, dynamic> _$ExternalProviderToJson(_ExternalProvider instance) =>
       'type': instance.type,
       'path': instance.path,
       'count': instance.count,
-      'subscription-info': instance.subscriptionInfo,
+      'subscriptionInfo': instance.subscriptionInfo,
       'vehicle-type': instance.vehicleType,
       'update-at': instance.updateAt.toIso8601String(),
     };
-
-_Action _$ActionFromJson(Map<String, dynamic> json) => _Action(
-  method: $enumDecode(_$ActionMethodEnumMap, json['method']),
-  data: json['data'],
-  id: json['id'] as String,
-);
-
-Map<String, dynamic> _$ActionToJson(_Action instance) => <String, dynamic>{
-  'method': _$ActionMethodEnumMap[instance.method]!,
-  'data': instance.data,
-  'id': instance.id,
-};
-
-const _$ActionMethodEnumMap = {
-  ActionMethod.message: 'message',
-  ActionMethod.initClash: 'initClash',
-  ActionMethod.getIsInit: 'getIsInit',
-  ActionMethod.forceGc: 'forceGc',
-  ActionMethod.shutdown: 'shutdown',
-  ActionMethod.validateConfig: 'validateConfig',
-  ActionMethod.updateConfig: 'updateConfig',
-  ActionMethod.getConfig: 'getConfig',
-  ActionMethod.getProxies: 'getProxies',
-  ActionMethod.changeProxy: 'changeProxy',
-  ActionMethod.getTraffic: 'getTraffic',
-  ActionMethod.getTotalTraffic: 'getTotalTraffic',
-  ActionMethod.resetTraffic: 'resetTraffic',
-  ActionMethod.asyncTestDelay: 'asyncTestDelay',
-  ActionMethod.getConnections: 'getConnections',
-  ActionMethod.closeConnections: 'closeConnections',
-  ActionMethod.resetConnections: 'resetConnections',
-  ActionMethod.closeConnection: 'closeConnection',
-  ActionMethod.getExternalProviders: 'getExternalProviders',
-  ActionMethod.getExternalProvider: 'getExternalProvider',
-  ActionMethod.updateGeoData: 'updateGeoData',
-  ActionMethod.updateExternalProvider: 'updateExternalProvider',
-  ActionMethod.sideLoadExternalProvider: 'sideLoadExternalProvider',
-  ActionMethod.startLog: 'startLog',
-  ActionMethod.stopLog: 'stopLog',
-  ActionMethod.startListener: 'startListener',
-  ActionMethod.stopListener: 'stopListener',
-  ActionMethod.getCountryCode: 'getCountryCode',
-  ActionMethod.getMemory: 'getMemory',
-  ActionMethod.crash: 'crash',
-  ActionMethod.setupConfig: 'setupConfig',
-  ActionMethod.deleteFile: 'deleteFile',
-  ActionMethod.setState: 'setState',
-  ActionMethod.startTun: 'startTun',
-  ActionMethod.stopTun: 'stopTun',
-  ActionMethod.getRunTime: 'getRunTime',
-  ActionMethod.updateDns: 'updateDns',
-  ActionMethod.getAndroidVpnOptions: 'getAndroidVpnOptions',
-  ActionMethod.getCurrentProfileName: 'getCurrentProfileName',
-};
-
-_ProxiesData _$ProxiesDataFromJson(Map<String, dynamic> json) => _ProxiesData(
-  proxies: json['proxies'] as Map<String, dynamic>,
-  all: (json['all'] as List<dynamic>).map((e) => e as String).toList(),
-);
-
-Map<String, dynamic> _$ProxiesDataToJson(_ProxiesData instance) =>
-    <String, dynamic>{'proxies': instance.proxies, 'all': instance.all};
-
-_ActionResult _$ActionResultFromJson(Map<String, dynamic> json) =>
-    _ActionResult(
-      method: $enumDecode(_$ActionMethodEnumMap, json['method']),
-      data: json['data'],
-      id: json['id'] as String?,
-      code:
-          $enumDecodeNullable(_$ResultTypeEnumMap, json['code']) ??
-          ResultType.success,
-    );
-
-Map<String, dynamic> _$ActionResultToJson(_ActionResult instance) =>
-    <String, dynamic>{
-      'method': _$ActionMethodEnumMap[instance.method]!,
-      'data': instance.data,
-      'id': instance.id,
-      'code': _$ResultTypeEnumMap[instance.code]!,
-    };
-
-const _$ResultTypeEnumMap = {ResultType.success: 0, ResultType.error: -1};

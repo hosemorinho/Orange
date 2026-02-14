@@ -228,7 +228,7 @@ final class ProxyStateProvider
   }
 }
 
-String _$proxyStateHash() => r'3df11daa70bd06de32da43e9b3e09a74389264b2';
+String _$proxyStateHash() => r'24fb0e317c6611c0f27845887cd7622e14a3094b';
 
 @ProviderFor(trayState)
 const trayStateProvider = TrayStateProvider._();
@@ -269,7 +269,7 @@ final class TrayStateProvider
   }
 }
 
-String _$trayStateHash() => r'b03770ae2eb7fe1a73372f1128af3b38fdebb818';
+String _$trayStateHash() => r'7e50cfd4f2fe1315c5dd77d8bbde83c90a9e30c0';
 
 @ProviderFor(trayTitleState)
 const trayTitleStateProvider = TrayTitleStateProvider._();
@@ -357,8 +357,12 @@ String _$vpnStateHash() => r'128ddad03ce045ad1f8204e47aec3cb6cfa29f6e';
 const desktopTunStateProvider = DesktopTunStateProvider._();
 
 final class DesktopTunStateProvider
-    extends $FunctionalProvider<VM2<bool, TunStack>, VM2<bool, TunStack>,
-        VM2<bool, TunStack>>
+    extends
+        $FunctionalProvider<
+          VM2<bool, TunStack>,
+          VM2<bool, TunStack>,
+          VM2<bool, TunStack>
+        >
     with $Provider<VM2<bool, TunStack>> {
   const DesktopTunStateProvider._()
     : super(
@@ -377,15 +381,15 @@ final class DesktopTunStateProvider
   @$internal
   @override
   $ProviderElement<VM2<bool, TunStack>> $createElement(
-          $ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
 
   @override
   VM2<bool, TunStack> create(Ref ref) {
     return desktopTunState(ref);
   }
 
-  @override
+  /// {@macro riverpod.override_with_value}
   Override overrideWithValue(VM2<bool, TunStack> value) {
     return $ProviderOverride(
       origin: this,
@@ -394,8 +398,7 @@ final class DesktopTunStateProvider
   }
 }
 
-String _$desktopTunStateHash() =>
-    r'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
+String _$desktopTunStateHash() => r'e7a3fdca3d91db1d7a8eabbeb70c504d4db2f984';
 
 @ProviderFor(navigationState)
 const navigationStateProvider = NavigationStateProvider._();
@@ -813,7 +816,7 @@ final class IsStartProvider extends $FunctionalProvider<bool, bool, bool>
   }
 }
 
-String _$isStartHash() => r'f8bcefa8515c44fbe14876a5fc6676110508e9b2';
+String _$isStartHash() => r'6eb87f27ebfb84fe7c981a9cd9e31ead3a5aeaae';
 
 @ProviderFor(proxiesTabControllerState)
 const proxiesTabControllerStateProvider = ProxiesTabControllerStateProvider._();
@@ -2131,7 +2134,7 @@ final class AutoSetSystemDnsStateProvider
 }
 
 String _$autoSetSystemDnsStateHash() =>
-    r'a8805965efe78241613bfde55f4ea8fa12a6ea32';
+    r'47236af36a30641a52dd47d612a6b7d036fb10c6';
 
 @ProviderFor(needUpdateGroups)
 const needUpdateGroupsProvider = NeedUpdateGroupsProvider._();

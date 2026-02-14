@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/leaf/config/config_writer.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
+import 'package:fl_clash/leaf/models/leaf_node.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/plugins/service.dart';
@@ -59,7 +60,9 @@ class AppController {
   bool isAttach = false;
   bool _isApplyingProfile = false;
   bool _isUpdatingStatus = false;
-  Future<void> _modeChangeQueue = Future.value();
+  Mode? _pendingModeChange;
+  Completer<void>? _modeChangeCompleter;
+  bool _isDrainingModeChanges = false;
   DateTime? _lastSetupTime;
   LeafController? _leafController;
   bool _leafInitialized = false;
@@ -158,7 +161,7 @@ extension InitControllerExt on AppController {
       await applyProfile(
         force: true,
         reason: 'initStatus(autoStartCore,noVpn)',
-        preloadInvoke: null,  // 不启动 VPN service，只启动 leaf core
+        preloadInvoke: null, // 不启动 VPN service，只启动 leaf core
       );
     } else {
       await applyProfile(force: true, reason: 'initStatus(noAutoStart)');
@@ -753,10 +756,7 @@ extension SetupControllerExt on AppController {
     }
   }
 
-  void _setLeafStoppedState({
-    required String reason,
-    bool clearNodes = true,
-  }) {
+  void _setLeafStoppedState({required String reason, bool clearNodes = true}) {
     _ref.read(isLeafRunningProvider.notifier).state = false;
     if (clearNodes) {
       _ref.read(leafNodesProvider.notifier).state = const [];
@@ -764,15 +764,10 @@ extension SetupControllerExt on AppController {
     }
     _activePort = null;
     _ref.read(activePortProvider.notifier).state = null;
-    _logger.warning(
-      'leaf state reset: reason=$reason, clearNodes=$clearNodes',
-    );
+    _logger.warning('leaf state reset: reason=$reason, clearNodes=$clearNodes');
   }
 
-  void _setLeafStartedState({
-    required int activePort,
-    required String reason,
-  }) {
+  void _setLeafStartedState({required int activePort, required String reason}) {
     if (_leafController == null) return;
     final nodes = _leafController!.nodes;
     final selectedTag = _leafController!.getSelectedNode();
@@ -797,10 +792,7 @@ extension SetupControllerExt on AppController {
     updateRunTime();
     _ref.read(trafficsProvider.notifier).clear();
     _ref.read(totalTrafficProvider.notifier).value = Traffic();
-    _setLeafStoppedState(
-      reason: 'rollback($reason)',
-      clearNodes: false,
-    );
+    _setLeafStoppedState(reason: 'rollback($reason)', clearNodes: false);
     addCheckIp();
     _logStartupSnapshot('rollback complete: $reason');
   }
@@ -843,12 +835,44 @@ extension SetupControllerExt on AppController {
   }
 
   Future<void> changeMode(Mode mode) {
-    _modeChangeQueue = _modeChangeQueue
-        .catchError((e, _) {
-          _logger.warning('changeMode: previous queued task failed: $e');
-        })
-        .then((_) => _changeModeInternal(mode));
-    return _modeChangeQueue;
+    _pendingModeChange = mode;
+    if (_modeChangeCompleter == null || _modeChangeCompleter!.isCompleted) {
+      _modeChangeCompleter = Completer<void>();
+    }
+    if (!_isDrainingModeChanges) {
+      unawaited(_drainModeChanges());
+    }
+    return _modeChangeCompleter!.future;
+  }
+
+  Future<void> _drainModeChanges() async {
+    if (_isDrainingModeChanges) return;
+    _isDrainingModeChanges = true;
+    final completer = _modeChangeCompleter;
+    try {
+      while (_pendingModeChange != null) {
+        final nextMode = _pendingModeChange!;
+        _pendingModeChange = null;
+        await _changeModeInternal(nextMode);
+      }
+      if (completer != null && !completer.isCompleted) {
+        completer.complete();
+      }
+    } catch (e, st) {
+      _logger.warning('changeMode: mode-change drain failed: $e');
+      if (completer != null && !completer.isCompleted) {
+        completer.completeError(e, st);
+      }
+    } finally {
+      _isDrainingModeChanges = false;
+      if (_pendingModeChange != null &&
+          _modeChangeCompleter != null &&
+          !_modeChangeCompleter!.isCompleted) {
+        unawaited(_drainModeChanges());
+      } else if (_modeChangeCompleter == completer) {
+        _modeChangeCompleter = null;
+      }
+    }
   }
 
   Future<void> _changeModeInternal(Mode mode) async {
@@ -864,11 +888,7 @@ extension SetupControllerExt on AppController {
         .update((state) => state.copyWith(mode: mode));
 
     if (Platform.isIOS) {
-      await applyProfile(
-        force: true,
-        silence: true,
-        reason: 'changeMode(iOS)',
-      );
+      await applyProfile(force: true, silence: true, reason: 'changeMode(iOS)');
       return;
     }
 
@@ -886,11 +906,66 @@ extension SetupControllerExt on AppController {
     final homeDir = _leafController?.homeDir;
     if (homeDir == null) return false;
     try {
-      final mmdbPath = await MmdbManager.ensureAvailable(homeDir);
-      return await File(mmdbPath).exists();
+      final info = await MmdbManager.getFileInfo(homeDir);
+      return info.exists && info.size > 100 * 1024;
     } catch (_) {
       return false;
     }
+  }
+
+  String? _getPersistedLeafSelectedTag(List<LeafNode> nodes) {
+    if (nodes.isEmpty) return null;
+    final profile = _ref.read(currentProfileProvider);
+    if (profile == null || profile.selectedMap.isEmpty) return null;
+
+    final nodeTags = nodes.map((n) => n.tag).toSet();
+    final selectedMap = profile.selectedMap;
+
+    final preferredKeys = <String>[
+      GroupName.GLOBAL.name,
+      if (profile.currentGroupName != null) profile.currentGroupName!,
+    ];
+    for (final key in preferredKeys) {
+      final value = selectedMap[key];
+      if (value != null && value.isNotEmpty && nodeTags.contains(value)) {
+        return value;
+      }
+    }
+
+    for (final value in selectedMap.values) {
+      if (value.isNotEmpty && nodeTags.contains(value)) {
+        return value;
+      }
+    }
+    return null;
+  }
+
+  String _pickPreferredLeafSelectedTag(
+    List<LeafNode> nodes, {
+    String? runtimeSelected,
+  }) {
+    final nodeTags = nodes.map((n) => n.tag).toSet();
+    final persisted = _getPersistedLeafSelectedTag(nodes);
+    if (persisted != null) return persisted;
+
+    final uiSelected = _ref.read(selectedNodeTagProvider);
+    if (uiSelected != null &&
+        uiSelected.isNotEmpty &&
+        nodeTags.contains(uiSelected)) {
+      return uiSelected;
+    }
+
+    if (runtimeSelected != null &&
+        runtimeSelected.isNotEmpty &&
+        nodeTags.contains(runtimeSelected)) {
+      return runtimeSelected;
+    }
+
+    return nodes.first.tag;
+  }
+
+  void _persistLeafSelection(String selectedTag) {
+    updateCurrentSelectedMap(GroupName.GLOBAL.name, selectedTag);
   }
 
   /// Ensure a valid proxy node is selected in the leaf core.
@@ -899,33 +974,33 @@ extension SetupControllerExt on AppController {
       final nodes = _ref.read(leafNodesProvider);
       if (nodes.isEmpty) return;
 
-      final current = _ref.read(selectedNodeTagProvider);
-      final selected = (current != null && nodes.any((n) => n.tag == current))
-          ? current
-          : nodes.first.tag;
+      final selected = _pickPreferredLeafSelectedTag(nodes);
 
       _ref.read(selectedNodeTagProvider.notifier).state = selected;
       await service?.selectNode(selected);
+      _persistLeafSelection(selected);
       return;
     }
 
     if (_leafController == null || !_leafController!.isRunning) return;
 
-    final currentSelected = _leafController!.getSelectedNode();
-    if (currentSelected != null && currentSelected.isNotEmpty) {
-      // Already has a valid selection
-      _ref.read(selectedNodeTagProvider.notifier).state = currentSelected;
-      return;
-    }
-
-    // No selection — auto-pick the first node
     final nodes = _leafController!.nodes;
-    if (nodes.isNotEmpty) {
-      final firstNode = nodes.first.tag;
-      await _leafController!.selectNode(firstNode);
-      _ref.read(selectedNodeTagProvider.notifier).state = firstNode;
-      commonPrint.log('Auto-selected node: $firstNode');
+    if (nodes.isEmpty) return;
+
+    final currentSelected = _leafController!.getSelectedNode();
+    final selected = _pickPreferredLeafSelectedTag(
+      nodes,
+      runtimeSelected: currentSelected,
+    );
+
+    if (currentSelected == null ||
+        currentSelected.isEmpty ||
+        currentSelected != selected) {
+      await _leafController!.selectNode(selected);
+      commonPrint.log('Adjusted selected node: $currentSelected -> $selected');
     }
+    _ref.read(selectedNodeTagProvider.notifier).state = selected;
+    _persistLeafSelection(selected);
   }
 
   void autoApplyProfile() {
@@ -1030,11 +1105,11 @@ extension SetupControllerExt on AppController {
     return res;
   }
 
-  Future<bool> _setupConfig(
-    [Future<bool> Function()? preloadInvoke,
+  Future<bool> _setupConfig([
+    Future<bool> Function()? preloadInvoke,
     String reason = 'unspecified',
-    bool bypassThrottle = false]
-  ) async {
+    bool bypassThrottle = false,
+  ]) async {
     // Throttle: skip if setup completed less than 2 seconds ago
     final now = DateTime.now();
     if (!bypassThrottle &&
@@ -1066,7 +1141,7 @@ extension SetupControllerExt on AppController {
     // Read YAML content from profile file
     String? yamlContent;
     try {
-      yamlContent = await _getProfileYaml(profile!);
+      yamlContent = await _getProfileYaml(profile);
     } catch (e) {
       _logger.error(
         'setup: failed to read/decrypt YAML for profile ${profile.id}',
@@ -1163,14 +1238,15 @@ extension SetupControllerExt on AppController {
       }
 
       final previousSelected = _ref.read(selectedNodeTagProvider);
-      final selectedTag = switch (nodes.any((n) => n.tag == previousSelected)) {
-        true => previousSelected,
-        false => nodes.first.tag,
-      };
+      final selectedTag = _pickPreferredLeafSelectedTag(
+        nodes,
+        runtimeSelected: previousSelected,
+      );
 
       _ref.read(isLeafRunningProvider.notifier).state = false;
       _ref.read(leafNodesProvider.notifier).state = nodes;
       _ref.read(selectedNodeTagProvider.notifier).state = selectedTag;
+      _persistLeafSelection(selectedTag);
       _activePort = null;
       _ref.read(activePortProvider.notifier).state = null;
       _lastSetupTime = DateTime.now();
@@ -1279,14 +1355,13 @@ extension SetupControllerExt on AppController {
       }
 
       final previousSelected = _ref.read(selectedNodeTagProvider);
-      final selectedTag = switch (nodes.any((n) => n.tag == previousSelected)) {
-        true => previousSelected,
-        false => nodes.isNotEmpty ? nodes.first.tag : null,
-      };
+      final selectedTag = _pickPreferredLeafSelectedTag(
+        nodes,
+        runtimeSelected: previousSelected,
+      );
       _ref.read(selectedNodeTagProvider.notifier).state = selectedTag;
-      if (selectedTag != null) {
-        await service?.selectNode(selectedTag);
-      }
+      await service?.selectNode(selectedTag);
+      _persistLeafSelection(selectedTag);
 
       _ref.read(isLeafRunningProvider.notifier).state = globalState.isStart;
       _activePort = mixedPort;
@@ -1805,7 +1880,8 @@ extension CommonControllerExt on AppController {
         if (runtime != null) {
           final startTimeStamp = runtime.millisecondsSinceEpoch;
           final nowTimeStamp = DateTime.now().millisecondsSinceEpoch;
-          _ref.read(runTimeProvider.notifier).value = nowTimeStamp - startTimeStamp;
+          _ref.read(runTimeProvider.notifier).value =
+              nowTimeStamp - startTimeStamp;
           _ref.read(isLeafRunningProvider.notifier).state = true;
         } else {
           _ref.read(runTimeProvider.notifier).value = null;

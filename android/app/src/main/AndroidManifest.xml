@@ -96,6 +96,22 @@
             </intent-filter>
         </receiver>
 
+        <!-- Core process services - run in separate :core process -->
+        <service
+            android:name=".service.VpnService"
+            android:exported="false"
+            android:process=":core" />
+
+        <service
+            android:name=".service.CommonService"
+            android:exported="false"
+            android:process=":core" />
+
+        <service
+            android:name=".service.CoreService"
+            android:exported="true"
+            android:process=":core" />
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

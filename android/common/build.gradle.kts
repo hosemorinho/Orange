@@ -14,6 +14,10 @@ android {
         consumerProguardFiles("consumer-rules.pro")
     }
 
+    buildFeatures {
+        aidl = true
+    }
+
     buildTypes {
         release {
             proguardFiles(

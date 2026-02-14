@@ -34,5 +34,6 @@ object GlobalState : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     fun init(application: Application) {
         _application = application
+        LeafPreferences.init(application)
     }
 }

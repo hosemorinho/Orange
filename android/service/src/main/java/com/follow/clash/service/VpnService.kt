@@ -1,5 +1,9 @@
 package com.follow.clash.service
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.ProxyInfo
@@ -10,9 +14,11 @@ import android.os.Parcel
 import android.os.ParcelFileDescriptor
 import android.os.RemoteException
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import com.follow.clash.common.AccessControlMode
 import com.follow.clash.common.GlobalState
+import com.follow.clash.common.LeafPreferences
 import com.follow.clash.service.models.VpnOptions
 import com.follow.clash.service.models.getIpv4RouteAddress
 import com.follow.clash.service.models.getIpv6RouteAddress
@@ -38,14 +44,96 @@ class VpnService : SystemVpnService(), IBaseService,
         install(SuspendModule(self))
     }
 
+    // Flag to track if this is an auto-recovery start
+    private var isAutoRecovery = false
+
     override fun onCreate() {
         super.onCreate()
+        // Initialize LeafPreferences in case it's not initialized (for :core process)
+        if (!LeafPreferences.initGuard()) {
+            try {
+                LeafPreferences.init(this)
+            } catch (_: Exception) {
+                // Already initialized
+            }
+        }
         handleCreate()
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Return START_STICKY to auto-restart if killed
+        when (intent?.action) {
+            ACTION_STOP -> {
+                // User explicitly stopped - clear shouldRun
+                LeafPreferences.shouldRun = false
+                GlobalState.log("VpnService: User stopped, shouldRun=false")
+                stop()
+                return START_NOT_STICKY
+            }
+            ACTION_START -> {
+                // Explicit start from UI
+                LeafPreferences.shouldRun = true
+                LeafPreferences.lastStartTime = System.currentTimeMillis()
+                isAutoRecovery = false
+            }
+            else -> {
+                // Check if we should auto-recover
+                if (LeafPreferences.shouldRun && State.options != null) {
+                    isAutoRecovery = true
+                    GlobalState.log("VpnService: Auto-recovering from shouldRun=true")
+                } else {
+                    // No work to do, stop the service
+                    return START_NOT_STICKY
+                }
+            }
+        }
+
+        // Start as foreground service
+        startForeground(GlobalState.NOTIFICATION_ID, createNotification())
+
+        // Start the service normally
+        start()
+
+        return START_STICKY
     }
 
     override fun onDestroy() {
         handleDestroy()
         super.onDestroy()
+    }
+
+    private fun createNotification(): Notification {
+        val channel = NotificationChannel(
+            GlobalState.NOTIFICATION_CHANNEL,
+            "Orange VPN",
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "VPN service notification"
+            setShowBadge(false)
+        }
+
+        val notificationManager = getSystemService<NotificationManager>()
+        notificationManager?.createNotificationChannel(channel)
+
+        val stopIntent = Intent(this, VpnService::class.java).apply {
+            action = ACTION_STOP
+        }
+        val stopPendingIntent = PendingIntent.getService(
+            this, 0, stopIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        return NotificationCompat.Builder(this, GlobalState.NOTIFICATION_CHANNEL)
+            .setContentTitle("Orange VPN")
+            .setContentText(if (isAutoRecovery) "Reconnecting..." else "Running")
+            .setSmallIcon(android.R.drawable.ic_lock_lock)
+            .setOngoing(true)
+            .addAction(
+                android.R.drawable.ic_menu_close_clear_cancel,
+                "Stop",
+                stopPendingIntent
+            )
+            .build()
     }
 
     private val connectivity by lazy {
@@ -253,6 +341,9 @@ class VpnService : SystemVpnService(), IBaseService,
     }
 
     companion object {
+        const val ACTION_START = "com.follow.clash.action.START"
+        const val ACTION_STOP = "com.follow.clash.action.STOP"
+
         private const val IPV4_ADDRESS = "172.19.0.1/30"
         private const val IPV6_ADDRESS = "fdfe:dcba:9876::1/126"
         private const val DNS = "172.19.0.2"

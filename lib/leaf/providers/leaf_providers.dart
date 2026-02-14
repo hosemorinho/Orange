@@ -18,7 +18,13 @@ part 'generated/leaf_providers.g.dart';
 /// Singleton LeafController provider.
 @Riverpod(keepAlive: true)
 LeafController leafController(Ref ref) {
-  return LeafController();
+  final controller = LeafController();
+  // Enable dual-process mode on Android
+  // In this mode, leaf runs in :core process instead of UI process
+  if (Platform.isAndroid) {
+    controller.useDualProcessMode = true;
+  }
+  return controller;
 }
 
 /// Whether leaf is currently running.

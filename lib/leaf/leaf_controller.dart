@@ -8,6 +8,7 @@ import 'package:fl_clash/leaf/config/leaf_config.dart';
 import 'package:fl_clash/leaf/ffi/leaf_errors.dart';
 import 'package:fl_clash/leaf/ffi/leaf_ffi.dart';
 import 'package:fl_clash/leaf/models/leaf_node.dart';
+import 'package:fl_clash/plugins/service.dart';
 import 'package:fl_clash/xboard/core/logger/file_logger.dart';
 import 'package:yaml/yaml.dart';
 
@@ -17,11 +18,19 @@ final _logger = FileLogger('leaf_controller.dart');
 ///
 /// Manages the leaf lifecycle, config generation, node selection, and
 /// health checks — all through FFI (no REST API).
+///
+/// In dual-process mode (Android with :core process), this controller
+/// can communicate with the remote leaf in :core process via AIDL.
 class LeafController {
   static const int _rtId = 1;
 
   final LeafFfi _ffi;
   LeafInstance? _instance;
+
+  /// Whether to use dual-process mode (Android with :core process).
+  /// When true, leaf is started in :core process via AIDL.
+  /// When false, leaf runs in the same process via FFI.
+  bool useDualProcessMode = false;
 
   String? _homeDir;
   String? get homeDir => _homeDir;
@@ -111,7 +120,39 @@ class LeafController {
       mmdbAvailable: mmdbAvailable,
     );
 
-    await _startWithConfig(config);
+    // Use dual-process mode if enabled
+    if (useDualProcessMode) {
+      await _startRemote(config);
+    } else {
+      await _startWithConfig(config);
+    }
+  }
+
+  /// Start leaf in remote :core process via AIDL.
+  Future<void> _startRemote(LeafConfig config) async {
+    if (_instance != null) {
+      await stop();
+    }
+
+    final configJson = config.toJsonString();
+    _logger.info(
+      'starting leaf in :core process with config (${configJson.length} bytes)',
+    );
+
+    // Get the service instance
+    final svc = service;
+    if (svc == null) {
+      _logger.error('service not available for dual-process mode');
+      throw StateError('Service not available');
+    }
+
+    // Start the core service
+    final success = await svc.startCore(configJson);
+    if (!success) {
+      throw LeafException(LeafError.runtimeManager);
+    }
+
+    _logger.info('leaf started in :core process successfully');
   }
 
   /// Start leaf with a pre-built config — fully in-memory, no file I/O.
@@ -211,8 +252,17 @@ class LeafController {
   }
 
   Future<void> stop() async {
-    _instance?.shutdown();
-    _instance = null;
+    // Use dual-process mode if enabled
+    if (useDualProcessMode) {
+      final svc = service;
+      if (svc != null) {
+        await svc.stopCore();
+        _logger.info('leaf stopped in :core process');
+      }
+    } else {
+      _instance?.shutdown();
+      _instance = null;
+    }
   }
 
   /// Reload config from the existing config file on disk.
@@ -297,7 +347,14 @@ class LeafController {
     _logger.info('hotReload: complete');
   }
 
-  bool get isRunning => _instance != null;
+  bool get isRunning {
+    if (useDualProcessMode) {
+      // In dual-process mode, check via service
+      // For now, just return based on local instance
+      return _instance != null;
+    }
+    return _instance != null;
+  }
 
   int get mixedPort => _mixedPort;
 

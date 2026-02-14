@@ -1279,24 +1279,40 @@ extension SetupControllerExt on AppController {
         return false;
       }
       _logger.info('setup: socket protection enabled');
-      // Retry getTunFd — VPN service may still be establishing after
-      // permission grant. Poll for up to 5 seconds as a safety net.
-      for (var attempt = 0; attempt < 25; attempt++) {
-        tunFd = await service?.getTunFd();
-        if (tunFd != null) break;
-        if (attempt < 24) {
-          await Future.delayed(const Duration(milliseconds: 200));
+      // In dual-process mode, TUN fd is handled in :core process
+      // Just check if TUN is ready, don't try to get fd
+      if (system.isAndroid && _leafController?.useDualProcessMode == true) {
+        final tunReady = await service?.isTunReady() ?? false;
+        if (!tunReady) {
+          _logger.warning(
+            'setup: Android TUN not ready — '
+            'VPN service failed to establish. Cannot start.',
+          );
+          globalState.showNotifier('VPN启动失败，无法获取TUN设备');
+          return false;
         }
-      }
-      if (tunFd == null) {
-        _logger.warning(
-          'setup: Android TUN fd not available — '
-          'VPN service failed to establish. Cannot start.',
-        );
-        globalState.showNotifier('VPN启动失败，无法获取TUN设备');
-        return false;
+        _logger.info('setup: TUN ready in :core process (dual-process mode)');
+        tunFd = 0; // Placeholder, will be replaced in :core
       } else {
-        _logger.info('setup: got TUN fd=$tunFd from VPN service');
+        // Retry getTunFd — VPN service may still be establishing after
+        // permission grant. Poll for up to 5 seconds as a safety net.
+        for (var attempt = 0; attempt < 25; attempt++) {
+          tunFd = await service?.getTunFd();
+          if (tunFd != null) break;
+          if (attempt < 24) {
+            await Future.delayed(const Duration(milliseconds: 200));
+          }
+        }
+        if (tunFd == null) {
+          _logger.warning(
+            'setup: Android TUN fd not available — '
+            'VPN service failed to establish. Cannot start.',
+          );
+          globalState.showNotifier('VPN启动失败，无法获取TUN设备');
+          return false;
+        } else {
+          _logger.info('setup: got TUN fd=$tunFd from VPN service');
+        }
       }
     }
     if (tunEnabled && !system.isAndroid) {

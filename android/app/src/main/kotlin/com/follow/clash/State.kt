@@ -3,6 +3,7 @@ package com.follow.clash
 import android.content.Intent
 import android.net.VpnService
 import com.follow.clash.common.GlobalState
+import com.follow.clash.common.LeafPreferences
 import com.follow.clash.common.ServiceDelegate
 import com.follow.clash.common.intent
 import com.follow.clash.models.SharedState
@@ -303,6 +304,12 @@ object State {
                 }
                 try {
                     runStateFlow.tryEmit(RunState.PENDING)
+
+                    // Set shouldRun=false when user explicitly stops
+                    // This prevents auto-recovery after user-initiated stop
+                    LeafPreferences.shouldRun = false
+                    GlobalState.log("User stopped service, shouldRun=false")
+
                     runCatching {
                         serviceDelegate?.useService { it.stop() }
                     }.onFailure {

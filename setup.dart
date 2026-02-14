@@ -171,7 +171,9 @@ class Build {
       final age = DateTime.now().difference(stat.modified);
       if (age.inDays < 7 && size > 100 * 1024) {
         final sizeMb = (size / (1024 * 1024)).toStringAsFixed(2);
-        print('Country.mmdb exists ($sizeMb MB, ${age.inDays} days old), skipping download');
+        print(
+          'Country.mmdb exists ($sizeMb MB, ${age.inDays} days old), skipping download',
+        );
         return;
       }
     }
@@ -257,7 +259,9 @@ class Build {
     } else {
       print('ERROR: Country.mmdb is not available. Rule mode will not work!');
       print('Please manually download Country.mmdb to assets/data/');
-      print('URL: https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb');
+      print(
+        'URL: https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb',
+      );
       // Don't exit — let the build continue but warn loudly
     }
   }
@@ -273,8 +277,12 @@ class Build {
     final srcFile = File(srcPath);
 
     if (!await srcFile.exists()) {
-      print('WARNING: wintun.dll not found at $srcPath — TUN mode may not work on Windows.');
-      print('Download wintun from https://www.wintun.net/ and place DLLs in wintun/bin/{amd64,arm64}/');
+      print(
+        'WARNING: wintun.dll not found at $srcPath — TUN mode may not work on Windows.',
+      );
+      print(
+        'Download wintun from https://www.wintun.net/ and place DLLs in wintun/bin/{amd64,arm64}/',
+      );
       return;
     }
 
@@ -316,18 +324,23 @@ class Build {
         final rustTarget = item.arch!.rustTarget(item.target);
 
         // Ensure Rust target is installed
-        await exec(
-          ['rustup', 'target', 'add', rustTarget],
-          name: 'add rust target $rustTarget',
-        );
+        await exec([
+          'rustup',
+          'target',
+          'add',
+          rustTarget,
+        ], name: 'add rust target $rustTarget');
 
         // Build with cargo
         await exec(
           [
-            'cargo', 'build',
-            '-p', 'leaf-ffi',
+            'cargo',
+            'build',
+            '-p',
+            'leaf-ffi',
             '--release',
-            '--target', rustTarget,
+            '--target',
+            rustTarget,
           ],
           name: 'build leaf-ffi ($rustTarget)',
           workingDirectory: _leafFfiDir,
@@ -335,7 +348,11 @@ class Build {
 
         // Copy the built library to the output directory
         final builtLib = join(
-          _leafFfiDir, 'target', rustTarget, 'release', target.leafLibName,
+          _leafFfiDir,
+          'target',
+          rustTarget,
+          'release',
+          target.leafLibName,
         );
 
         final String destPath;
@@ -364,7 +381,8 @@ class Build {
 
   /// Resolve the NDK toolchain bin directory.
   static String _resolveNdkToolchainBin() {
-    final ndk = Platform.environment['ANDROID_NDK'] ??
+    final ndk =
+        Platform.environment['ANDROID_NDK'] ??
         Platform.environment['ANDROID_NDK_HOME'] ??
         Platform.environment['ANDROID_NDK_LATEST_HOME'] ??
         Platform.environment['NDK_HOME'];
@@ -372,9 +390,16 @@ class Build {
       throw 'ANDROID_NDK or NDK_HOME environment variable must be set';
     }
 
-    final hostOs = Platform.isLinux ? 'linux' : (Platform.isMacOS ? 'darwin' : 'windows');
+    final hostOs = Platform.isLinux
+        ? 'linux'
+        : (Platform.isMacOS ? 'darwin' : 'windows');
     final defaultBin = join(
-      ndk, 'toolchains', 'llvm', 'prebuilt', '$hostOs-x86_64', 'bin',
+      ndk,
+      'toolchains',
+      'llvm',
+      'prebuilt',
+      '$hostOs-x86_64',
+      'bin',
     );
 
     if (Directory(defaultBin).existsSync()) {
@@ -384,7 +409,8 @@ class Build {
     // Auto-detect host prebuilt directory
     final prebuiltDir = Directory(join(ndk, 'toolchains', 'llvm', 'prebuilt'));
     if (prebuiltDir.existsSync()) {
-      final dirs = prebuiltDir.listSync()
+      final dirs = prebuiltDir
+          .listSync()
           .whereType<Directory>()
           .where((d) => !basename(d.path).startsWith('.'))
           .toList();
@@ -405,9 +431,9 @@ class Build {
     print('NDK toolchain bin: $toolchainBin');
 
     // Derive sysroot from toolchain bin path (bin is <ndk>/toolchains/llvm/prebuilt/<host>/bin)
-    final sysroot = Directory(join(toolchainBin, '..', 'sysroot'))
-        .resolveSymbolicLinksSync()
-        .replaceAll('\\', '/');
+    final sysroot = Directory(
+      join(toolchainBin, '..', 'sysroot'),
+    ).resolveSymbolicLinksSync().replaceAll('\\', '/');
     print('NDK sysroot: $sysroot');
 
     final configDir = Directory(join(_leafFfiDir, '.cargo'));
@@ -419,7 +445,8 @@ class Build {
     final bin = toolchainBin.replaceAll('\\', '/');
     final api = _ndkApiLevel;
 
-    final config = '''
+    final config =
+        '''
 # Auto-generated for Android NDK cross-compilation
 [target.aarch64-linux-android]
 linker = "$bin/aarch64-linux-android$api-clang"
@@ -454,8 +481,6 @@ BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android = "--sysroot=$sysroot"
       print('Cleaned up .cargo/config.toml');
     }
   }
-
-
 
   static List<String> getExecutable(String command) {
     return command.split(' ');
@@ -529,7 +554,8 @@ BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android = "--sysroot=$sysroot"
           'app_name: Orange': 'app_name: $name',
           'display_name: Orange': 'display_name: $name',
           'executable_name: Orange.exe': 'executable_name: $name.exe',
-          'output_base_file_name: Orange.exe': 'output_base_file_name: $name.exe',
+          'output_base_file_name: Orange.exe':
+              'output_base_file_name: $name.exe',
         });
         await _replaceInFile('windows/packaging/exe/inno_setup.iss', {
           "'Orange.exe'": "'$name.exe'",
@@ -619,6 +645,17 @@ class BuildCommand extends Command {
       valueHelp: ['pre', 'stable'].join(','),
       help: 'The $name build env',
     );
+    if (target == Target.ios) {
+      argParser.addOption(
+        'ios-export-method',
+        help:
+            'iOS export method for ipa packaging (e.g. app-store, ad-hoc, development, enterprise)',
+      );
+      argParser.addOption(
+        'ios-export-options-plist',
+        help: 'Path to iOS export options plist for ipa packaging',
+      );
+    }
   }
 
   @override
@@ -634,15 +671,20 @@ class BuildCommand extends Command {
 
   Future<void> _buildEnvFile(String env) async {
     final apiBaseUrl = (Platform.environment['API_BASE_URL'] ?? '').trim();
-    final apiTextDomain = (Platform.environment['API_TEXT_DOMAIN'] ?? '').trim();
+    final apiTextDomain = (Platform.environment['API_TEXT_DOMAIN'] ?? '')
+        .trim();
     final appName = (Platform.environment['APP_NAME'] ?? '').trim();
-    final appPackageName = (Platform.environment['APP_PACKAGE_NAME'] ?? '').trim();
+    final appPackageName = (Platform.environment['APP_PACKAGE_NAME'] ?? '')
+        .trim();
     final refactorAndroidPackage =
-        (Platform.environment['REFACTOR_ANDROID_PACKAGE'] ?? '').trim().toLowerCase();
+        (Platform.environment['REFACTOR_ANDROID_PACKAGE'] ?? '')
+            .trim()
+            .toLowerCase();
     final shouldExposePackageNameToDart =
         target == Target.android && refactorAndroidPackage == 'true';
     final themeColor = (Platform.environment['THEME_COLOR'] ?? '').trim();
-    final crispWebsiteId = (Platform.environment['CRISP_WEBSITE_ID'] ?? '').trim();
+    final crispWebsiteId = (Platform.environment['CRISP_WEBSITE_ID'] ?? '')
+        .trim();
 
     final data = {
       'APP_ENV': env,
@@ -713,16 +755,57 @@ class BuildCommand extends Command {
   Future<void> _buildDistributor({
     required Target target,
     required String targets,
-    String args = '',
+    List<String> flutterBuildArgs = const [],
+    List<String> packageArgs = const [],
     required String env,
   }) async {
     await Build.getDistributor();
-    await Build.exec(
-      name: name,
-      Build.getExecutable(
-        'flutter_distributor package --skip-clean --platform ${target.name} --targets $targets --flutter-build-args=verbose,dart-define-from-file=env.json$args',
-      ),
+    final buildArgs = [
+      'verbose',
+      'dart-define-from-file=env.json',
+      ...flutterBuildArgs,
+    ].join(',');
+    await Build.exec(name: name, [
+      'flutter_distributor',
+      'package',
+      '--skip-clean',
+      '--platform',
+      target.name,
+      '--targets',
+      targets,
+      '--flutter-build-args=$buildArgs',
+      ...packageArgs,
+    ]);
+  }
+
+  List<String> _resolveIosExportArgs() {
+    String normalize(String? value) {
+      final v = (value ?? '').trim();
+      if (v.isEmpty) return '';
+      final lower = v.toLowerCase();
+      if (lower == 'null' || lower == 'none') return '';
+      return v;
+    }
+
+    // Priority: CLI args > environment variables > safe default.
+    final cliPlist = normalize(
+      argResults?['ios-export-options-plist']?.toString(),
     );
+    final cliMethod = normalize(argResults?['ios-export-method']?.toString());
+    final envPlist = normalize(
+      Platform.environment['IOS_EXPORT_OPTIONS_PLIST'],
+    );
+    final envMethod = normalize(Platform.environment['IOS_EXPORT_METHOD']);
+
+    final exportOptionsPlist = cliPlist.isNotEmpty ? cliPlist : envPlist;
+    if (exportOptionsPlist.isNotEmpty) {
+      return ['--export-options-plist', exportOptionsPlist];
+    }
+
+    final exportMethod = cliMethod.isNotEmpty
+        ? cliMethod
+        : (envMethod.isNotEmpty ? envMethod : 'ad-hoc');
+    return ['--export-method', exportMethod];
   }
 
   Future<String?> get systemArch async {
@@ -754,10 +837,7 @@ class BuildCommand extends Command {
     if (target == Target.ios) {
       await _prepareIosCore();
     } else {
-      await Build.buildCore(
-        target: target,
-        arch: arch,
-      );
+      await Build.buildCore(target: target, arch: arch);
     }
 
     await _buildEnvFile(env);
@@ -790,7 +870,7 @@ class BuildCommand extends Command {
         await _buildDistributor(
           target: target,
           targets: 'exe,zip',
-          args: ' --description $archName',
+          packageArgs: ['--description', archName ?? 'unknown'],
           env: env,
         );
         return;
@@ -806,8 +886,12 @@ class BuildCommand extends Command {
         await _buildDistributor(
           target: target,
           targets: targets,
-          args:
-              ' --description $archName --build-target-platform $defaultTarget',
+          packageArgs: [
+            '--description',
+            archName ?? 'unknown',
+            '--build-target-platform',
+            defaultTarget!,
+          ],
           env: env,
         );
         return;
@@ -825,8 +909,8 @@ class BuildCommand extends Command {
         await _buildDistributor(
           target: target,
           targets: 'apk',
-          args:
-              ",split-per-abi --build-target-platform ${defaultTargets.join(",")}",
+          flutterBuildArgs: const ['split-per-abi'],
+          packageArgs: ['--build-target-platform', defaultTargets.join(',')],
           env: env,
         );
         return;
@@ -835,15 +919,17 @@ class BuildCommand extends Command {
         await _buildDistributor(
           target: target,
           targets: 'dmg',
-          args: ' --description $archName',
+          packageArgs: ['--description', archName ?? 'unknown'],
           env: env,
         );
         return;
       case Target.ios:
+        final iosExportArgs = _resolveIosExportArgs();
         await _buildDistributor(
           target: target,
           targets: 'ipa',
-          args: ',no-codesign --description arm64-unsigned',
+          flutterBuildArgs: const ['no-codesign'],
+          packageArgs: ['--description', 'arm64-unsigned', ...iosExportArgs],
           env: env,
         );
         return;

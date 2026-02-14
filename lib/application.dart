@@ -304,17 +304,29 @@ class ApplicationState extends ConsumerState<Application> {
         final userState = ref.read(xboardUserProvider);
         final isAuthenticated = userState.isAuthenticated;
         final isInitialized = userState.isInitialized;
-        final isLoginPage = state.uri.path == '/login';
+        final path = state.uri.path;
+        final isLoadingPage = path == '/loading';
+        final isAuthPage = path == '/login' ||
+            path == '/register' ||
+            path == '/forgot-password';
 
+        // Not yet initialized → stay on or go to loading page
         if (!isInitialized) {
-          return '/loading';
+          return isLoadingPage ? null : '/loading';
         }
 
-        if (!isAuthenticated && !isLoginPage) {
+        // Initialized → redirect away from loading page
+        if (isLoadingPage) {
+          return isAuthenticated ? '/' : '/login';
+        }
+
+        // Unauthenticated → allow auth pages, redirect others to login
+        if (!isAuthenticated && !isAuthPage) {
           return '/login';
         }
 
-        if (isAuthenticated && isLoginPage) {
+        // Authenticated → redirect away from auth pages to home
+        if (isAuthenticated && isAuthPage) {
           return '/';
         }
 

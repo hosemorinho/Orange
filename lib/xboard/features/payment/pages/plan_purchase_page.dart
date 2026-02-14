@@ -777,6 +777,16 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         onPeriodSelected: (period) {
           setState(() {
             _selectedPeriod = period;
+            // Reset coupon validation when period changes,
+            // since coupon validity may depend on the selected period/price.
+            if (_isCouponValid != null) {
+              _isCouponValid = null;
+              _couponErrorMessage = null;
+              _couponType = null;
+              _couponValue = null;
+              _validatedCouponCode = null;
+              _couponController.clear();
+            }
           });
         },
       ),

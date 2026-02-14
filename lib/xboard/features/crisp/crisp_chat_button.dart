@@ -1,3 +1,4 @@
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/providers/state.dart';
 import 'package:fl_clash/xboard/adapter/state/plan_state.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
@@ -27,7 +28,7 @@ class CrispChatButton extends ConsumerWidget {
       heroTag: 'crisp_chat_fab',
       backgroundColor: colorScheme.primaryContainer,
       foregroundColor: colorScheme.onPrimaryContainer,
-      tooltip: 'Support',
+      tooltip: AppLocalizations.of(context).onlineSupport,
       onPressed: () => _openChat(ref),
       child: const Icon(Icons.support_agent),
     );

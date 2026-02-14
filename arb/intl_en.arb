@@ -1231,6 +1231,8 @@
   "xboardOnetimePayment": "One-time",
   "xboardResetTraffic": "Reset traffic",
   "xboardPleaseLogin": "Please login first",
+  "xboardPleaseLoginFirst": "Please login first",
+  "xboardOnlineSupport": "Online Support",
   "xboardTickets": "Tickets",
   "xboardCreateTicket": "Create Ticket",
   "xboardTicketDetail": "Ticket Details",

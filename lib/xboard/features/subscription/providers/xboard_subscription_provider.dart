@@ -27,7 +27,7 @@ class XBoardSubscriptionNotifier extends Notifier<List<DomainPlan>> {
     if (!userAuthState.isAuthenticated) {
       state = <DomainPlan>[];
       ref.read(userUIStateProvider.notifier).state = const UIState(
-        errorMessage: '请先登录',
+        errorMessage: 'NOT_LOGGED_IN',
       );
       return;
     }

@@ -261,6 +261,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   }
 
   Color _getProgressColor(double progress, ThemeData theme) {
+    if (progress.isNaN || progress.isInfinite) return theme.colorScheme.primary;
     if (progress >= 0.9) {
       return theme.colorScheme.error;
     } else if (progress >= 0.7) {
@@ -799,7 +800,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                 ? AppLocalizations.of(
                     context,
                   ).xboardRemainingDaysCount(remainingDays)
-                : '${(progress * 100).toInt()}%',
+                : '${(progress.isNaN || progress.isInfinite ? 0.0 : progress * 100).toInt()}%',
             style: theme.textTheme.labelSmall?.copyWith(
               color: progressColor,
               fontWeight: FontWeight.w600,
@@ -911,7 +912,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${(progress * 100).toInt()}%',
+                      '${(progress.isNaN || progress.isInfinite ? 0.0 : progress * 100).toInt()}%',
                       style: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: progressColor,
@@ -923,7 +924,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                 ClipRRect(
                   borderRadius: BorderRadius.circular(2),
                   child: LinearProgressIndicator(
-                    value: progress,
+                    value: progress.isNaN || progress.isInfinite ? 0.0 : progress,
                     minHeight: 4,
                     backgroundColor: colorScheme.primary.withValues(
                       alpha: 0.12,
@@ -1458,8 +1459,9 @@ class _ProgressRingPainter extends CustomPainter {
     canvas.drawCircle(center, ringRadius, bgPaint);
 
     // Foreground arc (progress-based)
-    if (progress > 0) {
-      final sweepAngle = 2 * pi * progress.clamp(0.0, 1.0);
+    final safeProgress = progress.isNaN || progress.isInfinite ? 0.0 : progress.clamp(0.0, 1.0);
+    if (safeProgress > 0) {
+      final sweepAngle = 2 * pi * safeProgress;
       final scale = isActive ? 1.0 + 0.03 * pulseProgress : 1.0;
       final effectiveRadius = ringRadius * scale;
 

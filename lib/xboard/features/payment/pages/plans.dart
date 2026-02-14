@@ -79,12 +79,8 @@ class _PlansViewState extends ConsumerState<PlansView> {
         _selectedPlan = plan;
       });
     } else {
-      // 移动端：使用 Navigator.push 导航，自动有返回按钮
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => PlanPurchasePage(plan: plan),
-        ),
-      );
+      // 移动端：使用 GoRouter 导航到购买页面
+      context.push('/plans/purchase', extra: plan);
     }
   }
   @override

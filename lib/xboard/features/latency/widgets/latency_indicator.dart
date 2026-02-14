@@ -104,7 +104,7 @@ class LatencyIndicator extends StatelessWidget {
     );
   }
   Widget _buildTestedState(BuildContext context) {
-    final displayText = delayValue! < 0 ? 'Timeout' : '${delayValue}ms';
+    final displayText = delayValue! < 0 ? AppLocalizations.of(context)!.xboardLatencyTimeout : '${delayValue}ms';
     final color = utils.getDelayColor(delayValue!);
     if (isCompact) {
       return GestureDetector(

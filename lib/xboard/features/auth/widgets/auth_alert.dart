@@ -65,9 +65,9 @@ class AuthAlert extends StatelessWidget {
 
     return switch (type) {
       AuthAlertType.success => (
-          const Color(0xFF10b981).withValues(alpha: 0.1), // bg-success/10
-          const Color(0xFF10b981), // border-success
-          const Color(0xFF10b981), // text-success
+          colorScheme.tertiary.withValues(alpha: 0.1),
+          colorScheme.tertiary,
+          colorScheme.tertiary,
           Icons.check_circle,
         ),
       AuthAlertType.error => (

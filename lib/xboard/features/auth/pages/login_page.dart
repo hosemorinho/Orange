@@ -5,8 +5,6 @@ import 'package:fl_clash/common/common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'register_page.dart';
-import 'forgot_password_page.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:fl_clash/xboard/core/core.dart';
@@ -143,17 +141,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void _navigateToRegister() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const RegisterPage()),
-    );
+    await context.push('/register');
     _loadSavedCredentials();
     _initializeXBoard();
   }
 
   void _navigateToForgotPassword() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
-    );
+    await context.push('/forgot-password');
     _initializeXBoard();
   }
 
@@ -221,7 +215,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 if (value == null || value.isEmpty) {
                   return appLocalizations.xboardEmail;
                 }
-                if (!value.contains('@')) {
+                if (!RegExp(r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$')
+                    .hasMatch(value)) {
                   return appLocalizations.xboardEmail;
                 }
                 return null;
@@ -378,6 +373,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       case InitializationStatus.ready:
         statusColor = colorScheme.tertiary;
         statusIcon = Icons.check_circle;
+        break;
+      case InitializationStatus.degraded:
+        statusColor = colorScheme.tertiary;
+        statusIcon = Icons.warning_amber;
         break;
       case InitializationStatus.failed:
         statusColor = colorScheme.error;

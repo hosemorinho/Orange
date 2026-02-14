@@ -1232,6 +1232,8 @@
   "xboardOnetimePayment": "一次性",
   "xboardResetTraffic": "重置流量",
   "xboardPleaseLogin": "请先登录",
+  "xboardPleaseLoginFirst": "请先登录",
+  "xboardOnlineSupport": "在线客服",
   "xboardTickets": "工单",
   "xboardCreateTicket": "新建工单",
   "xboardTicketDetail": "工单详情",

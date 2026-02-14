@@ -14,21 +14,11 @@ class LoadingPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final initState = ref.watch(initializationProvider);
-    final userState = ref.watch(xboardUserProvider);
+    // Watch user state so widget rebuilds when it changes;
+    // GoRouter's redirect (in application.dart) handles navigation
+    // automatically when isInitialized/isAuthenticated change.
+    ref.watch(xboardUserProvider);
     final colorScheme = Theme.of(context).colorScheme;
-
-    // 如果用户状态已初始化，触发路由刷新
-    if (userState.isInitialized) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          if (userState.isAuthenticated) {
-            context.go('/');
-          } else {
-            context.go('/login');
-          }
-        }
-      });
-    }
 
     return Scaffold(
       backgroundColor: colorScheme.surface,

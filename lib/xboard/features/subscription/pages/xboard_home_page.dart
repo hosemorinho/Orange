@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/xboard/features/auth/models/auth_state.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,7 +45,7 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       }
     });
     ref.listenManual(xboardUserProvider, (previous, next) {
-      if (next.errorMessage == 'TOKEN_EXPIRED') {
+      if (next.errorType == AuthErrorType.tokenExpired) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _showTokenExpiredDialog();
         });

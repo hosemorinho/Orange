@@ -8,6 +8,8 @@ import 'package:fl_clash/xboard/features/order/pages/orders_page.dart';
 import 'package:fl_clash/xboard/features/ticket/ticket.dart';
 import 'package:fl_clash/xboard/features/settings/settings.dart';
 import 'package:fl_clash/xboard/features/auth/pages/login_page.dart';
+import 'package:fl_clash/xboard/features/auth/pages/register_page.dart';
+import 'package:fl_clash/xboard/features/auth/pages/forgot_password_page.dart';
 import 'package:fl_clash/xboard/features/initialization/pages/loading_page.dart';
 import 'package:fl_clash/xboard/features/invite/invite.dart';
 import 'package:fl_clash/xboard/features/tv/pages/tv_home_page.dart';
@@ -230,6 +232,24 @@ final List<RouteBase> _mobileDesktopRoutes = [
       name: 'login',
       pageBuilder: (context, state) => const MaterialPage(
         child: LoginPage(),
+      ),
+    ),
+
+    // 注册页面
+    GoRoute(
+      path: '/register',
+      name: 'register',
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: RegisterPage(),
+      ),
+    ),
+
+    // 忘记密码页面
+    GoRoute(
+      path: '/forgot-password',
+      name: 'forgot_password',
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: ForgotPasswordPage(),
       ),
     ),
 

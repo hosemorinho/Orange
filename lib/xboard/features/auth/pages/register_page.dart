@@ -343,7 +343,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 child: Text(
                   appLocalizations.inviteCodeRequiredMessage,
                   style: textTheme.labelSmall?.copyWith(
-                    color: const Color(0xFFea580c), // text-orange-600
+                    color: colorScheme.tertiary,
                   ),
                 ),
               ),

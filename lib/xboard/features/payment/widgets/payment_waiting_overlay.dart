@@ -35,6 +35,13 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
   late Animation<double> _pulseAnimation;
   Timer? _paymentCheckTimer;
   String? _currentTradeNo;
+
+  // Polling control: timeout, exponential backoff, retry limit
+  static const int _maxRetries = 60;
+  static const Duration _maxPollingDuration = Duration(seconds: 600); // 10 minutes
+  int _checkCount = 0;
+  DateTime? _pollingStartTime;
+  bool _isTimedOut = false;
   @override
   void initState() {
     super.initState();
@@ -97,16 +104,68 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
       });
     }
   }
+  /// Returns the polling interval based on the current check count.
+  /// First 5 checks: 3 seconds, next 5: 5 seconds, after that: 10 seconds.
+  Duration _getPollingInterval() {
+    if (_checkCount < 5) return const Duration(seconds: 3);
+    if (_checkCount < 10) return const Duration(seconds: 5);
+    return const Duration(seconds: 10);
+  }
+
   void _startPaymentStatusCheck() {
     _logger.info('[PaymentWaiting] 开始定时检测支付状态，订单号: $_currentTradeNo');
     _paymentCheckTimer?.cancel();
+    _checkCount = 0;
+    _isTimedOut = false;
+    _pollingStartTime = DateTime.now();
 
     // 立即执行一次检查
     _checkPaymentStatus();
 
-    _paymentCheckTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    _scheduleNextCheck();
+  }
+
+  void _scheduleNextCheck() {
+    _paymentCheckTimer?.cancel();
+    if (!mounted || _isTimedOut) return;
+
+    _paymentCheckTimer = Timer(_getPollingInterval(), () {
+      if (!mounted) return;
       _checkPaymentStatus();
+      _scheduleNextCheck();
     });
+  }
+
+  bool _shouldStopPolling() {
+    // Check max retry limit
+    if (_checkCount >= _maxRetries) {
+      _logger.info('[PaymentWaiting] 达到最大重试次数 ($_maxRetries)，停止轮询');
+      return true;
+    }
+
+    // Check max duration timeout
+    if (_pollingStartTime != null) {
+      final elapsed = DateTime.now().difference(_pollingStartTime!);
+      if (elapsed >= _maxPollingDuration) {
+        _logger.info('[PaymentWaiting] 达到最大轮询时间 (${_maxPollingDuration.inSeconds}s)，停止轮询');
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  void _handlePollingTimeout() {
+    _paymentCheckTimer?.cancel();
+    _isTimedOut = true;
+    _logger.info('[PaymentWaiting] 支付状态检测超时');
+
+    if (!mounted) return;
+    setState(() {
+      // Keep current step but the UI will show the timeout action button
+    });
+    // Trigger the onClose callback so the user can check order status manually
+    widget.onClose?.call();
   }
 
   Future<void> _checkPaymentStatus() async {
@@ -115,13 +174,27 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
       return;
     }
 
+    // Check timeout / retry limit before performing the check
+    if (_shouldStopPolling()) {
+      _handlePollingTimeout();
+      return;
+    }
+
+    _checkCount++;
+
     try {
-      _logger.info('[PaymentWaiting] ===== 开始检测支付状态 =====');
+      _logger.info('[PaymentWaiting] ===== 开始检测支付状态 (第$_checkCount次) =====');
       _logger.info('[PaymentWaiting] 订单号: $_currentTradeNo');
 
       // 使用 V2Board API 检查订单状态
       final api = await ref.read(xboardSdkProvider.future);
+
+      if (!mounted) return;
+
       final json = await api.fetchOrders();
+
+      if (!mounted) return;
+
       final dataList = json['data'] as List<dynamic>? ?? [];
       final orders = dataList
           .whereType<Map<String, dynamic>>()
@@ -138,27 +211,26 @@ class _PaymentWaitingOverlayState extends ConsumerState<PaymentWaitingOverlay>
           // 支付成功，立即执行成功回调
           _logger.info('[PaymentWaiting] ===== 检测到支付成功！状态: ${order.status.name} =====');
           _paymentCheckTimer?.cancel();
-          if (mounted) {
-            setState(() {
-              _currentStep = PaymentStep.paymentSuccess;
-            });
-            _pulseController.stop();
+          if (!mounted) return;
+          setState(() {
+            _currentStep = PaymentStep.paymentSuccess;
+          });
+          _pulseController.stop();
 
-            // 立即执行成功回调
-            if (widget.onPaymentSuccess != null) {
-              widget.onPaymentSuccess?.call();
-            }
+          // 立即执行成功回调
+          if (!mounted) return;
+          if (widget.onPaymentSuccess != null) {
+            widget.onPaymentSuccess?.call();
           }
         } else if (order.status == OrderStatus.pending || order.status == OrderStatus.processing) {
           // 仍在等待支付
-          _logger.info('[PaymentWaiting] 支付仍在等待中 (状态: ${order.status.name})...');
+          _logger.info('[PaymentWaiting] 支付仍在等待中 (状态: ${order.status.name})，第$_checkCount次检查，下次间隔: ${_getPollingInterval().inSeconds}s');
         } else {
           // 其他状态视为失败
           _logger.info('[PaymentWaiting] 支付视为失败/结束，状态: ${order.status.name}');
           _paymentCheckTimer?.cancel();
-          if (mounted) {
-            widget.onClose?.call();
-          }
+          if (!mounted) return;
+          widget.onClose?.call();
         }
       } else {
         _logger.info('[PaymentWaiting] 获取订单状态失败：订单不存在');

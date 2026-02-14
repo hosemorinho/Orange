@@ -179,12 +179,15 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
   }
   void _showTokenExpiredDialog() {
     state = state.copyWith(
-      errorMessage: 'TOKEN_EXPIRED', // 特殊标记，UI层检测到后显示对话框
+      errorType: AuthErrorType.tokenExpired,
     );
   }
   void clearTokenExpiredError() {
-    if (state.errorMessage == 'TOKEN_EXPIRED') {
-      state = state.copyWith(errorMessage: null);
+    if (state.errorType == AuthErrorType.tokenExpired) {
+      state = state.copyWith(
+        errorMessage: null,
+        errorType: AuthErrorType.none,
+      );
     }
   }
   Future<void> handleTokenExpired() async {

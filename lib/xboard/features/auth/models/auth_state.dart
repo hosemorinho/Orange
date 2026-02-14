@@ -1,5 +1,14 @@
 import 'package:fl_clash/xboard/domain/domain.dart';
 
+/// Auth error type enum to replace magic string markers
+enum AuthErrorType {
+  none,
+  tokenExpired,
+  networkError,
+  serverError,
+  unknown,
+}
+
 /// 通用UI状态
 class UIState {
   final bool isLoading;
@@ -52,6 +61,7 @@ class UserAuthState {
   final String? email;
   final bool isLoading;
   final String? errorMessage;
+  final AuthErrorType errorType;
   final DomainUser? userInfo;
   final DomainSubscription? subscriptionInfo;
 
@@ -61,6 +71,7 @@ class UserAuthState {
     this.email,
     this.isLoading = false,
     this.errorMessage,
+    this.errorType = AuthErrorType.none,
     this.userInfo,
     this.subscriptionInfo,
   });
@@ -71,6 +82,7 @@ class UserAuthState {
     String? email,
     bool? isLoading,
     String? errorMessage,
+    AuthErrorType? errorType,
     DomainUser? userInfo,
     DomainSubscription? subscriptionInfo,
   }) {
@@ -80,13 +92,23 @@ class UserAuthState {
       email: email ?? this.email,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage ?? this.errorMessage,
+      errorType: errorType ?? this.errorType,
       userInfo: userInfo ?? this.userInfo,
       subscriptionInfo: subscriptionInfo ?? this.subscriptionInfo,
     );
   }
 
   UserAuthState clearError() {
-    return copyWith(errorMessage: null);
+    return UserAuthState(
+      isAuthenticated: isAuthenticated,
+      isInitialized: isInitialized,
+      email: email,
+      isLoading: isLoading,
+      errorMessage: null,
+      errorType: AuthErrorType.none,
+      userInfo: userInfo,
+      subscriptionInfo: subscriptionInfo,
+    );
   }
 
   @override
@@ -98,6 +120,7 @@ class UserAuthState {
         other.email == email &&
         other.isLoading == isLoading &&
         other.errorMessage == errorMessage &&
+        other.errorType == errorType &&
         other.userInfo == userInfo &&
         other.subscriptionInfo == subscriptionInfo;
   }
@@ -109,6 +132,7 @@ class UserAuthState {
         email.hashCode ^
         isLoading.hashCode ^
         errorMessage.hashCode ^
+        errorType.hashCode ^
         userInfo.hashCode ^
         subscriptionInfo.hashCode;
   }

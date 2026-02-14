@@ -48,41 +48,17 @@ class AdaptiveShellLayout extends ConsumerWidget {
         break;
     }
 
-    // 执行路由导航
-    switch (index) {
-      case 0:
-        context.go('/');
-        break;
-      case 1:
-        context.go('/plans');
-        break;
-      case 2:
-        context.go('/support');
-        break;
-      case 3:
-        context.go('/invite');
-        break;
-      case 4:
-        context.go('/settings');
-        break;
-    }
-  }
-
-  int _getCurrentIndex(BuildContext context) {
-    final location = GoRouterState.of(context).uri.path;
-
-    if (location == '/') return 0;
-    if (location.startsWith('/plans')) return 1;
-    if (location.startsWith('/support')) return 2;
-    if (location.startsWith('/invite')) return 3;
-    if (location.startsWith('/settings')) return 4;
-    return 0;
+    // 执行路由导航（使用 goBranch 保持各分支的导航状态）
+    child.goBranch(
+      index,
+      initialLocation: index == child.currentIndex,
+    );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
-    final currentIndex = _getCurrentIndex(context);
+    final currentIndex = child.currentIndex;
 
     if (isDesktop) {
       return Row(

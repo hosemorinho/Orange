@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,6 +34,15 @@ class InviteCodesCard extends ConsumerStatefulWidget {
 class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
   String? _copiedCode;
   String? _copiedLink;
+  Timer? _copyCodeResetTimer;
+  Timer? _copyLinkResetTimer;
+
+  @override
+  void dispose() {
+    _copyCodeResetTimer?.cancel();
+    _copyLinkResetTimer?.cancel();
+    super.dispose();
+  }
 
   Future<void> _copyCode(String code) async {
     await Clipboard.setData(ClipboardData(text: code));
@@ -47,7 +58,8 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
     }
 
     // Reset after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
+    _copyCodeResetTimer?.cancel();
+    _copyCodeResetTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _copiedCode = null);
       }
@@ -94,7 +106,8 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
     }
 
     // Reset after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
+    _copyLinkResetTimer?.cancel();
+    _copyLinkResetTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _copiedLink = null);
       }

@@ -6,16 +6,19 @@ part 'generated/initialization_state.freezed.dart';
 enum InitializationStatus {
   /// 未开始
   idle,
-  
+
   /// 检查域名中
   checkingDomain,
-  
+
   /// 初始化 SDK 中
   initializingSDK,
-  
+
   /// 就绪
   ready,
-  
+
+  /// 降级就绪（初始化部分失败，但可继续使用）
+  degraded,
+
   /// 失败
   failed,
 }
@@ -44,17 +47,22 @@ abstract class InitializationState with _$InitializationState {
   }) = _InitializationState;
   const InitializationState._();
 
-  /// 是否已就绪
-  bool get isReady => status == InitializationStatus.ready;
-  
+  /// 是否已就绪（包括降级就绪）
+  bool get isReady =>
+      status == InitializationStatus.ready ||
+      status == InitializationStatus.degraded;
+
+  /// 是否为降级就绪（初始化部分失败但可继续）
+  bool get isDegraded => status == InitializationStatus.degraded;
+
   /// 是否正在初始化
-  bool get isInitializing => 
-      status == InitializationStatus.checkingDomain || 
+  bool get isInitializing =>
+      status == InitializationStatus.checkingDomain ||
       status == InitializationStatus.initializingSDK;
-  
+
   /// 是否失败
   bool get isFailed => status == InitializationStatus.failed;
-  
+
   /// 获取进度百分比（0-100）
   int get progressPercentage {
     switch (status) {
@@ -65,6 +73,8 @@ abstract class InitializationState with _$InitializationState {
       case InitializationStatus.initializingSDK:
         return 70;
       case InitializationStatus.ready:
+        return 100;
+      case InitializationStatus.degraded:
         return 100;
       case InitializationStatus.failed:
         return 0;

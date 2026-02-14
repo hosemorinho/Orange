@@ -196,12 +196,12 @@ class XBoardInitializationNotifier extends Notifier<InitializationState> {
         errorMessage: '使用降级方案',
       );
     } catch (e) {
-      _logger.warning('[Initialization] ⚠️ 降级方案失败，标记为部分就绪');
+      _logger.warning('[Initialization] ⚠️ 降级方案失败，标记为降级就绪');
 
-      // 即使降级失败，也标记为 ready，但带有错误信息
+      // 即使降级失败，也标记为 degraded（而非 ready），带有错误信息
       // 这样用户可以进入登录页，由登录页处理后续初始化
       state = state.copyWith(
-        status: InitializationStatus.ready,
+        status: InitializationStatus.degraded,
         lastChecked: DateTime.now(),
         currentStepDescription: '初始化部分失败，可尝试登录',
         errorMessage: '初始化失败: ${e.toString()}，将在登录时重试',

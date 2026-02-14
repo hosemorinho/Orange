@@ -193,14 +193,13 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  // Frontend uses bg-success/10 (green), not tertiary (pink-purple)
-                  color: const Color(0xFF10b981).withValues(alpha: 0.1),
+                  color: colorScheme.tertiary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.check_rounded,
                   size: 32,
-                  color: Color(0xFF10b981), // success green
+                  color: colorScheme.tertiary,
                 ),
               ),
             ),
@@ -292,8 +291,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                         return AppLocalizations.of(context)
                             .pleaseEnterNewPassword;
                       }
-                      if (value.length < 6) {
-                        return AppLocalizations.of(context).passwordMinLength;
+                      if (value.length < 8) {
+                        return AppLocalizations.of(context).passwordMin8Chars;
                       }
                       return null;
                     },

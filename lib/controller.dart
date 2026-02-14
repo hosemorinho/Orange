@@ -143,14 +143,22 @@ extension InitControllerExt on AppController {
     if (system.isAndroid || Platform.isIOS) {
       await globalState.updateStartTime();
     }
+    final appSettings = _ref.read(appSettingProvider);
     final status = globalState.isStart == true
         ? true
-        : _ref.read(appSettingProvider).autoRun;
+        : appSettings.autoRun || appSettings.autoStartCore;
     if (status == true) {
       await updateStatus(
         true,
         isInit: true,
         trigger: 'initStatus(autoStartOrResume)',
+      );
+    } else if (appSettings.autoStartCore) {
+      // 只启动 leaf core（用于测试延迟），不启动 VPN（不传递 tunFd）
+      await applyProfile(
+        force: true,
+        reason: 'initStatus(autoStartCore,noVpn)',
+        preloadInvoke: null,  // 不启动 VPN service，只启动 leaf core
       );
     } else {
       await applyProfile(force: true, reason: 'initStatus(noAutoStart)');

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_clash/l10n/l10n.dart';
-import 'package:fl_clash/models/models.dart' as fl_models;
 import 'package:fl_clash/xboard/features/auth/auth.dart';
+import 'package:fl_clash/xboard/domain/domain.dart';
 
 enum SubscriptionStatusType {
   valid,
@@ -48,7 +48,7 @@ class SubscriptionStatusService {
 
   SubscriptionStatusResult checkSubscriptionStatus({
     required UserAuthState userState,
-    fl_models.SubscriptionInfo? profileSubscriptionInfo,
+    DomainSubscription? subscriptionInfo,
   }) {
     if (!userState.isAuthenticated) {
       return SubscriptionStatusResult(
@@ -61,6 +61,7 @@ class SubscriptionStatusService {
       );
     }
 
+    // 从 userState 获取 planId（包括 subscriptionInfo 和 userInfo 中的 planId）
     final planId = _getEffectivePlanId(userState);
     if (planId == null) {
       return SubscriptionStatusResult(
@@ -73,7 +74,8 @@ class SubscriptionStatusService {
       );
     }
 
-    if (profileSubscriptionInfo == null) {
+    // 使用 DomainSubscription 对象检查订阅状态
+    if (subscriptionInfo == null) {
       return SubscriptionStatusResult(
         type: SubscriptionStatusType.parseFailed,
         messageBuilder: (context) =>
@@ -84,13 +86,13 @@ class SubscriptionStatusService {
       );
     }
 
-    final expiredAt = _getExpiredAt(profileSubscriptionInfo);
+    final expiredAt = subscriptionInfo.expiredAt;
     if (expiredAt != null) {
       final now = DateTime.now();
-      final isExpired = now.isAfter(expiredAt);
-      final remainingDays = expiredAt.difference(now).inDays;
+      final isExpired = subscriptionInfo.isExpired;
+      final remainingDays = subscriptionInfo.daysRemaining;
 
-      if (isExpired || remainingDays < 0) {
+      if (isExpired || remainingDays! < 0) {
         return SubscriptionStatusResult(
           type: SubscriptionStatusType.expired,
           messageBuilder: (context) =>
@@ -132,12 +134,12 @@ class SubscriptionStatusService {
       }
     }
 
-    final trafficStatus = _checkTrafficStatus(profileSubscriptionInfo);
+    final trafficStatus = _checkTrafficStatus(subscriptionInfo);
     if (trafficStatus != null) {
       return trafficStatus;
     }
 
-    final remainingDays = expiredAt?.difference(DateTime.now()).inDays;
+    final remainingDays = subscriptionInfo.daysRemaining;
     return SubscriptionStatusResult(
       type: SubscriptionStatusType.valid,
       messageBuilder: (context) =>
@@ -168,29 +170,16 @@ class SubscriptionStatusService {
     return null;
   }
 
-  DateTime? _getExpiredAt(fl_models.SubscriptionInfo? profileSubscriptionInfo) {
-    if (profileSubscriptionInfo?.expire != null &&
-        profileSubscriptionInfo!.expire != 0) {
-      return DateTime.fromMillisecondsSinceEpoch(
-        profileSubscriptionInfo.expire * 1000,
-      );
-    }
-    return null;
-  }
-
   SubscriptionStatusResult? _checkTrafficStatus(
-    fl_models.SubscriptionInfo? profileSubscriptionInfo,
+    DomainSubscription? subscriptionInfo,
   ) {
-    if (profileSubscriptionInfo == null || profileSubscriptionInfo.total <= 0) {
+    if (subscriptionInfo == null || subscriptionInfo.transferLimit <= 0) {
       return null;
     }
 
-    final usedTraffic =
-        (profileSubscriptionInfo.upload + profileSubscriptionInfo.download)
-            .toDouble();
-    final totalTraffic = profileSubscriptionInfo.total.toDouble();
-    final usageRatio = usedTraffic / totalTraffic;
-    if (usageRatio >= 1.0) {
+    final usageRatio = subscriptionInfo.usagePercentage / 100;
+
+    if (usageRatio >= 1.0 || subscriptionInfo.isTrafficExhausted) {
       return SubscriptionStatusResult(
         type: SubscriptionStatusType.exhausted,
         messageBuilder: (context) =>

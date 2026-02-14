@@ -52,14 +52,15 @@ class SubscriptionStatusChecker {
       _logger.info('[订阅状态检查] 用户已登录，使用现有订阅状态进行检查');
       // 不再调用 refreshSubscriptionInfo()，避免重复导入
       // Token验证成功后已经通过 _silentUpdateUserData() 获取了最新订阅信息
-      final updatedUserState = userState;
-      final profileSubscriptionInfo = ref
-          .read(currentProfileProvider)
-          ?.subscriptionInfo;
+
+      // 使用 subscriptionInfoProvider 而不是 currentProfileProvider
+      // 避免 subscriptionInfo 还没同步到 Profile 时的竞态条件
+      final domainSubscriptionInfo = ref.read(subscriptionInfoProvider);
+      _logger.info('[订阅状态检查] subscriptionInfoProvider 数据: ${domainSubscriptionInfo != null ? "已获取" : "为 null"}');
 
       final statusResult = subscriptionStatusService.checkSubscriptionStatus(
-        userState: updatedUserState,
-        profileSubscriptionInfo: profileSubscriptionInfo,
+        userState: userState,
+        subscriptionInfo: domainSubscriptionInfo,
       );
       _logger.info('[订阅状态检查] 检查结果: ${statusResult.type}');
       _logger.info('[订阅状态检查] 是否需要弹窗: ${statusResult.shouldShowDialog}');
@@ -215,12 +216,10 @@ class SubscriptionStatusChecker {
     try {
       final userState = ref.read(xboardUserProvider);
       if (!userState.isAuthenticated) return false;
-      final profileSubscriptionInfo = ref
-          .read(currentProfileProvider)
-          ?.subscriptionInfo;
+      final domainSubscriptionInfo = ref.read(subscriptionInfoProvider);
       final statusResult = subscriptionStatusService.checkSubscriptionStatus(
         userState: userState,
-        profileSubscriptionInfo: profileSubscriptionInfo,
+        subscriptionInfo: domainSubscriptionInfo,
       );
       return subscriptionStatusService.shouldShowStartupDialog(statusResult);
     } catch (e) {
@@ -233,12 +232,10 @@ class SubscriptionStatusChecker {
     try {
       final userState = ref.read(xboardUserProvider);
       if (!userState.isAuthenticated) return '未登录';
-      final profileSubscriptionInfo = ref
-          .read(currentProfileProvider)
-          ?.subscriptionInfo;
+      final domainSubscriptionInfo = ref.read(subscriptionInfoProvider);
       final statusResult = subscriptionStatusService.checkSubscriptionStatus(
         userState: userState,
-        profileSubscriptionInfo: profileSubscriptionInfo,
+        subscriptionInfo: domainSubscriptionInfo,
       );
       return statusResult.getMessage(context);
     } catch (e) {

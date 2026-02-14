@@ -140,7 +140,7 @@ extension InitControllerExt on AppController {
       return;
     }
     commonPrint.log('init status');
-    if (system.isAndroid) {
+    if (system.isAndroid || Platform.isIOS) {
       await globalState.updateStartTime();
     }
     final status = globalState.isStart == true
@@ -1788,6 +1788,21 @@ extension CommonControllerExt on AppController {
   }
 
   void updateRunTime() {
+    if (Platform.isIOS) {
+      service?.getRunTime().then((runtime) {
+        globalState.startTime = runtime;
+        if (runtime != null) {
+          final startTimeStamp = runtime.millisecondsSinceEpoch;
+          final nowTimeStamp = DateTime.now().millisecondsSinceEpoch;
+          _ref.read(runTimeProvider.notifier).value = nowTimeStamp - startTimeStamp;
+          _ref.read(isLeafRunningProvider.notifier).state = true;
+        } else {
+          _ref.read(runTimeProvider.notifier).value = null;
+          _ref.read(isLeafRunningProvider.notifier).state = false;
+        }
+      });
+      return;
+    }
     final startTime = globalState.startTime;
     if (startTime != null) {
       final startTimeStamp = startTime.millisecondsSinceEpoch;

@@ -251,6 +251,11 @@ jobs:
         shell: bash
         run: npm install -g appdmg
 
+      - name: Install iOS Packaging Dependencies
+        if: matrix.platform == 'ios'
+        shell: bash
+        run: sudo gem install xcodeproj
+
       - name: Install ImageMagick
         if: env.APP_ICON_URL != ''
         shell: bash
@@ -278,7 +283,6 @@ jobs:
         run: echo "::add-mask::$API_BASE_URL"
 
       - name: Build
-        if: matrix.platform != 'ios'
         shell: bash
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
@@ -290,66 +294,6 @@ jobs:
           CRISP_WEBSITE_ID: ${{ env.CRISP_WEBSITE_ID }}
         run: |
           dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }} --env stable
-
-      - name: Build iOS IPA
-        if: matrix.platform == 'ios'
-        shell: bash
-        env:
-          API_BASE_URL: ${{ env.API_BASE_URL }}
-          API_TEXT_DOMAIN: ${{ env.API_TEXT_DOMAIN }}
-          APP_NAME: ${{ secrets.APP_NAME }}
-          THEME_COLOR: ${{ secrets.THEME_COLOR }}
-          CRISP_WEBSITE_ID: ${{ env.CRISP_WEBSITE_ID }}
-        run: |
-          chmod +x scripts/ios/build_leaf_xcframework.sh
-          ./scripts/ios/build_leaf_xcframework.sh
-
-          sudo gem install xcodeproj
-          ruby scripts/ios/configure_packet_tunnel.rb
-
-          DART_DEFINES=(--dart-define=APP_ENV=stable)
-
-          if [[ -n "$API_BASE_URL" ]]; then
-            DART_DEFINES+=("--dart-define=API_BASE_URL=$API_BASE_URL")
-          fi
-          if [[ -n "$API_TEXT_DOMAIN" ]]; then
-            DART_DEFINES+=("--dart-define=API_TEXT_DOMAIN=$API_TEXT_DOMAIN")
-          fi
-          if [[ -n "$APP_NAME" ]]; then
-            DART_DEFINES+=("--dart-define=APP_NAME=$APP_NAME")
-          fi
-          if [[ -n "$THEME_COLOR" ]]; then
-            DART_DEFINES+=("--dart-define=THEME_COLOR=$THEME_COLOR")
-          fi
-          if [[ -n "$CRISP_WEBSITE_ID" ]]; then
-            DART_DEFINES+=("--dart-define=CRISP_WEBSITE_ID=$CRISP_WEBSITE_ID")
-          fi
-
-          flutter build ipa --release --no-codesign "${DART_DEFINES[@]}"
-
-          mkdir -p dist
-          app_name="${APP_NAME:-Orange}"
-          app_version="$(grep -m1 '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*([^+[:space:]]+).*/\1/')"
-          if [[ -z "$app_version" ]]; then
-            app_version="unknown"
-          fi
-          ios_artifact_name="${app_name}-${app_version}-ios-arm64-unsigned.ipa"
-          if compgen -G "build/ios/ipa/*.ipa" > /dev/null; then
-            source_ipa="$(ls build/ios/ipa/*.ipa | head -n1)"
-            cp "$source_ipa" "dist/$ios_artifact_name"
-          elif [[ -d "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" ]]; then
-            tmp_payload_dir="$(mktemp -d)"
-            mkdir -p "$tmp_payload_dir/Payload"
-            cp -R "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" "$tmp_payload_dir/Payload/"
-            (
-              cd "$tmp_payload_dir"
-              /usr/bin/zip -qry "$GITHUB_WORKSPACE/dist/$ios_artifact_name" Payload
-            )
-            rm -rf "$tmp_payload_dir"
-          else
-            echo "No iOS artifact found under build/ios/ipa or build/ios/archive"
-            exit 1
-          fi
 
       - name: Clean env.json
         if: always()

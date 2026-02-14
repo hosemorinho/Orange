@@ -1,7 +1,9 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/plugins/service.dart';
 import 'package:fl_clash/providers/state.dart';
 import 'package:fl_clash/state.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +18,7 @@ class VpnManager extends ConsumerStatefulWidget {
   ConsumerState<VpnManager> createState() => _VpnContainerState();
 }
 
-class _VpnContainerState extends ConsumerState<VpnManager> {
+class _VpnContainerState extends ConsumerState<VpnManager> with ServiceListener {
   @override
   void initState() {
     super.initState();
@@ -34,6 +36,43 @@ class _VpnContainerState extends ConsumerState<VpnManager> {
         }
       });
     }
+    if (system.isIOS) {
+      service?.addListener(this);
+    }
+  }
+
+  @override
+  void dispose() {
+    if (system.isIOS) {
+      service?.removeListener(this);
+    }
+    super.dispose();
+  }
+
+  @override
+  void onVpnStatusChanged({
+    required String status,
+    required bool connected,
+  }) {
+    if (!system.isIOS) return;
+    commonPrint.log(
+      'iOS VPN status: $status, connected=$connected',
+      logLevel: LogLevel.info,
+    );
+    if (connected && (status == 'connected' || status == 'reasserting')) {
+      globalState.startTime ??= DateTime.now();
+      ref.read(isLeafRunningProvider.notifier).state = true;
+      appController.updateRunTime();
+      return;
+    }
+    if (connected) {
+      return;
+    }
+    globalState.startTime = null;
+    ref.read(isLeafRunningProvider.notifier).state = false;
+    appController.updateRunTime();
+    ref.read(trafficsProvider.notifier).clear();
+    ref.read(totalTrafficProvider.notifier).value = Traffic();
   }
 
   void _showRestartTip() {

@@ -7,7 +7,7 @@ import 'package:args/command_runner.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart';
 
-enum Target { windows, linux, android, macos }
+enum Target { windows, linux, android, macos, ios }
 
 extension TargetExt on Target {
   bool get same {
@@ -23,6 +23,9 @@ extension TargetExt on Target {
     if (Platform.isMacOS && this == Target.macos) {
       return true;
     }
+    if (Platform.isMacOS && this == Target.ios) {
+      return true;
+    }
     return false;
   }
 
@@ -31,6 +34,7 @@ extension TargetExt on Target {
       Target.android || Target.linux => '.so',
       Target.windows => '.dll',
       Target.macos => '.dylib',
+      Target.ios => '.a',
     };
   }
 
@@ -47,6 +51,7 @@ extension TargetExt on Target {
       Target.android || Target.linux => 'libleaf.so',
       Target.windows => 'leaf.dll',
       Target.macos => 'libleaf.dylib',
+      Target.ios => 'libleaf.a',
     };
   }
 }
@@ -86,6 +91,7 @@ class BuildItem {
 
 class Build {
   static List<BuildItem> get buildItems => [
+    BuildItem(target: Target.ios, arch: Arch.arm64),
     BuildItem(target: Target.macos, arch: Arch.arm64),
     BuildItem(target: Target.macos, arch: Arch.amd64),
     BuildItem(target: Target.linux, arch: Arch.arm64),
@@ -565,6 +571,8 @@ BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android = "--sysroot=$sysroot"
         break;
       case Target.android:
         break;
+      case Target.ios:
+        break;
     }
     print('Platform binary names updated successfully');
   }
@@ -683,6 +691,25 @@ class BuildCommand extends Command {
     await Build.exec(Build.getExecutable('npm install -g appdmg'));
   }
 
+  Future<void> _prepareIosCore() async {
+    if (!Platform.isMacOS) {
+      throw 'iOS builds are only supported on macOS runners';
+    }
+
+    await Build.exec(
+      Build.getExecutable('chmod +x scripts/ios/build_leaf_xcframework.sh'),
+      name: 'make iOS leaf build script executable',
+    );
+    await Build.exec(
+      Build.getExecutable('./scripts/ios/build_leaf_xcframework.sh'),
+      name: 'build iOS leaf xcframework',
+    );
+    await Build.exec(
+      Build.getExecutable('ruby scripts/ios/configure_packet_tunnel.rb'),
+      name: 'configure iOS packet tunnel target',
+    );
+  }
+
   Future<void> _buildDistributor({
     required Target target,
     required String targets,
@@ -724,10 +751,14 @@ class BuildCommand extends Command {
 
     await Build.updatePlatformBinaryNames(target);
 
-    final corePaths = await Build.buildCore(
-      target: target,
-      arch: arch,
-    );
+    if (target == Target.ios) {
+      await _prepareIosCore();
+    } else {
+      await Build.buildCore(
+        target: target,
+        arch: arch,
+      );
+    }
 
     await _buildEnvFile(env);
 
@@ -756,7 +787,7 @@ class BuildCommand extends Command {
 
     switch (target) {
       case Target.windows:
-        _buildDistributor(
+        await _buildDistributor(
           target: target,
           targets: 'exe,zip',
           args: ' --description $archName',
@@ -772,7 +803,7 @@ class BuildCommand extends Command {
         ].join(',');
         final defaultTarget = targetMap[arch];
         await _getLinuxDependencies(arch!);
-        _buildDistributor(
+        await _buildDistributor(
           target: target,
           targets: targets,
           args:
@@ -791,7 +822,7 @@ class BuildCommand extends Command {
             .where((element) => arch == null ? true : element == arch)
             .map((e) => targetMap[e])
             .toList();
-        _buildDistributor(
+        await _buildDistributor(
           target: target,
           targets: 'apk',
           args:
@@ -801,10 +832,18 @@ class BuildCommand extends Command {
         return;
       case Target.macos:
         await _getMacosDependencies();
-        _buildDistributor(
+        await _buildDistributor(
           target: target,
           targets: 'dmg',
           args: ' --description $archName',
+          env: env,
+        );
+        return;
+      case Target.ios:
+        await _buildDistributor(
+          target: target,
+          targets: 'ipa',
+          args: ',no-codesign --description arm64-unsigned',
           env: env,
         );
         return;
@@ -818,5 +857,6 @@ Future<void> main(Iterable<String> args) async {
   runner.addCommand(BuildCommand(target: Target.linux));
   runner.addCommand(BuildCommand(target: Target.windows));
   runner.addCommand(BuildCommand(target: Target.macos));
+  runner.addCommand(BuildCommand(target: Target.ios));
   runner.run(args);
 }

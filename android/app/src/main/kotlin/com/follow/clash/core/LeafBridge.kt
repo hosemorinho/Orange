@@ -18,7 +18,7 @@ import com.follow.clash.common.XBoardLog
 object LeafBridge {
     private const val TAG = "LeafBridge"
 
-    private var protectionEnabled = false
+    @Volatile private var protectionEnabled = false
 
     // No init block — libleaf.so is loaded in Application.attachBaseContext()
     // BEFORE the Dart engine starts. This avoids the native crash caused by
@@ -78,7 +78,7 @@ object LeafBridge {
 
     // The following are convenience wrappers around leaf-ffi functions.
     // On Android, these can be called directly from Kotlin without going
-    // through Dart FFI (useful for the :remote process).
+    // through Dart FFI.
 
     /**
      * Start leaf with a config file path. Blocks the calling thread.

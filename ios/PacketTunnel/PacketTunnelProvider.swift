@@ -130,6 +130,14 @@ private final class LeafRuntime {
     return false
 #endif
   }
+
+  func runtimeRunning() -> Bool {
+    var running = false
+    stateQueue.sync {
+      running = self.isRunning
+    }
+    return running
+  }
 }
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
@@ -205,6 +213,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     switch type {
+    case "health_check":
+      let ok = LeafRuntime.shared.runtimeRunning()
+      completionHandler?((ok ? "ok" : "not_running").data(using: .utf8))
+
     case "reload_config":
       guard let tunFd else {
         completionHandler?("tun_not_ready".data(using: .utf8))

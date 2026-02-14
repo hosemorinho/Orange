@@ -10,6 +10,11 @@ import 'package:flutter/services.dart';
 
 abstract mixin class ServiceListener {
   void onServiceCrash(String message) {}
+
+  void onVpnStatusChanged({
+    required String status,
+    required bool connected,
+  }) {}
 }
 
 class Service {
@@ -33,6 +38,19 @@ class Service {
           final message = call.arguments as String? ?? '';
           for (final listener in _listeners) {
             listener.onServiceCrash(message);
+          }
+          break;
+        case 'vpnStatus':
+          final args = call.arguments;
+          if (args is Map) {
+            final status = args['status'] as String? ?? 'unknown';
+            final connected = args['connected'] as bool? ?? false;
+            for (final listener in _listeners) {
+              listener.onVpnStatusChanged(
+                status: status,
+                connected: connected,
+              );
+            }
           }
           break;
         default:

@@ -1470,17 +1470,20 @@ extension CoreControllerExt on AppController {
   }
 
   Future<void> restartCore([bool start = false]) async {
+    // Remember if VPN was running before restart to auto-restore
+    final wasRunning = _leafController?.isRunning ?? false;
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
     await _leafController?.stop();
     _ref.read(isLeafRunningProvider.notifier).state = false;
     _leafInitialized = false;
     await _connectCore();
     await _initCore();
-    if (start || _ref.read(isStartProvider)) {
+    // Auto-restore VPN if it was running before restart
+    if (start || _ref.read(isStartProvider) || wasRunning) {
       await updateStatus(
         true,
         isInit: true,
-        trigger: 'restartCore(start=$start)',
+        trigger: 'restartCore(start=$start,wasRunning=$wasRunning)',
       );
     } else {
       await applyProfile(force: true, reason: 'restartCore(start=$start)');

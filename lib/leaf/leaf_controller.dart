@@ -293,8 +293,14 @@ class LeafController {
   // ---------------------------------------------------------------------------
 
   /// Select a proxy node by tag.
+  ///
+  /// If core is not running, this is a no-op (UI state is updated separately).
+  /// The selection will be applied when core starts via [_ensureValidSelection].
   Future<void> selectNode(String nodeTag) async {
-    _requireRunning();
+    if (!isRunning) {
+      _logger.info('selectNode: core not running, skipping FFI call (requested=$nodeTag)');
+      return;
+    }
     final before = getSelectedNode();
     final result = _instance!.setOutboundSelected(
       ConfigWriter.selectorTag,

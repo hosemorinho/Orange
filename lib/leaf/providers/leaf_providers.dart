@@ -117,10 +117,20 @@ Future<void> stopLeaf(WidgetRef ref) async {
 }
 
 /// Helper to select a node and update providers.
+///
+/// If core is not running, only updates UI state (pre-selection).
+/// The selection will be applied when core starts.
 Future<void> selectLeafNode(WidgetRef ref, String nodeTag) async {
   final controller = ref.read(leafControllerProvider);
+  final wasRunning = controller.isRunning;
   await controller.selectNode(nodeTag);
+  // Always update UI state, even if core wasn't running
   ref.read(selectedNodeTagProvider.notifier).state = nodeTag;
+  if (!wasRunning) {
+    FileLogger('leaf_providers.dart').info(
+      'selectLeafNode: core not running, pre-selected $nodeTag (will apply on start)',
+    );
+  }
 }
 
 /// Helper to run health checks (TCP ping) on all nodes.

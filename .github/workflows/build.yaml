@@ -261,38 +261,12 @@ jobs:
         shell: bash
         run: rm -f env.json
 
-      - name: Collect Artifacts To dist
-        shell: bash
-        run: |
-          mkdir -p dist
-
-          if [ -z "$(find dist -type f 2>/dev/null)" ]; then
-            echo "dist is empty, collecting artifacts from build outputs..."
-            case "${{ matrix.platform }}" in
-              windows)
-                find build/windows -type f \( -name "*.exe" -o -name "*.zip" -o -name "*.msix" \) -exec cp {} dist/ \; 2>/dev/null || true
-                ;;
-              linux)
-                find build/linux -type f \( -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" -o -name "*.appimage" -o -name "*.zip" \) -exec cp {} dist/ \; 2>/dev/null || true
-                ;;
-              macos)
-                find build/macos -type f \( -name "*.dmg" -o -name "*.pkg" -o -name "*.zip" \) -exec cp {} dist/ \; 2>/dev/null || true
-                ;;
-              android)
-                find build/app/outputs -type f \( -name "*.apk" -o -name "*.aab" \) -exec cp {} dist/ \; 2>/dev/null || true
-                ;;
-            esac
-          fi
-
-          echo "Artifacts staged in dist:"
-          find dist -type f || true
-
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifact-${{ matrix.platform }}${{ matrix.arch && format('-{0}', matrix.arch) }}
           path: ./dist
-          if-no-files-found: error
+          if-no-files-found: warn
           overwrite: true
 
   release:

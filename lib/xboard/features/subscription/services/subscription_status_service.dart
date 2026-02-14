@@ -62,8 +62,10 @@ class SubscriptionStatusService {
       );
     }
 
-    // 从 userState 获取 planId（包括 subscriptionInfo 和 userInfo 中的 planId）
-    final planId = _getEffectivePlanId(userState);
+    final planId = _getEffectivePlanId(
+      userState,
+      subscriptionInfo: subscriptionInfo,
+    );
     if (planId == null) {
       return SubscriptionStatusResult(
         type: SubscriptionStatusType.noSubscription,
@@ -75,22 +77,18 @@ class SubscriptionStatusService {
       );
     }
 
-    // 使用 DomainSubscription 对象检查订阅状态
     if (subscriptionInfo == null) {
-      // API 获取失败，假设为有效状态，允许用户使用已有的本地订阅配置
-      // 不显示弹窗（needsDialog: false），只显示基本信息
       return SubscriptionStatusResult(
         type: SubscriptionStatusType.valid,
         messageBuilder: (context) =>
             AppLocalizations.of(context).subscriptionValid,
-        detailMessageBuilder: null,  // 不显示详情，避免误导用户
-        needsDialog: false,  // 关键：不弹窗，避免中断用户使用
+        detailMessageBuilder: null,
+        needsDialog: false,
       );
     }
 
     final expiredAt = subscriptionInfo.expiredAt;
     if (expiredAt != null) {
-      final now = DateTime.now();
       final isExpired = subscriptionInfo.isExpired;
       final remainingDays = subscriptionInfo.daysRemaining ?? 0;
 
@@ -157,8 +155,12 @@ class SubscriptionStatusService {
     );
   }
 
-  int? _getEffectivePlanId(UserAuthState userState) {
+  int? _getEffectivePlanId(
+    UserAuthState userState, {
+    DomainSubscription? subscriptionInfo,
+  }) {
     final candidatePlanIds = <int?>[
+      subscriptionInfo?.planId,
       userState.subscriptionInfo?.planId,
       userState.userInfo?.planId,
     ];
@@ -213,20 +215,13 @@ class SubscriptionStatusService {
   bool shouldShowStartupDialog(SubscriptionStatusResult result) {
     switch (result.type) {
       case SubscriptionStatusType.expired:
-        return true;
       case SubscriptionStatusType.lowTraffic:
-        return true;
       case SubscriptionStatusType.exhausted:
-        return true;
       case SubscriptionStatusType.noSubscription:
         return true;
       case SubscriptionStatusType.parseFailed:
-        // API 获取失败不应该弹窗，避免中断用户使用已有的本地订阅配置
-        return false;
       case SubscriptionStatusType.expiringSoon:
-        return false;
       case SubscriptionStatusType.valid:
-        return false;
       case SubscriptionStatusType.notLoggedIn:
         return false;
     }

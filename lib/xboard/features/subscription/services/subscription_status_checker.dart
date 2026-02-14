@@ -5,6 +5,7 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/features/subscription/widgets/subscription_status_dialog.dart';
+import 'package:fl_clash/xboard/features/auth/auth.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'package:fl_clash/xboard/core/core.dart';
@@ -12,109 +13,159 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'subscription_status_service.dart';
 
-// 初始化文件级日志器
 final _logger = FileLogger('subscription_status_checker.dart');
 
-// SharedPreferences key for storing last shown dialog type
 const _kLastShownDialogTypeKey = 'xboard_last_shown_subscription_dialog_type';
 
 class SubscriptionStatusChecker {
   static final SubscriptionStatusChecker _instance =
       SubscriptionStatusChecker._internal();
+
   factory SubscriptionStatusChecker() => _instance;
+
   SubscriptionStatusChecker._internal();
+
   bool _isChecking = false;
+  bool _hasPendingDeferredCheck = false;
+  int _deferredRetryCount = 0;
+  static const int _maxDeferredRetries = 3;
   DateTime? _lastCheckTime;
+
   Future<void> checkSubscriptionStatusOnStartup(
     BuildContext context,
-    WidgetRef ref,
-  ) async {
+    WidgetRef ref, {
+    bool force = false,
+  }) async {
     if (!context.mounted) return;
+
     final now = DateTime.now();
     if (_isChecking) {
-      _logger.info('[订阅状态检查] 检查正在进行中，跳过重复请求');
+      _logger.info('[subscription] status check already in progress, skip');
       return;
     }
-    if (_lastCheckTime != null &&
+
+    if (!force &&
+        _lastCheckTime != null &&
         now.difference(_lastCheckTime!).inSeconds < 30) {
-      _logger.info('[订阅状态检查] 距离上次检查不到30秒，跳过重复请求');
+      _logger.info('[subscription] checked recently (<30s), skip');
       return;
     }
+
     _isChecking = true;
     _lastCheckTime = now;
+
     try {
-      _logger.info('[订阅状态检查] 开始检查订阅状态...');
+      _logger.info('[subscription] start status check');
       final userState = ref.read(xboardUserProvider);
       if (!userState.isAuthenticated) {
-        _logger.info('[订阅状态检查] 用户未登录，跳过检查');
+        _logger.info('[subscription] user not authenticated, skip');
         return;
       }
-      _logger.info('[订阅状态检查] 用户已登录，使用现有订阅状态进行检查');
-      // 不再调用 refreshSubscriptionInfo()，避免重复导入
-      // Token验证成功后已经通过 _silentUpdateUserData() 获取了最新订阅信息
 
-      // 使用 subscriptionInfoProvider 而不是 currentProfileProvider
-      // 避免 subscriptionInfo 还没同步到 Profile 时的竞态条件
       final domainSubscriptionInfo = ref.read(subscriptionInfoProvider);
-      _logger.info('[订阅状态检查] subscriptionInfoProvider 数据: ${domainSubscriptionInfo != null ? "已获取" : "为 null"}');
+      final effectiveSubscriptionInfo =
+          domainSubscriptionInfo ?? userState.subscriptionInfo;
+      _logger.info(
+        '[subscription] subscriptionInfoProvider is ${domainSubscriptionInfo == null ? 'null' : 'ready'}',
+      );
+
+      if (!_isSubscriptionStateReady(userState, effectiveSubscriptionInfo)) {
+        if (_deferredRetryCount < _maxDeferredRetries) {
+          _scheduleDeferredRecheck(context, ref);
+        } else {
+          _logger.warning(
+            '[subscription] data still not ready after max retries, skip this startup check',
+          );
+          _deferredRetryCount = 0;
+        }
+        return;
+      }
+      _deferredRetryCount = 0;
 
       final statusResult = subscriptionStatusService.checkSubscriptionStatus(
         userState: userState,
-        subscriptionInfo: domainSubscriptionInfo,
+        subscriptionInfo: effectiveSubscriptionInfo,
       );
-      _logger.info('[订阅状态检查] 检查结果: ${statusResult.type}');
-      _logger.info('[订阅状态检查] 是否需要弹窗: ${statusResult.shouldShowDialog}');
+      _logger.info('[subscription] status result: ${statusResult.type}');
+      _logger.info(
+        '[subscription] needs dialog: ${statusResult.shouldShowDialog}',
+      );
 
-      // 检查是否应该显示弹窗（防止重复弹窗）
       final shouldShow = await _shouldShowDialog(statusResult);
-      _logger.info('[订阅状态检查] 是否实际显示弹窗: $shouldShow');
+      _logger.info('[subscription] dialog should actually show: $shouldShow');
 
       if (shouldShow &&
           subscriptionStatusService.shouldShowStartupDialog(statusResult)) {
         await _showSubscriptionStatusDialog(context, ref, statusResult);
       } else {
-        // 订阅状态正常，不需要额外导入配置
-        // 配置导入已由 Token 验证成功后的 _silentUpdateUserData() 完成
-        _logger.info('[订阅状态检查] 订阅状态正常或已提示，无需额外操作（配置已在Token验证后导入）');
+        _logger.info('[subscription] no dialog needed at this time');
       }
     } catch (e) {
-      _logger.error('[订阅状态检查] 检查时出错', e);
+      _logger.error('[subscription] status check failed', e);
     } finally {
       _isChecking = false;
     }
   }
 
-  /// 检查是否应该显示对话框（防止重复弹窗）
-  ///
-  /// 只在以下情况显示对话框：
-  /// 1. 从未显示过此类型的对话框
-  /// 2. 状态类型发生了变化（例如从"无订阅"变成了"已过期"）
+  bool _isSubscriptionStateReady(
+    UserAuthState userState,
+    DomainSubscription? subscriptionInfo,
+  ) {
+    if (subscriptionInfo != null) return true;
+    if (userState.subscriptionInfo != null) return true;
+    if (userState.userInfo != null) return true;
+    return false;
+  }
+
+  void _scheduleDeferredRecheck(BuildContext context, WidgetRef ref) {
+    if (_hasPendingDeferredCheck) {
+      _logger.info('[subscription] deferred check already scheduled, skip');
+      return;
+    }
+
+    _hasPendingDeferredCheck = true;
+    _deferredRetryCount += 1;
+    _logger.info(
+      '[subscription] data not ready, retry in 5s ($_deferredRetryCount/$_maxDeferredRetries)',
+    );
+
+    Future.delayed(const Duration(seconds: 5), () async {
+      _hasPendingDeferredCheck = false;
+      if (!context.mounted) return;
+      await checkSubscriptionStatusOnStartup(context, ref, force: true);
+    });
+  }
+
   Future<bool> _shouldShowDialog(SubscriptionStatusResult statusResult) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final lastShownType = prefs.getString(_kLastShownDialogTypeKey);
       final currentType = statusResult.type.name;
 
-      // 状态正常时清除弹窗记录，确保下次出问题时能再次弹窗
       if (!subscriptionStatusService.shouldShowStartupDialog(statusResult)) {
         if (lastShownType != null) {
           await prefs.remove(_kLastShownDialogTypeKey);
-          _logger.info('[订阅状态弹窗] 状态正常($currentType)，清除弹窗记录');
+          _logger.info(
+            '[subscription] status recovered ($currentType), clear dialog history',
+          );
         }
         return false;
       }
 
-      // 问题状态：检查去重
       final shouldShow = lastShownType != currentType;
       if (shouldShow) {
         await prefs.setString(_kLastShownDialogTypeKey, currentType);
-        _logger.info('[订阅状态弹窗] 状态变化: $lastShownType -> $currentType，显示对话框');
+        _logger.info(
+          '[subscription] status changed: $lastShownType -> $currentType, show dialog',
+        );
       } else {
-        _logger.info('[订阅状态弹窗] 状态未变化: $currentType，跳过弹窗');
+        _logger.info(
+          '[subscription] status unchanged: $currentType, skip dialog',
+        );
       }
       return shouldShow;
     } catch (e) {
-      _logger.error('[订阅状态弹窗] 检查弹窗状态时出错', e);
+      _logger.error('[subscription] failed to read dialog history', e);
       return true;
     }
   }
@@ -125,7 +176,8 @@ class SubscriptionStatusChecker {
     SubscriptionStatusResult statusResult,
   ) async {
     if (!context.mounted) return;
-    _logger.info('[订阅状态弹窗] 显示弹窗: ${statusResult.type}');
+
+    _logger.info('[subscription] show dialog: ${statusResult.type}');
     final result = await SubscriptionStatusDialog.show(
       context,
       statusResult,
@@ -133,9 +185,8 @@ class SubscriptionStatusChecker {
         await _handleRenewFromDialog(context, ref);
       },
       onRefresh: () async {
-        _logger.info('[订阅状态弹窗] 刷新订阅状态...');
+        _logger.info('[subscription] refresh subscription from dialog');
         await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
-        // 刷新后重置弹窗状态，以便下次检查时能再次弹窗
         await resetDialogState();
         await Future.delayed(const Duration(seconds: 1));
         if (context.mounted) {
@@ -143,20 +194,20 @@ class SubscriptionStatusChecker {
         }
       },
     );
-    _logger.info('[订阅状态弹窗] 操作结果: $result');
+
+    _logger.info('[subscription] dialog result: $result');
     if (result == 'later' || result == null) {
-      _logger.info('[订阅状态弹窗] 用户选择稍后处理');
+      _logger.info('[subscription] user postponed handling');
     }
   }
 
-  /// 重置弹窗状态（在用户刷新订阅或购买套餐后调用）
   Future<void> resetDialogState() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_kLastShownDialogTypeKey);
-      _logger.info('[订阅状态弹窗] 已重置弹窗状态');
+      _logger.info('[subscription] dialog state reset');
     } catch (e) {
-      _logger.error('[订阅状态弹窗] 重置弹窗状态时出错', e);
+      _logger.error('[subscription] failed to reset dialog state', e);
     }
   }
 
@@ -167,17 +218,15 @@ class SubscriptionStatusChecker {
     final isDesktop =
         Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
-    // 尝试获取用户当前订阅的套餐ID
     final userState = ref.read(xboardUserProvider);
     final currentPlanId = userState.subscriptionInfo?.planId;
 
     if (currentPlanId != null && currentPlanId > 0) {
-      _logger.info('[套餐续费] 查找套餐ID: $currentPlanId');
+      _logger.info('[subscription] resolve current plan id: $currentPlanId');
 
-      // 确保套餐列表已加载
       var plans = ref.read(xboardSubscriptionProvider);
       if (plans.isEmpty) {
-        _logger.info('[套餐续费] 套餐列表为空，先加载套餐列表');
+        _logger.info('[subscription] plans empty, load plans first');
         await ref.read(xboardSubscriptionProvider.notifier).loadPlans();
         plans = ref.read(xboardSubscriptionProvider);
       }
@@ -185,25 +234,26 @@ class SubscriptionStatusChecker {
       DomainPlan? currentPlan;
       try {
         currentPlan = plans.firstWhere((plan) => plan.id == currentPlanId);
-      } catch (e) {
+      } catch (_) {
         currentPlan = null;
       }
 
       if (currentPlan != null) {
-        _logger.info('[套餐续费] 找到当前套餐，跳转到购买页面: ${currentPlan.name}');
+        _logger.info(
+          '[subscription] found current plan, navigate to purchase: ${currentPlan.name}',
+        );
         if (isDesktop) {
           context.go('/plans');
         } else {
           context.push('/plans/purchase', extra: currentPlan);
         }
         return;
-      } else {
-        _logger.warning('[套餐续费] 未找到ID为 $currentPlanId 的套餐');
       }
+
+      _logger.warning('[subscription] plan not found for id=$currentPlanId');
     }
 
-    // 没找到套餐：跳转到套餐列表页面
-    _logger.info('[套餐续费] 跳转到套餐列表页面');
+    _logger.info('[subscription] fallback to plans list page');
     if (isDesktop) {
       context.go('/plans');
     } else {
@@ -222,14 +272,15 @@ class SubscriptionStatusChecker {
     try {
       final userState = ref.read(xboardUserProvider);
       if (!userState.isAuthenticated) return false;
+
       final domainSubscriptionInfo = ref.read(subscriptionInfoProvider);
       final statusResult = subscriptionStatusService.checkSubscriptionStatus(
         userState: userState,
-        subscriptionInfo: domainSubscriptionInfo,
+        subscriptionInfo: domainSubscriptionInfo ?? userState.subscriptionInfo,
       );
       return subscriptionStatusService.shouldShowStartupDialog(statusResult);
     } catch (e) {
-      _logger.error('[订阅状态检查] 检查订阅提醒状态出错', e);
+      _logger.error('[subscription] reminder check failed', e);
       return false;
     }
   }
@@ -238,13 +289,14 @@ class SubscriptionStatusChecker {
     try {
       final userState = ref.read(xboardUserProvider);
       if (!userState.isAuthenticated) return '未登录';
+
       final domainSubscriptionInfo = ref.read(subscriptionInfoProvider);
       final statusResult = subscriptionStatusService.checkSubscriptionStatus(
         userState: userState,
-        subscriptionInfo: domainSubscriptionInfo,
+        subscriptionInfo: domainSubscriptionInfo ?? userState.subscriptionInfo,
       );
       return statusResult.getMessage(context);
-    } catch (e) {
+    } catch (_) {
       return '状态检查失败';
     }
   }

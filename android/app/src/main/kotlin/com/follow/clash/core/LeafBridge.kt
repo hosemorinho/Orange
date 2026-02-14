@@ -20,16 +20,9 @@ object LeafBridge {
 
     private var protectionEnabled = false
 
-    private var libraryLoaded = false
-
-    init {
-        try {
-            System.loadLibrary("leaf")
-            libraryLoaded = true
-        } catch (e: UnsatisfiedLinkError) {
-            XBoardLog.e(TAG, "Failed to load libleaf.so: ${e.message}", e)
-        }
-    }
+    // No init block — libleaf.so is loaded in Application.attachBaseContext()
+    // BEFORE the Dart engine starts. This avoids the native crash caused by
+    // Dart FFI's dlopen() and System.loadLibrary() fighting over the same .so.
 
     /**
      * Enable socket protection via the remote VPN service.
@@ -37,10 +30,6 @@ object LeafBridge {
      * Registers the JNI callback so leaf's Rust code can call [protectSocket].
      */
     fun enableProtection() {
-        if (!libraryLoaded) {
-            XBoardLog.e(TAG, "enableProtection: libleaf.so not loaded, skipping")
-            return
-        }
         protectionEnabled = true
         try {
             nativeSetProtectSocketCallback()

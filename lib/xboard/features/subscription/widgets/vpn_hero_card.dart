@@ -214,42 +214,38 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
 
   // --- Subscription helpers (ported from SubscriptionUsageCard) ---
 
-  double _getProgressValue(SubscriptionInfo? profileSubInfo) {
-    if (profileSubInfo != null && profileSubInfo.total > 0) {
-      final used = profileSubInfo.upload + profileSubInfo.download;
-      return (used / profileSubInfo.total).clamp(0.0, 1.0);
+  double _getProgressValue(DomainSubscription? subscription) {
+    if (subscription != null && subscription.transferLimit > 0) {
+      final used = subscription.uploadedBytes + subscription.downloadedBytes;
+      return (used / subscription.transferLimit).clamp(0.0, 1.0);
     }
     return 0.0;
   }
 
-  double _getUsedTraffic(SubscriptionInfo? profileSubInfo) {
-    if (profileSubInfo != null) {
-      return (profileSubInfo.upload + profileSubInfo.download).toDouble();
+  double _getUsedTraffic(DomainSubscription? subscription) {
+    if (subscription != null) {
+      return (subscription.uploadedBytes + subscription.downloadedBytes).toDouble();
     }
     return 0;
   }
 
   double _getTotalTraffic(
-    SubscriptionInfo? profileSubInfo,
+    DomainSubscription? subscription,
     DomainUser? userInfo,
   ) {
-    if (profileSubInfo != null && profileSubInfo.total > 0) {
-      return profileSubInfo.total.toDouble();
+    if (subscription != null && subscription.total > 0) {
+      return subscription.transferLimit.toDouble();
     }
     return userInfo?.transferLimit?.toDouble() ?? 0;
   }
 
   int? _calculateRemainingDays(
-    SubscriptionInfo? profileSubInfo,
+    DomainSubscription? subscription,
     DomainSubscription? subscriptionInfo,
   ) {
     DateTime? expiredAt;
-    if (profileSubInfo?.expire != null && profileSubInfo!.expire != 0) {
-      expiredAt = DateTime.fromMillisecondsSinceEpoch(
-        profileSubInfo.expire * 1000,
-      );
-    } else if (subscriptionInfo?.expiredAt != null) {
-      expiredAt = subscriptionInfo!.expiredAt;
+    if (subscription?.expiredAt != null) {
+      expiredAt = subscription!.expiredAt;
     }
     if (expiredAt == null) return null;
     final now = DateTime.now();
@@ -418,14 +414,13 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
 
     // 检查订阅状态
     final userState = ref.watch(xboardUserProvider);
-    final currentProfile = ref.watch(currentProfileProvider);
-    final profileSubInfo = currentProfile?.subscriptionInfo;
+    final domainSubscriptionInfo = ref.watch(subscriptionInfoProvider);
 
     SubscriptionStatusResult? subscriptionStatus;
-    if (userState.isAuthenticated && profileSubInfo != null) {
+    if (userState.isAuthenticated && domainSubscriptionInfo != null) {
       subscriptionStatus = subscriptionStatusService.checkSubscriptionStatus(
         userState: userState,
-        profileSubscriptionInfo: profileSubInfo,
+        subscriptionInfo: domainSubscriptionInfo,
       );
     }
 
@@ -544,14 +539,13 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
 
     // 检查订阅状态
     final userState = ref.watch(xboardUserProvider);
-    final currentProfile = ref.watch(currentProfileProvider);
-    final profileSubInfo = currentProfile?.subscriptionInfo;
+    final domainSubscriptionInfo = ref.watch(subscriptionInfoProvider);
 
     SubscriptionStatusResult? subscriptionStatus;
-    if (userState.isAuthenticated && profileSubInfo != null) {
+    if (userState.isAuthenticated && domainSubscriptionInfo != null) {
       subscriptionStatus = subscriptionStatusService.checkSubscriptionStatus(
         userState: userState,
-        profileSubscriptionInfo: profileSubInfo,
+        subscriptionInfo: domainSubscriptionInfo,
       );
     }
 
@@ -1064,11 +1058,11 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     final currentProfile = ref.watch(currentProfileProvider);
     final profileSubInfo = currentProfile?.subscriptionInfo;
 
-    // 检查订阅状态（即使 profileSubInfo 为 null 也要检查）
+    // 检查订阅状态（即使 domainSubscriptionInfo 为 null 也要检查）
     final subscriptionStatus = subscriptionStatusService
         .checkSubscriptionStatus(
           userState: userState,
-          profileSubscriptionInfo: profileSubInfo,
+          subscriptionInfo: domainSubscriptionInfo,
         );
 
     // 如果是无订阅或解析失败，显示警告提示

@@ -4,7 +4,6 @@ import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dar
 import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/models/models.dart' as fl_models;
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:go_router/go_router.dart';
 import '../services/subscription_status_service.dart';
@@ -13,12 +12,10 @@ import 'package:fl_clash/l10n/l10n.dart';
 class SubscriptionUsageCard extends ConsumerWidget {
   final DomainSubscription? subscriptionInfo;
   final DomainUser? userInfo;
-  final fl_models.SubscriptionInfo? profileSubscriptionInfo;
   const SubscriptionUsageCard({
     super.key,
     this.subscriptionInfo,
     this.userInfo,
-    this.profileSubscriptionInfo,
   });
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,12 +25,11 @@ class SubscriptionUsageCard extends ConsumerWidget {
     if (userState.isAuthenticated && subscriptionInfo != null) {
       subscriptionStatus = subscriptionStatusService.checkSubscriptionStatus(
         userState: userState,
-        profileSubscriptionInfo: profileSubscriptionInfo,
+        subscriptionInfo: subscriptionInfo,
       );
     }
-    if (profileSubscriptionInfo == null &&
-        userInfo == null &&
-        subscriptionInfo == null) {
+    if (subscriptionInfo == null &&
+        userInfo == null) {
       return _buildEmptyCard(theme, context);
     }
     if (subscriptionStatus != null &&

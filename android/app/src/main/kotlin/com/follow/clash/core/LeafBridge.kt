@@ -55,7 +55,6 @@ object LeafBridge {
      * @param fd The raw file descriptor of the socket to protect.
      * @return true if protection succeeded, false otherwise.
      */
-    @JvmStatic
     fun protectSocket(fd: Int): Boolean {
         if (!protectionEnabled) {
             Log.w(TAG, "protectSocket called but protection not enabled")

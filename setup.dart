@@ -341,7 +341,9 @@ class Build {
 
     final core = coreName;
     final helper = '${name}HelperService';
-    print('Updating platform binary names: app=$name core=$core helper=$helper');
+    print(
+      'Updating platform binary names: app=$name core=$core helper=$helper',
+    );
 
     // distribute_options.yaml
     await _replaceInFile('distribute_options.yaml', {
@@ -369,7 +371,8 @@ class Build {
           'app_name: Orange': 'app_name: $name',
           'display_name: Orange': 'display_name: $name',
           'executable_name: Orange.exe': 'executable_name: $name.exe',
-          'output_base_file_name: Orange.exe': 'output_base_file_name: $name.exe',
+          'output_base_file_name: Orange.exe':
+              'output_base_file_name: $name.exe',
         });
         await _replaceInFile('windows/packaging/exe/inno_setup.iss', {
           "'Orange.exe'": "'$name.exe'",
@@ -477,15 +480,20 @@ class BuildCommand extends Command {
 
   Future<void> _buildEnvFile(String env, {String? coreSha256}) async {
     final apiBaseUrl = (Platform.environment['API_BASE_URL'] ?? '').trim();
-    final apiTextDomain = (Platform.environment['API_TEXT_DOMAIN'] ?? '').trim();
+    final apiTextDomain = (Platform.environment['API_TEXT_DOMAIN'] ?? '')
+        .trim();
     final appName = (Platform.environment['APP_NAME'] ?? '').trim();
-    final appPackageName = (Platform.environment['APP_PACKAGE_NAME'] ?? '').trim();
+    final appPackageName = (Platform.environment['APP_PACKAGE_NAME'] ?? '')
+        .trim();
     final refactorAndroidPackage =
-        (Platform.environment['REFACTOR_ANDROID_PACKAGE'] ?? '').trim().toLowerCase();
+        (Platform.environment['REFACTOR_ANDROID_PACKAGE'] ?? '')
+            .trim()
+            .toLowerCase();
     final shouldExposePackageNameToDart =
         target == Target.android && refactorAndroidPackage == 'true';
     final themeColor = (Platform.environment['THEME_COLOR'] ?? '').trim();
-    final crispWebsiteId = (Platform.environment['CRISP_WEBSITE_ID'] ?? '').trim();
+    final crispWebsiteId = (Platform.environment['CRISP_WEBSITE_ID'] ?? '')
+        .trim();
 
     final data = {
       'APP_ENV': env,
@@ -607,12 +615,7 @@ class BuildCommand extends Command {
 
     switch (target) {
       case Target.windows:
-        _buildDistributor(
-          target: target,
-          targets: 'exe,zip',
-          args: ' --description $archName',
-          env: env,
-        );
+        await _buildDistributor(target: target, targets: 'exe,zip', env: env);
         return;
       case Target.linux:
         final targetMap = {Arch.arm64: 'linux-arm64', Arch.amd64: 'linux-x64'};
@@ -623,11 +626,10 @@ class BuildCommand extends Command {
         ].join(',');
         final defaultTarget = targetMap[arch];
         await _getLinuxDependencies(arch!);
-        _buildDistributor(
+        await _buildDistributor(
           target: target,
           targets: targets,
-          args:
-              ' --description $archName --build-target-platform $defaultTarget',
+          args: ' --build-target-platform $defaultTarget',
           env: env,
         );
         return;
@@ -642,7 +644,7 @@ class BuildCommand extends Command {
             .where((element) => arch == null ? true : element == arch)
             .map((e) => targetMap[e])
             .toList();
-        _buildDistributor(
+        await _buildDistributor(
           target: target,
           targets: 'apk',
           args:
@@ -652,12 +654,7 @@ class BuildCommand extends Command {
         return;
       case Target.macos:
         await _getMacosDependencies();
-        _buildDistributor(
-          target: target,
-          targets: 'dmg',
-          args: ' --description $archName',
-          env: env,
-        );
+        await _buildDistributor(target: target, targets: 'dmg', env: env);
         return;
     }
   }

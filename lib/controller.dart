@@ -1131,6 +1131,49 @@ extension SetupControllerExt on AppController {
       'configTun=${_ref.read(patchClashConfigProvider).tun.enable}, reason=$reason',
     );
 
+    // Android-specific safety path:
+    // when VPN is not active, avoid starting a non-TUN leaf runtime.
+    // We only preload nodes into UI state so the user can browse/select nodes.
+    // This avoids non-TUN -> TUN runtime transition during first connect,
+    // which may cause native instability on some devices.
+    if (system.isAndroid && !tunEnabled) {
+      if (_leafController != null && _leafController!.isRunning) {
+        _logger.info(
+          'setup: Android VPN inactive, stopping running leaf before nodes-only preload',
+        );
+        await _leafController!.stop();
+      }
+
+      final proxies = LeafController.parseClashProxies(yamlContent);
+      final nodes = LeafController.extractNodesFromProxies(proxies);
+      if (nodes.isEmpty) {
+        _logger.warning('setup: Android nodes-only preload parsed 0 nodes');
+        _setLeafStoppedState(
+          reason: 'setup(androidNodesOnlyNoNodes,reason=$reason)',
+        );
+        return false;
+      }
+
+      final previousSelected = _ref.read(selectedNodeTagProvider);
+      final selectedTag = switch (nodes.any((n) => n.tag == previousSelected)) {
+        true => previousSelected,
+        false => nodes.first.tag,
+      };
+
+      _ref.read(isLeafRunningProvider.notifier).state = false;
+      _ref.read(leafNodesProvider.notifier).state = nodes;
+      _ref.read(selectedNodeTagProvider.notifier).state = selectedTag;
+      _activePort = null;
+      _ref.read(activePortProvider.notifier).state = null;
+      _lastSetupTime = DateTime.now();
+
+      _logger.info(
+        'setup: Android nodes-only preload complete: '
+        'nodes=${nodes.length}, selected=$selectedTag, reason=$reason',
+      );
+      return true;
+    }
+
     // Stop any running leaf instance BEFORE enabling socket protection.
     // enableSocketProtection() → nativeSetProtectSocketCallback() modifies
     // global native state via JNI. Calling it while a leaf runtime is active
@@ -1138,11 +1181,14 @@ extension SetupControllerExt on AppController {
     if (_leafController != null && _leafController!.isRunning) {
       _logger.info('setup: stopping running leaf before reconfiguration');
       await _leafController!.stop();
+      _logger.info('setup: running leaf stopped');
     }
 
     int? tunFd;
     if (system.isAndroid && tunEnabled) {
+      _logger.info('setup: enabling socket protection');
       await service?.enableSocketProtection();
+      _logger.info('setup: socket protection enabled');
       // Retry getTunFd — VPN service may still be establishing after
       // permission grant. Poll for up to 5 seconds as a safety net.
       for (var attempt = 0; attempt < 25; attempt++) {

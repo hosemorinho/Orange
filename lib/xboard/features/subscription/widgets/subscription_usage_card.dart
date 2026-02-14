@@ -520,12 +520,7 @@ class SubscriptionUsageCard extends ConsumerWidget {
 
   int? _calculateRemainingDays() {
     DateTime? expiredAt;
-    if (profileSubscriptionInfo?.expire != null &&
-        profileSubscriptionInfo!.expire != 0) {
-      expiredAt = DateTime.fromMillisecondsSinceEpoch(
-        profileSubscriptionInfo!.expire * 1000,
-      );
-    } else if (subscriptionInfo?.expiredAt != null) {
+    if (subscriptionInfo?.expiredAt != null) {
       expiredAt = subscriptionInfo!.expiredAt;
     }
     // 如果 expiredAt 为 null，返回 null 表示不限时
@@ -536,26 +531,26 @@ class SubscriptionUsageCard extends ConsumerWidget {
   }
 
   double _getProgressValue() {
-    if (profileSubscriptionInfo != null && profileSubscriptionInfo!.total > 0) {
+    if (subscriptionInfo != null && subscriptionInfo!.transferLimit > 0) {
       final used =
-          profileSubscriptionInfo!.upload + profileSubscriptionInfo!.download;
-      return (used / profileSubscriptionInfo!.total).clamp(0.0, 1.0);
+          subscriptionInfo!.uploadedBytes + subscriptionInfo!.downloadedBytes;
+      return (used / subscriptionInfo!.transferLimit).clamp(0.0, 1.0);
     }
     return 0.0;
   }
 
   double _getUsedTraffic() {
-    if (profileSubscriptionInfo != null) {
-      return (profileSubscriptionInfo!.upload +
-              profileSubscriptionInfo!.download)
+    if (subscriptionInfo != null) {
+      return (subscriptionInfo!.uploadedBytes +
+              subscriptionInfo!.downloadedBytes)
           .toDouble();
     }
     return 0;
   }
 
   double _getTotalTraffic() {
-    if (profileSubscriptionInfo != null && profileSubscriptionInfo!.total > 0) {
-      return profileSubscriptionInfo!.total.toDouble();
+    if (subscriptionInfo != null && subscriptionInfo!.transferLimit > 0) {
+      return subscriptionInfo!.transferLimit.toDouble();
     }
     return userInfo?.transferLimit?.toDouble() ?? 0;
   }

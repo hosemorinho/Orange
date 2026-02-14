@@ -233,7 +233,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     DomainSubscription? subscription,
     DomainUser? userInfo,
   ) {
-    if (subscription != null && subscription.total > 0) {
+    if (subscription != null && subscription.transferLimit > 0) {
       return subscription.transferLimit.toDouble();
     }
     return userInfo?.transferLimit?.toDouble() ?? 0;
@@ -331,16 +331,14 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
         : colorScheme.onPrimary;
 
     // Subscription data
-    final currentProfile = ref.watch(currentProfileProvider);
-    final profileSubInfo = currentProfile?.subscriptionInfo;
     final userInfo = ref.userInfo;
     final subscriptionInfo = ref.subscriptionInfo;
 
-    final progress = _getProgressValue(profileSubInfo);
-    final usedTraffic = _getUsedTraffic(profileSubInfo);
-    final totalTraffic = _getTotalTraffic(profileSubInfo, userInfo);
+    final progress = _getProgressValue(subscriptionInfo);
+    final usedTraffic = _getUsedTraffic(subscriptionInfo);
+    final totalTraffic = _getTotalTraffic(subscriptionInfo, userInfo);
     final remainingDays = _calculateRemainingDays(
-      profileSubInfo,
+      subscriptionInfo,
       subscriptionInfo,
     );
 
@@ -1055,8 +1053,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final userState = ref.watch(xboardUserProvider);
-    final currentProfile = ref.watch(currentProfileProvider);
-    final profileSubInfo = currentProfile?.subscriptionInfo;
+    final domainSubscriptionInfo = ref.watch(subscriptionInfoProvider);
 
     // 检查订阅状态（即使 domainSubscriptionInfo 为 null 也要检查）
     final subscriptionStatus = subscriptionStatusService

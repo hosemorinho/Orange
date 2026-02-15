@@ -55,10 +55,22 @@ object LeafPreferences {
         return prefs != null
     }
 
-    private fun getPrefs(): SharedPreferences {
+    /**
+     * Best-effort lazy init for cases where process state was recreated and
+     * explicit init(context) did not run before first access.
+     */
+    private fun ensureInitialized() {
+        if (prefs != null) return
+        if (appContext == null && GlobalState.isInitialized) {
+            appContext = GlobalState.application.applicationContext
+        }
         appContext?.let { ctx ->
             prefs = ctx.getSharedPreferences(PREFS_NAME, prefsMode())
         }
+    }
+
+    private fun getPrefs(): SharedPreferences {
+        ensureInitialized()
         return prefs ?: throw IllegalStateException(
             "LeafPreferences not initialized. Call init(context) first."
         )

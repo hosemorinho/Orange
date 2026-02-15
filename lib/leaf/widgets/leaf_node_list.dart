@@ -1,5 +1,4 @@
 import 'package:fl_clash/l10n/l10n.dart';
-import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/models/leaf_node.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/widgets/text.dart';
@@ -79,8 +78,10 @@ class _LeafNodeListViewState extends ConsumerState<LeafNodeListView> {
                 hintText: appLocalizations.xboardSearchNode,
                 prefixIcon: const Icon(Icons.search, size: 20),
                 isDense: true,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
@@ -90,15 +91,14 @@ class _LeafNodeListViewState extends ConsumerState<LeafNodeListView> {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: theme.colorScheme.outlineVariant
-                        .withValues(alpha: 0.5),
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.5,
+                    ),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: theme.colorScheme.primary,
-                  ),
+                  borderSide: BorderSide(color: theme.colorScheme.primary),
                 ),
               ),
             ),
@@ -142,10 +142,11 @@ class _LeafNodeListViewState extends ConsumerState<LeafNodeListView> {
 
   Future<void> _testNodeDelay(LeafNode node) async {
     final controller = ref.read(leafControllerProvider);
-    final result = await controller.tcpPing(node);
+    final nodeDelaysNotifier = ref.read(nodeDelaysProvider.notifier);
     final delays = Map<String, int?>.from(ref.read(nodeDelaysProvider));
+    final result = await controller.tcpPing(node);
     delays[node.tag] = result;
-    ref.read(nodeDelaysProvider.notifier).state = delays;
+    nodeDelaysNotifier.state = delays;
   }
 }
 
@@ -180,13 +181,15 @@ class _LeafNodeCard extends StatelessWidget {
         side: isSelected
             ? BorderSide(color: colorScheme.primary.withValues(alpha: 0.3))
             : BorderSide(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+              ),
       ),
       child: ListTile(
         leading: Icon(
           Icons.dns,
-          color:
-              isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+          color: isSelected
+              ? colorScheme.primary
+              : colorScheme.onSurfaceVariant,
         ),
         title: EmojiText(
           node.tag,
@@ -213,33 +216,34 @@ class _LeafNodeCard extends StatelessWidget {
                 spacing: 4,
                 runSpacing: 4,
                 children: tags
-                    .map((tag) => Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
+                    .map(
+                      (tag) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.secondaryContainer.withValues(
+                            alpha: 0.5,
                           ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.secondaryContainer
-                                .withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          tag,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontSize: 10,
+                            color: colorScheme.onSecondaryContainer,
                           ),
-                          child: Text(
-                            tag,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 10,
-                              color: colorScheme.onSecondaryContainer,
-                            ),
-                          ),
-                        ))
+                        ),
+                      ),
+                    )
                     .toList(),
               ),
             ],
           ],
         ),
         trailing: _buildLatencyChip(context),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         onTap: onTap,
       ),
     );
@@ -283,9 +287,9 @@ class _LeafNodeCard extends StatelessWidget {
         child: Text(
           '${delayMs}ms',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: chipColor,
-                fontWeight: FontWeight.bold,
-              ),
+            color: chipColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

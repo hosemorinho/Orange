@@ -322,7 +322,11 @@ object State {
         GlobalState.launch {
             runLock.withLock {
                 if (runStateFlow.value != RunState.STOP) {
-                    startResultDeferred?.complete(false)
+                    // If service is already running, treat start() as idempotent success.
+                    // Flutter may call start() during app resume/state sync and should not
+                    // be forced into a false "start failed" path.
+                    val alreadyRunning = runStateFlow.value == RunState.START
+                    startResultDeferred?.complete(alreadyRunning)
                     return@launch
                 }
                 runStateFlow.tryEmit(RunState.PENDING)

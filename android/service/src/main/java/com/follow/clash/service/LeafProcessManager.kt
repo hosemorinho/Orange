@@ -106,6 +106,16 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
                 return false
             }
 
+            // Enable socket protection BEFORE starting leaf.
+            // Leaf creates outbound sockets (DNS resolvers, etc.) immediately
+            // on startup. Without protection, those sockets route through the
+            // VPN tunnel → back to TUN → leaf → infinite loop → network death.
+            try {
+                LeafBridge.enableProtection()
+            } catch (e: Exception) {
+                Log.w(TAG, "enableProtection failed", e)
+            }
+
             // Start leaf via LeafBridge JNI
             val rtId = LeafBridge.leafRunWithOptions(
                 rtId = 0, // 0 = create new runtime
@@ -127,13 +137,6 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
             isRunning = true
             LeafPreferences.shouldRun = true
             LeafPreferences.lastStartTime = System.currentTimeMillis()
-
-            // Enable socket protection
-            try {
-                LeafBridge.enableProtection()
-            } catch (e: Exception) {
-                Log.w(TAG, "enableProtection failed", e)
-            }
 
             notifyStatusChanged()
             GlobalState.log("Leaf started successfully with rtId=$rtId (TUN fd=${tunPfd.fd})")

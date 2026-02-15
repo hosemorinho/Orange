@@ -5,4 +5,4 @@
 
 # LeafBridge: protectSocket() is called from JNI native code (libleaf.so),
 # invisible to R8 static analysis. Keep all members to prevent stripping.
--keep class com.follow.clash.core.LeafBridge { *; }
+-keep class com.follow.clash.common.LeafBridge { *; }

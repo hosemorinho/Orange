@@ -195,7 +195,7 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             // In dual-process mode, this is handled by :core via AIDL
             // But we still need local protection for the UI process
             try {
-                com.follow.clash.core.LeafBridge.enableProtection()
+                com.follow.clash.common.LeafBridge.enableProtection()
                 result.success(null)
             } catch (e: Throwable) {
                 XBoardLog.e("ServicePlugin", "enableSocketProtection failed", e)
@@ -205,7 +205,7 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
         "disableSocketProtection" -> {
             try {
-                com.follow.clash.core.LeafBridge.disableProtection()
+                com.follow.clash.common.LeafBridge.disableProtection()
             } catch (e: Throwable) {
                 XBoardLog.e("ServicePlugin", "disableSocketProtection failed", e)
             }

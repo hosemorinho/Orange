@@ -98,12 +98,31 @@ object LeafBridge {
         stackSize: Int,
     ): Int
 
+    /**
+     * Start leaf with in-memory JSON config string. Blocks the calling thread.
+     * Must be called on a background thread.
+     */
+    external fun leafRunWithOptionsConfigString(
+        rtId: Int,
+        config: String,
+        multiThread: Boolean,
+        autoThreads: Boolean,
+        threads: Int,
+        stackSize: Int,
+    ): Int
+
     /** Reload config (DNS, outbounds, routing rules). */
     external fun leafReload(rtId: Int): Int
+
+    /** Reload config directly from in-memory JSON string. */
+    external fun leafReloadWithConfigString(rtId: Int, config: String): Int
 
     /** Graceful shutdown. */
     external fun leafShutdown(rtId: Int): Boolean
 
     /** Validate a config file. */
     external fun leafTestConfig(configPath: String): Int
+
+    /** Validate an in-memory JSON config string. */
+    external fun leafTestConfigString(config: String): Int
 }

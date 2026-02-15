@@ -236,9 +236,8 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             launch {
                 try {
                     val configJson = call.argument<String>("configJson") ?: ""
-                    val configPath = persistConfigForCore(configJson)
                     val core = awaitCoreService()
-                    val success = core?.startLeafFromFile(configPath) ?: false
+                    val success = core?.startLeaf(configJson) ?: false
                     result.success(success)
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "startCore failed", e)
@@ -266,9 +265,8 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             launch {
                 try {
                     val configJson = call.argument<String>("configJson") ?: ""
-                    val configPath = persistConfigForCore(configJson)
                     val core = awaitCoreService()
-                    val success = core?.reloadLeafFromFile(configPath) ?: false
+                    val success = core?.reloadLeaf(configJson) ?: false
                     result.success(success)
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "syncConfig failed", e)

@@ -13,7 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.io.FileOutputStream
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -31,6 +30,8 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
 
     // Current leaf runtime ID (from JNI)
     @Volatile private var leafRtId: Int = -1
+    @Volatile private var leafThread: Thread? = null
+    @Volatile private var lastRunResult: Int = Int.MIN_VALUE
 
     // Current state
     @Volatile private var isRunning: Boolean = false
@@ -90,12 +91,16 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
             // We need to replace it with the actual fd number from local tunPfd
             val processedConfig = processConfigWithTunFd(configJson, tunPfd)
 
-            // Save config to file for leaf to read
-            val configFile = File(context.filesDir, CONFIG_FILE_NAME)
-            FileOutputStream(configFile).use { it.write(processedConfig.toByteArray()) }
-
             // Cache config in preferences for recovery
             LeafPreferences.configJson = processedConfig
+
+            // Validate config string early to avoid starting VPN without a working core.
+            val testResult = LeafBridge.leafTestConfigString(processedConfig)
+            if (testResult != 0) {
+                Log.e(TAG, "startLeaf: config validation failed, code=$testResult")
+                notifyError("Invalid leaf config: code $testResult")
+                return false
+            }
 
             // Load libleaf.so if not already loaded
             try {
@@ -116,30 +121,62 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
                 Log.w(TAG, "enableProtection failed", e)
             }
 
-            // Start leaf via LeafBridge JNI
-            val rtId = LeafBridge.leafRunWithOptions(
-                rtId = 0, // 0 = create new runtime
-                configPath = configFile.absolutePath,
-                autoReload = true,
-                multiThread = true,
-                autoThreads = true,
-                threads = 0, // auto threads
-                stackSize = 0 // default stack size
-            )
+            val runtimeId = DEFAULT_RUNTIME_ID
+            lastRunResult = Int.MIN_VALUE
 
-            if (rtId < 0) {
-                Log.e(TAG, "startLeaf: leafRunWithOptions returned $rtId")
-                notifyError("Failed to start leaf: return code $rtId")
+            // leafRunWithOptions is a blocking call by design. Run it in a dedicated
+            // background thread so IPC start call can return immediately.
+            val thread = Thread({
+                val runResult = try {
+                    LeafBridge.leafRunWithOptionsConfigString(
+                        rtId = runtimeId,
+                        config = processedConfig,
+                        multiThread = true,
+                        autoThreads = true,
+                        threads = 0, // auto threads
+                        stackSize = 0 // default stack size
+                    )
+                } catch (t: Throwable) {
+                    Log.e(TAG, "leaf runtime thread crashed", t)
+                    Int.MIN_VALUE
+                }
+
+                lastRunResult = runResult
+                synchronized(this@LeafProcessManager) {
+                    leafRtId = -1
+                    isRunning = false
+                    leafThread = null
+                }
+                if (runResult != 0) {
+                    notifyError("Leaf runtime exited with code $runResult")
+                }
+                notifyStatusChanged()
+                GlobalState.log("Leaf runtime exited with code=$runResult")
+            }, "LeafRuntime-$runtimeId")
+
+            thread.isDaemon = true
+            leafThread = thread
+            thread.start()
+
+            // If runtime exits immediately, startup failed.
+            Thread.sleep(200)
+            if (!thread.isAlive) {
+                val code = lastRunResult
+                leafThread = null
+                leafRtId = -1
+                isRunning = false
+                Log.e(TAG, "startLeaf: runtime exited during startup, code=$code")
+                notifyError("Failed to start leaf: return code $code")
                 return false
             }
 
-            leafRtId = rtId
+            leafRtId = runtimeId
             isRunning = true
             LeafPreferences.shouldRun = true
             LeafPreferences.lastStartTime = System.currentTimeMillis()
 
             notifyStatusChanged()
-            GlobalState.log("Leaf started successfully with rtId=$rtId (TUN fd=${tunPfd.fd})")
+            GlobalState.log("Leaf started successfully with rtId=$runtimeId (TUN fd=${tunPfd.fd})")
             true
         } catch (e: Exception) {
             Log.e(TAG, "startLeaf failed", e)
@@ -203,9 +240,15 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
         }
 
         return try {
-            if (leafRtId >= 0) {
-                LeafBridge.leafShutdown(leafRtId)
+            val rtId = leafRtId
+            if (rtId >= 0) {
+                LeafBridge.leafShutdown(rtId)
             }
+            val thread = leafThread
+            if (thread != null && thread.isAlive && Thread.currentThread() !== thread) {
+                thread.join(1_500)
+            }
+            leafThread = null
             leafRtId = -1
             isRunning = false
             LeafPreferences.shouldRun = false
@@ -238,16 +281,12 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
 
             val processedConfig = processConfigWithTunFd(configJson, tunPfd)
 
-            // Save new config to file
-            val configFile = File(context.filesDir, CONFIG_FILE_NAME)
-            FileOutputStream(configFile).use { it.write(processedConfig.toByteArray()) }
-
             // Cache config in preferences
             LeafPreferences.configJson = processedConfig
 
             // Reload via JNI
-            val result = LeafBridge.leafReload(leafRtId)
-            if (result < 0) {
+            val result = LeafBridge.leafReloadWithConfigString(leafRtId, processedConfig)
+            if (result != 0) {
                 Log.e(TAG, "reloadLeaf: leafReload returned $result")
                 notifyError("Failed to reload leaf: return code $result")
                 return false
@@ -395,7 +434,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
     }
 
     companion object {
-        private const val CONFIG_FILE_NAME = "leaf_config.yaml"
+        private const val DEFAULT_RUNTIME_ID = 0
 
         @Volatile
         private var instance: LeafProcessManager? = null

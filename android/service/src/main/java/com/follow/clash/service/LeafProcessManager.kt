@@ -100,10 +100,8 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
         }
 
         return try {
-            // Process config to inject local TUN fd
-            // The config from Flutter contains fd as a placeholder
-            // We need to replace it with the actual fd number from local tunPfd
-            val processedConfig = processConfigWithTunFd(configJson, tunPfd)
+            // Build a validated/cached config with the current readable fd.
+            val processedConfig = processConfigWithTunFd(configJson, tunPfd.fd)
 
             // Cache config in preferences for recovery
             LeafPreferences.configJson = processedConfig
@@ -119,6 +117,16 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
                 notifyError("Invalid leaf config: code $testResult")
                 return false
             }
+
+            // Leaf owns and closes the inbound TUN fd. Pass a detached duplicate to avoid
+            // fdsan aborts from closing a fd still owned by ParcelFileDescriptor.
+            val ownedTunFd = getTunFd()
+            if (ownedTunFd < 0) {
+                Log.e(TAG, "startLeaf: failed to obtain owned TUN fd")
+                notifyError("Failed to duplicate TUN fd")
+                return false
+            }
+            val runtimeConfig = processConfigWithTunFd(processedConfig, ownedTunFd)
 
             // Enable socket protection BEFORE starting leaf.
             // Leaf creates outbound sockets (DNS resolvers, etc.) immediately
@@ -139,7 +147,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
                 val runResult = try {
                     LeafBridge.leafRunWithOptionsConfigString(
                         rtId = runtimeId,
-                        config = processedConfig,
+                        config = runtimeConfig,
                         multiThread = true,
                         autoThreads = true,
                         threads = 0, // auto threads
@@ -185,7 +193,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
             LeafPreferences.lastStartTime = System.currentTimeMillis()
 
             notifyStatusChanged()
-            GlobalState.log("Leaf started successfully with rtId=$runtimeId (TUN fd=${tunPfd.fd})")
+            GlobalState.log("Leaf started successfully with rtId=$runtimeId (owned TUN fd=$ownedTunFd)")
             true
         } catch (e: Exception) {
             Log.e(TAG, "startLeaf failed", e)
@@ -210,7 +218,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
      * Process config JSON to inject local TUN fd.
      * Replaces the fd number in config with the actual fd from local tunPfd.
      */
-    private fun processConfigWithTunFd(configJson: String, tunPfd: android.os.ParcelFileDescriptor): String {
+    private fun processConfigWithTunFd(configJson: String, tunFd: Int): String {
         return try {
             val json = JsonParser.parseString(configJson) as JsonObject
 
@@ -226,8 +234,8 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
                         } else {
                             JsonObject().also { inbound.add("settings", it) }
                         }
-                        settings.addProperty("fd", tunPfd.fd)
-                        Log.d(TAG, "Injected TUN fd=${tunPfd.fd} into config settings")
+                        settings.addProperty("fd", tunFd)
+                        Log.d(TAG, "Injected TUN fd=$tunFd into config settings")
                     }
                 }
             }
@@ -293,7 +301,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
                 return false
             }
 
-            val processedConfig = processConfigWithTunFd(configJson, tunPfd)
+            val processedConfig = processConfigWithTunFd(configJson, tunPfd.fd)
 
             // Cache config in preferences
             LeafPreferences.configJson = processedConfig
@@ -302,8 +310,16 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
                 return false
             }
 
+            val ownedTunFd = getTunFd()
+            if (ownedTunFd < 0) {
+                Log.e(TAG, "reloadLeaf: failed to obtain owned TUN fd")
+                notifyError("Failed to duplicate TUN fd for reload")
+                return false
+            }
+            val runtimeConfig = processConfigWithTunFd(processedConfig, ownedTunFd)
+
             // Reload via JNI
-            val result = LeafBridge.leafReloadWithConfigString(leafRtId, processedConfig)
+            val result = LeafBridge.leafReloadWithConfigString(leafRtId, runtimeConfig)
             if (result != 0) {
                 Log.e(TAG, "reloadLeaf: leafReload returned $result")
                 notifyError("Failed to reload leaf: return code $result")

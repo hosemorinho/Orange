@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.DeadObjectException
 import android.os.IBinder
 import com.follow.clash.RunState
 import com.follow.clash.State
@@ -239,6 +240,11 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     val core = awaitCoreService()
                     val success = core?.startLeaf(configJson) ?: false
                     result.success(success)
+                } catch (e: DeadObjectException) {
+                    XBoardLog.e("ServicePlugin", "startCore: service dead", e)
+                    coreService = null
+                    isBound = false
+                    result.error("START_CORE_FAILED", "Service connection lost", null)
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "startCore failed", e)
                     result.error("START_CORE_FAILED", e.message, null)
@@ -253,6 +259,12 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     val core = awaitCoreService()
                     val success = core?.stopLeaf() ?: false
                     result.success(success)
+                } catch (e: DeadObjectException) {
+                    // Service is already dead — core is effectively stopped
+                    XBoardLog.i("ServicePlugin", "stopCore: service already dead, treating as stopped")
+                    coreService = null
+                    isBound = false
+                    result.success(true)
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "stopCore failed", e)
                     result.error("STOP_CORE_FAILED", e.message, null)
@@ -268,6 +280,11 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     val core = awaitCoreService()
                     val success = core?.reloadLeaf(configJson) ?: false
                     result.success(success)
+                } catch (e: DeadObjectException) {
+                    XBoardLog.e("ServicePlugin", "syncConfig: service dead", e)
+                    coreService = null
+                    isBound = false
+                    result.error("SYNC_CONFIG_FAILED", "Service connection lost", null)
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "syncConfig failed", e)
                     result.error("SYNC_CONFIG_FAILED", e.message, null)
@@ -283,6 +300,11 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     val status = core?.status ?: hashMapOf<Any?, Any?>()
                     val normalized = status.entries.associate { it.key.toString() to it.value }
                     result.success(normalized)
+                } catch (e: DeadObjectException) {
+                    XBoardLog.i("ServicePlugin", "getCoreStatus: service dead")
+                    coreService = null
+                    isBound = false
+                    result.success(emptyMap<String, Any>())
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "getCoreStatus failed", e)
                     result.success(emptyMap<String, Any>())
@@ -297,6 +319,11 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     val core = awaitCoreService()
                     val success = core?.selectNode(nodeTag) ?: false
                     result.success(success)
+                } catch (e: DeadObjectException) {
+                    XBoardLog.i("ServicePlugin", "selectCoreNode: service dead")
+                    coreService = null
+                    isBound = false
+                    result.success(false)
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "selectCoreNode failed", e)
                     result.success(false)
@@ -310,6 +337,11 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     val core = awaitCoreService()
                     val node = core?.selectedNode ?: ""
                     result.success(node)
+                } catch (e: DeadObjectException) {
+                    XBoardLog.i("ServicePlugin", "getCoreSelectedNode: service dead")
+                    coreService = null
+                    isBound = false
+                    result.success("")
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "getCoreSelectedNode failed", e)
                     result.success("")
@@ -330,6 +362,11 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     val core = awaitCoreService()
                     val ready = core?.isTunReady() ?: false
                     result.success(ready)
+                } catch (e: DeadObjectException) {
+                    XBoardLog.i("ServicePlugin", "isTunReady: service dead")
+                    coreService = null
+                    isBound = false
+                    result.success(false)
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "isTunReady failed", e)
                     result.success(false)
@@ -409,6 +446,10 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                         result.success(0)
                         return@launch
                     }
+                } catch (e: DeadObjectException) {
+                    XBoardLog.i("ServicePlugin", "getTunFd: service dead")
+                    coreService = null
+                    isBound = false
                 } catch (e: Exception) {
                     XBoardLog.e("ServicePlugin", "isTunReady check failed", e)
                 }

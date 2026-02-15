@@ -242,25 +242,30 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
     /**
      * Stop the running leaf instance.
      */
-    @Synchronized
     fun stopLeaf(): Boolean {
-        if (!isRunning) {
-            return true
+        val rtId: Int
+        val thread: Thread?
+        synchronized(this) {
+            if (!isRunning) {
+                return true
+            }
+            rtId = leafRtId
+            thread = leafThread
         }
 
         return try {
-            val rtId = leafRtId
             if (rtId >= 0) {
                 LeafBridge.leafShutdown(rtId)
             }
-            val thread = leafThread
             if (thread != null && thread.isAlive && Thread.currentThread() !== thread) {
                 thread.join(1_500)
             }
-            leafThread = null
-            leafRtId = -1
-            isRunning = false
-            LeafPreferences.shouldRun = false
+            synchronized(this) {
+                leafThread = null
+                leafRtId = -1
+                isRunning = false
+                LeafPreferences.shouldRun = false
+            }
             notifyStatusChanged()
             GlobalState.log("Leaf stopped successfully")
             true

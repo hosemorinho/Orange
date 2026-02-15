@@ -165,15 +165,20 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
         return try {
             val json = JsonParser.parseString(configJson) as JsonObject
 
-            // Find inbounds array and update TUN fd
+            // Find inbounds array and update TUN fd inside settings
             if (json.has("inbounds")) {
                 val inbounds = json.getAsJsonArray("inbounds")
                 for (i in 0 until inbounds.size()) {
                     val inbound = inbounds.get(i) as JsonObject
                     if (inbound.has("protocol") && inbound.get("protocol").asString == "tun") {
-                        // Replace fd with local tunPfd fd
-                        inbound.addProperty("fd", tunPfd.fd)
-                        Log.d(TAG, "Injected TUN fd=${tunPfd.fd} into config")
+                        // Leaf reads fd from settings.fd, not from the inbound top level
+                        val settings = if (inbound.has("settings")) {
+                            inbound.getAsJsonObject("settings")
+                        } else {
+                            JsonObject().also { inbound.add("settings", it) }
+                        }
+                        settings.addProperty("fd", tunPfd.fd)
+                        Log.d(TAG, "Injected TUN fd=${tunPfd.fd} into config settings")
                     }
                 }
             }

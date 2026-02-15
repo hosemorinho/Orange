@@ -67,6 +67,20 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
     }
 
     /**
+     * Ensure JNI symbols are available before any LeafBridge native call.
+     */
+    private fun ensureLeafLibraryLoaded(): Boolean {
+        return try {
+            System.loadLibrary("leaf")
+            true
+        } catch (e: UnsatisfiedLinkError) {
+            Log.e(TAG, "Failed to load libleaf.so", e)
+            notifyError("Failed to load leaf library: ${e.message}")
+            false
+        }
+    }
+
+    /**
      * Start leaf with the given config JSON.
      * In dual-process mode, uses local tunPfd from State.
      */
@@ -94,20 +108,15 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
             // Cache config in preferences for recovery
             LeafPreferences.configJson = processedConfig
 
+            if (!ensureLeafLibraryLoaded()) {
+                return false
+            }
+
             // Validate config string early to avoid starting VPN without a working core.
             val testResult = LeafBridge.leafTestConfigString(processedConfig)
             if (testResult != 0) {
                 Log.e(TAG, "startLeaf: config validation failed, code=$testResult")
                 notifyError("Invalid leaf config: code $testResult")
-                return false
-            }
-
-            // Load libleaf.so if not already loaded
-            try {
-                System.loadLibrary("leaf")
-            } catch (e: UnsatisfiedLinkError) {
-                Log.e(TAG, "Failed to load libleaf.so", e)
-                notifyError("Failed to load leaf library: ${e.message}")
                 return false
             }
 
@@ -283,6 +292,10 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
 
             // Cache config in preferences
             LeafPreferences.configJson = processedConfig
+
+            if (!ensureLeafLibraryLoaded()) {
+                return false
+            }
 
             // Reload via JNI
             val result = LeafBridge.leafReloadWithConfigString(leafRtId, processedConfig)

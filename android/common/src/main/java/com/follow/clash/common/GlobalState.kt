@@ -8,12 +8,19 @@ import kotlinx.coroutines.Dispatchers
 
 object GlobalState : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
-    const val NOTIFICATION_CHANNEL = "Orange"
+    val NOTIFICATION_CHANNEL: String
+        get() = "${packageName}.service"
 
     const val NOTIFICATION_ID = 1
 
     val packageName: String
         get() = application.packageName
+
+    val appName: String
+        get() = runCatching {
+            val label = application.applicationInfo.loadLabel(application.packageManager)?.toString()
+            if (label.isNullOrBlank()) packageName else label
+        }.getOrElse { packageName }
 
     val RECEIVE_BROADCASTS_PERMISSIONS: String
         get() = "${packageName}.permission.RECEIVE_BROADCASTS"
@@ -28,8 +35,13 @@ object GlobalState : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     val isInitialized: Boolean
         get() = _application != null
 
+    private fun logTag(): String {
+        val tag = "[$appName]"
+        return if (tag.length <= 23) tag else tag.take(23)
+    }
+
     fun log(text: String) {
-        Log.d("[Orange]", text)
+        Log.d(logTag(), text)
     }
 
     fun init(application: Application) {

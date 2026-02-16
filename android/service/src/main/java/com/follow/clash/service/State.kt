@@ -2,6 +2,7 @@ package com.follow.clash.service
 
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
+import com.follow.clash.common.GlobalState
 import com.follow.clash.common.LeafBridge
 import com.follow.clash.common.LeafPreferences
 import com.follow.clash.service.models.NotificationParams
@@ -16,7 +17,7 @@ object State {
     )
 
     fun refreshNotificationParamsFromPrefs() {
-        val title = LeafPreferences.notificationTitle.takeIf { it.isNotBlank() } ?: "Orange"
+        val title = LeafPreferences.notificationTitle.takeIf { it.isNotBlank() } ?: GlobalState.appName
         val stopText = LeafPreferences.notificationStopText.takeIf { it.isNotBlank() } ?: "Stop"
         notificationParamsFlow.tryEmit(
             NotificationParams(

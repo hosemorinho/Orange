@@ -100,7 +100,7 @@ class CommonService : Service(), IBaseService,
         val startTime = LeafPreferences.lastStartTime.takeIf { it > 0L } ?: System.currentTimeMillis()
         val channel = NotificationChannel(
             GlobalState.NOTIFICATION_CHANNEL,
-            "Orange Proxy",
+            "${GlobalState.appName} Proxy",
             NotificationManager.IMPORTANCE_LOW
         ).apply {
             description = "Proxy service notification"

@@ -383,13 +383,16 @@ final class TunnelManager {
   }
 
   private func configure(_ manager: NETunnelProviderManager) {
+    let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+      ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
+      ?? "App"
     let proto = NETunnelProviderProtocol()
     proto.providerBundleIdentifier = providerBundleIdentifier()
-    proto.serverAddress = "Orange"
+    proto.serverAddress = appName
     proto.disconnectOnSleep = false
 
     manager.protocolConfiguration = proto
-    manager.localizedDescription = "Orange VPN"
+    manager.localizedDescription = "\(appName) VPN"
     manager.isEnabled = true
   }
 

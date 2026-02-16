@@ -249,7 +249,7 @@ object State {
     }
 
     fun syncState() {
-        val title = sharedState.currentProfileName.takeIf { it.isNotBlank() } ?: "Orange"
+        val title = sharedState.currentProfileName.takeIf { it.isNotBlank() } ?: GlobalState.appName
         val stopText = sharedState.stopText.takeIf { it.isNotBlank() } ?: "Stop"
         LeafPreferences.notificationTitle = title
         LeafPreferences.notificationStopText = stopText

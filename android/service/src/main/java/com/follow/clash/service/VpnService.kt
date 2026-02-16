@@ -110,7 +110,7 @@ class VpnService : SystemVpnService(), IBaseService,
         val startTime = LeafPreferences.lastStartTime.takeIf { it > 0L } ?: System.currentTimeMillis()
         val channel = NotificationChannel(
             GlobalState.NOTIFICATION_CHANNEL,
-            "Orange VPN",
+            "${GlobalState.appName} VPN",
             NotificationManager.IMPORTANCE_LOW
         ).apply {
             description = "VPN service notification"
@@ -299,7 +299,7 @@ class VpnService : SystemVpnService(), IBaseService,
                     }
                 }
             }
-            setSession("Orange")
+            setSession(GlobalState.appName)
             setBlocking(false)
             if (Build.VERSION.SDK_INT >= 29) {
                 setMetered(false)

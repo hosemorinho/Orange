@@ -148,7 +148,7 @@ object LeafPreferences {
      * Notification title shown by foreground services.
      */
     var notificationTitle: String
-        get() = getPrefs().getString(KEY_NOTIFICATION_TITLE, "Orange") ?: "Orange"
+        get() = getPrefs().getString(KEY_NOTIFICATION_TITLE, GlobalState.appName) ?: GlobalState.appName
         set(value) {
             getPrefs().edit().putString(KEY_NOTIFICATION_TITLE, value).commit()
         }

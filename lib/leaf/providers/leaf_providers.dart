@@ -34,6 +34,8 @@ LeafController leafController(Ref ref) {
 class IsLeafRunning extends _$IsLeafRunning {
   @override
   bool build() => false;
+
+  void set(bool isRunning) => state = isRunning;
 }
 
 /// Currently selected node tag.
@@ -41,6 +43,8 @@ class IsLeafRunning extends _$IsLeafRunning {
 class SelectedNodeTag extends _$SelectedNodeTag {
   @override
   String? build() => null;
+
+  void set(String? tag) => state = tag;
 }
 
 /// List of proxy nodes from the current subscription.
@@ -48,13 +52,17 @@ class SelectedNodeTag extends _$SelectedNodeTag {
 class LeafNodes extends _$LeafNodes {
   @override
   List<LeafNode> build() => [];
+
+  void set(List<LeafNode> nodes) => state = nodes;
 }
 
-/// Node delays from health checks. Tag → TCP latency ms (null = untested).
+/// Node delays from health checks. Tag 鈫?TCP latency ms (null = untested).
 @Riverpod(keepAlive: true)
 class NodeDelays extends _$NodeDelays {
   @override
   Map<String, int?> build() => {};
+
+  void setDelays(Map<String, int?> delays) => state = delays;
 }
 
 /// The actual port the proxy is listening on (may differ from config after fallback).
@@ -62,6 +70,8 @@ class NodeDelays extends _$NodeDelays {
 class ActivePort extends _$ActivePort {
   @override
   int? build() => null;
+
+  void set(int? port) => state = port;
 }
 
 /// Traffic stats: periodic polling of leaf connection stats.
@@ -112,17 +122,16 @@ Future<void> startLeaf(
     tunFd: tunFd,
     mixedPort: mixedPort,
   );
-  ref.read(isLeafRunningProvider.notifier).state = true;
-  ref.read(leafNodesProvider.notifier).state = controller.nodes;
-  ref.read(selectedNodeTagProvider.notifier).state = controller
-      .getSelectedNode();
+  ref.read(isLeafRunningProvider.notifier).set(true);
+  ref.read(leafNodesProvider.notifier).set(controller.nodes);
+  ref.read(selectedNodeTagProvider.notifier).set(controller.getSelectedNode());
 }
 
 /// Helper to stop leaf and update providers.
 Future<void> stopLeaf(WidgetRef ref) async {
   final controller = ref.read(leafControllerProvider);
   await controller.stop();
-  ref.read(isLeafRunningProvider.notifier).state = false;
+  ref.read(isLeafRunningProvider.notifier).set(false);
 }
 
 /// Helper to select a node and update providers.
@@ -134,7 +143,7 @@ Future<void> selectLeafNode(WidgetRef ref, String nodeTag) async {
   final wasRunning = controller.isRunning;
   await controller.selectNode(nodeTag);
   // Always update UI state, even if core wasn't running
-  ref.read(selectedNodeTagProvider.notifier).state = nodeTag;
+  ref.read(selectedNodeTagProvider.notifier).set(nodeTag);
 
   // Persist user-selected leaf node so reconnects can restore it instead of
   // falling back to the first actor in the select outbound.
@@ -184,5 +193,5 @@ Future<void> runHealthChecks(WidgetRef ref) async {
       );
     }
   }
-  nodeDelaysNotifier.state = results;
+  nodeDelaysNotifier.setDelays(results);
 }

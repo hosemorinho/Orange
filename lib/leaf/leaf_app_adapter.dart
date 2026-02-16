@@ -1,9 +1,8 @@
 import 'dart:async';
+
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/models/leaf_node.dart';
-import 'package:fl_clash/models/models.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Adapter that bridges [LeafController] into the existing FlClash
 /// state management system.
@@ -17,15 +16,7 @@ class LeafAppAdapter {
   /// Timer for periodic traffic stats polling.
   Timer? _trafficTimer;
 
-  /// Callback to update the global state's runtime (for isStartProvider).
-  Ref? _ref;
-
   LeafAppAdapter(this.controller);
-
-  /// Attach to a Riverpod ref for state updates.
-  void attach(Ref ref) {
-    _ref = ref;
-  }
 
   /// Initialize leaf with the app's data directory.
   Future<void> init() async {

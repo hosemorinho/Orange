@@ -11,7 +11,6 @@ import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/plugins/service.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
-import 'package:fl_clash/widgets/dialog.dart';
 import 'package:fl_clash/leaf/services/mmdb_manager.dart';
 import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:fl_clash/xboard/core/logger/file_logger.dart';
@@ -90,7 +89,7 @@ class AppController {
         'failed to initialize LeafController (native library may be missing)',
         e,
       );
-      // Continue without leaf — the app can still show UI, manage subscriptions, etc.
+      // Continue without leaf 鈥?the app can still show UI, manage subscriptions, etc.
       // Proxy functionality will be unavailable.
     }
     await _init();
@@ -458,9 +457,10 @@ extension ProxiesControllerExt on AppController {
     // Keep groupsProvider empty for backward compatibility.
     commonPrint.log('updateGroups (leaf: no-op, using leafNodesProvider)');
     if (_leafController != null && _leafController!.isRunning) {
-      _ref.read(leafNodesProvider.notifier).state = _leafController!.nodes;
-      _ref.read(selectedNodeTagProvider.notifier).state = _leafController!
-          .getSelectedNode();
+      _ref.read(leafNodesProvider.notifier).set(_leafController!.nodes);
+      _ref
+          .read(selectedNodeTagProvider.notifier)
+          .set(_leafController!.getSelectedNode());
     }
   }
 
@@ -516,12 +516,12 @@ extension ProxiesControllerExt on AppController {
   Future<void> selectNodeForLatencyTest(String nodeTag) async {
     if (_leafController != null && _leafController!.isRunning) {
       await _leafController!.selectNode(nodeTag);
-      _ref.read(selectedNodeTagProvider.notifier).state = nodeTag;
+      _ref.read(selectedNodeTagProvider.notifier).set(nodeTag);
       return;
     }
     if (Platform.isIOS) {
       await service?.selectNode(nodeTag);
-      _ref.read(selectedNodeTagProvider.notifier).state = nodeTag;
+      _ref.read(selectedNodeTagProvider.notifier).set(nodeTag);
     }
   }
 
@@ -529,12 +529,12 @@ extension ProxiesControllerExt on AppController {
     required String groupName,
     required String proxyName,
   }) async {
-    // In leaf, groupName is ignored — we select by node tag (proxyName).
+    // In leaf, groupName is ignored 鈥?we select by node tag (proxyName).
     if (_leafController != null && _leafController!.isRunning) {
       await _leafController!.selectNode(proxyName);
-      _ref.read(selectedNodeTagProvider.notifier).state = proxyName;
+      _ref.read(selectedNodeTagProvider.notifier).set(proxyName);
     } else if (Platform.isIOS) {
-      _ref.read(selectedNodeTagProvider.notifier).state = proxyName;
+      _ref.read(selectedNodeTagProvider.notifier).set(proxyName);
       await service?.selectNode(proxyName);
     }
     // Also persist in the profile's selectedMap
@@ -547,7 +547,7 @@ extension ProxiesControllerExt on AppController {
   }
 
   Future<void> updateProviders() async {
-    // Leaf does not support external providers — no-op.
+    // Leaf does not support external providers 鈥?no-op.
   }
 
   Future<String> updateProvider(
@@ -732,7 +732,7 @@ extension SetupControllerExt on AppController {
 
     final configPort = _ref.read(patchClashConfigProvider).mixedPort;
     if (_activePort != null && _activePort != configPort) {
-      _logger.info('port changed: $_activePort → $configPort, restarting leaf');
+      _logger.info('port changed: $_activePort 鈫?$configPort, restarting leaf');
       applyProfile(force: true, reason: 'updateConfigImmediate(portChanged)');
     }
   }
@@ -756,13 +756,13 @@ extension SetupControllerExt on AppController {
   }
 
   void _setLeafStoppedState({required String reason, bool clearNodes = true}) {
-    _ref.read(isLeafRunningProvider.notifier).state = false;
+    _ref.read(isLeafRunningProvider.notifier).set(false);
     if (clearNodes) {
-      _ref.read(leafNodesProvider.notifier).state = const [];
-      _ref.read(selectedNodeTagProvider.notifier).state = null;
+      _ref.read(leafNodesProvider.notifier).set(const []);
+      _ref.read(selectedNodeTagProvider.notifier).set(null);
     }
     _activePort = null;
-    _ref.read(activePortProvider.notifier).state = null;
+    _ref.read(activePortProvider.notifier).set(null);
     _logger.warning('leaf state reset: reason=$reason, clearNodes=$clearNodes');
   }
 
@@ -770,11 +770,11 @@ extension SetupControllerExt on AppController {
     if (_leafController == null) return;
     final nodes = _leafController!.nodes;
     final selectedTag = _leafController!.getSelectedNode();
-    _ref.read(isLeafRunningProvider.notifier).state = true;
-    _ref.read(leafNodesProvider.notifier).state = nodes;
-    _ref.read(selectedNodeTagProvider.notifier).state = selectedTag;
+    _ref.read(isLeafRunningProvider.notifier).set(true);
+    _ref.read(leafNodesProvider.notifier).set(nodes);
+    _ref.read(selectedNodeTagProvider.notifier).set(selectedTag);
     _activePort = activePort;
-    _ref.read(activePortProvider.notifier).state = activePort;
+    _ref.read(activePortProvider.notifier).set(activePort);
     _logger.info(
       'leaf state ready: reason=$reason, nodes=${nodes.length}, '
       'selected=$selectedTag, port=$activePort',
@@ -893,7 +893,7 @@ extension SetupControllerExt on AppController {
 
     if (_leafController != null && _leafController!.isRunning) {
       _logger.info(
-        'changeMode: ${_leafController!.currentMode.name} → ${mode.name}',
+        'changeMode: ${_leafController!.currentMode.name} 鈫?${mode.name}',
       );
       final mmdbAvailable = mode == Mode.rule
           ? await _ensureMmdbAvailableForRuleMode()
@@ -1004,7 +1004,7 @@ extension SetupControllerExt on AppController {
 
       final selected = _pickPreferredLeafSelectedTag(nodes);
 
-      _ref.read(selectedNodeTagProvider.notifier).state = selected;
+      _ref.read(selectedNodeTagProvider.notifier).set(selected);
       await service?.selectNode(selected);
       _persistLeafSelection(selected);
       return;
@@ -1027,7 +1027,7 @@ extension SetupControllerExt on AppController {
       await _leafController!.selectNode(selected);
       commonPrint.log('Adjusted selected node: $currentSelected -> $selected');
     }
-    _ref.read(selectedNodeTagProvider.notifier).state = selected;
+    _ref.read(selectedNodeTagProvider.notifier).set(selected);
     _persistLeafSelection(selected);
   }
 
@@ -1191,12 +1191,10 @@ extension SetupControllerExt on AppController {
       return false;
     }
 
-    // Port configuration — single mixed port for HTTP+SOCKS5
-    // Do NOT write port changes back to patchClashConfigProvider —
-    // that triggers updateParamsProvider → updateConfigDebounce → applyProfile loop.
+    // Port configuration 鈥?single mixed port for HTTP+SOCKS5
+    // Do NOT write port changes back to patchClashConfigProvider 鈥?    // that triggers updateParamsProvider 鈫?updateConfigDebounce 鈫?applyProfile loop.
     var mixedPort = _ref.read(patchClashConfigProvider).mixedPort;
-    // Skip port availability check if leaf is already running on this port —
-    // the port will be freed when we stop leaf below. Without this check,
+    // Skip port availability check if leaf is already running on this port 鈥?    // the port will be freed when we stop leaf below. Without this check,
     // isPortAvailable returns false (leaf is occupying it), we'd pick a
     // random fallback port, and system proxy would desync.
     final leafOccupyingSamePort =
@@ -1237,7 +1235,7 @@ extension SetupControllerExt on AppController {
     }
 
     // TUN mode configuration
-    // On Android, TUN is required when VPN is active — the VPN service creates
+    // On Android, TUN is required when VPN is active 鈥?the VPN service creates
     // a TUN interface that captures all traffic, so leaf must read from it.
     // But only enable TUN if VPN is currently running or about to start
     // (via preloadInvoke). When _setupConfig is called just to load a profile
@@ -1281,12 +1279,12 @@ extension SetupControllerExt on AppController {
         runtimeSelected: previousSelected,
       );
 
-      _ref.read(isLeafRunningProvider.notifier).state = false;
-      _ref.read(leafNodesProvider.notifier).state = nodes;
-      _ref.read(selectedNodeTagProvider.notifier).state = selectedTag;
+      _ref.read(isLeafRunningProvider.notifier).set(false);
+      _ref.read(leafNodesProvider.notifier).set(nodes);
+      _ref.read(selectedNodeTagProvider.notifier).set(selectedTag);
       _persistLeafSelection(selectedTag);
       _activePort = null;
-      _ref.read(activePortProvider.notifier).state = null;
+      _ref.read(activePortProvider.notifier).set(null);
       _lastSetupTime = DateTime.now();
 
       _logger.info(
@@ -1297,7 +1295,7 @@ extension SetupControllerExt on AppController {
     }
 
     // Stop any running leaf instance BEFORE enabling socket protection.
-    // enableSocketProtection() → nativeSetProtectSocketCallback() modifies
+    // enableSocketProtection() 鈫?nativeSetProtectSocketCallback() modifies
     // global native state via JNI. Calling it while a leaf runtime is active
     // causes a native crash on Android.
     if (_leafController != null && _leafController!.isRunning) {
@@ -1313,7 +1311,9 @@ extension SetupControllerExt on AppController {
         await service?.enableSocketProtection();
       } catch (e) {
         _logger.error('setup: enableSocketProtection failed', e);
-        globalState.showNotifier('VPN启动失败：socket保护初始化错误');
+        globalState.showNotifier(
+          'VPN startup failed: socket protection init error',
+        );
         return false;
       }
       _logger.info('setup: socket protection enabled');
@@ -1323,16 +1323,16 @@ extension SetupControllerExt on AppController {
         final tunReady = await service?.isTunReady() ?? false;
         if (!tunReady) {
           _logger.warning(
-            'setup: Android TUN not ready — '
+            'setup: Android TUN not ready 鈥?'
             'VPN service failed to establish. Cannot start.',
           );
-          globalState.showNotifier('VPN启动失败，无法获取TUN设备');
+          globalState.showNotifier('VPN鍚姩澶辫触锛屾棤娉曡幏鍙朤UN璁惧');
           return false;
         }
         _logger.info('setup: TUN ready in :core process (dual-process mode)');
         tunFd = 0; // Placeholder, will be replaced in :core
       } else {
-        // Retry getTunFd — VPN service may still be establishing after
+        // Retry getTunFd 鈥?VPN service may still be establishing after
         // permission grant. Poll for up to 5 seconds as a safety net.
         for (var attempt = 0; attempt < 25; attempt++) {
           tunFd = await service?.getTunFd();
@@ -1343,10 +1343,10 @@ extension SetupControllerExt on AppController {
         }
         if (tunFd == null) {
           _logger.warning(
-            'setup: Android TUN fd not available — '
+            'setup: Android TUN fd not available 鈥?'
             'VPN service failed to establish. Cannot start.',
           );
-          globalState.showNotifier('VPN启动失败，无法获取TUN设备');
+          globalState.showNotifier('VPN鍚姩澶辫触锛屾棤娉曡幏鍙朤UN璁惧');
           return false;
         } else {
           _logger.info('setup: got TUN fd=$tunFd from VPN service');
@@ -1359,7 +1359,7 @@ extension SetupControllerExt on AppController {
       );
     }
 
-    // MMDB for rule mode — ensure geo.mmdb is in ASSET_LOCATION
+    // MMDB for rule mode 鈥?ensure geo.mmdb is in ASSET_LOCATION
     final mode = _ref.read(patchClashConfigProvider).mode;
     bool mmdbAvailable = false;
     if (mode == Mode.rule && _leafController != null) {
@@ -1400,7 +1400,7 @@ extension SetupControllerExt on AppController {
       ).toJsonString();
 
       await service?.syncLeafConfig(configJson);
-      _ref.read(leafNodesProvider.notifier).state = nodes;
+      _ref.read(leafNodesProvider.notifier).set(nodes);
 
       if (nodes.isEmpty) {
         _logger.warning('setup: iOS parsed 0 supported nodes from profile');
@@ -1413,13 +1413,13 @@ extension SetupControllerExt on AppController {
         nodes,
         runtimeSelected: previousSelected,
       );
-      _ref.read(selectedNodeTagProvider.notifier).state = selectedTag;
+      _ref.read(selectedNodeTagProvider.notifier).set(selectedTag);
       await service?.selectNode(selectedTag);
       _persistLeafSelection(selectedTag);
 
-      _ref.read(isLeafRunningProvider.notifier).state = globalState.isStart;
+      _ref.read(isLeafRunningProvider.notifier).set(globalState.isStart);
       _activePort = mixedPort;
-      _ref.read(activePortProvider.notifier).state = mixedPort;
+      _ref.read(activePortProvider.notifier).set(mixedPort);
       _lastSetupTime = DateTime.now();
       _logger.info(
         'setup: iOS config synced to packet tunnel, '
@@ -1456,7 +1456,7 @@ extension SetupControllerExt on AppController {
     } catch (e) {
       if (tunEnabled && !system.isAndroid) {
         // Desktop: TUN failures are common (missing admin rights, wintun.dll
-        // issues). Retry without TUN — desktop can fall back to system proxy.
+        // issues). Retry without TUN 鈥?desktop can fall back to system proxy.
         _logger.warning(
           'setup: leaf start failed with TUN ($e), retrying without TUN',
         );
@@ -1472,7 +1472,7 @@ extension SetupControllerExt on AppController {
               .read(patchClashConfigProvider.notifier)
               .update((state) => state.copyWith.tun(enable: false));
           _ref.read(realTunEnableProvider.notifier).value = false;
-          globalState.showNotifier('TUN启动失败，已降级为系统代理模式: $e');
+          globalState.showNotifier('TUN鍚姩澶辫触锛屽凡闄嶇骇涓虹郴缁熶唬鐞嗘ā寮? $e');
         } catch (e2) {
           _logger.error('setup: leaf start failed even without TUN', e2);
           _setLeafStoppedState(
@@ -1481,13 +1481,13 @@ extension SetupControllerExt on AppController {
           return false;
         }
       } else if (system.isAndroid) {
-        // Android: VPN captures all traffic via TUN — cannot fall back to
+        // Android: VPN captures all traffic via TUN 鈥?cannot fall back to
         // non-TUN mode. Stop VPN and reset state.
         _logger.error(
           'setup: leaf TUN start failed on Android, stopping VPN',
           e,
         );
-        globalState.showNotifier('VPN启动失败: $e');
+        globalState.showNotifier('VPN鍚姩澶辫触: $e');
         _setLeafStoppedState(
           reason: 'setup(androidTunStartFailed,reason=$reason)',
         );
@@ -1578,7 +1578,7 @@ extension CoreControllerExt on AppController {
           await restartCore();
           return Result.error('restart_handled');
         case AuthorizeCode.none:
-          // Already authorized — continue normally.
+          // Already authorized 鈥?continue normally.
           break;
         case AuthorizeCode.error:
           commonPrint.log(
@@ -1602,7 +1602,7 @@ extension CoreControllerExt on AppController {
     final wasRunning = _leafController?.isRunning ?? false;
     _ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
     await _leafController?.stop();
-    _ref.read(isLeafRunningProvider.notifier).state = false;
+    _ref.read(isLeafRunningProvider.notifier).set(false);
     _leafInitialized = false;
     await _connectCore();
     await _initCore();
@@ -1658,7 +1658,7 @@ extension SystemControllerExt on AppController {
         if (tray != null) tray!.destroy(),
       ]);
       await _leafController?.stop();
-      _ref.read(isLeafRunningProvider.notifier).state = false;
+      _ref.read(isLeafRunningProvider.notifier).set(false);
       commonPrint.log('exit');
     } finally {
       system.exit();
@@ -1905,7 +1905,7 @@ extension CommonControllerExt on AppController {
   }
 
   Future<void> updateMode() async {
-    // Leaf uses a single select outbound — mode switching is a UI-only concept.
+    // Leaf uses a single select outbound 鈥?mode switching is a UI-only concept.
     final currentMode = _ref.read(
       patchClashConfigProvider.select((state) => state.mode),
     );
@@ -1927,10 +1927,10 @@ extension CommonControllerExt on AppController {
           final nowTimeStamp = DateTime.now().millisecondsSinceEpoch;
           _ref.read(runTimeProvider.notifier).value =
               nowTimeStamp - startTimeStamp;
-          _ref.read(isLeafRunningProvider.notifier).state = true;
+          _ref.read(isLeafRunningProvider.notifier).set(true);
         } else {
           _ref.read(runTimeProvider.notifier).value = null;
-          _ref.read(isLeafRunningProvider.notifier).state = false;
+          _ref.read(isLeafRunningProvider.notifier).set(false);
         }
       });
       return;

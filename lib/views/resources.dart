@@ -2,27 +2,19 @@ import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/leaf/services/mmdb_manager.dart';
 import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' hide context;
 
 @immutable
 class GeoItem {
   final String label;
-  final String key;
   final String fileName;
 
-  const GeoItem({
-    required this.label,
-    required this.key,
-    required this.fileName,
-  });
+  const GeoItem({required this.label, required this.fileName});
 }
 
 class ResourcesView extends StatelessWidget {
@@ -32,7 +24,7 @@ class ResourcesView extends StatelessWidget {
   Widget build(BuildContext context) {
     // Leaf mode: only Country.mmdb is needed for rule-based routing
     const geoItems = <GeoItem>[
-      GeoItem(label: 'Country MMDB', fileName: 'Country.mmdb', key: 'country'),
+      GeoItem(label: 'Country MMDB', fileName: 'Country.mmdb'),
     ];
 
     return CommonScaffold(
@@ -64,34 +56,6 @@ class _GeoDataListItemState extends State<GeoDataListItem> {
   final isUpdating = ValueNotifier<bool>(false);
 
   GeoItem get geoItem => widget.geoItem;
-
-  Future<void> _updateUrl(String url, WidgetRef ref) async {
-    final defaultMap = defaultGeoXUrl.toJson();
-    final newUrl = await globalState.showCommonDialog<String>(
-      child: UpdateGeoUrlFormDialog(
-        title: geoItem.label,
-        url: url,
-        defaultValue: defaultMap[geoItem.key],
-      ),
-    );
-    if (newUrl != null && newUrl != url && mounted) {
-      try {
-        if (!newUrl.isUrl) {
-          throw 'Invalid url';
-        }
-        ref.read(patchClashConfigProvider.notifier).update((state) {
-          final map = state.geoXUrl.toJson();
-          map[geoItem.key] = newUrl;
-          return state.copyWith(geoXUrl: GeoXUrl.fromJson(map));
-        });
-      } catch (e) {
-        globalState.showMessage(
-          title: geoItem.label,
-          message: TextSpan(text: e.toString()),
-        );
-      }
-    }
-  }
 
   Future<FileInfo> _getGeoFileLastModified(String fileName) async {
     // For leaf, Country.mmdb is in the leaf home directory
@@ -209,83 +173,6 @@ class _GeoDataListItemState extends State<GeoDataListItem> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       title: Text(geoItem.label),
       subtitle: _buildSubtitle(),
-    );
-  }
-}
-
-class UpdateGeoUrlFormDialog extends StatefulWidget {
-  final String title;
-  final String url;
-  final String? defaultValue;
-
-  const UpdateGeoUrlFormDialog({
-    super.key,
-    required this.title,
-    required this.url,
-    this.defaultValue,
-  });
-
-  @override
-  State<UpdateGeoUrlFormDialog> createState() => _UpdateGeoUrlFormDialogState();
-}
-
-class _UpdateGeoUrlFormDialogState extends State<UpdateGeoUrlFormDialog> {
-  late final TextEditingController _urlController;
-
-  @override
-  void initState() {
-    super.initState();
-    _urlController = TextEditingController(text: widget.url);
-  }
-
-  Future<void> _handleReset() async {
-    if (widget.defaultValue == null) {
-      return;
-    }
-    Navigator.of(context).pop<String>(widget.defaultValue);
-  }
-
-  Future<void> _handleUpdate() async {
-    final url = _urlController.value.text;
-    if (url.isEmpty) return;
-    Navigator.of(context).pop<String>(url);
-  }
-
-  @override
-  void dispose() {
-    _urlController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CommonDialog(
-      title: widget.title,
-      actions: [
-        if (widget.defaultValue != null &&
-            _urlController.value.text != widget.defaultValue) ...[
-          TextButton(
-            onPressed: _handleReset,
-            child: Text(appLocalizations.reset),
-          ),
-          const SizedBox(width: 4),
-        ],
-        TextButton(
-          onPressed: _handleUpdate,
-          child: Text(appLocalizations.submit),
-        ),
-      ],
-      child: Wrap(
-        runSpacing: 16,
-        children: [
-          TextField(
-            maxLines: 5,
-            minLines: 1,
-            controller: _urlController,
-            decoration: const InputDecoration(border: OutlineInputBorder()),
-          ),
-        ],
-      ),
     );
   }
 }

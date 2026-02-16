@@ -89,7 +89,12 @@ class ConfigWriter {
 
     // DNS
     final dns = LeafDns(
-      servers: ['8.8.8.8', '1.1.1.1', '223.5.5.5'],
+      servers: [
+        'https://223.5.5.5/dns-query',
+        'https://223.6.6.6/dns-query',
+        'https://1.1.1.1/dns-query',
+        'https://8.8.8.8/dns-query',
+      ],
     );
 
     return LeafConfig(

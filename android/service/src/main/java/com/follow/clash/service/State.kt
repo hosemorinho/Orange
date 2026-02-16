@@ -85,12 +85,26 @@ object State {
 
     fun ensureOptionsFromPrefs() {
         if (options != null) return
+        reloadOptionsFromPrefs()
+    }
+
+    /**
+     * Reload VPN options from SharedPreferences.
+     *
+     * This must be used on every service (re)start in :core process, because
+     * static fields can survive service restarts within the same process.
+     */
+    fun reloadOptionsFromPrefs() {
         val raw = LeafPreferences.vpnOptionsJson
-        if (raw.isEmpty()) return
+        if (raw.isEmpty()) {
+            options = null
+            return
+        }
         try {
             options = Gson().fromJson(raw, VpnOptions::class.java)
         } catch (_: Exception) {
             // Ignore malformed cached options.
+            options = null
         }
     }
 }

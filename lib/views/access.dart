@@ -148,7 +148,7 @@ class _AccessViewState extends ConsumerState<AccessView> {
       message: TextSpan(text: appLocalizations.saveChanges),
     );
     if (res == true) {
-      _handleSave();
+      await _handleSave();
     }
     if (mounted) {
       Navigator.of(context).pop();
@@ -177,15 +177,34 @@ class _AccessViewState extends ConsumerState<AccessView> {
     );
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
     final accessControl = ref.read(accessControlStateProvider);
+    final nextAccessControl = _getRealAccessControlProps(accessControl);
+    final prevAccessControl = ref.read(
+      vpnSettingProvider.select((state) => state.accessControlProps),
+    );
     ref
         .read(vpnSettingProvider.notifier)
         .update(
           (state) => state.copyWith(
-            accessControlProps: _getRealAccessControlProps(accessControl),
+            accessControlProps: nextAccessControl,
           ),
         );
+    if (system.isAndroid &&
+        ref.read(isStartProvider) &&
+        prevAccessControl != nextAccessControl) {
+      await appController.loadingRun(
+        () async {
+          await globalState.handleStop();
+          await appController.updateStatus(
+            true,
+            trigger: 'access_view.save(auto_restart_vpn)',
+          );
+        },
+        tag: LoadingTag.access,
+        title: appLocalizations.restart,
+      );
+    }
   }
 
   Widget _buildConfirm() {

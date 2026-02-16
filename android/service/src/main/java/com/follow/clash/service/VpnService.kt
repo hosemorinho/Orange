@@ -58,7 +58,7 @@ class VpnService : SystemVpnService(), IBaseService,
             }
         }
         State.refreshNotificationParamsFromPrefs()
-        State.ensureOptionsFromPrefs()
+        State.reloadOptionsFromPrefs()
         handleCreate()
     }
 
@@ -89,6 +89,9 @@ class VpnService : SystemVpnService(), IBaseService,
                 }
             }
         }
+
+        // Always reload latest options from prefs on each start command.
+        State.reloadOptionsFromPrefs()
 
         // Start as foreground service
         startForeground(GlobalState.NOTIFICATION_ID, createNotification())

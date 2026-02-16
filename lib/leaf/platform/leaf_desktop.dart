@@ -38,9 +38,7 @@ class LeafDesktop {
     }
 
     if (Platform.isWindows) {
-      final candidates = [
-        path.join(execDir, 'leaf.dll'),
-      ];
+      final candidates = [path.join(execDir, 'leaf.dll')];
       for (final p in candidates) {
         if (File(p).existsSync()) return p;
       }
@@ -52,9 +50,33 @@ class LeafDesktop {
 
   /// Get the default config directory for leaf on desktop.
   static String get configDir {
-    final home = Platform.environment['HOME'] ??
+    if (Platform.isWindows) {
+      final appData = Platform.environment['APPDATA'];
+      if (appData != null && appData.isNotEmpty) {
+        return path.join(appData, 'orange', 'leaf');
+      }
+    }
+
+    if (Platform.isMacOS) {
+      final home = Platform.environment['HOME'] ?? '.';
+      return path.join(
+        home,
+        'Library',
+        'Application Support',
+        'orange',
+        'leaf',
+      );
+    }
+
+    final xdgDataHome = Platform.environment['XDG_DATA_HOME'];
+    if (xdgDataHome != null && xdgDataHome.isNotEmpty) {
+      return path.join(xdgDataHome, 'orange', 'leaf');
+    }
+
+    final home =
+        Platform.environment['HOME'] ??
         Platform.environment['USERPROFILE'] ??
         '.';
-    return path.join(home, '.config', 'orange', 'leaf');
+    return path.join(home, '.local', 'share', 'orange', 'leaf');
   }
 }

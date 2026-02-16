@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/models/leaf_node.dart';
@@ -111,17 +109,7 @@ class LeafAppAdapter {
   }
 
   Future<String> _getHomeDir() async {
-    if (Platform.isAndroid) {
-      // Android: use app's files directory
-      return appPath.homeDirPath;
-    }
-    // Desktop: use ~/.config/orange/leaf
-    final home = Platform.environment['HOME'] ??
-        Platform.environment['USERPROFILE'] ??
-        '.';
-    final dir = '$home${Platform.pathSeparator}.config${Platform.pathSeparator}orange${Platform.pathSeparator}leaf';
-    await Directory(dir).create(recursive: true);
-    return dir;
+    return appPath.homeDirPath;
   }
 
   void dispose() {
@@ -135,9 +123,5 @@ class LeafNodeGroup {
   final List<LeafNode> nodes;
   final String? selected;
 
-  const LeafNodeGroup({
-    required this.name,
-    required this.nodes,
-    this.selected,
-  });
+  const LeafNodeGroup({required this.name, required this.nodes, this.selected});
 }

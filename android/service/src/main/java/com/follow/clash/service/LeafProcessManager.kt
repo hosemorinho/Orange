@@ -81,6 +81,23 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
     }
 
     /**
+     * Configure leaf runtime asset location in :core process.
+     * Without this, leaf defaults to /system/bin and can't find geo.mmdb.
+     */
+    private fun configureLeafAssetLocation(): Boolean {
+        return try {
+            val assetLocation = context.filesDir.absolutePath
+            LeafBridge.leafSetEnv("ASSET_LOCATION", assetLocation)
+            Log.i(TAG, "Configured ASSET_LOCATION=$assetLocation")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to configure ASSET_LOCATION", e)
+            notifyError("Failed to configure ASSET_LOCATION: ${e.message}")
+            false
+        }
+    }
+
+    /**
      * Start leaf with the given config JSON.
      * In dual-process mode, uses local tunPfd from State.
      */
@@ -107,6 +124,9 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
             LeafPreferences.configJson = processedConfig
 
             if (!ensureLeafLibraryLoaded()) {
+                return false
+            }
+            if (!configureLeafAssetLocation()) {
                 return false
             }
 
@@ -317,6 +337,9 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
             LeafPreferences.configJson = processedConfig
 
             if (!ensureLeafLibraryLoaded()) {
+                return false
+            }
+            if (!configureLeafAssetLocation()) {
                 return false
             }
 

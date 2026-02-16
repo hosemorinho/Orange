@@ -895,7 +895,9 @@ extension SetupControllerExt on AppController {
       _logger.info(
         'changeMode: ${_leafController!.currentMode.name} → ${mode.name}',
       );
-      final mmdbAvailable = await _isMmdbAvailable();
+      final mmdbAvailable = mode == Mode.rule
+          ? await _ensureMmdbAvailableForRuleMode()
+          : await _isMmdbAvailable();
       await _leafController!.updateMode(mode, mmdbAvailable: mmdbAvailable);
     }
   }
@@ -908,6 +910,33 @@ extension SetupControllerExt on AppController {
       final info = await MmdbManager.getFileInfo(homeDir);
       return info.exists && info.size > 100 * 1024;
     } catch (_) {
+      return false;
+    }
+  }
+
+  /// Ensure geo.mmdb exists and is valid before switching to rule mode.
+  Future<bool> _ensureMmdbAvailableForRuleMode() async {
+    final homeDir = _leafController?.homeDir;
+    if (homeDir == null) return false;
+    try {
+      final mmdbPath = await MmdbManager.ensureAvailable(homeDir);
+      final mmdbFile = File(mmdbPath);
+      if (!await mmdbFile.exists()) {
+        _logger.warning(
+          'changeMode: geo.mmdb not found after ensure: $mmdbPath',
+        );
+        return false;
+      }
+      final stat = await mmdbFile.stat();
+      final ok = stat.size > 100 * 1024;
+      if (!ok) {
+        _logger.warning(
+          'changeMode: geo.mmdb too small after ensure: $mmdbPath (${stat.size} bytes)',
+        );
+      }
+      return ok;
+    } catch (e) {
+      _logger.warning('changeMode: failed to ensure geo.mmdb: $e');
       return false;
     }
   }
@@ -1493,17 +1522,7 @@ extension CoreControllerExt on AppController {
   Future<void> _initCore() async {
     if (_leafInitialized) return;
 
-    String homeDir;
-    if (Platform.isAndroid) {
-      homeDir = await appPath.homeDirPath;
-    } else {
-      final home =
-          Platform.environment['HOME'] ??
-          Platform.environment['USERPROFILE'] ??
-          '.';
-      homeDir =
-          '$home${Platform.pathSeparator}.config${Platform.pathSeparator}orange${Platform.pathSeparator}leaf';
-    }
+    final homeDir = await appPath.homeDirPath;
 
     await _leafController?.init(homeDir);
     _leafInitialized = true;

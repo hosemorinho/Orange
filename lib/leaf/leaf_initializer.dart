@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
@@ -35,16 +33,6 @@ class LeafInitializer {
   static bool get isInitialized => _initialized;
 
   static Future<String> _getHomeDir() async {
-    if (Platform.isAndroid) {
-      return await appPath.homeDirPath;
-    }
-    // Desktop: use ~/.config/orange/leaf
-    final home = Platform.environment['HOME'] ??
-        Platform.environment['USERPROFILE'] ??
-        '.';
-    final dir =
-        '$home${Platform.pathSeparator}.config${Platform.pathSeparator}orange${Platform.pathSeparator}leaf';
-    await Directory(dir).create(recursive: true);
-    return dir;
+    return await appPath.homeDirPath;
   }
 }

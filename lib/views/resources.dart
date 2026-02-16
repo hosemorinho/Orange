@@ -97,9 +97,7 @@ class _GeoDataListItemState extends State<GeoDataListItem> {
     // For leaf, Country.mmdb is in the leaf home directory
     String homePath;
     if (fileName == 'Country.mmdb') {
-      homePath = Platform.isAndroid
-          ? await appPath.homeDirPath
-          : '${Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.'}${Platform.pathSeparator}.config${Platform.pathSeparator}orange${Platform.pathSeparator}leaf';
+      homePath = await appPath.homeDirPath;
     } else {
       homePath = await appPath.homeDirPath;
     }
@@ -114,7 +112,8 @@ class _GeoDataListItemState extends State<GeoDataListItem> {
 
   Widget _buildSubtitle() {
     // For leaf, Country.mmdb has a fixed source URL (no editing needed)
-    const url = 'https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb';
+    const url =
+        'https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,9 +184,7 @@ class _GeoDataListItemState extends State<GeoDataListItem> {
     try {
       if (geoItem.fileName == 'Country.mmdb') {
         // Download Country.mmdb for leaf rule mode
-        final homePath = Platform.isAndroid
-            ? await appPath.homeDirPath
-            : '${Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.'}${Platform.pathSeparator}.config${Platform.pathSeparator}orange${Platform.pathSeparator}leaf';
+        final homePath = await appPath.homeDirPath;
         await MmdbManager.download(homePath);
       } else {
         throw 'Unknown resource: ${geoItem.fileName}';

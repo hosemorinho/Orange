@@ -134,4 +134,10 @@ object LeafBridge {
 
     /** Validate an in-memory JSON config string. */
     external fun leafTestConfigString(config: String): Int
+
+    /**
+     * Set process environment variable for leaf runtime.
+     * Must be called before leaf starts in the current process.
+     */
+    external fun leafSetEnv(key: String, value: String)
 }

@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/leaf/config/config_writer.dart';
+import 'package:fl_clash/leaf/ffi/leaf_errors.dart';
+import 'package:fl_clash/leaf/ffi/leaf_ffi.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/models/leaf_node.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
@@ -12,6 +14,7 @@ import 'package:fl_clash/plugins/service.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/leaf/services/mmdb_manager.dart';
+import 'package:fl_clash/xboard/core/error_sanitizer.dart';
 import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:fl_clash/xboard/core/logger/file_logger.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +54,23 @@ String _callerStackSummary([int maxFrames = 4]) {
     if (frames.length >= maxFrames) break;
   }
   return frames.join(' | ');
+}
+
+String _userFacingErrorMessage(Object error) {
+  if (error is LeafException) {
+    return switch (error.code) {
+      LeafError.runtimeManager =>
+        'Core startup timeout (runtime not ready). Please retry or restart the app.',
+      LeafError.config =>
+        'Core config parsing failed. Please refresh the subscription profile.',
+      LeafError.io =>
+        'Core I/O error. Please check app permissions and try again.',
+      LeafError.asyncChannelSend || LeafError.syncChannelRecv =>
+        'Core communication error. Please retry or restart the app.',
+      _ => 'Core error: ${error.message}',
+    };
+  }
+  return ErrorSanitizer.sanitize(error.toString());
 }
 
 class AppController {
@@ -1135,7 +1155,7 @@ extension SetupControllerExt on AppController {
     try {
       res = await _getConfigDecrypted(profileId);
     } catch (e) {
-      globalState.showNotifier(e.toString());
+      globalState.showNotifier(_userFacingErrorMessage(e));
     }
     return res;
   }
@@ -1472,7 +1492,7 @@ extension SetupControllerExt on AppController {
               .read(patchClashConfigProvider.notifier)
               .update((state) => state.copyWith.tun(enable: false));
           _ref.read(realTunEnableProvider.notifier).value = false;
-          globalState.showNotifier('TUN鍚姩澶辫触锛屽凡闄嶇骇涓虹郴缁熶唬鐞嗘ā寮? $e');
+          globalState.showNotifier(_userFacingErrorMessage(e));
         } catch (e2) {
           _logger.error('setup: leaf start failed even without TUN', e2);
           _setLeafStoppedState(
@@ -1487,7 +1507,15 @@ extension SetupControllerExt on AppController {
           'setup: leaf TUN start failed on Android, stopping VPN',
           e,
         );
-        globalState.showNotifier('VPN鍚姩澶辫触: $e');
+        if (tunEnabled) {
+          globalState.showNotifier(_userFacingErrorMessage(e));
+        } else {
+          // Core-only startup on app boot can fail transiently; avoid false
+          // failure popup when a later retry succeeds.
+          _logger.warning(
+            'setup: core-only startup failed (suppressed popup): $e',
+          );
+        }
         _setLeafStoppedState(
           reason: 'setup(androidTunStartFailed,reason=$reason)',
         );
@@ -1993,12 +2021,13 @@ extension CommonControllerExt on AppController {
       return res;
     } catch (e, s) {
       commonPrint.log('$title ===> $e, $s', logLevel: LogLevel.warning);
+      final userMessage = _userFacingErrorMessage(e);
       if (silence) {
-        globalState.showNotifier(e.toString());
+        globalState.showNotifier(userMessage);
       } else {
         globalState.showMessage(
           title: title ?? appLocalizations.tip,
-          message: TextSpan(text: e.toString()),
+          message: TextSpan(text: userMessage),
         );
       }
       return null;

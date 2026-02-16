@@ -77,11 +77,13 @@ class LeafAppAdapter {
     );
   }
 
-  /// Run TCP ping on a specific node.
+  /// Probe delay on a specific node by HTTP HEAD through local proxy.
   Future<int?> testDelay(String nodeTag, {int timeoutMs = 3000}) async {
-    final node = controller.nodes.where((n) => n.tag == nodeTag).firstOrNull;
-    if (node == null) return null;
-    return controller.tcpPing(node, timeoutMs: timeoutMs);
+    return controller.probeNodeLatencyByHttpHead(
+      nodeTag,
+      proxyPort: controller.mixedPort,
+      timeoutMs: timeoutMs,
+    );
   }
 
   /// Get current traffic totals.
@@ -111,7 +113,7 @@ class LeafAppAdapter {
   Future<String> _getHomeDir() async {
     if (Platform.isAndroid) {
       // Android: use app's files directory
-      return appPath.homePath;
+      return appPath.homeDirPath;
     }
     // Desktop: use ~/.config/orange/leaf
     final home = Platform.environment['HOME'] ??

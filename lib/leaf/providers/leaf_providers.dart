@@ -6,8 +6,10 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/models/leaf_node.dart';
+import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/providers/database.dart';
 import 'package:fl_clash/providers/state.dart';
+import 'package:fl_clash/state.dart';
 import 'package:fl_clash/xboard/core/logger/file_logger.dart';
 import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -155,17 +157,31 @@ Future<void> selectLeafNode(WidgetRef ref, String nodeTag) async {
   }
 }
 
-/// Helper to run health checks (TCP ping) on all nodes.
+/// Helper to run health checks (HTTP HEAD via local proxy) on all nodes.
 Future<void> runHealthChecks(WidgetRef ref) async {
   final controller = ref.read(leafControllerProvider);
   final nodeDelaysNotifier = ref.read(nodeDelaysProvider.notifier);
   final fallbackNodes = List<LeafNode>.from(ref.read(leafNodesProvider));
   final results = <String, int?>{};
+  final probePort = ref.read(activePortProvider) ?? controller.mixedPort;
+  final userAgent = ref.read(patchClashConfigProvider).globalUa.takeFirstValid([
+    globalState.packageInfo.ua,
+  ]);
+
   if (controller.nodes.isNotEmpty) {
-    results.addAll(await controller.tcpPingAll());
+    results.addAll(
+      await controller.probeAllNodesLatencyByHttpHead(
+        proxyPort: probePort,
+        userAgent: userAgent,
+      ),
+    );
   } else {
     for (final node in fallbackNodes) {
-      results[node.tag] = await controller.tcpPing(node);
+      results[node.tag] = await controller.probeNodeLatencyByHttpHead(
+        node.tag,
+        proxyPort: probePort,
+        userAgent: userAgent,
+      );
     }
   }
   nodeDelaysNotifier.state = results;

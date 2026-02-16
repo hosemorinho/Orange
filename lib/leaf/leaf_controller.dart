@@ -514,7 +514,7 @@ class LeafController {
     return _instance!.healthCheck(nodeTag, timeoutMs: timeoutMs);
   }
 
-  /// Run health checks for all nodes. Returns a map of tag → tcp latency ms.
+  /// Run health checks for all nodes. Returns a map of tag -> latency ms.
   Future<Map<String, int?>> healthCheckAll({int timeoutMs = 4000}) async {
     _requireRunning();
     final results = <String, int?>{};
@@ -526,32 +526,173 @@ class LeafController {
   }
 
   // ---------------------------------------------------------------------------
-  // TCP Ping (Dart-layer latency test — works with any proxy server)
+  // Latency probe (HTTP HEAD via local proxy)
   // ---------------------------------------------------------------------------
 
-  /// TCP connect test — measures handshake latency to the proxy server directly.
-  /// Does not require leaf to be running; tests raw network reachability.
-  Future<int?> tcpPing(LeafNode node, {int timeoutMs = 3000}) async {
+  /// Default endpoint for latency probes.
+  static const String defaultLatencyTestUrl =
+      'https://www.google.com/generate_204';
+
+  /// Measure latency by sending an HTTP HEAD request through local proxy.
+  ///
+  /// Returns round-trip time in milliseconds, or `null` on failure.
+  Future<int?> proxyHttpHeadLatency({
+    required int proxyPort,
+    String testUrl = defaultLatencyTestUrl,
+    int timeoutMs = 8000,
+    String? userAgent,
+  }) async {
+    final timeout = Duration(milliseconds: timeoutMs);
+    HttpClient? client;
     final stopwatch = Stopwatch()..start();
     try {
-      final socket = await Socket.connect(
-        node.server,
-        node.port,
-        timeout: Duration(milliseconds: timeoutMs),
-      );
+      client = HttpClient()..connectionTimeout = timeout;
+      client.badCertificateCallback = (_, _, _) => true;
+      client.findProxy = (_) => 'PROXY 127.0.0.1:$proxyPort';
+      if (userAgent != null && userAgent.isNotEmpty) {
+        client.userAgent = userAgent;
+      }
+
+      final request = await client.headUrl(Uri.parse(testUrl)).timeout(timeout);
+      request.followRedirects = true;
+      request.maxRedirects = 3;
+
+      final response = await request.close().timeout(timeout);
+      await response.drain<void>();
       stopwatch.stop();
-      await socket.close();
-      return stopwatch.elapsedMilliseconds;
-    } catch (_) {
+
+      if (response.statusCode >= 200 && response.statusCode < 500) {
+        return stopwatch.elapsedMilliseconds;
+      }
+      _logger.warning(
+        'proxyHttpHeadLatency: unexpected status=${response.statusCode}, '
+        'url=$testUrl, port=$proxyPort',
+      );
       return null;
+    } catch (e) {
+      _logger.warning(
+        'proxyHttpHeadLatency: failed url=$testUrl, port=$proxyPort, error=$e',
+      );
+      return null;
+    } finally {
+      client?.close(force: true);
     }
   }
 
-  /// TCP ping all nodes. Returns a map of tag → latency ms (null = failed).
-  Future<Map<String, int?>> tcpPingAll({int timeoutMs = 3000}) async {
+  /// Probe one node by selecting it, issuing HTTP HEAD via proxy, then restoring
+  /// the previous selected node.
+  Future<int?> probeNodeLatencyByHttpHead(
+    String nodeTag, {
+    required int proxyPort,
+    String testUrl = defaultLatencyTestUrl,
+    int timeoutMs = 8000,
+    String? userAgent,
+  }) async {
+    if (!isRunning) {
+      _logger.warning(
+        'probeNodeLatencyByHttpHead: core is not running (node=$nodeTag)',
+      );
+      return null;
+    }
+    final exists = _nodes.any((node) => node.tag == nodeTag);
+    if (!exists) {
+      _logger.warning('probeNodeLatencyByHttpHead: node not found: $nodeTag');
+      return null;
+    }
+
+    final originalSelected = getSelectedNode();
+    final shouldRestore =
+        originalSelected != null &&
+        originalSelected.isNotEmpty &&
+        originalSelected != nodeTag;
+    try {
+      if (shouldRestore) {
+        await selectNode(nodeTag);
+      }
+      return await proxyHttpHeadLatency(
+        proxyPort: proxyPort,
+        testUrl: testUrl,
+        timeoutMs: timeoutMs,
+        userAgent: userAgent,
+      );
+    } catch (e) {
+      _logger.warning(
+        'probeNodeLatencyByHttpHead: failed node=$nodeTag, error=$e',
+      );
+      return null;
+    } finally {
+      if (shouldRestore) {
+        try {
+          await selectNode(originalSelected);
+        } catch (e) {
+          _logger.warning(
+            'probeNodeLatencyByHttpHead: restore failed '
+            '(from=$nodeTag,to=$originalSelected,error=$e)',
+          );
+        }
+      }
+    }
+  }
+
+  /// Probe all nodes by HTTP HEAD through local proxy.
+  ///
+  /// Each node is selected temporarily during probe and the original selection
+  /// is restored before returning.
+  Future<Map<String, int?>> probeAllNodesLatencyByHttpHead({
+    required int proxyPort,
+    String testUrl = defaultLatencyTestUrl,
+    int timeoutMs = 8000,
+    String? userAgent,
+  }) async {
     final results = <String, int?>{};
-    for (final node in _nodes) {
-      results[node.tag] = await tcpPing(node, timeoutMs: timeoutMs);
+    final tags = _nodes.map((node) => node.tag).toList(growable: false);
+    for (final tag in tags) {
+      results[tag] = null;
+    }
+    if (!isRunning || tags.isEmpty) {
+      if (!isRunning) {
+        _logger.warning(
+          'probeAllNodesLatencyByHttpHead: core is not running; '
+          'returning null delays',
+        );
+      }
+      return results;
+    }
+
+    final originalSelected = getSelectedNode();
+    try {
+      for (final tag in tags) {
+        try {
+          final current = getSelectedNode();
+          if (current == null || current != tag) {
+            await selectNode(tag);
+          }
+          results[tag] = await proxyHttpHeadLatency(
+            proxyPort: proxyPort,
+            testUrl: testUrl,
+            timeoutMs: timeoutMs,
+            userAgent: userAgent,
+          );
+        } catch (e) {
+          _logger.warning(
+            'probeAllNodesLatencyByHttpHead: failed node=$tag, error=$e',
+          );
+          results[tag] = null;
+        }
+      }
+    } finally {
+      if (originalSelected != null &&
+          originalSelected.isNotEmpty &&
+          tags.contains(originalSelected)) {
+        try {
+          await selectNode(originalSelected);
+        } catch (e) {
+          _logger.warning(
+            'probeAllNodesLatencyByHttpHead: restore failed '
+            '(selected=$originalSelected,error=$e)',
+          );
+        }
+      }
     }
     return results;
   }

@@ -144,7 +144,11 @@ class _LeafNodeListViewState extends ConsumerState<LeafNodeListView> {
     final controller = ref.read(leafControllerProvider);
     final nodeDelaysNotifier = ref.read(nodeDelaysProvider.notifier);
     final delays = Map<String, int?>.from(ref.read(nodeDelaysProvider));
-    final result = await controller.tcpPing(node);
+    final probePort = ref.read(activePortProvider) ?? controller.mixedPort;
+    final result = await controller.probeNodeLatencyByHttpHead(
+      node.tag,
+      proxyPort: probePort,
+    );
     delays[node.tag] = result;
     nodeDelaysNotifier.state = delays;
   }

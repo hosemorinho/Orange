@@ -1,8 +1,5 @@
-import 'dart:math';
-
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/l10n/l10n.dart';
-import 'package:fl_clash/leaf/leaf_controller.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/leaf/widgets/leaf_node_list.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -322,7 +319,11 @@ class _LeafConnectionStatusCardState
     final controller = ref.read(leafControllerProvider);
     final node = controller.nodes.where((n) => n.tag == tag).firstOrNull;
     if (node == null) return;
-    final result = await controller.tcpPing(node);
+    final probePort = ref.read(activePortProvider) ?? controller.mixedPort;
+    final result = await controller.probeNodeLatencyByHttpHead(
+      node.tag,
+      proxyPort: probePort,
+    );
     final delays = Map<String, int?>.from(ref.read(nodeDelaysProvider));
     delays[tag] = result;
     ref.read(nodeDelaysProvider.notifier).state = delays;

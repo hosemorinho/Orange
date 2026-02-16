@@ -147,21 +147,20 @@ extension InitControllerExt on AppController {
       await globalState.updateStartTime();
     }
     final appSettings = _ref.read(appSettingProvider);
-    final status = globalState.isStart == true
-        ? true
-        : appSettings.autoRun || appSettings.autoStartCore;
+    final status = globalState.isStart == true ? true : appSettings.autoRun;
     if (status == true) {
       await updateStatus(
         true,
         isInit: true,
-        trigger: 'initStatus(autoStartOrResume)',
+        trigger: 'initStatus(autoRunOrResume)',
       );
     } else if (appSettings.autoStartCore) {
-      // 只启动 leaf core（用于测试延迟），不启动 VPN（不传递 tunFd）
+      // Start leaf core only (no VPN service / no TUN capture).
       await applyProfile(
         force: true,
         reason: 'initStatus(autoStartCore,noVpn)',
-        preloadInvoke: null, // 不启动 VPN service，只启动 leaf core
+        forceCoreStart: true,
+        preloadInvoke: null,
       );
     } else {
       await applyProfile(force: true, reason: 'initStatus(noAutoStart)');
@@ -1015,6 +1014,7 @@ extension SetupControllerExt on AppController {
     String reason = 'unspecified',
     Future<bool> Function()? preloadInvoke,
     bool bypassThrottle = false,
+    bool forceCoreStart = false,
   }) async {
     if (_isApplyingProfile) {
       _logger.info(
@@ -1030,6 +1030,7 @@ extension SetupControllerExt on AppController {
     _logger.info(
       'applyProfile: start force=$force, silence=$silence, reason=$reason, '
       'preloadInvoke=${preloadInvoke != null}, bypassThrottle=$bypassThrottle, '
+      'forceCoreStart=$forceCoreStart, '
       'caller=${_callerStackSummary()}',
     );
     var setupOk = false;
@@ -1037,7 +1038,12 @@ extension SetupControllerExt on AppController {
     try {
       final result = await loadingRun<bool>(
         () async {
-          final ok = await _setupConfig(preloadInvoke, reason, bypassThrottle);
+          final ok = await _setupConfig(
+            preloadInvoke,
+            reason,
+            bypassThrottle,
+            forceCoreStart,
+          );
           if (!ok) return false;
           await updateGroups();
           await _ensureValidSelection();
@@ -1109,6 +1115,7 @@ extension SetupControllerExt on AppController {
     Future<bool> Function()? preloadInvoke,
     String reason = 'unspecified',
     bool bypassThrottle = false,
+    bool forceCoreStart = false,
   ]) async {
     // Throttle: skip if setup completed less than 2 seconds ago
     final now = DateTime.now();
@@ -1124,7 +1131,8 @@ extension SetupControllerExt on AppController {
 
     _logger.info(
       'setup ===> reason=$reason, isStart=${globalState.isStart}, '
-      'preloadInvoke=${preloadInvoke != null}, caller=${_callerStackSummary()}',
+      'preloadInvoke=${preloadInvoke != null}, forceCoreStart=$forceCoreStart, '
+      'caller=${_callerStackSummary()}',
     );
     var profile = _ref.read(currentProfileProvider);
     if (profile == null) {
@@ -1215,11 +1223,12 @@ extension SetupControllerExt on AppController {
     );
 
     // Android-specific safety path:
-    // when VPN is not active, avoid starting a non-TUN leaf runtime.
+    // when VPN is not active, avoid starting a non-TUN leaf runtime by default.
     // We only preload nodes into UI state so the user can browse/select nodes.
     // This avoids non-TUN -> TUN runtime transition during first connect,
     // which may cause native instability on some devices.
-    if (system.isAndroid && !tunEnabled) {
+    // autoStartCore can override this behavior through forceCoreStart=true.
+    if (system.isAndroid && !tunEnabled && !forceCoreStart) {
       if (_leafController != null && _leafController!.isRunning) {
         _logger.info(
           'setup: Android VPN inactive, stopping running leaf before nodes-only preload',

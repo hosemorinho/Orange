@@ -195,6 +195,7 @@ class _AccessViewState extends ConsumerState<AccessView> {
         prevAccessControl != nextAccessControl) {
       await appController.loadingRun(
         () async {
+          await preferences.saveShareState(appController.sharedState);
           await globalState.handleStop();
           await appController.updateStatus(
             true,

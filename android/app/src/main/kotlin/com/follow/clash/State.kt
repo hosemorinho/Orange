@@ -254,6 +254,17 @@ object State {
         LeafPreferences.notificationTitle = title
         LeafPreferences.notificationStopText = stopText
         LeafPreferences.notificationOnlyStatisticsProxy = sharedState.onlyStatisticsProxy
+        sharedState.vpnOptions?.let { options ->
+            LeafPreferences.vpnOptionsJson = Gson().toJson(options)
+            GlobalState.log(
+                "syncState cached vpn options: " +
+                    "vpn=${options.enable}, " +
+                    "access=${options.accessControlProps.enable}, " +
+                    "mode=${options.accessControlProps.mode}, " +
+                    "accept=${options.accessControlProps.acceptList.size}, " +
+                    "reject=${options.accessControlProps.rejectList.size}"
+            )
+        }
         com.follow.clash.service.State.notificationParamsFlow.tryEmit(
             NotificationParams(
                 title = title,
@@ -278,6 +289,14 @@ object State {
             true -> com.follow.clash.service.VpnService::class.intent
             false -> CommonService::class.intent
         }
+        GlobalState.log(
+            "doStartService options: " +
+                "vpn=${options.enable}, " +
+                "access=${options.accessControlProps.enable}, " +
+                "mode=${options.accessControlProps.mode}, " +
+                "accept=${options.accessControlProps.acceptList.size}, " +
+                "reject=${options.accessControlProps.rejectList.size}"
+        )
         serviceIntent = nextIntent
         com.follow.clash.service.State.options = options
         LeafPreferences.vpnOptionsJson = Gson().toJson(options)
@@ -421,5 +440,16 @@ object State {
                 }
             }
         }
+    }
+
+    suspend fun awaitStopped(timeoutMs: Long = 10_000L): Boolean {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            if (runStateFlow.value == RunState.STOP) {
+                return true
+            }
+            delay(50L)
+        }
+        return runStateFlow.value == RunState.STOP
     }
 }

@@ -618,7 +618,22 @@ extension SetupControllerExt on AppController {
           if (!_ref.read(initProvider)) {
             return;
           }
-          await _syncSharedStateBeforeStart(trigger: trigger);
+          final synced = await _syncSharedStateBeforeStart(trigger: trigger);
+          if (!synced) {
+            _logger.warning(
+              'updateStatus: abort start because shared state sync failed '
+              '(trigger=$trigger)',
+            );
+            _setLeafStoppedState(
+              reason: 'updateStatus(start,syncFailed,trigger=$trigger)',
+              clearNodes: false,
+            );
+            updateRunTime();
+            globalState.showNotifier(
+              '启动失败：无法同步分应用代理状态，请重试',
+            );
+            return;
+          }
           final started = await globalState.handleStart([
             updateRunTime,
             updateTraffic,
@@ -658,7 +673,19 @@ extension SetupControllerExt on AppController {
             bypassThrottle: true,
             reason: 'updateStatus(start,isInit=true,trigger=$trigger)',
             preloadInvoke: () async {
-              await _syncSharedStateBeforeStart(trigger: trigger);
+              final synced = await _syncSharedStateBeforeStart(
+                trigger: trigger,
+              );
+              if (!synced) {
+                _logger.warning(
+                  'updateStatus(init): abort preload start because '
+                  'shared state sync failed (trigger=$trigger)',
+                );
+                globalState.showNotifier(
+                  '启动失败：无法同步分应用代理状态，请重试',
+                );
+                return false;
+              }
               final started = await globalState.handleStart([
                 updateRunTime,
                 updateTraffic,
@@ -761,17 +788,19 @@ extension SetupControllerExt on AppController {
     _ref.read(checkIpNumProvider.notifier).add();
   }
 
-  Future<void> _syncSharedStateBeforeStart({required String trigger}) async {
-    if (!system.isAndroid) return;
+  Future<bool> _syncSharedStateBeforeStart({required String trigger}) async {
+    if (!system.isAndroid) return true;
     try {
       await service?.syncState(
         _ref.read(sharedStateProvider).needSyncSharedState,
       );
+      return true;
     } catch (e) {
       _logger.warning(
         'updateStatus: failed to sync shared state before start '
         '(trigger=$trigger): $e',
       );
+      return false;
     }
   }
 

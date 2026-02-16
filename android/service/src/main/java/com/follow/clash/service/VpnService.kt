@@ -286,17 +286,34 @@ class VpnService : SystemVpnService(), IBaseService,
             }
             setMtu(9000)
             options.accessControlProps.let { accessControl ->
+                GlobalState.log(
+                    "VpnService accessControl: " +
+                        "enable=${accessControl.enable}, " +
+                        "mode=${accessControl.mode}, " +
+                        "accept=${accessControl.acceptList.size}, " +
+                        "reject=${accessControl.rejectList.size}"
+                )
                 if (accessControl.enable) {
                     when (accessControl.mode) {
                         AccessControlMode.ACCEPT_SELECTED -> {
                             (accessControl.acceptList + packageName).forEach {
-                                addAllowedApplication(it)
+                                runCatching { addAllowedApplication(it) }
+                                    .onFailure { e ->
+                                        GlobalState.log(
+                                            "addAllowedApplication failed for $it: ${e.message}"
+                                        )
+                                    }
                             }
                         }
 
                         AccessControlMode.REJECT_SELECTED -> {
                             (accessControl.rejectList - packageName).forEach {
-                                addDisallowedApplication(it)
+                                runCatching { addDisallowedApplication(it) }
+                                    .onFailure { e ->
+                                        GlobalState.log(
+                                            "addDisallowedApplication failed for $it: ${e.message}"
+                                        )
+                                    }
                             }
                         }
                     }

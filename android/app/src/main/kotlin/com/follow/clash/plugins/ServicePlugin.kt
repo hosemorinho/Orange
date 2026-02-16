@@ -9,6 +9,7 @@ import android.os.IBinder
 import com.follow.clash.RunState
 import com.follow.clash.State
 import com.follow.clash.common.Components
+import com.follow.clash.common.LeafPreferences
 import com.follow.clash.common.XBoardLog
 import com.follow.clash.core.ICoreService
 import com.follow.clash.core.ICoreServiceCallback
@@ -404,7 +405,15 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     private fun handleStop(result: MethodChannel.Result) {
         State.handleStopService()
-        result.success(true)
+        launch {
+            val stopped = withTimeoutOrNull(10_000L) {
+                State.awaitStopped()
+            } ?: false
+            if (!stopped) {
+                XBoardLog.w("ServicePlugin", "stop timeout: service state is not STOP")
+            }
+            result.success(stopped)
+        }
     }
 
     private fun onServiceDisconnected(message: String) {
@@ -415,8 +424,20 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     private fun handleSyncState(call: MethodCall, result: MethodChannel.Result) {
         val data = call.arguments<String>()!!
-        State.sharedState = Gson().fromJson(data, SharedState::class.java)
+        val nextSharedState = Gson().fromJson(data, SharedState::class.java)
+        State.sharedState = nextSharedState
         State.syncState()
+        nextSharedState.vpnOptions?.let { options ->
+            LeafPreferences.vpnOptionsJson = Gson().toJson(options)
+            XBoardLog.i(
+                "ServicePlugin",
+                "syncState: vpn=${options.enable}, " +
+                    "access=${options.accessControlProps.enable}, " +
+                    "mode=${options.accessControlProps.mode}, " +
+                    "accept=${options.accessControlProps.acceptList.size}, " +
+                    "reject=${options.accessControlProps.rejectList.size}"
+            )
+        } ?: XBoardLog.w("ServicePlugin", "syncState: vpnOptions is null")
         result.success("")
     }
 

@@ -192,6 +192,16 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
             LeafPreferences.shouldRun = true
             LeafPreferences.lastStartTime = System.currentTimeMillis()
 
+            // Re-apply persisted selector choice after startup.
+            val persistedNode = LeafPreferences.selectedNodeTag
+            if (persistedNode.isNotEmpty()) {
+                if (applyNodeSelection(runtimeId, persistedNode)) {
+                    selectedNodeTag = persistedNode
+                } else {
+                    Log.w(TAG, "startLeaf: failed to apply persisted node=$persistedNode")
+                }
+            }
+
             notifyStatusChanged()
             GlobalState.log("Leaf started successfully with rtId=$runtimeId (owned TUN fd=$ownedTunFd)")
             true
@@ -326,6 +336,12 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
                 return false
             }
 
+            if (selectedNodeTag.isNotEmpty()) {
+                if (!applyNodeSelection(leafRtId, selectedNodeTag)) {
+                    Log.w(TAG, "reloadLeaf: failed to re-apply selected node=$selectedNodeTag")
+                }
+            }
+
             notifyStatusChanged()
             GlobalState.log("Leaf reloaded successfully")
             true
@@ -369,15 +385,50 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
 
     /**
      * Select a new node by tag.
-     * Note: This requires the config to have the node available.
-     * For now, we just update the preference - actual node switching
-     * would need to be implemented in the leaf config generation.
+     * Applies selection to the running leaf selector outbound when available,
+     * and always persists the requested tag for next startup/recovery.
      */
     fun selectNode(nodeTag: String): Boolean {
+        if (nodeTag.isBlank()) {
+            return false
+        }
+        if (isRunning && leafRtId >= 0) {
+            if (!applyNodeSelection(leafRtId, nodeTag)) {
+                notifyError("Failed to select node: $nodeTag")
+                return false
+            }
+        }
         selectedNodeTag = nodeTag
         LeafPreferences.selectedNodeTag = nodeTag
         notifyStatusChanged()
         return true
+    }
+
+    private fun applyNodeSelection(rtId: Int, nodeTag: String): Boolean {
+        if (!ensureLeafLibraryLoaded()) {
+            return false
+        }
+        return try {
+            val result = LeafBridge.leafSetOutboundSelected(
+                rtId,
+                SELECTOR_OUTBOUND_TAG,
+                nodeTag
+            )
+            if (result != 0) {
+                Log.e(TAG, "applyNodeSelection failed, code=$result, node=$nodeTag")
+                return false
+            }
+            try {
+                LeafBridge.leafCloseConnections(rtId)
+            } catch (t: Throwable) {
+                Log.w(TAG, "leafCloseConnections failed after node switch", t)
+            }
+            Log.i(TAG, "Applied node selection: $nodeTag")
+            true
+        } catch (t: Throwable) {
+            Log.e(TAG, "applyNodeSelection crashed for node=$nodeTag", t)
+            false
+        }
     }
 
     /**
@@ -469,6 +520,7 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
 
     companion object {
         private const val DEFAULT_RUNTIME_ID = 0
+        private const val SELECTOR_OUTBOUND_TAG = "proxy"
 
         @Volatile
         private var instance: LeafProcessManager? = null

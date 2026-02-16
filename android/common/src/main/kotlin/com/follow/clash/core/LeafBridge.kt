@@ -120,6 +120,15 @@ object LeafBridge {
     /** Graceful shutdown. */
     external fun leafShutdown(rtId: Int): Boolean
 
+    /** Close all active TCP relay connections. */
+    external fun leafCloseConnections(rtId: Int): Boolean
+
+    /**
+     * Set selected outbound for selector group.
+     * Returns 0 on success.
+     */
+    external fun leafSetOutboundSelected(rtId: Int, outbound: String, select: String): Int
+
     /** Validate a config file. */
     external fun leafTestConfig(configPath: String): Int
 

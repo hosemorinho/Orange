@@ -97,6 +97,7 @@ class CommonService : Service(), IBaseService,
     private fun createNotification(): Notification {
         State.refreshNotificationParamsFromPrefs()
         val params = State.notificationParamsFlow.value ?: com.follow.clash.service.models.NotificationParams()
+        val startTime = LeafPreferences.lastStartTime.takeIf { it > 0L } ?: System.currentTimeMillis()
         val channel = NotificationChannel(
             GlobalState.NOTIFICATION_CHANNEL,
             "Orange Proxy",
@@ -118,9 +119,12 @@ class CommonService : Service(), IBaseService,
         )
 
         return NotificationCompat.Builder(this, GlobalState.NOTIFICATION_CHANNEL)
-            .setContentTitle(params.title)
-            .setContentText(if (isAutoRecovery) "Reconnecting..." else "Running")
+            .setContentTitle("")
             .setSmallIcon(android.R.drawable.ic_lock_lock)
+            .setWhen(startTime)
+            .setShowWhen(true)
+            .setUsesChronometer(true)
+            .setChronometerCountDown(false)
             .setOngoing(true)
             .addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,

@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import com.follow.clash.common.Components
 import com.follow.clash.common.GlobalState
+import com.follow.clash.common.LeafPreferences
 import com.follow.clash.common.QuickAction
 import com.follow.clash.common.quickIntent
 import com.follow.clash.common.receiveBroadcastFlow
@@ -30,7 +31,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 data class ExtendedNotificationParams(
-    val title: String,
     val stopText: String,
     val onlyStatisticsProxy: Boolean,
     val contentText: String,
@@ -38,7 +38,7 @@ data class ExtendedNotificationParams(
 
 val NotificationParams.extended: ExtendedNotificationParams
     get() = ExtendedNotificationParams(
-        title, stopText, onlyStatisticsProxy, ""
+        stopText, onlyStatisticsProxy, ""
     )
 
 class NotificationModule(private val service: Service) : Module() {
@@ -92,13 +92,16 @@ class NotificationModule(private val service: Service) : Module() {
             )
         ) {
             setSmallIcon(R.drawable.ic)
-            setContentTitle(State.notificationParamsFlow.value?.title ?: "Orange")
+            setContentTitle("")
             setContentIntent(intent.toPendingIntent)
             setPriority(NotificationCompat.PRIORITY_HIGH)
             setCategory(NotificationCompat.CATEGORY_SERVICE)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 foregroundServiceBehavior = FOREGROUND_SERVICE_IMMEDIATE
             }
+            setWhen(resolveStartTime())
+            setUsesChronometer(true)
+            setChronometerCountDown(false)
             setOngoing(true)
             setShowWhen(true)
             setOnlyAlertOnce(true)
@@ -108,13 +111,20 @@ class NotificationModule(private val service: Service) : Module() {
     private fun update(params: ExtendedNotificationParams) {
         service.startForeground(
             with(notificationBuilder) {
-                setContentTitle(params.title)
-                setContentText(params.contentText)
+                setContentTitle("")
+                setContentText(if (params.contentText.isBlank()) null else params.contentText)
+                setWhen(resolveStartTime())
+                setUsesChronometer(true)
+                setChronometerCountDown(false)
                 clearActions()
                 addAction(
                     0, params.stopText, QuickAction.STOP.quickIntent.toPendingIntent
                 ).build()
             })
+    }
+
+    private fun resolveStartTime(): Long {
+        return LeafPreferences.lastStartTime.takeIf { it > 0L } ?: System.currentTimeMillis()
     }
 
     override fun onUninstall() {

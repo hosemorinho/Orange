@@ -49,7 +49,6 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
   // 用户余额
   double? _userBalance;
-  bool _isLoadingBalance = false;
 
   // 优惠券状态
   final TextEditingController _couponController = TextEditingController();
@@ -89,7 +88,6 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   // ========== 数据加载 ==========
 
   Future<void> _loadUserBalance() async {
-    setState(() => _isLoadingBalance = true);
     try {
       // 使用 xboardUserProvider 获取用户信息
       final userInfo = ref.read(xboardUserProvider).userInfo;
@@ -99,10 +97,6 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       }
     } catch (e) {
       _logger.debug('[购买] 加载用户余额失败: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoadingBalance = false);
-      }
     }
   }
 
@@ -307,8 +301,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   // ========== 购买流程 ==========
 
   Future<void> _proceedToPurchase() async {
+    final l10n = AppLocalizations.of(context);
     if (_selectedPeriod == null) {
-      XBoardNotification.showError(AppLocalizations.of(context).xboardPleaseSelectPaymentPeriod);
+      XBoardNotification.showError(l10n.xboardPleaseSelectPaymentPeriod);
       return;
     }
 
@@ -335,7 +330,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
       if (tradeNo == null) {
         final errorMessage = ref.read(userUIStateProvider).errorMessage;
-        throw Exception('${AppLocalizations.of(context).xboardOrderCreationFailed}: $errorMessage');
+        throw Exception('${l10n.xboardOrderCreationFailed}: $errorMessage');
       }
 
       _logger.debug('[购买] 订单创建成功: $tradeNo');
@@ -374,7 +369,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       }
 
       if (paymentMethods.isEmpty) {
-        throw Exception(AppLocalizations.of(context).xboardNoPaymentMethodsAvailable);
+        throw Exception(l10n.xboardNoPaymentMethodsAvailable);
       }
 
       DomainPaymentMethod? selectedMethod;
@@ -424,7 +419,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       _logger.error('购买流程出错: $e');
         if (mounted) {
         PaymentWaitingManager.hide();
-        XBoardNotification.showError(AppLocalizations.of(context).xboardOperationFailedError(ErrorSanitizer.sanitize(e.toString())));
+        XBoardNotification.showError(l10n.xboardOperationFailedError(ErrorSanitizer.sanitize(e.toString())));
       }
     }
   }
@@ -495,6 +490,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   }
 
   Future<void> _submitPayment(String tradeNo, DomainPaymentMethod method) async {
+    final l10n = AppLocalizations.of(context);
     _logger.debug('[支付] 提交支付: $tradeNo, 方式: ${method.id}');
       PaymentWaitingManager.updateStep(PaymentStep.loadingPayment);
       PaymentWaitingManager.updateStep(PaymentStep.verifyPayment);
@@ -506,7 +502,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       );
 
     if (paymentResult == null) {
-      throw Exception(AppLocalizations.of(context).xboardPaymentFailedEmptyResult);
+      throw Exception(l10n.xboardPaymentFailedEmptyResult);
     }
 
     if (!mounted) return;
@@ -524,14 +520,14 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       if (paymentData == true) {
         await _handleBalancePaymentSuccess();
       } else {
-        throw Exception(AppLocalizations.of(context).xboardPaymentFailedBalanceError);
+        throw Exception(l10n.xboardPaymentFailedBalanceError);
       }
     } else if (paymentData != null && paymentData is String && paymentData.isNotEmpty) {
       // 付费订单，data 是支付URL（String）
       PaymentWaitingManager.updateStep(PaymentStep.waitingPayment);
       await _launchPaymentUrl(paymentData, tradeNo);
     } else {
-      throw Exception(AppLocalizations.of(context).xboardPaymentFailedInvalidData);
+      throw Exception(l10n.xboardPaymentFailedInvalidData);
     }
   }
 
@@ -562,6 +558,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   }
 
   Future<void> _launchPaymentUrl(String url, String tradeNo) async {
+    final l10n = AppLocalizations.of(context);
     try {
       if (!mounted) return;
 
@@ -569,7 +566,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         final uri = Uri.parse(url);
 
         if (!await canLaunchUrl(uri)) {
-          throw Exception(AppLocalizations.of(context).xboardCannotOpenPaymentUrl);
+          throw Exception(l10n.xboardCannotOpenPaymentUrl);
         }
 
         final launched = await launchUrl(
@@ -578,14 +575,14 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         );
 
         if (!launched) {
-          throw Exception(AppLocalizations.of(context).xboardCannotLaunchBrowser);
+          throw Exception(l10n.xboardCannotLaunchBrowser);
       }
 
       _logger.debug('[支付] 支付页面已在浏览器中打开: $tradeNo');
     } catch (e) {
       if (mounted) {
         PaymentWaitingManager.hide();
-        XBoardNotification.showError(AppLocalizations.of(context).xboardOpenPaymentPageError(ErrorSanitizer.sanitize(e.toString())));
+        XBoardNotification.showError(l10n.xboardOpenPaymentPageError(ErrorSanitizer.sanitize(e.toString())));
       }
     }
   }

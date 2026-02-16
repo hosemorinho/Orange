@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:fl_clash/common/utils.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
-import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/providers/config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

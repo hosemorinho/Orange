@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/leaf/core/leaf_bridge.dart' show Mode;
 import 'package:fl_clash/leaf/config/config_writer.dart';
 import 'package:fl_clash/leaf/config/leaf_config.dart';
 import 'package:fl_clash/leaf/ffi/leaf_errors.dart';
@@ -48,7 +48,6 @@ class LeafController {
   int? _lastTunFd;
   bool _lastTunEnabled = false;
   Mode _lastMode = Mode.global;
-  bool _lastMmdbAvailable = false;
 
   LeafController() : _ffi = LeafFfi.open();
 
@@ -125,7 +124,6 @@ class LeafController {
     _lastTunFd = tunFd;
     _lastTunEnabled = tunEnabled;
     _lastMode = mode;
-    _lastMmdbAvailable = mmdbAvailable;
 
     // Build leaf config — log to leaf.log in homeDir for diagnostics
     final logOutput = '$_homeDir${Platform.pathSeparator}leaf.log';
@@ -378,7 +376,6 @@ class LeafController {
 
     // Update remembered state
     _lastMode = newMode;
-    _lastMmdbAvailable = mmdbAvailable;
 
     // Break existing TCP connections so they re-route with new rules
     closeConnections();
@@ -814,7 +811,7 @@ class LeafController {
     );
   }
 
-  /// Recursively convert YamlMap to Map<String, dynamic>.
+  /// Recursively convert YamlMap to `Map<String, dynamic>`.
   static Map<String, dynamic> _yamlMapToMap(YamlMap yamlMap) {
     final result = <String, dynamic>{};
     for (final entry in yamlMap.entries) {

@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/models/profile.dart';
+import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/providers/database.dart';
 import 'package:fl_clash/xboard/features/profile/profile.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_downloader.dart';
 import 'package:fl_clash/xboard/core/core.dart';
+import 'package:fl_clash/xboard/core/bridges/profile_bridge.dart'
+    show ProfileType;
 
 // 初始化文件级日志器
 final _logger = FileLogger('profile_import_service.dart');
@@ -127,7 +128,7 @@ class XBoardProfileImportService {
 
       // 2. 强制设置为当前配置
       _ref.read(currentProfileIdProvider.notifier).value = profile.id;
-      _logger.info('已设置为当前配置: ${profile.label ?? profile.id}');
+      _logger.info('已设置为当前配置: ${profile.label}');
 
       // 3. 等待 appController 就绪后应用配置 (max 10s)
       await _waitForAttachAndApply();
@@ -209,7 +210,7 @@ class XBoardProfileImportService {
         },
       );
 
-      _logger.info('配置下载和验证成功: ${profile.label ?? profile.id}');
+      _logger.info('配置下载和验证成功: ${profile.label}');
       return profile;
 
     } on TimeoutException catch (e) {

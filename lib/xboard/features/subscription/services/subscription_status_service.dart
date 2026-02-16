@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fl_clash/models/models.dart' as fl_models;
+import 'package:fl_clash/models/profile.dart' as fl_models;
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/auth/auth.dart';
 enum SubscriptionStatusType {
@@ -39,18 +39,6 @@ class SubscriptionStatusService {
     bool hasActiveSubscription = false,
   }) {
     // 🔧 DEBUG: 强制显示过期提醒对话框，方便调试
-    const bool debugForceExpired = false;
-    if (debugForceExpired && userState.isAuthenticated) {
-      return SubscriptionStatusResult(
-        type: SubscriptionStatusType.expired,
-        messageBuilder: (context) => AppLocalizations.of(context).subscriptionExpired,
-        detailMessageBuilder: (context) => AppLocalizations.of(context).subscriptionExpiredDetail('2024-11-01'),
-        expiredAt: DateTime.now().subtract(const Duration(days: 3)),
-        remainingDays: -3,
-        needsDialog: true,
-      );
-    }
-    
     if (!userState.isAuthenticated) {
       return SubscriptionStatusResult(
         type: SubscriptionStatusType.notLoggedIn,

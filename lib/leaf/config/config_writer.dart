@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/leaf/core/leaf_bridge.dart' show Mode;
 import 'package:fl_clash/xboard/core/logger/file_logger.dart';
 
 import 'clash_proxy_converter.dart';

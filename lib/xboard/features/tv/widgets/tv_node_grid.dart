@@ -1,11 +1,10 @@
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
-import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart';
-import 'package:fl_clash/views/proxies/common.dart' as proxies_common;
+import 'package:fl_clash/xboard/features/latency/services/node_latency_service.dart'
+    as latency_service;
 import 'package:fl_clash/widgets/text.dart';
+import 'package:fl_clash/xboard/core/bridges/subscription_bridge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,8 +18,9 @@ class TvNodeGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final groups = ref.watch(groupsProvider);
     final selectedMap = ref.watch(selectedMapProvider);
-    final mode =
-        ref.watch(patchClashConfigProvider.select((state) => state.mode));
+    final mode = ref.watch(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
     final appLocalizations = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -45,8 +45,7 @@ class TvNodeGrid extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
@@ -79,11 +78,11 @@ class TvNodeGrid extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      childAspectRatio: 3.0,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                    ),
+                          crossAxisCount: 3,
+                          childAspectRatio: 3.0,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
                     itemCount: nodes.length,
                     itemBuilder: (context, index) {
                       final node = nodes[index];
@@ -136,11 +135,9 @@ class TvNodeGrid extends ConsumerWidget {
         seen.add(proxy.name);
 
         final selected = selectedMap[group.name] == proxy.name;
-        nodes.add(_FlatNode(
-          proxy: proxy,
-          groupName: group.name,
-          isSelected: selected,
-        ));
+        nodes.add(
+          _FlatNode(proxy: proxy, groupName: group.name, isSelected: selected),
+        );
       }
     }
     return nodes;
@@ -200,8 +197,9 @@ class _TvNodeCard extends ConsumerWidget {
                   proxy.name,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontSize: 16,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                     color: isSelected
                         ? colorScheme.primary
                         : colorScheme.onSurface,
@@ -226,13 +224,15 @@ class _TvNodeCard extends ConsumerWidget {
   }
 
   Widget _buildLatency(WidgetRef ref) {
-    final delayState = ref.watch(getDelayProvider(
-      proxyName: proxy.name,
-      testUrl: ref.read(appSettingProvider).testUrl,
-    ));
+    final delayState = ref.watch(
+      getDelayProvider(
+        proxyName: proxy.name,
+        testUrl: ref.read(appSettingProvider).testUrl,
+      ),
+    );
     return LatencyIndicator(
       delayValue: delayState,
-      onTap: () => proxies_common.proxyDelayTest(
+      onTap: () => latency_service.proxyDelayTest(
         proxy,
         ref.read(appSettingProvider).testUrl,
       ),

@@ -48,9 +48,10 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
   }
 
   Future<void> _sendReply() async {
+    final l10n = AppLocalizations.of(context);
     final message = _messageController.text.trim();
     if (message.isEmpty) {
-      XBoardNotification.showInfo(AppLocalizations.of(context).xboardEnterMessage);
+      XBoardNotification.showInfo(l10n.xboardEnterMessage);
       return;
     }
 
@@ -59,30 +60,33 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
           message,
         );
 
+    if (!mounted) return;
     if (success) {
       _messageController.clear();
       setState(() => _draftMessage = '');
       _scrollToBottom();
-    } else {
-      final error = ref.read(ticketProvider).errorMessage;
-      XBoardNotification.showError(error ?? AppLocalizations.of(context).xboardReplyFailed);
+      return;
     }
+    final error = ref.read(ticketProvider).errorMessage;
+    XBoardNotification.showError(error ?? l10n.xboardReplyFailed);
   }
 
   Future<void> _closeTicket() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await XBoardNotification.showConfirm(
-      AppLocalizations.of(context).xboardCloseTicketConfirm,
-      title: AppLocalizations.of(context).xboardCloseTicket,
+      l10n.xboardCloseTicketConfirm,
+      title: l10n.xboardCloseTicket,
     );
 
     if (confirmed) {
       final success = await ref.read(ticketProvider.notifier).closeTicket(widget.ticketId);
+      if (!mounted) return;
       if (success) {
         await ref.read(ticketProvider.notifier).loadTicketDetail(widget.ticketId);
-        XBoardNotification.showSuccess(AppLocalizations.of(context).xboardTicketClosed);
+        XBoardNotification.showSuccess(l10n.xboardTicketClosed);
       } else {
         final error = ref.read(ticketProvider).errorMessage;
-        XBoardNotification.showError(error ?? AppLocalizations.of(context).xboardCloseFailed);
+        XBoardNotification.showError(error ?? l10n.xboardCloseFailed);
       }
     }
   }
@@ -250,7 +254,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage> {
 
         return Column(
           children: [
-            if (dateSeparator != null) dateSeparator,
+            ...[dateSeparator].whereType<Widget>(),
             TicketMessageBubble(message: message),
           ],
         );

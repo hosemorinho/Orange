@@ -50,7 +50,7 @@ class LatencyIndicator extends StatelessWidget {
           if (!isCompact) ...[
             const SizedBox(width: 4),
             Text(
-              AppLocalizations.of(context)!.xboardLatencyTesting,
+              AppLocalizations.of(context).xboardLatencyTesting,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w500,
@@ -94,7 +94,7 @@ class LatencyIndicator extends StatelessWidget {
             const SizedBox(width: 4),
           ],
           Text(
-            AppLocalizations.of(context)!.xboardLatencyAutoTesting,
+            AppLocalizations.of(context).xboardLatencyAutoTesting,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -117,7 +117,7 @@ class LatencyIndicator extends StatelessWidget {
             border: Border.all(color: color?.withValues(alpha: 0.3) ?? Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
           ),
           child: Text(
-            delayValue! < 0 ? AppLocalizations.of(context)!.xboardLatencyTimeout : '$delayValue',
+            delayValue! < 0 ? AppLocalizations.of(context).xboardLatencyTimeout : '$delayValue',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: color,
               fontWeight: FontWeight.w600,
@@ -159,7 +159,7 @@ class LatencyQuality {
   static const int fair = 200;
   static const int poor = 500;
   static String getQualityLevel(BuildContext context, int delay) {
-    final loc = AppLocalizations.of(context)!;
+    final loc = AppLocalizations.of(context);
     if (delay < 0) return loc.xboardLatencyTimeout;
     if (delay <= excellent) return loc.xboardLatencyExcellent;
     if (delay <= good) return loc.xboardLatencyGood;
@@ -168,7 +168,7 @@ class LatencyQuality {
     return loc.xboardLatencyVeryPoor;
   }
   static String getQualityDescription(BuildContext context, int delay) {
-    final loc = AppLocalizations.of(context)!;
+    final loc = AppLocalizations.of(context);
     if (delay < 0) return loc.xboardLatencyTimeoutDesc;
     if (delay <= excellent) return loc.xboardLatencyExcellentDesc;
     if (delay <= good) return loc.xboardLatencyGoodDesc;

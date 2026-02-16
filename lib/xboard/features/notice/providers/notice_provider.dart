@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/adapter/state/notice_state.dart';
-import 'package:fl_clash/xboard/infrastructure/api/api.dart';
 
 /// 公告状态
 class NoticeState {
@@ -83,5 +82,4 @@ class NoticeNotifier extends Notifier<NoticeState> {
 final noticeProvider = NotifierProvider<NoticeNotifier, NoticeState>(
   NoticeNotifier.new,
 );
-
 

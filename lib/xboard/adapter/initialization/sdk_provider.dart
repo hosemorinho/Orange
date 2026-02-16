@@ -1,5 +1,4 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/constant.dart' show apiBaseUrl;
 import 'package:fl_clash/common/http.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';

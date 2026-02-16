@@ -4,7 +4,7 @@ import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dar
 import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/models/models.dart' as fl_models;
+import 'package:fl_clash/models/profile.dart' as fl_models;
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:go_router/go_router.dart';
 import '../services/subscription_status_service.dart';
@@ -276,6 +276,7 @@ class SubscriptionUsageCard extends ConsumerWidget {
         await ref.read(xboardSubscriptionProvider.notifier).loadPlans();
         plans = ref.read(xboardSubscriptionProvider);
       }
+      if (!context.mounted) return;
       
       DomainPlan? currentPlan;
       try {
@@ -285,6 +286,7 @@ class SubscriptionUsageCard extends ConsumerWidget {
       }
       
       if (currentPlan != null) {
+        if (!context.mounted) return;
         if (isDesktop) {
           context.go('/plans');
         } else {
@@ -296,8 +298,10 @@ class SubscriptionUsageCard extends ConsumerWidget {
     
     // 没找到套餐：跳转到套餐列表页面
     if (isDesktop) {
+      if (!context.mounted) return;
       context.go('/plans');
     } else {
+      if (!context.mounted) return;
       context.push('/plans');
     }
   }
@@ -482,7 +486,8 @@ class SubscriptionUsageCard extends ConsumerWidget {
   }
   int? _calculateRemainingDays() {
     DateTime? expiredAt;
-    if (profileSubscriptionInfo?.expire != null && profileSubscriptionInfo!.expire != 0) {
+    if (profileSubscriptionInfo != null &&
+        profileSubscriptionInfo!.expire != 0) {
       expiredAt = DateTime.fromMillisecondsSinceEpoch(profileSubscriptionInfo!.expire * 1000);
     } else if (subscriptionInfo?.expiredAt != null) {
       expiredAt = subscriptionInfo!.expiredAt;
@@ -510,7 +515,7 @@ class SubscriptionUsageCard extends ConsumerWidget {
     if (profileSubscriptionInfo != null && profileSubscriptionInfo!.total > 0) {
       return profileSubscriptionInfo!.total.toDouble();
     }
-    return userInfo?.transferLimit?.toDouble() ?? 0;
+    return userInfo?.transferLimit.toDouble() ?? 0;
   }
   Color _getProgressColor(double progress, ThemeData theme) {
     if (progress >= 0.9) {

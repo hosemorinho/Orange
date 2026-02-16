@@ -1,5 +1,6 @@
-import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/models/common.dart';
+import 'package:fl_clash/xboard/core/bridges/subscription_bridge.dart'
+    show GroupName, GroupType, Mode;
 
 /// Resolves the current active proxy node based on groups, selection map, and mode.
 ///
@@ -64,10 +65,10 @@ import 'package:fl_clash/models/models.dart';
     return (group: null, proxy: null);
   }
 
-  final selectedProxyName = selectedMap[currentGroup.name] ?? "";
+  final selectedProxyName = selectedMap[currentGroup.name] ?? '';
   String realNodeName;
   if (currentGroup.type == GroupType.URLTest) {
-    realNodeName = currentGroup.now ?? "";
+    realNodeName = currentGroup.now ?? '';
   } else {
     realNodeName = currentGroup.getCurrentSelectedName(selectedProxyName);
   }

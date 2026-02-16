@@ -2,7 +2,6 @@ import 'package:fl_clash/common/common.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/xb_dashboard_card.dart';
 import 'package:fl_clash/xboard/adapter/state/traffic_provider.dart';
 import 'package:fl_clash/xboard/domain/models/traffic_record.dart';

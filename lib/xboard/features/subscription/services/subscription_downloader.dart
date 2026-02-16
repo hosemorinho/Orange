@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/models/profile.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:socks5_proxy/socks_client.dart';
 
@@ -17,7 +16,6 @@ final _logger = FileLogger('subscription_downloader.dart');
 /// 并发下载（直连 + 所有代理），第一个成功就获胜
 /// 并发竞速只用于测试连通性，最终使用 FlClash 核心的 Profile.update() 下载
 class SubscriptionDownloader {
-  static const Duration _downloadTimeout = Duration(seconds: 30);
   static const Duration _racingTimeout = Duration(seconds: 10); // 竞速测试超时
   static const Duration _coreWaitTimeout = Duration(seconds: 30); // 等待核心就绪超时
 
@@ -97,7 +95,8 @@ class SubscriptionDownloader {
 
     _logger.info('[核心初始化] 等待 appController 就绪 (最多10秒)...');
     final startTime = DateTime.now();
-    while (DateTime.now().difference(startTime).inSeconds < 10) {
+    while (DateTime.now().difference(startTime).inSeconds <
+        _coreWaitTimeout.inSeconds) {
       if (appController.isAttach) {
         final elapsed = DateTime.now().difference(startTime).inMilliseconds;
         _logger.info('[核心初始化] appController 就绪 (${elapsed}ms)');
@@ -142,8 +141,7 @@ class SubscriptionDownloader {
       final coreReadyFuture = _waitForCoreReady();
 
       // 等待两个任务都完成（并行执行）
-      final results = await Future.wait([racingFuture, coreReadyFuture]);
-      final racingResult = results[0] as _ConnectivityRacingResult;
+      await Future.wait([racingFuture, coreReadyFuture]);
 
       // 使用 FlClash 核心的 Profile.update() 下载完整配置
       // forceDirect: 绕过 Clash 代理直连下载，避免 Clash 核心已启动

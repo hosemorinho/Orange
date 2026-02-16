@@ -56,7 +56,7 @@ class XBInputField extends StatelessWidget {
                 ),
               ),
             ),
-            if (labelTrailing != null) labelTrailing!,
+            ...[labelTrailing].whereType<Widget>(),
           ],
         ),
         const SizedBox(height: 6),

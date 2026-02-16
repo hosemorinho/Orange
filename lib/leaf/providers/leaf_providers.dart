@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/leaf/leaf_controller.dart';
+import 'package:fl_clash/leaf/core/leaf_bridge.dart' show GroupName;
 import 'package:fl_clash/leaf/models/leaf_node.dart';
 import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/providers/database.dart';

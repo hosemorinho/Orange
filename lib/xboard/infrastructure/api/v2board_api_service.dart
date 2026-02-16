@@ -14,44 +14,37 @@ final _logger = FileLogger('v2board_api_service.dart');
 class V2BoardApiService {
   final XBoardHttpClient _http;
   String baseUrl;
-  String? _authToken;
+  String? authToken;
 
   V2BoardApiService({
     required this.baseUrl,
     required XBoardHttpClient httpClient,
-    String? authToken,
-  })  : _http = httpClient,
-        _authToken = authToken;
+    this.authToken,
+  }) : _http = httpClient;
 
   // ========== Token 管理 ==========
 
-  String? get authToken => _authToken;
-
-  set authToken(String? token) {
-    _authToken = token;
-  }
-
   Future<void> loadStoredToken() async {
-    _authToken = await V2BoardTokenStorage.getToken();
+    authToken = await V2BoardTokenStorage.getToken();
   }
 
   Future<void> saveAndSetToken(String token, {String? email}) async {
-    _authToken = token;
+    authToken = token;
     await V2BoardTokenStorage.saveToken(token, email: email);
   }
 
   Future<void> clearToken() async {
-    _authToken = null;
+    authToken = null;
     await V2BoardTokenStorage.clearAuth();
   }
 
-  bool get hasAuthToken => _authToken != null && _authToken!.isNotEmpty;
+  bool get hasAuthToken => authToken != null && authToken!.isNotEmpty;
 
   /// 构建带认证的请求 Options
   Options _authOptions({Map<String, dynamic>? extra}) {
     return Options(
-      headers: _authToken != null
-          ? {'Authorization': _authToken!}
+      headers: authToken != null
+          ? {'Authorization': authToken!}
           : null,
       extra: extra,
     );

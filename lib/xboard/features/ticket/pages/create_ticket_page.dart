@@ -26,6 +26,7 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
     if (!_formKey.currentState!.validate()) return;
 
     final success = await ref.read(ticketProvider.notifier).createTicket(
@@ -34,13 +35,14 @@ class _CreateTicketPageState extends ConsumerState<CreateTicketPage> {
           _messageController.text.trim(),
         );
 
+    if (!mounted) return;
     if (success) {
-      XBoardNotification.showSuccess(AppLocalizations.of(context).xboardTicketCreated);
-      if (mounted) context.pop();
-    } else {
-      final error = ref.read(ticketProvider).errorMessage;
-      XBoardNotification.showError(error ?? AppLocalizations.of(context).xboardTicketCreateFailed);
+      XBoardNotification.showSuccess(l10n.xboardTicketCreated);
+      context.pop();
+      return;
     }
+    final error = ref.read(ticketProvider).errorMessage;
+    XBoardNotification.showError(error ?? l10n.xboardTicketCreateFailed);
   }
 
   @override

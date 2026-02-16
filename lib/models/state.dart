@@ -4,7 +4,6 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'app.dart';
 import 'clash_config.dart';
 import 'common.dart';
 import 'config.dart';

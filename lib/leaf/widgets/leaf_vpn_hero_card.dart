@@ -3,13 +3,13 @@ import 'dart:math';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/leaf/core/leaf_bridge.dart' show Mode;
 import 'package:fl_clash/leaf/providers/leaf_providers.dart';
 import 'package:fl_clash/leaf/widgets/leaf_node_list.dart';
-import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/models/profile.dart';
 import 'package:fl_clash/providers/config.dart';
-import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/providers/state.dart';
 import 'package:fl_clash/widgets/tab.dart';
 import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/xboard/domain/models/models.dart';
@@ -182,13 +182,13 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
     if (profileSubInfo != null && profileSubInfo.total > 0) {
       return profileSubInfo.total.toDouble();
     }
-    return userInfo?.transferLimit?.toDouble() ?? 0;
+    return userInfo?.transferLimit.toDouble() ?? 0;
   }
 
   int? _calculateRemainingDays(
       SubscriptionInfo? profileSubInfo, DomainSubscription? subscriptionInfo) {
     DateTime? expiredAt;
-    if (profileSubInfo?.expire != null && profileSubInfo!.expire != 0) {
+    if (profileSubInfo != null && profileSubInfo.expire != 0) {
       expiredAt =
           DateTime.fromMillisecondsSinceEpoch(profileSubInfo.expire * 1000);
     } else if (subscriptionInfo?.expiredAt != null) {
@@ -958,84 +958,6 @@ class _LeafVpnHeroCardState extends ConsumerState<LeafVpnHeroCard>
             AppLocalizations.of(context).xboardImportingSubscription,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final appLocalizations = AppLocalizations.of(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colorScheme.error.withValues(alpha: 0.2),
-          width: 1.5,
-        ),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.cloud_off_outlined,
-              color: colorScheme.onSurfaceVariant,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  appLocalizations.xboardNoAvailableNodes,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  appLocalizations.xboardClickToSetupNodes,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          FilledButton(
-            onPressed: _navigateToNodes,
-            style: FilledButton.styleFrom(
-              backgroundColor: colorScheme.primary,
-              foregroundColor: colorScheme.onPrimary,
-              minimumSize: const Size(64, 36),
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              elevation: 0,
-            ),
-            child: Text(
-              appLocalizations.xboardSetup,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
             ),
           ),
         ],

@@ -11,8 +11,62 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'widgets/start_button.dart';
+import 'widgets/widgets.dart' as dashboard_widgets;
 
 typedef _IsEditWidgetBuilder = Widget Function(bool isEdit);
+
+const Map<DashboardWidget, GridItem> _dashboardWidgetGridItems = {
+  DashboardWidget.networkSpeed: GridItem(
+    crossAxisCellCount: 8,
+    child: dashboard_widgets.NetworkSpeed(),
+  ),
+  DashboardWidget.outboundModeV2: GridItem(
+    crossAxisCellCount: 8,
+    child: dashboard_widgets.OutboundModeV2(),
+  ),
+  DashboardWidget.outboundMode: GridItem(
+    crossAxisCellCount: 4,
+    child: dashboard_widgets.OutboundMode(),
+  ),
+  DashboardWidget.trafficUsage: GridItem(
+    crossAxisCellCount: 4,
+    child: dashboard_widgets.TrafficUsage(),
+  ),
+  DashboardWidget.networkDetection: GridItem(
+    crossAxisCellCount: 4,
+    child: dashboard_widgets.NetworkDetection(),
+  ),
+  DashboardWidget.tunButton: GridItem(
+    crossAxisCellCount: 4,
+    child: dashboard_widgets.TUNButton(),
+  ),
+  DashboardWidget.vpnButton: GridItem(
+    crossAxisCellCount: 4,
+    child: dashboard_widgets.VpnButton(),
+  ),
+  DashboardWidget.systemProxyButton: GridItem(
+    crossAxisCellCount: 4,
+    child: dashboard_widgets.SystemProxyButton(),
+  ),
+  DashboardWidget.intranetIp: GridItem(
+    crossAxisCellCount: 4,
+    child: dashboard_widgets.IntranetIP(),
+  ),
+  DashboardWidget.memoryInfo: GridItem(
+    crossAxisCellCount: 4,
+    child: dashboard_widgets.MemoryInfo(),
+  ),
+};
+
+GridItem _gridItemForDashboardWidget(DashboardWidget item) {
+  return _dashboardWidgetGridItems[item]!;
+}
+
+DashboardWidget _dashboardWidgetForGridItem(GridItem gridItem) {
+  return _dashboardWidgetGridItems.entries
+      .firstWhere((entry) => identical(entry.value, gridItem))
+      .key;
+}
 
 class DashboardView extends ConsumerStatefulWidget {
   const DashboardView({super.key});
@@ -214,7 +268,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     if (mounted) {
       await currentState.isTransformCompleter;
       final dashboardWidgets = currentState.children
-          .map((item) => DashboardWidget.getDashboardWidget(item))
+          .map(_dashboardWidgetForGridItem)
           .toList();
       ref
           .read(appSettingProvider.notifier)
@@ -234,16 +288,16 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           .where(
             (item) => item.platforms.contains(SupportPlatform.currentPlatform),
           )
-          .map((item) => item.widget),
+          .map(_gridItemForDashboardWidget),
     ];
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _addedWidgetsNotifier.value = DashboardWidget.values
           .where(
             (item) =>
-                !children.contains(item.widget) &&
+                !children.contains(_gridItemForDashboardWidget(item)) &&
                 item.platforms.contains(SupportPlatform.currentPlatform),
           )
-          .map((item) => item.widget)
+          .map(_gridItemForDashboardWidget)
           .toList();
     });
     return _buildIsEdit(
@@ -270,7 +324,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                                   SupportPlatform.currentPlatform,
                                 ),
                               )
-                              .map((item) => item.widget),
+                              .map(_gridItemForDashboardWidget),
                         ],
                         onUpdate: () {
                           _handleSave();

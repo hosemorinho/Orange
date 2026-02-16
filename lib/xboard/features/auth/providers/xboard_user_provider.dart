@@ -90,7 +90,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
         _backgroundTokenValidation();
 
         // 启动时自动导入订阅
-        if (subscriptionInfo?.subscribeUrl?.isNotEmpty == true) {
+        if (subscriptionInfo?.subscribeUrl.isNotEmpty == true) {
           _logger.info('启动时自动导入订阅: ${subscriptionInfo!.subscribeUrl}');
           ref.read(profileImportProvider.notifier).importSubscription(subscriptionInfo.subscribeUrl);
         }
@@ -369,7 +369,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
         ref.invalidate(getUserInfoProvider);
         userInfo = await ref.read(getUserInfoProvider.future);
         if (userInfo != null) {
-          await _storageService.saveDomainUser(userInfo!);
+          await _storageService.saveDomainUser(userInfo);
         }
         ref.read(userInfoProvider.notifier).state = userInfo;
       } catch (e) {
@@ -380,7 +380,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
         ref.invalidate(getSubscriptionProvider);
         subscriptionData = await ref.read(getSubscriptionProvider.future);
         if (subscriptionData != null) {
-          await _storageService.saveDomainSubscription(subscriptionData!);
+          await _storageService.saveDomainSubscription(subscriptionData);
         }
         ref.read(subscriptionInfoProvider.notifier).state = subscriptionData;
       } catch (e) {
@@ -428,7 +428,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
         ref.invalidate(getUserInfoProvider);
         userInfo = await ref.read(getUserInfoProvider.future);
         if (userInfo != null) {
-          await _storageService.saveDomainUser(userInfo!);
+          await _storageService.saveDomainUser(userInfo);
         }
         ref.read(userInfoProvider.notifier).state = userInfo;
       } catch (e) {
@@ -439,7 +439,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
         ref.invalidate(getSubscriptionProvider);
         subscriptionData = await ref.read(getSubscriptionProvider.future);
         if (subscriptionData != null) {
-          await _storageService.saveDomainSubscription(subscriptionData!);
+          await _storageService.saveDomainSubscription(subscriptionData);
         }
         ref.read(subscriptionInfoProvider.notifier).state = subscriptionData;
       } catch (e) {

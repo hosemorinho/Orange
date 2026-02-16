@@ -1,8 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:fl_clash/xboard/core/core.dart';
-import 'package:fl_clash/l10n/l10n.dart';
-import 'package:flutter/material.dart';
-import 'user_agent_config.dart';
 import 'package:fl_clash/xboard/infrastructure/network/domain_pool.dart';
 
 // 初始化文件级日志器
@@ -77,14 +74,12 @@ class XBoardHttpConfig {
 /// - 请求/响应拦截器
 class XBoardHttpClient {
   final Dio _dio;
-  final String? _baseUrl;
   
   XBoardHttpClient({
     String? baseUrl,
     Duration? timeout,
     Map<String, dynamic>? headers,
-  })  : _baseUrl = baseUrl,
-        _dio = _createDio(
+  })  : _dio = _createDio(
           baseUrl: baseUrl,
           timeout: timeout,
           headers: headers,
@@ -574,4 +569,3 @@ enum HttpErrorType {
   /// 未知错误
   unknown,
 }
-

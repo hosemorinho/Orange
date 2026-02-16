@@ -23,6 +23,7 @@ Future<void> showResetSubscriptionDialog(BuildContext context, WidgetRef ref) as
   );
 
   if (result == true) {
+    if (!context.mounted) return;
     await _handleReset(context, ref);
   }
 }

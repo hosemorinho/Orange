@@ -1,13 +1,14 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
+import 'package:fl_clash/xboard/core/bridges/subscription_bridge.dart'
+    show Mode;
 import 'tun_introduction_dialog.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 
@@ -199,7 +200,6 @@ class XBoardOutboundMode extends StatelessWidget {
 
   Widget _buildTunRow(BuildContext context, bool tunEnabled, bool isNarrow, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
 
     return Row(
       children: [
@@ -225,7 +225,7 @@ class XBoardOutboundMode extends StatelessWidget {
             onChanged: (value) {
               _handleTunToggle(context, ref, value);
             },
-            activeColor: colorScheme.tertiary,
+            activeThumbColor: colorScheme.tertiary,
             activeTrackColor: colorScheme.tertiaryContainer,
           ),
         ),

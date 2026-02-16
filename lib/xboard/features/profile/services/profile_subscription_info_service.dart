@@ -1,4 +1,4 @@
-import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/models/profile.dart';
 
 /// Profile 订阅信息服务
 ///

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
@@ -92,7 +91,6 @@ class ProviderItem extends StatelessWidget {
       final bytes = platformFile?.bytes;
       if (bytes == null || provider.path == null) return;
       await File(provider.path!).safeWriteAsBytes(bytes);
-      final providerName = provider.name;
       // Leaf does not support external providers — no-op.
       throw 'External providers are not supported in leaf mode';
     });

@@ -62,7 +62,7 @@ class _VpnContainerState extends ConsumerState<VpnManager> with ServiceListener 
     );
     if (connected && (status == 'connected' || status == 'reasserting')) {
       globalState.startTime ??= DateTime.now();
-      ref.read(isLeafRunningProvider.notifier).state = true;
+      ref.read(isLeafRunningProvider.notifier).set(true);
       appController.updateRunTime();
       return;
     }
@@ -70,7 +70,7 @@ class _VpnContainerState extends ConsumerState<VpnManager> with ServiceListener 
       return;
     }
     globalState.startTime = null;
-    ref.read(isLeafRunningProvider.notifier).state = false;
+    ref.read(isLeafRunningProvider.notifier).set(false);
     appController.updateRunTime();
     ref.read(trafficsProvider.notifier).clear();
     ref.read(totalTrafficProvider.notifier).value = Traffic();

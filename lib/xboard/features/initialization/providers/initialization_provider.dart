@@ -94,7 +94,7 @@ class XBoardInitializationNotifier extends Notifier<InitializationState> {
         if (retryCount > 0) {
           _logger.info('[Initialization] 🔄 第 $retryCount 次重试...');
           state = state.copyWith(
-            currentStepDescription: '重试中... (${retryCount}/$_maxRetries)',
+            currentStepDescription: '重试中... ($retryCount/$_maxRetries)',
           );
           // 重试前等待一小段时间
           await Future.delayed(Duration(seconds: retryCount * 2));
@@ -104,7 +104,8 @@ class XBoardInitializationNotifier extends Notifier<InitializationState> {
         return; // 成功则直接返回
       } catch (e) {
         lastError = e is Exception ? e : Exception(e.toString());
-        _logger.warning('[Initialization] ⚠️ 尝试 ${retryCount + 1} 失败: $e');
+        final attempt = retryCount + 1;
+        _logger.warning('[Initialization] ⚠️ 尝试 $attempt 失败: $e');
         retryCount++;
 
         if (retryCount > _maxRetries) {

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -98,7 +97,7 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         ],
       ),
       body: Consumer(
-        builder: (_, ref, __) {
+        builder: (context, ref, child) {
           // 获取屏幕高度并计算自适应间距
           final screenHeight = MediaQuery.of(context).size.height;
         final appBarHeight = kToolbarHeight;

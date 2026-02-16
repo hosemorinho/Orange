@@ -4,7 +4,6 @@
 ///
 /// 注意：此文件现在使用数据库存储，保持接口兼容
 import 'package:fl_clash/xboard/database/database.dart';
-import 'package:fl_clash/xboard/database/repositories/repositories.dart';
 
 class V2BoardTokenStorage {
   static final _authRepo = DbAuthRepository(xboardDatabase);

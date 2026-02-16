@@ -12,16 +12,16 @@ class ProxyInfo extends ConfigEntry {
   final String? region;
 
   const ProxyInfo({
-    required String url,
-    required String description,
+    required super.url,
+    required super.description,
     required this.protocol,
     this.username,
     this.password,
     this.host,
     this.port,
     this.region,
-    Map<String, dynamic>? metadata,
-  }) : super(url: url, description: description, metadata: metadata);
+    super.metadata,
+  });
 
   /// 从JSON创建代理信息
   factory ProxyInfo.fromJson(Map<String, dynamic> json) {

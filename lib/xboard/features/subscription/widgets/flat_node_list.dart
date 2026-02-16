@@ -1,17 +1,16 @@
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
-import 'package:fl_clash/xboard/core/core.dart';
-import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
-import 'package:fl_clash/views/proxies/common.dart' as proxies_common;
+import 'package:fl_clash/xboard/features/latency/services/node_latency_service.dart'
+    as latency_service;
 import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/xboard/features/shared/utils/node_tag_parser.dart';
+import 'package:fl_clash/xboard/core/core.dart';
+import 'package:fl_clash/xboard/core/bridges/subscription_bridge.dart';
 
 class FlatNodeListView extends ConsumerStatefulWidget {
   const FlatNodeListView({super.key});
@@ -39,8 +38,9 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
 
     final groups = ref.read(groupsProvider);
     final selectedMap = ref.read(selectedMapProvider);
-    final mode =
-        ref.read(patchClashConfigProvider.select((state) => state.mode));
+    final mode = ref.read(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
 
     final nodes = _flattenNodes(groups, selectedMap, mode);
     if (nodes.isEmpty) {
@@ -56,8 +56,8 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
       final proxies = nodes.map((n) => n.proxy).toList();
       final testUrl = ref.read(appSettingProvider).testUrl;
 
-      // 批量测速
-      await proxies_common.delayTest(proxies, testUrl);
+      // Batch latency test for all visible nodes.
+      await latency_service.delayTest(proxies, testUrl);
     } finally {
       if (mounted) {
         setState(() => _isTesting = false);
@@ -71,7 +71,7 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
     setState(() => _isRefreshing = true);
 
     try {
-      // 重新拉取订阅配置文件
+      // Refresh subscription profile.
       final currentProfile = ref.read(currentProfileProvider);
       if (currentProfile != null) {
         await appController.updateProfile(currentProfile);
@@ -102,7 +102,9 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
     final theme = Theme.of(context);
     final groups = ref.watch(groupsProvider);
     final selectedMap = ref.watch(selectedMapProvider);
-    final mode = ref.watch(patchClashConfigProvider.select((state) => state.mode));
+    final mode = ref.watch(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
 
     final nodes = _flattenNodes(groups, selectedMap, mode);
     final filtered = _searchQuery.isEmpty
@@ -150,8 +152,10 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
                 hintText: appLocalizations.xboardSearchNode,
                 prefixIcon: const Icon(Icons.search, size: 20),
                 isDense: true,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
@@ -161,14 +165,14 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.5,
+                    ),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: theme.colorScheme.primary,
-                  ),
+                  borderSide: BorderSide(color: theme.colorScheme.primary),
                 ),
               ),
             ),
@@ -213,8 +217,7 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
 
     for (final group in groups) {
       if (group.type != GroupType.Selector) continue;
-      // 全局模式下只显示 GLOBAL 组的节点
-      // 规则模式下跳过 GLOBAL 组
+      // Global mode only shows the GLOBAL group.
       if (mode == Mode.global) {
         if (group.name != GroupName.GLOBAL.name) continue;
       } else {
@@ -225,17 +228,15 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
       for (final proxy in group.all) {
         if (groupNames.contains(proxy.name)) continue;
         if (seen.contains(proxy.name)) continue;
-        // 过滤掉 DIRECT 和 REJECT 特殊节点（大小写不敏感）
+        // Filter special nodes that are not selectable.
         final proxyNameUpper = proxy.name.toUpperCase();
         if (proxyNameUpper == 'DIRECT' || proxyNameUpper == 'REJECT') continue;
         seen.add(proxy.name);
 
         final selected = selectedMap[group.name] == proxy.name;
-        nodes.add(_FlatNode(
-          proxy: proxy,
-          groupName: group.name,
-          isSelected: selected,
-        ));
+        nodes.add(
+          _FlatNode(proxy: proxy, groupName: group.name, isSelected: selected),
+        );
       }
     }
 
@@ -243,14 +244,8 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
   }
 
   void _selectNode(_FlatNode node) {
-    appController.updateCurrentSelectedMap(
-      node.groupName,
-      node.proxy.name,
-    );
-    appController.changeProxyDebounce(
-      node.groupName,
-      node.proxy.name,
-    );
+    appController.updateCurrentSelectedMap(node.groupName, node.proxy.name);
+    appController.changeProxyDebounce(node.groupName, node.proxy.name);
     Navigator.of(context).pop();
   }
 }
@@ -296,12 +291,15 @@ class _FlatNodeCard extends ConsumerWidget {
         side: isSelected
             ? BorderSide(color: colorScheme.primary.withValues(alpha: 0.3))
             : BorderSide(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+              ),
       ),
       child: ListTile(
         leading: Icon(
           Icons.dns,
-          color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+          color: isSelected
+              ? colorScheme.primary
+              : colorScheme.onSurfaceVariant,
         ),
         title: EmojiText(
           proxy.name,
@@ -328,46 +326,52 @@ class _FlatNodeCard extends ConsumerWidget {
                 spacing: 4,
                 runSpacing: 4,
                 children: tags
-                    .map((tag) => Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
+                    .map(
+                      (tag) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.secondaryContainer.withValues(
+                            alpha: 0.5,
                           ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.secondaryContainer
-                                .withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          tag,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontSize: 10,
+                            color: colorScheme.onSecondaryContainer,
                           ),
-                          child: Text(
-                            tag,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 10,
-                              color: colorScheme.onSecondaryContainer,
-                            ),
-                          ),
-                        ))
+                        ),
+                      ),
+                    )
                     .toList(),
               ),
             ],
           ],
         ),
         trailing: _buildLatency(ref),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         onTap: onTap,
       ),
     );
   }
 
   Widget _buildLatency(WidgetRef ref) {
-    final delayState = ref.watch(getDelayProvider(
-      proxyName: proxy.name,
-      testUrl: ref.read(appSettingProvider).testUrl,
-    ));
+    final delayState = ref.watch(
+      getDelayProvider(
+        proxyName: proxy.name,
+        testUrl: ref.read(appSettingProvider).testUrl,
+      ),
+    );
     return LatencyIndicator(
       delayValue: delayState,
-      onTap: () => proxies_common.proxyDelayTest(proxy, ref.read(appSettingProvider).testUrl),
+      onTap: () => latency_service.proxyDelayTest(
+        proxy,
+        ref.read(appSettingProvider).testUrl,
+      ),
       isCompact: true,
     );
   }

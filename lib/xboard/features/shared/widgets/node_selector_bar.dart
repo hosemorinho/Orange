@@ -1,6 +1,5 @@
-import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/providers/providers.dart';
-import 'package:fl_clash/views/proxies/common.dart' as proxies_common;
+import 'package:fl_clash/xboard/features/latency/services/node_latency_service.dart'
+    as latency_service;
 import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/xboard/features/subscription/widgets/flat_node_list.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart';
 import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/l10n/l10n.dart';
-import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/xboard/core/bridges/subscription_bridge.dart';
+
 class NodeSelectorBar extends ConsumerWidget {
   const NodeSelectorBar({super.key});
 
@@ -16,7 +16,9 @@ class NodeSelectorBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final groups = ref.watch(groupsProvider);
     final selectedMap = ref.watch(selectedMapProvider);
-    final mode = ref.watch(patchClashConfigProvider.select((state) => state.mode));
+    final mode = ref.watch(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
 
     if (groups.isEmpty) {
       return _buildEmptyState(context);
@@ -34,7 +36,14 @@ class NodeSelectorBar extends ConsumerWidget {
       child: _buildProxyDisplay(context, ref, group, proxy, mode),
     );
   }
-  Widget _buildProxyDisplay(BuildContext context, WidgetRef ref, Group group, Proxy proxy, Mode mode) {
+
+  Widget _buildProxyDisplay(
+    BuildContext context,
+    WidgetRef ref,
+    Group group,
+    Proxy proxy,
+    Mode mode,
+  ) {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -50,9 +59,7 @@ class NodeSelectorBar extends ConsumerWidget {
         child: InkWell(
           onTap: () {
             Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const FlatNodeListView(),
-              ),
+              MaterialPageRoute(builder: (context) => const FlatNodeListView()),
             );
           },
           borderRadius: BorderRadius.circular(16),
@@ -162,17 +169,21 @@ class NodeSelectorBar extends ConsumerWidget {
       ),
     );
   }
+
   Widget _buildProxyLatency(WidgetRef ref, Proxy proxy) {
-    final delayState = ref.watch(getDelayProvider(
-      proxyName: proxy.name,
-      testUrl: ref.read(appSettingProvider).testUrl,
-    ));
+    final delayState = ref.watch(
+      getDelayProvider(
+        proxyName: proxy.name,
+        testUrl: ref.read(appSettingProvider).testUrl,
+      ),
+    );
     return LatencyIndicator(
       delayValue: delayState,
       onTap: () => _handleManualTest(ref, proxy),
       showIcon: true,
     );
   }
+
   Widget _buildEmptyState(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
@@ -258,8 +269,9 @@ class NodeSelectorBar extends ConsumerWidget {
       ),
     );
   }
+
   void _handleManualTest(WidgetRef ref, Proxy proxy) {
     final testUrl = ref.read(appSettingProvider).testUrl;
-    proxies_common.proxyDelayTest(proxy, testUrl);
+    latency_service.proxyDelayTest(proxy, testUrl);
   }
 }

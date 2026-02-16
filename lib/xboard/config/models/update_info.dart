@@ -10,14 +10,14 @@ class UpdateInfo extends ConfigEntry {
   final int? fileSize;
 
   const UpdateInfo({
-    required String url,
-    required String description,
+    required super.url,
+    required super.description,
     this.version,
     this.checksum,
     this.region,
     this.fileSize,
-    Map<String, dynamic>? metadata,
-  }) : super(url: url, description: description, metadata: metadata);
+    super.metadata,
+  });
 
   /// 从JSON创建更新信息
   factory UpdateInfo.fromJson(Map<String, dynamic> json) {

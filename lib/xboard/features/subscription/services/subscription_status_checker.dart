@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/providers/state.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/features/subscription/widgets/subscription_status_dialog.dart';
@@ -123,6 +123,7 @@ class SubscriptionStatusChecker {
         await ref.read(xboardSubscriptionProvider.notifier).loadPlans();
         plans = ref.read(xboardSubscriptionProvider);
       }
+      if (!context.mounted) return;
       
       DomainPlan? currentPlan;
       try {
@@ -133,6 +134,7 @@ class SubscriptionStatusChecker {
       
       if (currentPlan != null) {
         _logger.info('[套餐续费] 找到当前套餐，跳转到购买页面: ${currentPlan.name}');
+        if (!context.mounted) return;
         if (isDesktop) {
           context.go('/plans');
         } else {
@@ -146,6 +148,7 @@ class SubscriptionStatusChecker {
     
     // 没找到套餐：跳转到套餐列表页面
     _logger.info('[套餐续费] 跳转到套餐列表页面');
+    if (!context.mounted) return;
     if (isDesktop) {
       context.go('/plans');
     } else {

@@ -140,7 +140,6 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
       _startAutoScroll(topNotices.length);
     });
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
 
     return MouseRegion(

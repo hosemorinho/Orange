@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart' hide windows;
 import 'package:fl_clash/common/common.dart' show system, windows;
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/shared/widgets/xb_dashboard_card.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
@@ -9,12 +8,14 @@ import 'package:fl_clash/xboard/features/shared/dialogs/dialogs.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:fl_clash/xboard/core/core.dart';
-import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/xboard/core/bridges/settings_bridge.dart'
+    show AccessControlMode;
+import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/widgets/input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/views/hotkey.dart';
-import 'package:fl_clash/views/access.dart';
+import 'package:fl_clash/xboard/features/settings/pages/access_view.dart';
+import 'package:fl_clash/xboard/features/settings/pages/hotkey_view.dart';
 
 import '../widgets/lan_sharing_widgets.dart';
 

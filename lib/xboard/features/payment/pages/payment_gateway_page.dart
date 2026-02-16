@@ -61,6 +61,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
         mode: LaunchMode.externalApplication, // 强制在外部浏览器打开
       );
       if (!launched) {
+        if (!mounted) return;
         throw Exception(AppLocalizations.of(context).xboardCannotLaunchBrowser);
       }
       if (mounted) {

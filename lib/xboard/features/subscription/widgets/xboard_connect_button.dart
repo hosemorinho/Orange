@@ -1,12 +1,11 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/providers/state.dart';
 import 'package:fl_clash/providers/database.dart';
-import 'package:fl_clash/state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/xboard/core/bridges/subscription_bridge.dart'
+    show FunctionTag;
 class XBoardConnectButton extends ConsumerStatefulWidget {
   final bool isFloating; // 是否为浮动按钮模式
   const XBoardConnectButton({
@@ -50,7 +49,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
     _controller.dispose();
     super.dispose();
   }
-  handleSwitchStart() {
+  void handleSwitchStart() {
     isStart = !isStart;
     updateController();
     debouncer.call(
@@ -73,7 +72,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
       duration: commonDuration,
     );
   }
-  updateController() {
+  void updateController() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (isStart) {
         _controller.forward();

@@ -150,7 +150,7 @@ class _LeafNodeListViewState extends ConsumerState<LeafNodeListView> {
       proxyPort: probePort,
     );
     delays[node.tag] = result;
-    nodeDelaysNotifier.state = delays;
+    nodeDelaysNotifier.setDelays(delays);
   }
 }
 

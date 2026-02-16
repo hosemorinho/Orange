@@ -1,5 +1,5 @@
 import 'package:fl_clash/common/app_localizations.dart';
-import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/models/profile.dart';
 enum ImportStatus {
   idle,        // 空闲状态
   cleaning,    // 清理旧配置

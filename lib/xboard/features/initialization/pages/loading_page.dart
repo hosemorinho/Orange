@@ -50,7 +50,7 @@ class LoadingPage extends ConsumerWidget {
 
                 // 标题
                 Text(
-                  AppLocalizations.of(context)!.xboardInitializing,
+                  AppLocalizations.of(context).xboardInitializing,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: colorScheme.onSurface,
                         fontWeight: FontWeight.bold,
@@ -124,7 +124,7 @@ class LoadingPage extends ConsumerWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              AppLocalizations.of(context)!.xboardInitializationFailed,
+                              AppLocalizations.of(context).xboardInitializationFailed,
                               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                     color: colorScheme.error,
                                     fontWeight: FontWeight.bold,
@@ -156,7 +156,7 @@ class LoadingPage extends ConsumerWidget {
                           await ref.read(initializationProvider.notifier).refresh();
                         },
                         icon: const Icon(Icons.refresh),
-                        label: Text(AppLocalizations.of(context)!.xboardRetry),
+                        label: Text(AppLocalizations.of(context).xboardRetry),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colorScheme.primary,
                           foregroundColor: colorScheme.onPrimary,
@@ -171,7 +171,7 @@ class LoadingPage extends ConsumerWidget {
                           context.go('/login');
                         },
                         icon: const Icon(Icons.skip_next),
-                        label: Text(AppLocalizations.of(context)!.xboardSkip),
+                        label: Text(AppLocalizations.of(context).xboardSkip),
                         style: TextButton.styleFrom(
                           foregroundColor: colorScheme.onSurfaceVariant,
                         ),
@@ -183,7 +183,7 @@ class LoadingPage extends ConsumerWidget {
                 // 提示信息
                 const SizedBox(height: 48),
                 Text(
-                  AppLocalizations.of(context)!.xboardFirstStartTip,
+                  AppLocalizations.of(context).xboardFirstStartTip,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       ),

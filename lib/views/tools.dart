@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -17,7 +16,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' show dirname, join;
 
-import 'config/advanced.dart';
 import 'developer.dart';
 import 'theme.dart';
 
@@ -74,7 +72,6 @@ class _ToolViewState extends ConsumerState<ToolsView> {
         if (system.isWindows) const _LoopbackItem(),
         if (system.isAndroid) const _AccessItem(),
         const _ConfigItem(),
-        const _AdvancedConfigItem(),
         const _SettingItem(),
       ],
     );
@@ -236,20 +233,6 @@ class _ConfigItem extends StatelessWidget {
       title: Text(context.appLocalizations.basicConfig),
       subtitle: Text(context.appLocalizations.basicConfigDesc),
       delegate: OpenDelegate(widget: const ConfigView()),
-    );
-  }
-}
-
-class _AdvancedConfigItem extends StatelessWidget {
-  const _AdvancedConfigItem();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListItem.open(
-      leading: const Icon(Icons.build),
-      title: Text(context.appLocalizations.advancedConfig),
-      subtitle: Text(context.appLocalizations.advancedConfigDesc),
-      delegate: OpenDelegate(widget: const AdvancedConfigView()),
     );
   }
 }

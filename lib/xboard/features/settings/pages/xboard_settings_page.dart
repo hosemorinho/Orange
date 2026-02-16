@@ -15,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/views/hotkey.dart';
 import 'package:fl_clash/views/access.dart';
-import 'package:fl_clash/views/config/advanced.dart';
 
 import '../widgets/lan_sharing_widgets.dart';
 
@@ -323,23 +322,8 @@ class XBoardSettingsPage extends ConsumerWidget {
                 padding: EdgeInsets.zero,
                 child: Column(
                   children: [
-                    // Advanced Configuration
-                    _SettingTile(
-                      icon: Icons.build_outlined,
-                      title: appLocalizations.advancedConfig,
-                      subtitle: appLocalizations.advancedConfigDesc,
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const AdvancedConfigView(),
-                          ),
-                        );
-                      },
-                    ),
                     // Hotkey Management (Desktop only)
                     if (system.isDesktop) ...[
-                      _SettingDivider(),
                       _SettingTile(
                         icon: Icons.keyboard_outlined,
                         title: appLocalizations.hotkeyManagement,

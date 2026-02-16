@@ -249,10 +249,15 @@ object State {
     }
 
     fun syncState() {
+        val title = sharedState.currentProfileName.takeIf { it.isNotBlank() } ?: "Orange"
+        val stopText = sharedState.stopText.takeIf { it.isNotBlank() } ?: "Stop"
+        LeafPreferences.notificationTitle = title
+        LeafPreferences.notificationStopText = stopText
+        LeafPreferences.notificationOnlyStatisticsProxy = sharedState.onlyStatisticsProxy
         com.follow.clash.service.State.notificationParamsFlow.tryEmit(
             NotificationParams(
-                title = sharedState.currentProfileName,
-                stopText = sharedState.stopText,
+                title = title,
+                stopText = stopText,
                 onlyStatisticsProxy = sharedState.onlyStatisticsProxy
             )
         )

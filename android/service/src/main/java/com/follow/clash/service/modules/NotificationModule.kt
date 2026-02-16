@@ -45,6 +45,7 @@ class NotificationModule(private val service: Service) : Module() {
     private val scope = CoroutineScope(Dispatchers.Default)
 
     override fun onInstall() {
+        State.refreshNotificationParamsFromPrefs()
         scope.launch {
             val screenFlow = service.receiveBroadcastFlow {
                 addAction(Intent.ACTION_SCREEN_ON)
@@ -58,13 +59,15 @@ class NotificationModule(private val service: Service) : Module() {
             combine(
                 tickerFlow(1000, 0), State.notificationParamsFlow, screenFlow
             ) { _, params, screenOn ->
-                params?.extended to screenOn
+                State.refreshNotificationParamsFromPrefs()
+                (State.notificationParamsFlow.value ?: params)?.extended to screenOn
             }.filter { (params, screenOn) -> params != null && screenOn }
                 .distinctUntilChanged { old, new -> old.first == new.first && old.second == new.second }
                 .collect { (params, _) ->
                     update(params!!)
                 }
 
+            State.refreshNotificationParamsFromPrefs()
             State.notificationParamsFlow.value?.let {
                 update(it.extended)
             } ?: run {
@@ -89,7 +92,7 @@ class NotificationModule(private val service: Service) : Module() {
             )
         ) {
             setSmallIcon(R.drawable.ic)
-            setContentTitle("Orange")
+            setContentTitle(State.notificationParamsFlow.value?.title ?: "Orange")
             setContentIntent(intent.toPendingIntent)
             setPriority(NotificationCompat.PRIORITY_HIGH)
             setCategory(NotificationCompat.CATEGORY_SERVICE)

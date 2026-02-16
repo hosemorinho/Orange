@@ -18,6 +18,10 @@ object LeafPreferences {
     private const val KEY_LAST_START_TIME = "last_start_time"
     private const val KEY_CONFIG_JSON = "config_json"
     private const val KEY_VPN_OPTIONS_JSON = "vpn_options_json"
+    private const val KEY_NOTIFICATION_TITLE = "notification_title"
+    private const val KEY_NOTIFICATION_STOP_TEXT = "notification_stop_text"
+    private const val KEY_NOTIFICATION_ONLY_STATISTICS_PROXY =
+        "notification_only_statistics_proxy"
 
     @Volatile
     private var prefs: SharedPreferences? = null
@@ -138,6 +142,33 @@ object LeafPreferences {
         get() = getPrefs().getString(KEY_VPN_OPTIONS_JSON, "") ?: ""
         set(value) {
             getPrefs().edit().putString(KEY_VPN_OPTIONS_JSON, value).commit()
+        }
+
+    /**
+     * Notification title shown by foreground services.
+     */
+    var notificationTitle: String
+        get() = getPrefs().getString(KEY_NOTIFICATION_TITLE, "Orange") ?: "Orange"
+        set(value) {
+            getPrefs().edit().putString(KEY_NOTIFICATION_TITLE, value).commit()
+        }
+
+    /**
+     * Notification stop action text shown by foreground services.
+     */
+    var notificationStopText: String
+        get() = getPrefs().getString(KEY_NOTIFICATION_STOP_TEXT, "Stop") ?: "Stop"
+        set(value) {
+            getPrefs().edit().putString(KEY_NOTIFICATION_STOP_TEXT, value).commit()
+        }
+
+    /**
+     * Whether notification should display only proxy statistics.
+     */
+    var notificationOnlyStatisticsProxy: Boolean
+        get() = getPrefs().getBoolean(KEY_NOTIFICATION_ONLY_STATISTICS_PROXY, false)
+        set(value) {
+            getPrefs().edit().putBoolean(KEY_NOTIFICATION_ONLY_STATISTICS_PROXY, value).commit()
         }
 
     /**

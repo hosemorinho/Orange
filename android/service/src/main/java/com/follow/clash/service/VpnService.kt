@@ -57,6 +57,7 @@ class VpnService : SystemVpnService(), IBaseService,
                 // Already initialized
             }
         }
+        State.refreshNotificationParamsFromPrefs()
         State.ensureOptionsFromPrefs()
         handleCreate()
     }
@@ -104,6 +105,8 @@ class VpnService : SystemVpnService(), IBaseService,
     }
 
     private fun createNotification(): Notification {
+        State.refreshNotificationParamsFromPrefs()
+        val params = State.notificationParamsFlow.value ?: com.follow.clash.service.models.NotificationParams()
         val channel = NotificationChannel(
             GlobalState.NOTIFICATION_CHANNEL,
             "Orange VPN",
@@ -125,13 +128,13 @@ class VpnService : SystemVpnService(), IBaseService,
         )
 
         return NotificationCompat.Builder(this, GlobalState.NOTIFICATION_CHANNEL)
-            .setContentTitle("Orange VPN")
+            .setContentTitle(params.title)
             .setContentText(if (isAutoRecovery) "Reconnecting..." else "Running")
             .setSmallIcon(android.R.drawable.ic_lock_lock)
             .setOngoing(true)
             .addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
-                "Stop",
+                params.stopText,
                 stopPendingIntent
             )
             .build()

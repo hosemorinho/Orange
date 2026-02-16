@@ -15,6 +15,18 @@ object State {
         NotificationParams()
     )
 
+    fun refreshNotificationParamsFromPrefs() {
+        val title = LeafPreferences.notificationTitle.takeIf { it.isNotBlank() } ?: "Orange"
+        val stopText = LeafPreferences.notificationStopText.takeIf { it.isNotBlank() } ?: "Stop"
+        notificationParamsFlow.tryEmit(
+            NotificationParams(
+                title = title,
+                stopText = stopText,
+                onlyStatisticsProxy = LeafPreferences.notificationOnlyStatisticsProxy
+            )
+        )
+    }
+
     /** The TUN ParcelFileDescriptor from VpnService.Builder.establish(). */
     @Volatile var tunPfd: ParcelFileDescriptor? = null
 

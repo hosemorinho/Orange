@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/constant.dart' show apiBaseUrl;
+import 'package:fl_clash/common/http.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';
 import 'package:fl_clash/xboard/infrastructure/api/api.dart';
 import 'package:fl_clash/xboard/infrastructure/http/xboard_http_client.dart';
@@ -47,6 +48,10 @@ Future<V2BoardApiService> xboardSdk(Ref ref) async {
 
     _logger.info('[SdkProvider] 使用域名: $fastestUrl');
 
+    // Register panel domain for proxy bypass so the app can reach
+    // the panel even when the proxy core is down.
+    FlClashHttpOverrides.addBypassHosts([fastestUrl]);
+
     // 2. 根据竞速结果决定是否使用代理
     String? proxyUrl;
     final racingResult = XBoardConfig.lastRacingResult;
@@ -80,6 +85,7 @@ Future<V2BoardApiService> xboardSdk(Ref ref) async {
       onSwitch: (newDomain) {
         _logger.info('[SdkProvider] 域名切换: ${api.baseUrl} → $newDomain');
         api.baseUrl = newDomain;
+        FlClashHttpOverrides.addBypassHosts([newDomain]);
       },
     );
 

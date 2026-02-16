@@ -84,7 +84,10 @@ class ConfigWriter {
     }
     final router = LeafRouter(
       rules: rules,
-      domainResolve: true,
+      // Only resolve domains for IP-based rule matching (mmdb:cn).
+      // In global/direct mode the rules list is empty, so resolving
+      // every domain via DoH would add latency for no benefit.
+      domainResolve: mode == Mode.rule,
     );
 
     // DNS

@@ -11,16 +11,36 @@ import 'package:flutter/services.dart';
 abstract mixin class ServiceListener {
   void onServiceCrash(String message) {}
 
-  void onVpnStatusChanged({
-    required String status,
-    required bool connected,
-  }) {}
+  void onVpnStatusChanged({required String status, required bool connected}) {}
 
   /// Called when core status changes in :core process.
   void onCoreStatusChanged(Map<String, dynamic> status) {}
 
   /// Called when core encounters an error.
   void onCoreError(String message) {}
+}
+
+class ServiceStartResult {
+  const ServiceStartResult({required this.success, this.error, this.errorCode});
+
+  final bool success;
+  final String? error;
+  final String? errorCode;
+
+  factory ServiceStartResult.fromMethodResult(dynamic result) {
+    if (result is bool) {
+      return ServiceStartResult(success: result);
+    }
+    if (result is Map) {
+      final map = Map<String, dynamic>.from(result);
+      return ServiceStartResult(
+        success: map['success'] as bool? ?? false,
+        error: map['error'] as String?,
+        errorCode: map['errorCode'] as String?,
+      );
+    }
+    return const ServiceStartResult(success: false);
+  }
 }
 
 class Service {
@@ -30,8 +50,8 @@ class Service {
 
   final ObserverList<ServiceListener> _listeners =
       ObserverList<ServiceListener>();
-  final ObserverList<void Function(Map<String, dynamic>)>
-      _coreStatusListeners = ObserverList<void Function(Map<String, dynamic>)>();
+  final ObserverList<void Function(Map<String, dynamic>)> _coreStatusListeners =
+      ObserverList<void Function(Map<String, dynamic>)>();
   final ObserverList<void Function(String)> _coreErrorListeners =
       ObserverList<void Function(String)>();
 
@@ -56,10 +76,7 @@ class Service {
             final status = args['status'] as String? ?? 'unknown';
             final connected = args['connected'] as bool? ?? false;
             for (final listener in _listeners) {
-              listener.onVpnStatusChanged(
-                status: status,
-                connected: connected,
-              );
+              listener.onVpnStatusChanged(status: status, connected: connected);
             }
           }
           break;
@@ -94,7 +111,13 @@ class Service {
   }
 
   Future<bool> start() async {
-    return await methodChannel.invokeMethod<bool>('start') ?? false;
+    final result = await startDetailed();
+    return result.success;
+  }
+
+  Future<ServiceStartResult> startDetailed() async {
+    final response = await methodChannel.invokeMethod<dynamic>('start');
+    return ServiceStartResult.fromMethodResult(response);
   }
 
   Future<bool> stop() async {
@@ -130,6 +153,18 @@ class Service {
 
   Future<bool> shutdown() async {
     return await methodChannel.invokeMethod<bool>('shutdown') ?? true;
+  }
+
+  Future<Map<String, String>?> getLastError() async {
+    final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+      'getLastError',
+    );
+    if (result == null) {
+      return null;
+    }
+    return result.map(
+      (key, value) => MapEntry(key.toString(), value?.toString() ?? ''),
+    );
   }
 
   Future<DateTime?> getRunTime() async {
@@ -190,10 +225,9 @@ class Service {
   /// Start the core service (leaf) in :core process.
   /// @param configJson The Clash/YAML config as JSON string
   Future<bool> startCore(String configJson) async {
-    return await methodChannel.invokeMethod<bool>(
-          'startCore',
-          {'configJson': configJson},
-        ) ??
+    return await methodChannel.invokeMethod<bool>('startCore', {
+          'configJson': configJson,
+        }) ??
         false;
   }
 
@@ -205,10 +239,9 @@ class Service {
   /// Sync config to the core service (reload without restart).
   /// @param configJson The new config as JSON string
   Future<bool> syncConfig(String configJson) async {
-    return await methodChannel.invokeMethod<bool>(
-          'syncConfig',
-          {'configJson': configJson},
-        ) ??
+    return await methodChannel.invokeMethod<bool>('syncConfig', {
+          'configJson': configJson,
+        }) ??
         false;
   }
 
@@ -216,22 +249,23 @@ class Service {
   /// Returns a Map with: isRunning, mode, selectedNode, etc.
   Future<Map<String, dynamic>> getCoreStatus() async {
     final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
-        'getCoreStatus');
+      'getCoreStatus',
+    );
     return Map<String, dynamic>.from(result ?? {});
   }
 
   /// Select node tag in :core process.
   Future<bool> selectCoreNode(String nodeTag) async {
-    return await methodChannel.invokeMethod<bool>(
-          'selectCoreNode',
-          {'nodeTag': nodeTag},
-        ) ??
+    return await methodChannel.invokeMethod<bool>('selectCoreNode', {
+          'nodeTag': nodeTag,
+        }) ??
         false;
   }
 
   /// Get currently selected node tag from :core process.
   Future<String> getCoreSelectedNode() async {
-    return await methodChannel.invokeMethod<String>('getCoreSelectedNode') ?? '';
+    return await methodChannel.invokeMethod<String>('getCoreSelectedNode') ??
+        '';
   }
 
   /// Get the TUN file descriptor from the core service.

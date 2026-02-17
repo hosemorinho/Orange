@@ -1,14 +1,10 @@
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/widgets/pop_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import 'chip.dart';
 import 'inherited.dart';
-
-typedef OnKeywordsUpdateCallback = void Function(List<String> keywords);
 
 typedef AppBarSearchStateBuilder =
     AppBarSearchState? Function(AppBarSearchState? state);
@@ -24,7 +20,6 @@ class CommonScaffold extends StatefulWidget {
   final Widget? floatingActionButton;
   final AppBarEditState? editState;
   final AppBarSearchState? searchState;
-  final OnKeywordsUpdateCallback? onKeywordsUpdate;
   final bool? resizeToAvoidBottomInset;
 
   const CommonScaffold({
@@ -39,7 +34,6 @@ class CommonScaffold extends StatefulWidget {
     this.isLoading = false,
     this.searchState,
     this.floatingActionButton,
-    this.onKeywordsUpdate,
     this.resizeToAvoidBottomInset,
   });
 
@@ -51,7 +45,6 @@ class CommonScaffoldState extends State<CommonScaffold> {
   late final ValueNotifier<AppBarState> _appBarState;
   final ValueNotifier<bool> _loadingNotifier = ValueNotifier(false);
   final ValueNotifier<bool> _isFabExtendedNotifier = ValueNotifier(true);
-  final ValueNotifier<List<String>> _keywordsNotifier = ValueNotifier([]);
   final _textController = TextEditingController();
 
   bool get _isSearch {
@@ -155,21 +148,6 @@ class CommonScaffoldState extends State<CommonScaffold> {
     _isFabExtendedNotifier.dispose();
     _loadingNotifier.dispose();
     super.dispose();
-  }
-
-  void addKeyword(String keyword) {
-    final isContains = _keywordsNotifier.value.contains(keyword);
-    if (isContains) return;
-    final keywords = List<String>.from(_keywordsNotifier.value)..add(keyword);
-    _keywordsNotifier.value = keywords;
-  }
-
-  void _deleteKeyword(String keyword) {
-    final isContains = _keywordsNotifier.value.contains(keyword);
-    if (!isContains) return;
-    final keywords = List<String>.from(_keywordsNotifier.value)
-      ..remove(keyword);
-    _keywordsNotifier.value = keywords;
   }
 
   Widget? _buildLeading(VoidCallback? backAction) {
@@ -304,45 +282,7 @@ class CommonScaffoldState extends State<CommonScaffold> {
     assert(widget.appBar != null || widget.title != null);
     final backActionProvider = CommonScaffoldBackActionProvider.of(context);
     final body = SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ValueListenableBuilder(
-            valueListenable: _keywordsNotifier,
-            builder: (_, keywords, _) {
-              if (widget.onKeywordsUpdate != null) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  widget.onKeywordsUpdate!(keywords);
-                });
-              }
-              if (keywords.isEmpty) {
-                return SizedBox();
-              }
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-                child: Wrap(
-                  runSpacing: 8,
-                  spacing: 8,
-                  children: [
-                    for (final keyword in keywords)
-                      CommonChip(
-                        label: keyword,
-                        type: ChipType.delete,
-                        onPressed: () {
-                          _deleteKeyword(keyword);
-                        },
-                      ),
-                  ],
-                ),
-              );
-            },
-          ),
-          Expanded(child: widget.body),
-        ],
-      ),
+      child: widget.body,
     );
     return Scaffold(
       appBar: _buildAppBar(backActionProvider?.backAction),
@@ -354,7 +294,7 @@ class CommonScaffoldState extends State<CommonScaffold> {
           } else if (notification.direction == ScrollDirection.forward) {
             _isFabExtendedNotifier.value = true;
           }
-          return true;
+          return false;
         },
       ),
       resizeToAvoidBottomInset: widget.resizeToAvoidBottomInset,

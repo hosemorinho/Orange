@@ -74,7 +74,6 @@ dependencies:
   flutter_markdown: ^0.7.4+1
   flutter_widget_from_html: ^0.17.1
   uuid: ^4.4.0
-  qr_flutter: ^4.1.0
   socks5_proxy: ^2.1.1
   crisp_chat: ^2.4.3
 

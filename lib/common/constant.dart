@@ -78,7 +78,6 @@ final commonFilter = ImageFilter.blur(
 );
 
 const listEquality = ListEquality();
-const navigationItemListEquality = ListEquality<NavigationItem>();
 const trackerInfoListEquality = ListEquality<TrackerInfo>();
 const stringListEquality = ListEquality<String>();
 const intListEquality = ListEquality<int>();

@@ -87,8 +87,6 @@ enum TransportProtocol { udp, tcp }
 
 enum TrafficUnit { B, KB, MB, GB, TB }
 
-enum NavigationItemMode { mobile, desktop, more }
-
 enum Network { tcp, udp }
 
 enum ProxiesSortType { none, delay, name }
@@ -233,17 +231,6 @@ enum DashboardWidget {
 }
 
 enum GeodataLoader { standard, memconservative }
-
-enum PageLabel {
-  dashboard,
-  proxies,
-  profiles,
-  tools,
-  logs,
-  requests,
-  resources,
-  connections,
-}
 
 enum RuleAction {
   DOMAIN('DOMAIN'),

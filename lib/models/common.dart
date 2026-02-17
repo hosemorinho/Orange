@@ -10,20 +10,6 @@ part 'generated/common.freezed.dart';
 part 'generated/common.g.dart';
 
 @freezed
-abstract class NavigationItem with _$NavigationItem {
-  const factory NavigationItem({
-    required Icon icon,
-    required PageLabel label,
-    final String? description,
-    required WidgetBuilder builder,
-    @Default(true) bool keep,
-    String? path,
-    @Default([NavigationItemMode.mobile, NavigationItemMode.desktop])
-    List<NavigationItemMode> modes,
-  }) = _NavigationItem;
-}
-
-@freezed
 abstract class Package with _$Package {
   const factory Package({
     required String packageName,

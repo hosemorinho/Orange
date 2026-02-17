@@ -160,15 +160,6 @@ class Init extends _$Init with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
-class CurrentPageLabel extends _$CurrentPageLabel
-    with AutoDisposeNotifierMixin {
-  @override
-  PageLabel build() {
-    return PageLabel.dashboard;
-  }
-}
-
-@Riverpod(keepAlive: true)
 class SortNum extends _$SortNum with AutoDisposeNotifierMixin {
   @override
   int build() {
@@ -371,7 +362,6 @@ List<Override> buildAppStateOverrides(AppState appState) {
   return [
     initProvider.overrideWithBuild((_, _) => appState.isInit),
     backBlockProvider.overrideWithBuild((_, _) => appState.backBlock),
-    currentPageLabelProvider.overrideWithBuild((_, _) => appState.pageLabel),
     packagesProvider.overrideWithBuild((_, _) => appState.packages),
     sortNumProvider.overrideWithBuild((_, _) => appState.sortNum),
     viewSizeProvider.overrideWithBuild((_, _) => appState.viewSize),

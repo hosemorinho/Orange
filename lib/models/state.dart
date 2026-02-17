@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:flutter/material.dart';
@@ -21,29 +20,6 @@ abstract class VM2<A, B> with _$VM2<A, B> {
 @freezed
 abstract class VM3<A, B, C> with _$VM3<A, B, C> {
   const factory VM3(A a, B b, C c) = _VM3;
-}
-
-@freezed
-abstract class VM4<A, B, C, D> with _$VM4<A, B, C, D> {
-  const factory VM4(A a, B b, C c, D d) = _VM4;
-}
-
-@freezed
-abstract class VM5<A, B, C, D, E> with _$VM5<A, B, C, D, E> {
-  const factory VM5(A a, B b, C c, D d, E e) = _VM5;
-}
-
-@freezed
-abstract class ActivateState with _$ActivateState {
-  const factory ActivateState({required bool active}) = _ActivateState;
-}
-
-@freezed
-abstract class InitState with _$InitState {
-  const factory InitState({
-    required Config config,
-    required List<Profile> profiles,
-  }) = _InitState;
 }
 
 @freezed
@@ -91,23 +67,6 @@ abstract class AppBarEditState with _$AppBarEditState {
 }
 
 @freezed
-abstract class StartButtonState with _$StartButtonState {
-  const factory StartButtonState({
-    required bool isPreload,
-    required bool hasProfile,
-  }) = _StartButtonState;
-}
-
-@freezed
-abstract class ProfilesState with _$ProfilesState {
-  const factory ProfilesState({
-    required List<Profile> profiles,
-    required int? currentProfileId,
-    required int columns,
-  }) = _ProfilesState;
-}
-
-@freezed
 abstract class NetworkDetectionState with _$NetworkDetectionState {
   const factory NetworkDetectionState({
     required bool isLoading,
@@ -141,123 +100,8 @@ abstract class TrayTitleState with _$TrayTitleState {
 }
 
 @freezed
-abstract class NavigationState with _$NavigationState {
-  const factory NavigationState({
-    required PageLabel pageLabel,
-    required List<NavigationItem> navigationItems,
-    required ViewMode viewMode,
-    required String? locale,
-    required int currentIndex,
-  }) = _NavigationState;
-}
-
-@freezed
 abstract class GroupsState with _$GroupsState {
   const factory GroupsState({required List<Group> value}) = _GroupsState;
-}
-
-@freezed
-abstract class NavigationItemsState with _$NavigationItemsState {
-  const factory NavigationItemsState({required List<NavigationItem> value}) =
-      _NavigationItemsState;
-}
-
-@freezed
-abstract class ProxiesListState with _$ProxiesListState {
-  const factory ProxiesListState({
-    required List<Group> groups,
-    required Set<String> currentUnfoldSet,
-    required ProxyCardType proxyCardType,
-    required int columns,
-  }) = _ProxiesListState;
-}
-
-@freezed
-abstract class ProxiesTabState with _$ProxiesTabState {
-  const factory ProxiesTabState({
-    required List<Group> groups,
-    required String? currentGroupName,
-    required ProxyCardType proxyCardType,
-    required int columns,
-  }) = _ProxiesTabState;
-}
-
-@freezed
-abstract class ProxyGroupSelectorState with _$ProxyGroupSelectorState {
-  const factory ProxyGroupSelectorState({
-    required String? testUrl,
-    required ProxiesSortType proxiesSortType,
-    required ProxyCardType proxyCardType,
-    required num sortNum,
-    required GroupType groupType,
-    required List<Proxy> proxies,
-    required int columns,
-  }) = _ProxyGroupSelectorState;
-}
-
-@freezed
-abstract class MoreToolsSelectorState with _$MoreToolsSelectorState {
-  const factory MoreToolsSelectorState({
-    required List<NavigationItem> navigationItems,
-  }) = _MoreToolsSelectorState;
-}
-
-@freezed
-abstract class PackageListSelectorState with _$PackageListSelectorState {
-  const factory PackageListSelectorState({
-    required List<Package> packages,
-    required AccessControlProps accessControlProps,
-  }) = _PackageListSelectorState;
-}
-
-extension PackageListSelectorStateExt on PackageListSelectorState {
-  List<Package> get list {
-    final isFilterSystemApp = accessControlProps.isFilterSystemApp;
-    final isFilterNonInternetApp = accessControlProps.isFilterNonInternetApp;
-    return packages
-        .where(
-          (item) =>
-              (isFilterSystemApp ? item.system == false : true) &&
-              (isFilterNonInternetApp ? item.internet == true : true),
-        )
-        .toList();
-  }
-
-  List<Package> getSortList(List<String> selectedList) {
-    final sort = accessControlProps.sort;
-
-    return list.sorted((a, b) {
-      final isSelectA = selectedList.contains(a.packageName);
-      final isSelectB = selectedList.contains(b.packageName);
-
-      if (isSelectA != isSelectB) {
-        return isSelectA ? -1 : 1;
-      }
-      return switch (sort) {
-        AccessSortType.none => 0,
-        AccessSortType.name => a.label.compareTo(b.label),
-        AccessSortType.time => b.lastUpdateTime.compareTo(a.lastUpdateTime),
-      };
-    });
-  }
-}
-
-@freezed
-abstract class ProxiesListHeaderSelectorState
-    with _$ProxiesListHeaderSelectorState {
-  const factory ProxiesListHeaderSelectorState({
-    required double offset,
-    required int currentIndex,
-  }) = _ProxiesListHeaderSelectorState;
-}
-
-@freezed
-abstract class ProxiesActionsState with _$ProxiesActionsState {
-  const factory ProxiesActionsState({
-    required PageLabel pageLabel,
-    required ProxiesType type,
-    required bool hasProviders,
-  }) = _ProxiesActionsState;
 }
 
 @freezed
@@ -268,23 +112,6 @@ abstract class ProxyState with _$ProxyState {
     required List<String> bassDomain,
     required int port,
   }) = _ProxyState;
-}
-
-@freezed
-abstract class ClashConfigState with _$ClashConfigState {
-  const factory ClashConfigState({
-    required bool overrideDns,
-    required ClashConfig clashConfig,
-    required RouteMode routeMode,
-  }) = _ClashConfigState;
-}
-
-@freezed
-abstract class DashboardState with _$DashboardState {
-  const factory DashboardState({
-    required List<DashboardWidget> dashboardWidgets,
-    required double contentWidth,
-  }) = _DashboardState;
 }
 
 @freezed

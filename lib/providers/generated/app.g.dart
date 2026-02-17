@@ -857,59 +857,6 @@ abstract class _$Init extends $Notifier<bool> {
   }
 }
 
-@ProviderFor(CurrentPageLabel)
-const currentPageLabelProvider = CurrentPageLabelProvider._();
-
-final class CurrentPageLabelProvider
-    extends $NotifierProvider<CurrentPageLabel, PageLabel> {
-  const CurrentPageLabelProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'currentPageLabelProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$currentPageLabelHash();
-
-  @$internal
-  @override
-  CurrentPageLabel create() => CurrentPageLabel();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(PageLabel value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<PageLabel>(value),
-    );
-  }
-}
-
-String _$currentPageLabelHash() => r'3a5fcd2d50e018ae379cdcd835cfa72ccf8720b8';
-
-abstract class _$CurrentPageLabel extends $Notifier<PageLabel> {
-  PageLabel build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final created = build();
-    final ref = this.ref as $Ref<PageLabel, PageLabel>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<PageLabel, PageLabel>,
-              PageLabel,
-              Object?,
-              Object?
-            >;
-    element.handleValue(ref, created);
-  }
-}
-
 @ProviderFor(SortNum)
 const sortNumProvider = SortNumProvider._();
 

@@ -15,7 +15,6 @@ abstract class AppState with _$AppState {
   const factory AppState({
     @Default(false) bool isInit,
     @Default(false) bool backBlock,
-    @Default(PageLabel.dashboard) PageLabel pageLabel,
     @Default([]) List<Package> packages,
     @Default(0) int sortNum,
     required Size viewSize,

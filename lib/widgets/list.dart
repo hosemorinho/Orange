@@ -304,27 +304,29 @@ class ListItem<T> extends StatelessWidget {
       final child = openDelegate.widget;
       final onChanged = openDelegate.onChanged;
       return OpenContainer<T>(
-        // closedColor: context.colorScheme.surface,
-        // openColor: context.colorScheme.surface,
-        // closedElevation: 0,
-        // openElevation: 0,
         closedBuilder: (_, action) {
           openAction() async {
-            // Desktop or mobile: always use extend mode
-            final res = await showExtend(
-              context,
-              props: ExtendProps(
-                blur: openDelegate.blur,
-                maxWidth: openDelegate.maxWidth,
-                forceFull: openDelegate.forceFull,
-              ),
-              builder: (_, type) {
-                return child;
-              },
-            );
-            if (onChanged != null) {
-              onChanged(res);
+            // Desktop: use extend mode
+            // Mobile: use OpenContainer's built-in transition
+            if (!isMobile) {
+              final res = await showExtend(
+                context,
+                props: ExtendProps(
+                  blur: openDelegate.blur,
+                  maxWidth: openDelegate.maxWidth,
+                  forceFull: openDelegate.forceFull,
+                ),
+                builder: (_, type) {
+                  return child;
+                },
+              );
+              if (onChanged != null) {
+                onChanged(res);
+              }
+              return;
             }
+            // Mobile: trigger OpenContainer transition
+            action();
           }
 
           return _buildListTile(onTap: openAction);

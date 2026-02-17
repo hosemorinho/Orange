@@ -136,6 +136,17 @@ object LeafBridge {
     external fun leafTestConfigString(config: String): Int
 
     /**
+     * Health check one outbound and return [code, tcpMs, udpMs].
+     *
+     * code follows leaf-ffi error codes. tcpMs/udpMs are 0 when that protocol fails.
+     */
+    external fun leafHealthCheckWithLatency(
+        rtId: Int,
+        outboundTag: String,
+        timeoutMs: Long,
+    ): LongArray
+
+    /**
      * Set process environment variable for leaf runtime.
      * Must be called before leaf starts in the current process.
      */

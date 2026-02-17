@@ -91,6 +91,20 @@ class CoreService : ICoreService.Stub() {
         return leafManager.selectNode(nodeTag)
     }
 
+    override fun healthCheckNodes(
+        nodeTags: MutableList<String>?,
+        timeoutMs: Long,
+    ): MutableMap<Any?, Any?> {
+        enforceInternalCaller()
+        val tags = nodeTags?.filter { it.isNotBlank() } ?: emptyList()
+        val result = HashMap<Any?, Any?>()
+        if (tags.isEmpty()) {
+            return result
+        }
+        result.putAll(leafManager.healthCheckNodes(tags, timeoutMs))
+        return result
+    }
+
     override fun protectSocket(fd: Int): Boolean {
         enforceInternalCaller()
         return leafManager.protectSocket(fd)

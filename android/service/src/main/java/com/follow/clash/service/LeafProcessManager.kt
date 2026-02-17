@@ -427,6 +427,41 @@ class LeafProcessManager(private val context: Context) : CoroutineScope by Corou
         return true
     }
 
+    /**
+     * Run latency checks for specified nodes without switching selected node.
+     *
+     * Returns tag -> delay ms, where -1 means failed/timeout.
+     */
+    fun healthCheckNodes(nodeTags: List<String>, timeoutMs: Long): Map<String, Long> {
+        val rtId = leafRtId
+        if (!isRunning || rtId < 0) {
+            return nodeTags.associateWith { -1L }
+        }
+        if (!ensureLeafLibraryLoaded()) {
+            return nodeTags.associateWith { -1L }
+        }
+
+        val timeout = if (timeoutMs > 0) timeoutMs else 4000L
+        return nodeTags.associateWith { tag ->
+            runCatching {
+                val values = LeafBridge.leafHealthCheckWithLatency(rtId, tag, timeout)
+                if (values.size < 3) {
+                    return@runCatching -1L
+                }
+                val tcpMs = values[1]
+                val udpMs = values[2]
+                when {
+                    tcpMs > 0L -> tcpMs
+                    udpMs > 0L -> udpMs
+                    else -> -1L
+                }
+            }.getOrElse {
+                Log.w(TAG, "healthCheckNodes failed for tag=$tag", it)
+                -1L
+            }
+        }
+    }
+
     private fun applyNodeSelection(rtId: Int, nodeTag: String): Boolean {
         if (!ensureLeafLibraryLoaded()) {
             return false

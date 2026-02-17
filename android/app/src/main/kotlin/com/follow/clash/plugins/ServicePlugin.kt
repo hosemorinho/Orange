@@ -332,6 +332,34 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             }
         }
 
+        "healthCheckCoreNodes" -> {
+            launch {
+                try {
+                    val rawTags = call.argument<List<*>>("nodeTags") ?: emptyList<Any?>()
+                    val nodeTags = rawTags.mapNotNull { it?.toString() }
+                    val timeoutMs = call.argument<Number>("timeoutMs")?.toLong() ?: 4000L
+                    val core = awaitCoreService()
+                    val resultMap = if (core == null || nodeTags.isEmpty()) {
+                        hashMapOf<Any?, Any?>()
+                    } else {
+                        core.healthCheckNodes(ArrayList(nodeTags), timeoutMs)
+                    }
+                    val normalized = resultMap.entries.associate { entry ->
+                        entry.key.toString() to (entry.value as? Number)?.toLong()
+                    }
+                    result.success(normalized)
+                } catch (e: DeadObjectException) {
+                    XBoardLog.i("ServicePlugin", "healthCheckCoreNodes: service dead")
+                    coreService = null
+                    isBound = false
+                    result.success(emptyMap<String, Long?>())
+                } catch (e: Exception) {
+                    XBoardLog.e("ServicePlugin", "healthCheckCoreNodes failed", e)
+                    result.success(emptyMap<String, Long?>())
+                }
+            }
+        }
+
         "getCoreSelectedNode" -> {
             launch {
                 try {

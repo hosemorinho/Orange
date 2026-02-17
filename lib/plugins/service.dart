@@ -268,6 +268,31 @@ class Service {
         '';
   }
 
+  /// Run latency checks for multiple node tags in :core process.
+  ///
+  /// Returns tag -> delay(ms), with -1 for failed/timeout nodes.
+  Future<Map<String, int>> healthCheckCoreNodes(
+    List<String> nodeTags, {
+    int timeoutMs = 4000,
+  }) async {
+    final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+      'healthCheckCoreNodes',
+      {'nodeTags': nodeTags, 'timeoutMs': timeoutMs},
+    );
+    final mapped = <String, int>{};
+    for (final entry in (result ?? const {}).entries) {
+      final tag = entry.key?.toString() ?? '';
+      if (tag.isEmpty) continue;
+      final value = entry.value;
+      if (value is int) {
+        mapped[tag] = value;
+      } else if (value is num) {
+        mapped[tag] = value.toInt();
+      }
+    }
+    return mapped;
+  }
+
   /// Get the TUN file descriptor from the core service.
   /// Returns -1 if not available.
   Future<int> getCoreTunFd() async {

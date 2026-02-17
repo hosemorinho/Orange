@@ -145,18 +145,22 @@ Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
 
     if (targets.isEmpty) return;
 
-    final originalNode = appController.getSelectedNodeTag();
+    Map<String, int> healthCheckDelays = {};
     try {
-      for (final target in targets) {
-        final delay = await _probeNodeLatency(target.nodeTag);
-        appController.setDelay(
-          Delay(url: target.delayKeyUrl, name: target.nodeTag, value: delay),
-        );
-        appController.addSortNum();
-      }
-    } finally {
-      final currentNode = appController.getSelectedNodeTag();
-      await _tryRestoreNode(originalNode, currentNode);
+      healthCheckDelays = await appController.healthCheckNodesForLatency(
+        targets.map((target) => target.nodeTag).toList(growable: false),
+        timeoutMs: _probeTimeout.inMilliseconds,
+      );
+    } catch (_) {}
+
+    for (final target in targets) {
+      final delay =
+          healthCheckDelays[target.nodeTag] ??
+          await _probeNodeLatency(target.nodeTag);
+      appController.setDelay(
+        Delay(url: target.delayKeyUrl, name: target.nodeTag, value: delay),
+      );
+      appController.addSortNum();
     }
   });
 }

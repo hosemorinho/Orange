@@ -67,6 +67,12 @@ interface ICoreService {
     boolean selectNode(String nodeTag);
 
     /**
+     * Run latency health checks for specified node tags without switching active node.
+     * Returns a Map<String, Long> where value is delay ms, -1 means failed/timeout.
+     */
+    Map healthCheckNodes(in List<String> nodeTags, long timeoutMs);
+
+    /**
      * Protect a socket from VPN routing.
      * Called from UI process when leaf needs socket protection.
      * @param fd The file descriptor of the socket to protect

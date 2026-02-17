@@ -507,19 +507,88 @@ class LeafController {
     String nodeTag, {
     int timeoutMs = 4000,
   }) async {
+    if (useDualProcessMode) {
+      final results = await healthCheckNodes([nodeTag], timeoutMs: timeoutMs);
+      final delay = results[nodeTag];
+      if (delay == null || delay <= 0) {
+        return null;
+      }
+      return (tcpMs: delay, udpMs: 0);
+    }
     _requireRunning();
-    return _instance!.healthCheck(nodeTag, timeoutMs: timeoutMs);
+    return _instance!.healthCheckAsync(nodeTag, timeoutMs: timeoutMs);
   }
 
-  /// Run health checks for all nodes. Returns a map of tag -> latency ms.
-  Future<Map<String, int?>> healthCheckAll({int timeoutMs = 4000}) async {
+  /// Run health checks for a set of nodes. Returns a map of tag -> latency ms.
+  ///
+  /// Values are chosen as TCP delay when available, otherwise UDP delay.
+  /// `null` means failed/timeout.
+  Future<Map<String, int?>> healthCheckNodes(
+    Iterable<String> nodeTags, {
+    int timeoutMs = 4000,
+  }) async {
+    final tags = <String>[];
+    final dedup = <String>{};
+    for (final tag in nodeTags) {
+      final normalized = tag.trim();
+      if (normalized.isEmpty || !dedup.add(normalized)) continue;
+      tags.add(normalized);
+    }
+    if (tags.isEmpty) return {};
+
     _requireRunning();
-    final results = <String, int?>{};
-    for (final node in _nodes) {
-      final result = _instance!.healthCheck(node.tag, timeoutMs: timeoutMs);
-      results[node.tag] = result?.tcpMs;
+    final results = <String, int?>{for (final tag in tags) tag: null};
+
+    if (useDualProcessMode) {
+      final svc = service;
+      if (svc == null) {
+        throw StateError('Service not available');
+      }
+      final remote = await svc.healthCheckCoreNodes(tags, timeoutMs: timeoutMs);
+      for (final tag in tags) {
+        final delay = remote[tag];
+        results[tag] = (delay != null && delay > 0) ? delay : null;
+      }
+      return results;
+    }
+
+    final instance = _instance!;
+    const maxConcurrency = 6;
+    for (var i = 0; i < tags.length; i += maxConcurrency) {
+      final end = (i + maxConcurrency > tags.length)
+          ? tags.length
+          : i + maxConcurrency;
+      final chunk = tags.sublist(i, end);
+      final chunkEntries = await Future.wait(
+        chunk.map((tag) async {
+          final result = await instance.healthCheckAsync(
+            tag,
+            timeoutMs: timeoutMs,
+          );
+          int? delay;
+          if (result != null) {
+            if (result.tcpMs > 0) {
+              delay = result.tcpMs;
+            } else if (result.udpMs > 0) {
+              delay = result.udpMs;
+            }
+          }
+          return MapEntry(tag, delay);
+        }),
+      );
+      for (final entry in chunkEntries) {
+        results[entry.key] = entry.value;
+      }
     }
     return results;
+  }
+
+  /// Run health checks for all known nodes. Returns a map of tag -> latency ms.
+  Future<Map<String, int?>> healthCheckAll({int timeoutMs = 4000}) async {
+    return healthCheckNodes(
+      _nodes.map((node) => node.tag),
+      timeoutMs: timeoutMs,
+    );
   }
 
   // ---------------------------------------------------------------------------

@@ -220,8 +220,8 @@ class LeafInstance {
     required this.rtId,
     required Isolate isolate,
     required LeafBindings bindings,
-  })  : _isolate = isolate,
-        _bindings = bindings;
+  }) : _isolate = isolate,
+       _bindings = bindings;
 
   /// Reload config from file (DNS, outbounds, routing rules).
   int reload() => _bindings.leafReload(rtId);
@@ -335,12 +335,46 @@ class LeafInstance {
     }
   }
 
+  /// Async health check executed off the UI isolate.
+  ///
+  /// Uses a fresh FFI binding inside [Isolate.run] to avoid blocking Flutter
+  /// rendering while the native check waits on network I/O.
+  Future<({int tcpMs, int udpMs})?> healthCheckAsync(
+    String outboundTag, {
+    int timeoutMs = 4000,
+  }) async {
+    final runtimeId = rtId;
+    final tag = outboundTag;
+    return Isolate.run(() {
+      final bindings = LeafBindings.open();
+      final tagPtr = tag.toNativeUtf8();
+      final tcpMsPtr = calloc<Uint64>();
+      final udpMsPtr = calloc<Uint64>();
+      try {
+        final result = bindings.leafHealthCheckWithLatency(
+          runtimeId,
+          tagPtr,
+          timeoutMs,
+          tcpMsPtr,
+          udpMsPtr,
+        );
+        if (result == LeafError.ok || result == LeafError.io) {
+          return (tcpMs: tcpMsPtr.value, udpMs: udpMsPtr.value);
+        }
+        return null;
+      } finally {
+        calloc.free(tagPtr);
+        calloc.free(tcpMsPtr);
+        calloc.free(udpMsPtr);
+      }
+    });
+  }
+
   /// Simple health check (OK/fail only).
   bool healthCheckSimple(String outboundTag, {int timeoutMs = 4000}) {
     final tagPtr = outboundTag.toNativeUtf8();
     try {
-      return _bindings.leafHealthCheck(rtId, tagPtr, timeoutMs) ==
-          LeafError.ok;
+      return _bindings.leafHealthCheck(rtId, tagPtr, timeoutMs) == LeafError.ok;
     } finally {
       calloc.free(tagPtr);
     }

@@ -518,6 +518,32 @@ extension ProxiesControllerExt on AppController {
     _ref.read(delayDataSourceProvider.notifier).setDelay(delay);
   }
 
+  /// Batch node latency check without switching active node.
+  ///
+  /// Returns nodeTag -> delay(ms), where -1 means failed/timeout.
+  Future<Map<String, int>> healthCheckNodesForLatency(
+    List<String> nodeTags, {
+    int timeoutMs = 4000,
+  }) async {
+    final normalized = <String>[];
+    final dedup = <String>{};
+    for (final tag in nodeTags) {
+      final nodeTag = tag.trim();
+      if (nodeTag.isEmpty || !dedup.add(nodeTag)) continue;
+      normalized.add(nodeTag);
+    }
+    if (normalized.isEmpty) return {};
+    if (_leafController == null || !_leafController!.isRunning) {
+      return {for (final tag in normalized) tag: -1};
+    }
+
+    final checks = await _leafController!.healthCheckNodes(
+      normalized,
+      timeoutMs: timeoutMs,
+    );
+    return {for (final tag in normalized) tag: checks[tag] ?? -1};
+  }
+
   /// Returns the currently selected leaf node tag if available.
   ///
   /// This reads runtime state only and does not depend on profile selectedMap.

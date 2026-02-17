@@ -1,8 +1,6 @@
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/state.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'card.dart';
@@ -112,6 +110,7 @@ class ListItem<T> extends StatelessWidget {
   final double? minTileHeight;
   final VisualDensity? visualDensity;
   final void Function()? onTap;
+  final bool isMobile;
 
   const ListItem({
     super.key,
@@ -130,6 +129,7 @@ class ListItem<T> extends StatelessWidget {
     this.visualDensity,
     this.minVerticalPadding = 12,
     this.tileTitleAlignment = ListTileTitleAlignment.center,
+    this.isMobile = false,
   }) : delegate = const Delegate();
 
   const ListItem.open({
@@ -149,6 +149,7 @@ class ListItem<T> extends StatelessWidget {
     this.visualDensity,
     this.minVerticalPadding = 12,
     this.tileTitleAlignment = ListTileTitleAlignment.center,
+    this.isMobile = false,
   }) : onTap = null;
 
   const ListItem.next({
@@ -168,6 +169,7 @@ class ListItem<T> extends StatelessWidget {
     this.visualDensity,
     this.minVerticalPadding = 12,
     this.tileTitleAlignment = ListTileTitleAlignment.center,
+    this.isMobile = false,
   }) : onTap = null;
 
   const ListItem.options({
@@ -187,6 +189,7 @@ class ListItem<T> extends StatelessWidget {
     this.visualDensity,
     this.minVerticalPadding = 12,
     this.tileTitleAlignment = ListTileTitleAlignment.center,
+    this.isMobile = false,
   }) : onTap = null;
 
   const ListItem.input({
@@ -206,6 +209,7 @@ class ListItem<T> extends StatelessWidget {
     this.visualDensity,
     this.minVerticalPadding = 12,
     this.tileTitleAlignment = ListTileTitleAlignment.center,
+    this.isMobile = false,
   }) : onTap = null;
 
   const ListItem.checkbox({
@@ -224,6 +228,7 @@ class ListItem<T> extends StatelessWidget {
     this.visualDensity,
     this.minVerticalPadding = 12,
     this.tileTitleAlignment = ListTileTitleAlignment.center,
+    this.isMobile = false,
   }) : trailing = null,
        onTap = null;
 
@@ -242,6 +247,7 @@ class ListItem<T> extends StatelessWidget {
     this.minTileHeight,
     this.visualDensity,
     this.minVerticalPadding = 12,
+    this.isMobile = false,
     this.tileTitleAlignment = ListTileTitleAlignment.center,
   }) : trailing = null,
        onTap = null;
@@ -260,6 +266,7 @@ class ListItem<T> extends StatelessWidget {
     this.color,
     this.minTileHeight,
     this.visualDensity,
+    this.isMobile = false,
     this.minVerticalPadding = 12,
     this.tileTitleAlignment = ListTileTitleAlignment.center,
   }) : leading = null,
@@ -303,25 +310,21 @@ class ListItem<T> extends StatelessWidget {
         // openElevation: 0,
         closedBuilder: (_, action) {
           openAction() async {
-            final isMobile = appController.isMobile;
-            if (!isMobile || kDebugMode) {
-              final res = await showExtend(
-                context,
-                props: ExtendProps(
-                  blur: openDelegate.blur,
-                  maxWidth: openDelegate.maxWidth,
-                  forceFull: openDelegate.forceFull,
-                ),
-                builder: (_, type) {
-                  return child;
-                },
-              );
-              if (onChanged != null) {
-                onChanged(res);
-              }
-              return;
+            // Desktop or mobile: always use extend mode
+            final res = await showExtend(
+              context,
+              props: ExtendProps(
+                blur: openDelegate.blur,
+                maxWidth: openDelegate.maxWidth,
+                forceFull: openDelegate.forceFull,
+              ),
+              builder: (_, type) {
+                return child;
+              },
+            );
+            if (onChanged != null) {
+              onChanged(res);
             }
-            action();
           }
 
           return _buildListTile(onTap: openAction);

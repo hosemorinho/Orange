@@ -20,6 +20,7 @@ class DomainPool {
   int _currentIndex = 0;
   late String _currentDomain;
   Function(String newDomain)? onDomainSwitch;
+  Future<String?>? _reResolveFuture;
 
   DomainPool._();
 
@@ -69,7 +70,9 @@ class DomainPool {
 
     _currentIndex++;
     if (_currentIndex >= _candidates.length) {
-      _logger.warning('[DomainPool] all ${_candidates.length} candidates exhausted');
+      _logger.warning(
+        '[DomainPool] all ${_candidates.length} candidates exhausted',
+      );
       return null;
     }
 
@@ -87,6 +90,21 @@ class DomainPool {
   ///
   /// Returns the new winning domain, or null if resolution/racing fails.
   Future<String?> reResolveAndRace() async {
+    if (_reResolveFuture != null) {
+      _logger.info(
+        '[DomainPool] re-resolve already in progress, joining existing task',
+      );
+      return _reResolveFuture!;
+    }
+
+    _reResolveFuture = _doReResolveAndRace().whenComplete(() {
+      _reResolveFuture = null;
+    });
+
+    return _reResolveFuture!;
+  }
+
+  Future<String?> _doReResolveAndRace() async {
     _logger.info('[DomainPool] Phase 3: re-resolving TXT and re-racing');
 
     try {
@@ -97,7 +115,9 @@ class DomainPool {
         final config = await ApiTextResolver.resolve(apiTextDomain, appName);
         if (config != null && config.hosts.isNotEmpty) {
           hostsToRace.addAll(config.hosts);
-          _logger.info('[DomainPool] TXT resolved ${config.hosts.length} hosts');
+          _logger.info(
+            '[DomainPool] TXT resolved ${config.hosts.length} hosts',
+          );
         }
       }
 

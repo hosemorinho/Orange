@@ -7,24 +7,19 @@
 library;
 
 import 'dart:convert';
+
 import 'package:fl_clash/xboard/core/core.dart';
-import 'doh_txt_resolver.dart';
+
 import 'cryptojs_aes_decryptor.dart';
+import 'doh_txt_resolver.dart';
 
 final _logger = FileLogger('api_text_resolver.dart');
 
-/// Resolved API configuration from TXT record
 class ApiTextResolvedConfig {
-  /// Crisp website ID (optional)
   final String? crispWebsiteId;
-
-  /// API host URLs (required, non-empty)
   final List<String> hosts;
 
-  const ApiTextResolvedConfig({
-    this.crispWebsiteId,
-    required this.hosts,
-  });
+  const ApiTextResolvedConfig({this.crispWebsiteId, required this.hosts});
 
   @override
   String toString() {
@@ -32,89 +27,65 @@ class ApiTextResolvedConfig {
   }
 }
 
-/// API Text Resolver
 class ApiTextResolver {
-  /// Cached resolved configuration (in-memory)
   static ApiTextResolvedConfig? _resolvedConfig;
+  static String? _resolvedDomain;
+  static int? _resolvedCredentialHash;
 
-  /// Get cached resolved configuration
   static ApiTextResolvedConfig? get resolvedConfig => _resolvedConfig;
-
-  /// Get resolved Crisp website ID
   static String? get resolvedCrispWebsiteId => _resolvedConfig?.crispWebsiteId;
-
-  /// Get resolved host URLs
   static List<String> get resolvedHosts => _resolvedConfig?.hosts ?? [];
 
-  /// Resolve API configuration from DNS TXT record
-  ///
-  /// [domain] Domain name to query (e.g., "txt.example.com")
-  /// [password] Password for AES decryption
-  ///
   /// Returns resolved configuration or null on failure.
-  /// Result is cached in memory for the app session.
+  /// Result is cached in memory for this app session.
   static Future<ApiTextResolvedConfig?> resolve(
     String domain,
     String password,
   ) async {
-    try {
-      _logger.info('[ApiText] 开始解析: $domain');
+    final normalizedDomain = domain.trim();
+    final credentialHash = Object.hash(normalizedDomain, password);
 
-      // 1. Resolve TXT record via DoH
-      final encryptedData = await DohTxtResolver.resolveTxt(domain);
+    try {
+      if (_resolvedConfig != null &&
+          _resolvedDomain == normalizedDomain &&
+          _resolvedCredentialHash == credentialHash) {
+        _logger.info('[ApiText] cache hit for $normalizedDomain');
+        return _resolvedConfig;
+      }
+
+      _logger.info('[ApiText] resolving $normalizedDomain');
+
+      final encryptedData = await DohTxtResolver.resolveTxt(normalizedDomain);
       if (encryptedData == null || encryptedData.isEmpty) {
-        _logger.error('[ApiText] TXT 记录为空');
+        _logger.error('[ApiText] empty TXT payload');
         return null;
       }
 
-      _logger.info('[ApiText] TXT 记录获取成功，长度: ${encryptedData.length}');
-
-      // 2. Decrypt with CryptoJS AES
       final decryptedJson = CryptoJsAesDecryptor.decrypt(
         encryptedData,
         password,
       );
-
       if (decryptedJson == null || decryptedJson.isEmpty) {
-        _logger.error('[ApiText] 解密失败或结果为空');
+        _logger.error('[ApiText] decrypt failed or empty payload');
         return null;
       }
 
-      _logger.info('[ApiText] 解密成功，JSON 长度: ${decryptedJson.length}');
-
-      // 3. Parse JSON
       final Map<String, dynamic> json;
       try {
         json = jsonDecode(decryptedJson) as Map<String, dynamic>;
       } catch (e) {
-        _logger.error('[ApiText] JSON 解析失败: $e');
+        _logger.error('[ApiText] JSON parse failed: $e');
         return null;
       }
 
-      // 4. Validate and extract fields
-      final String? crispWebsiteId;
-      if (json.containsKey('crisp')) {
-        final crispValue = json['crisp'];
-        if (crispValue is String && crispValue.isNotEmpty) {
-          crispWebsiteId = crispValue;
-          _logger.info('[ApiText] Crisp ID: $crispWebsiteId');
-        } else {
-          crispWebsiteId = null;
-          _logger.info('[ApiText] Crisp 字段无效或为空');
-        }
-      } else {
-        crispWebsiteId = null;
-        _logger.info('[ApiText] 未配置 Crisp');
-      }
-
-      if (!json.containsKey('hosts')) {
-        _logger.error('[ApiText] 缺少 hosts 字段');
-        return null;
-      }
+      final crispValue = json['crisp'];
+      final crispWebsiteId = (crispValue is String && crispValue.isNotEmpty)
+          ? crispValue
+          : null;
 
       final hostsValue = json['hosts'];
       if (hostsValue is! List) {
-        _logger.error('[ApiText] hosts 字段不是数组');
+        _logger.error('[ApiText] hosts is missing or not a list');
         return null;
       }
 
@@ -126,28 +97,28 @@ class ApiTextResolver {
       }
 
       if (hosts.isEmpty) {
-        _logger.error('[ApiText] hosts 数组为空或无有效元素');
+        _logger.error('[ApiText] hosts list is empty');
         return null;
       }
 
-      _logger.info('[ApiText] 解析成功: ${hosts.length} 个主机');
-
-      // 5. Cache result
       _resolvedConfig = ApiTextResolvedConfig(
         crispWebsiteId: crispWebsiteId,
         hosts: hosts,
       );
+      _resolvedDomain = normalizedDomain;
+      _resolvedCredentialHash = credentialHash;
 
       return _resolvedConfig;
     } catch (e, stackTrace) {
-      _logger.error('[ApiText] 解析失败', e, stackTrace);
+      _logger.error('[ApiText] resolve failed', e, stackTrace);
       return null;
     }
   }
 
-  /// Clear cached configuration (for testing or refresh)
   static void clearCache() {
     _resolvedConfig = null;
-    _logger.info('[ApiText] 缓存已清除');
+    _resolvedDomain = null;
+    _resolvedCredentialHash = null;
+    _logger.info('[ApiText] cache cleared');
   }
 }

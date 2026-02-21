@@ -51,6 +51,16 @@ class _StartButtonState extends ConsumerState<StartButton>
   void handleSwitchStart() {
     isStart = !isStart;
     updateController();
+
+    // 启动时自动开启系统代理
+    if (isStart) {
+      final networkSetting = ref.read(networkSettingProvider);
+      if (!networkSetting.systemProxy) {
+        ref.read(networkSettingProvider.notifier)
+            .update((state) => state.copyWith(systemProxy: true));
+      }
+    }
+
     debouncer.call(FunctionTag.updateStatus, () {
       appController.updateStatus(isStart, isInit: !ref.read(initProvider));
     }, duration: commonDuration);

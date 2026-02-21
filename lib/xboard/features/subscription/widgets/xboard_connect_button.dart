@@ -51,12 +51,11 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
     super.dispose();
   }
   handleSwitchStart() {
-    final wasStart = isStart;
     isStart = !isStart;
     updateController();
 
-    // 如果是启动操作（从停→开），自动开启系统代理
-    if (isStart && !wasStart) {
+    // 启动时自动开启系统代理（包括从停→开，以及已运行但代理被手动关闭的场景）
+    if (isStart) {
       final networkSetting = ref.read(networkSettingProvider);
       if (!networkSetting.systemProxy) {
         ref.read(networkSettingProvider.notifier)

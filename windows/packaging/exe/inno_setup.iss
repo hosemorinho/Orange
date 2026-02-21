@@ -21,20 +21,14 @@ ArchitecturesInstallIn64BitMode=x64 arm64
 [Code]
 function IsVCRuntimeInstalled(): Boolean;
 var
-  Version: String;
   SysDir: String;
 begin
-  // Check for VC++ 2015-2022 Redistributable (vcruntime140_1.dll)
-  // Method 1: Check registry for installed version
-  Result := RegQueryStringValue(HKLM, 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64', 'Installed', Version) and (Version = '1');
-
-  // Method 2: Fallback to DLL file check
-  if not Result then begin
-    SysDir := ExpandConstant('{sys}');
-    Result := FileExists(SysDir + '\vcruntime140.dll') and
-              FileExists(SysDir + '\vcruntime140_1.dll') and
-              FileExists(SysDir + '\msvcp140.dll');
-  end;
+  // Require key VC++ runtime DLLs to be present.
+  // Do not rely on registry Installed flag alone, as it may be stale/inaccurate.
+  SysDir := ExpandConstant('{sys}');
+  Result := FileExists(SysDir + '\vcruntime140.dll') and
+            FileExists(SysDir + '\vcruntime140_1.dll') and
+            FileExists(SysDir + '\msvcp140.dll');
 end;
 
 procedure KillProcesses;

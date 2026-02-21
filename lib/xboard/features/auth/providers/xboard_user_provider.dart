@@ -221,7 +221,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
         _logger.info('登录响应中未找到 auth_data 字段: $data');
         state = state.copyWith(
           isLoading: false,
-          errorMessage: '登录失败',
+          errorMessage: V2BoardErrorLocalizer.localize('登录失败'),
         );
         return false;
       }
@@ -286,7 +286,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
         return true;
     } catch (e) {
       _logger.info('登录出错: $e');
-      String errorMessage = '登录失败';
+      String errorMessage = V2BoardErrorLocalizer.localize('登录失败');
       if (e is V2BoardApiException) {
         errorMessage = e.message;
       }
@@ -323,7 +323,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       return true;
     } catch (e) {
       _logger.info('注册出错: $e');
-      String errorMessage = '注册失败';
+      String errorMessage = V2BoardErrorLocalizer.localize('注册失败');
       if (e is V2BoardApiException) {
         errorMessage = e.message;
       }
@@ -346,7 +346,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       _logger.info('发送验证码出错: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
       return false;
     }
@@ -366,7 +366,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       _logger.info('重置密码出错: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
       return false;
     }
@@ -425,7 +425,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       _logger.info('刷新订阅信息出错: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
     }
   }
@@ -486,7 +486,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
       _logger.info('刷新订阅信息出错: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
     }
   }

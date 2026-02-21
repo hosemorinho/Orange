@@ -3,6 +3,7 @@ import 'package:fl_clash/xboard/features/auth/auth.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
+import 'package:fl_clash/xboard/infrastructure/api/v2board_error_localizer.dart';
 import 'package:fl_clash/xboard/adapter/state/plan_state.dart';
 
 // 初始化文件级日志器
@@ -53,7 +54,7 @@ class XBoardSubscriptionNotifier extends Notifier<List<DomainPlan>> {
       _logger.info('加载套餐列表失败: $e');
       ref.read(userUIStateProvider.notifier).state = UIState(
         isLoading: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
     }
   }

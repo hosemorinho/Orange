@@ -108,7 +108,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       _logger.info('加载待支付订单失败: $e');
       ref.read(userUIStateProvider.notifier).state = UIState(
         isLoading: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
       ref.read(pendingOrdersProvider.notifier).state = [];
     }
@@ -144,7 +144,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       _logger.error('[Payment] 加载支付方式失败: $e');
       _logger.error('[Payment] 错误堆栈: $stackTrace');
       ref.read(userUIStateProvider.notifier).state = UIState(
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
     }
   }
@@ -158,7 +158,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       // TODO: Provider error messages should be handled in UI layer with i18n
       // This error is displayed through UIState and should use AppLocalizations in the UI
       ref.read(userUIStateProvider.notifier).state = const UIState(
-        errorMessage: '请先登录',  // EN: "Please login first"
+        errorMessage: V2BoardErrorLocalizer.localize('请先登录'),
       );
       return null;
     }
@@ -199,7 +199,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
         // TODO: Provider error messages should be handled in UI layer with i18n
         ref.read(userUIStateProvider.notifier).state = const UIState(
           isLoading: false,
-          errorMessage: '创建订单失败',  // EN: "Order creation failed"
+          errorMessage: V2BoardErrorLocalizer.localize('创建订单失败'),
         );
         return null;
       }
@@ -207,7 +207,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       _logger.info('创建订单失败: $e');
       ref.read(userUIStateProvider.notifier).state = UIState(
         isLoading: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
       return null;
     }
@@ -225,7 +225,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       // TODO: Provider error messages should be handled in UI layer with i18n
       // This error is displayed through UIState and should use AppLocalizations in the UI
       ref.read(userUIStateProvider.notifier).state = const UIState(
-        errorMessage: '请先登录',  // EN: "Please login first"
+        errorMessage: V2BoardErrorLocalizer.localize('请先登录'),
       );
       return null;
     }
@@ -269,7 +269,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
         isProcessingPayment: false,
       );
       ref.read(userUIStateProvider.notifier).state = UIState(
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
       return null;
     }
@@ -280,7 +280,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       // TODO: Provider error messages should be handled in UI layer with i18n
       // This error is displayed through UIState and should use AppLocalizations in the UI
       ref.read(userUIStateProvider.notifier).state = const UIState(
-        errorMessage: '请先登录',  // EN: "Please login first"
+        errorMessage: V2BoardErrorLocalizer.localize('请先登录'),
       );
       return 0;
     }
@@ -313,7 +313,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       _logger.info('取消订单失败: $e');
       ref.read(userUIStateProvider.notifier).state = UIState(
         isLoading: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
       return 0;
     }

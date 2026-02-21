@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
+import 'package:fl_clash/xboard/infrastructure/api/v2board_error_localizer.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/adapter/state/ticket_state.dart';
 
@@ -70,7 +71,7 @@ class TicketNotifier extends Notifier<TicketState> {
       _logger.info('加载工单列表失败: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
     }
   }
@@ -93,7 +94,7 @@ class TicketNotifier extends Notifier<TicketState> {
       _logger.info('加载工单详情失败: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
     }
   }
@@ -119,7 +120,7 @@ class TicketNotifier extends Notifier<TicketState> {
       _logger.info('创建工单失败: $e');
       state = state.copyWith(
         isSubmitting: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
       return false;
     }
@@ -146,7 +147,7 @@ class TicketNotifier extends Notifier<TicketState> {
       _logger.info('回复工单失败: $e');
       state = state.copyWith(
         isSending: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
       return false;
     }
@@ -174,7 +175,7 @@ class TicketNotifier extends Notifier<TicketState> {
       _logger.info('关闭工单失败: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: ErrorSanitizer.sanitize(e.toString()),
+        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
       return false;
     }

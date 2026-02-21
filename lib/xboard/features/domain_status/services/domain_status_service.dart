@@ -208,14 +208,10 @@ class DomainStatusService {
 
     _logger.info('[竞速] 开始测试 ${hosts.length} 个主机');
 
-    // 获取所有代理配置
-    final proxyUrls = XBoardConfig.allProxyUrls;
-
-    // 调用 DomainRacingService 进行竞速
+    // 调用 DomainRacingService 进行竞速（仅直连）
     final result = await DomainRacingService.raceSelectFastestDomain(
       hosts,
       forceHttpsResult: true,
-      proxyUrls: proxyUrls,
     );
 
     return result;

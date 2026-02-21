@@ -114,12 +114,10 @@ class DomainPool {
         return null;
       }
 
-      // 3. Race
-      final proxyUrls = XBoardConfig.allProxyUrls;
+      // 3. Race (direct only)
       final result = await DomainRacingService.raceSelectFastestDomain(
         hostsToRace,
         forceHttpsResult: true,
-        proxyUrls: proxyUrls,
       );
 
       if (result == null) {

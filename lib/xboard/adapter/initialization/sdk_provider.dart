@@ -47,32 +47,24 @@ Future<V2BoardApiService> xboardSdk(Ref ref) async {
 
     _logger.info('[SdkProvider] 使用域名: $fastestUrl');
 
-    // 2. 根据竞速结果决定是否使用代理
-    String? proxyUrl;
-    final racingResult = XBoardConfig.lastRacingResult;
-    if (racingResult != null && racingResult.useProxy) {
-      proxyUrl = racingResult.proxyUrl;
-      _logger.info('[SdkProvider] 使用代理: $proxyUrl');
-    }
-
-    // 3. 创建 HTTP 客户端
+    // 2. 创建 HTTP 客户端（直连）
     final httpClient = XBoardHttpClient(
       baseUrl: fastestUrl,
     );
 
-    // 4. 创建 V2Board API Service
+    // 3. 创建 V2Board API Service
     final api = V2BoardApiService(
       baseUrl: fastestUrl,
       httpClient: httpClient,
     );
 
-    // 5. 加载已存储的 token
+    // 4. 加载已存储的 token
     await api.loadStoredToken();
     if (api.hasAuthToken) {
       _logger.info('[SdkProvider] 已加载存储的 token');
     }
 
-    // 6. 初始化 DomainPool（域名切换支持）
+    // 5. 初始化 DomainPool（域名切换支持）
     final candidates = XBoardConfig.lastRacingCandidates;
     DomainPool.instance.initialize(
       fastestUrl,

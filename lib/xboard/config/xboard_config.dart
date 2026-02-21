@@ -83,15 +83,11 @@ class _XBoardConfigProvider implements ConfigProviderInterface {
     final panelUrls = getAllPanelUrls();
     if (panelUrls.isEmpty) return null;
     
-    // 获取所有代理配置
-    final proxyUrls = getAllProxyUrls();
-    
     // 始终使用竞速，即使只有一个域名（竞速会直接返回该域名）
-    // 每个域名会测试：直连 + 所有代理
+    // 每个域名仅进行直连测速
     final racingResult = await DomainRacingService.raceSelectFastestDomain(
       panelUrls,
       forceHttpsResult: true,
-      proxyUrls: proxyUrls,
     );
     
     // 竞速失败直接返回 null，不回退
@@ -264,14 +260,10 @@ class XBoardConfig {
     final panelUrls = allPanelUrls;
     if (panelUrls.isEmpty) return null;
     
-    // 获取所有代理
-    final proxyUrls = allProxyUrls;
-
     // 创建新的竞速任务
     _racingFuture = DomainRacingService.raceSelectFastestDomain(
       panelUrls,
       forceHttpsResult: true, // 强制返回HTTPS格式，适配SDK私有证书
-      proxyUrls: proxyUrls,
     ).then((result) {
       if (result != null) {
         // 保存竞速结果

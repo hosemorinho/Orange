@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/core.dart';
@@ -13,6 +14,7 @@ import 'package:path/path.dart';
 class CoreController {
   static CoreController? _instance;
   late CoreHandlerInterface _interface;
+  static const String _inlineConfigPrefix = 'inline-b64://';
 
   CoreController._internal() {
     if (system.isAndroid) {
@@ -77,12 +79,12 @@ class CoreController {
   }
 
   Future<String> validateConfigWithData(String data) async {
-    final path = await appPath.tempFilePath;
-    final file = File(path);
-    await file.safeWriteAsString(data);
-    final res = await _interface.validateConfig(path);
-    await File(path).safeDelete();
-    return res;
+    return validateConfigWithBytes(Uint8List.fromList(utf8.encode(data)));
+  }
+
+  Future<String> validateConfigWithBytes(Uint8List bytes) async {
+    final payload = _buildInlineConfigPayload(bytes);
+    return _interface.validateConfig(payload);
   }
 
   Future<String> updateConfig(UpdateParams updateParams) async {
@@ -197,9 +199,15 @@ class CoreController {
     return Delay.fromJson(json.decode(data));
   }
 
-  Future<Map<String, dynamic>> getConfig(int id, {String? overridePath}) async {
-    final profilePath = overridePath ?? await appPath.getProfilePath(id.toString());
-    final res = await _interface.getConfig(profilePath);
+  Future<Map<String, dynamic>> getConfig(
+    int id, {
+    String? overridePath,
+    Uint8List? overrideBytes,
+  }) async {
+    final source = overrideBytes != null
+        ? _buildInlineConfigPayload(overrideBytes)
+        : (overridePath ?? await appPath.getProfilePath(id.toString()));
+    final res = await _interface.getConfig(source);
     if (res.isSuccess) {
       final data = Map<String, dynamic>.from(res.data);
       data['rules'] = data['rule'];
@@ -270,6 +278,10 @@ class CoreController {
 
   Future<String> deleteFile(String path) async {
     return await _interface.deleteFile(path);
+  }
+
+  String _buildInlineConfigPayload(Uint8List bytes) {
+    return '$_inlineConfigPrefix${base64.encode(bytes)}';
   }
 }
 

@@ -63,7 +63,11 @@ abstract class Profile with _$Profile {
   factory Profile.fromJson(Map<String, Object?> json) =>
       _$ProfileFromJson(json);
 
-  factory Profile.normal({String? label, String url = '', Duration? autoUpdateDuration}) {
+  factory Profile.normal({
+    String? label,
+    String url = '',
+    Duration? autoUpdateDuration,
+  }) {
     final id = snowflake.id;
     return Profile(
       label: label ?? '',
@@ -153,7 +157,7 @@ extension ProfilesExt on List<Profile> {
     );
     final updateProfile = profile.copyWith(
       label: _getLabel(profile.label, profile.id),
-      selectedMap: profile.selectedMap,  // Preserve selected proxy map
+      selectedMap: profile.selectedMap, // Preserve selected proxy map
     );
     if (index == -1) {
       profilesTemp.add(updateProfile);
@@ -248,15 +252,12 @@ extension ProfileExtension on Profile {
         id.toString(),
       ]),
       subscriptionInfo: SubscriptionInfo.formHString(userinfo),
-      selectedMap: selectedMap,  // Preserve selected proxy map during updates
+      selectedMap: selectedMap, // Preserve selected proxy map during updates
     ).saveFile(yamlBytes, storageBytes: storageBytes);
   }
 
   Future<Profile> saveFile(Uint8List bytes, {Uint8List? storageBytes}) async {
-    final path = await appPath.tempFilePath;
-    final tempFile = File(path);
-    await tempFile.safeWriteAsBytes(bytes);
-    final message = await coreController.validateConfig(path);
+    final message = await coreController.validateConfigWithBytes(bytes);
     if (message.isNotEmpty) {
       throw message;
     }
@@ -265,9 +266,8 @@ extension ProfileExtension on Profile {
       // Store encrypted version on disk
       await mFile.safeWriteAsBytes(storageBytes);
     } else {
-      await tempFile.copy(mFile.path);
+      await mFile.safeWriteAsBytes(bytes);
     }
-    await tempFile.safeDelete();
     return copyWith(lastUpdateDate: DateTime.now(), selectedMap: selectedMap);
   }
 

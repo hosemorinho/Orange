@@ -3,6 +3,7 @@ package main
 import (
 	b "bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"github.com/metacubex/mihomo/adapter"
@@ -26,6 +27,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 )
 
@@ -36,6 +38,8 @@ var (
 	runLock       sync.Mutex
 	mBatch, _     = batch.New[bool](context.Background(), batch.WithConcurrencyNum[bool](50))
 )
+
+const inlineConfigPrefix = "inline-b64://"
 
 func getExternalProvidersRaw() map[string]cp.Provider {
 	eps := make(map[string]cp.Provider)
@@ -175,6 +179,16 @@ func readFile(path string) ([]byte, error) {
 	}
 
 	return data, err
+}
+
+// readConfigBytes supports both on-disk file path and in-memory inline payload.
+// Inline payload format: inline-b64://<base64-encoded-raw-config-bytes>
+func readConfigBytes(pathOrInline string) ([]byte, error) {
+	if strings.HasPrefix(pathOrInline, inlineConfigPrefix) {
+		encoded := strings.TrimPrefix(pathOrInline, inlineConfigPrefix)
+		return base64.StdEncoding.DecodeString(encoded)
+	}
+	return readFile(pathOrInline)
 }
 
 func updateConfig(params *UpdateParams) {

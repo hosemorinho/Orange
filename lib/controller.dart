@@ -919,7 +919,7 @@ extension SetupControllerExt on AppController {
   }
 
   /// Read profile config, decrypting if the file is encrypted on disk.
-  /// Decrypts to a temp file, lets core read it, then deletes the temp file.
+  /// Decrypted bytes are passed to core in-memory (no temp file persistence).
   Future<Map<String, dynamic>> _getConfigDecrypted(int profileId) async {
     final profilePath = await appPath.getProfilePath(profileId.toString());
     final profileFile = File(profilePath);
@@ -943,17 +943,9 @@ extension SetupControllerExt on AppController {
       return await coreController.getConfig(profileId);
     }
 
-    // Decrypt to temp file
+    // Decrypt in-memory and pass raw bytes directly to core.
     final yamlBytes = ProfileCipher.decrypt(bytes, token);
-    final tempPath = await appPath.tempFilePath;
-    final tempFile = File(tempPath);
-    await tempFile.safeWriteAsBytes(yamlBytes);
-
-    try {
-      return await coreController.getConfig(profileId, overridePath: tempPath);
-    } finally {
-      await tempFile.safeDelete();
-    }
+    return await coreController.getConfig(profileId, overrideBytes: yamlBytes);
   }
 
   Future<Map> getProfileWithId(int profileId) async {

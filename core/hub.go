@@ -88,7 +88,10 @@ func handleShutdown() bool {
 }
 
 func handleValidateConfig(path string) string {
-	buf, err := readFile(path)
+	buf, err := readConfigBytes(path)
+	if err != nil {
+		return err.Error()
+	}
 	_, err = config.UnmarshalRawConfig(buf)
 	if err != nil {
 		return err.Error()
@@ -479,7 +482,7 @@ func handleGetMemory(fn func(value string)) {
 }
 
 func handleGetConfig(path string) (*config.RawConfig, error) {
-	bytes, err := readFile(path)
+	bytes, err := readConfigBytes(path)
 	if err != nil {
 		return nil, err
 	}

@@ -157,7 +157,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
     if (!userAuthState.isAuthenticated) {
       // TODO: Provider error messages should be handled in UI layer with i18n
       // This error is displayed through UIState and should use AppLocalizations in the UI
-      ref.read(userUIStateProvider.notifier).state = const UIState(
+      ref.read(userUIStateProvider.notifier).state = UIState(
         errorMessage: V2BoardErrorLocalizer.localize('请先登录'),
       );
       return null;
@@ -197,7 +197,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
         return tradeNo;
       } else {
         // TODO: Provider error messages should be handled in UI layer with i18n
-        ref.read(userUIStateProvider.notifier).state = const UIState(
+        ref.read(userUIStateProvider.notifier).state = UIState(
           isLoading: false,
           errorMessage: V2BoardErrorLocalizer.localize('创建订单失败'),
         );
@@ -224,7 +224,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
     if (!userAuthState.isAuthenticated) {
       // TODO: Provider error messages should be handled in UI layer with i18n
       // This error is displayed through UIState and should use AppLocalizations in the UI
-      ref.read(userUIStateProvider.notifier).state = const UIState(
+      ref.read(userUIStateProvider.notifier).state = UIState(
         errorMessage: V2BoardErrorLocalizer.localize('请先登录'),
       );
       return null;
@@ -279,7 +279,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
     if (!userAuthState.isAuthenticated) {
       // TODO: Provider error messages should be handled in UI layer with i18n
       // This error is displayed through UIState and should use AppLocalizations in the UI
-      ref.read(userUIStateProvider.notifier).state = const UIState(
+      ref.read(userUIStateProvider.notifier).state = UIState(
         errorMessage: V2BoardErrorLocalizer.localize('请先登录'),
       );
       return 0;

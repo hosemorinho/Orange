@@ -6,6 +6,7 @@ import 'package:fl_clash/xboard/infrastructure/http/xboard_http_client.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:dio/dio.dart';
 
+import 'v2board_error_localizer.dart';
 import 'v2board_response.dart';
 import 'v2board_token_storage.dart';
 
@@ -109,6 +110,30 @@ class V2BoardApiService {
     return _unwrapResult(result, path);
   }
 
+  /// 从 V2Board 验证错误的 `errors` 字段提取详细信息
+  ///
+  /// V2Board (Laravel) 422 响应格式：
+  /// ```json
+  /// {
+  ///   "message": "The given data was invalid.",
+  ///   "errors": { "password": ["密码必须大于 8 个字符"] }
+  /// }
+  /// ```
+  String _extractErrorMessage(Map<String, dynamic> json, String fallback) {
+    final errors = json['errors'];
+    if (errors is Map<String, dynamic> && errors.isNotEmpty) {
+      final details = errors.entries
+          .expand((e) => e.value is List ? (e.value as List) : [e.value])
+          .map((v) => v.toString())
+          .toList();
+      if (details.isNotEmpty) {
+        return V2BoardErrorLocalizer.localizeAll(details);
+      }
+    }
+    final message = json['message'] as String? ?? fallback;
+    return V2BoardErrorLocalizer.localize(message);
+  }
+
   /// 解包 HttpResult → Map
   Map<String, dynamic> _unwrapResult(HttpResult<dynamic> result, String path) {
     return result.when(
@@ -117,7 +142,7 @@ class V2BoardApiService {
           // 检查 V2Board 错误响应
           if (data.containsKey('message') && !data.containsKey('data')) {
             throw V2BoardApiException(
-              data['message'] as String? ?? '请求失败',
+              _extractErrorMessage(data, '请求失败'),
               statusCode: statusCode,
               rawData: data,
             );
@@ -130,8 +155,8 @@ class V2BoardApiService {
       failure: (message, errorType, statusCode, data) {
         // 尝试从响应体提取 V2Board 错误信息
         String errorMsg = message;
-        if (data is Map<String, dynamic> && data.containsKey('message')) {
-          errorMsg = data['message'] as String? ?? message;
+        if (data is Map<String, dynamic>) {
+          errorMsg = _extractErrorMessage(data, message);
         }
         throw V2BoardApiException(
           errorMsg,

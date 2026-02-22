@@ -503,10 +503,15 @@ class V2BoardApiService {
   }
 
   /// 转账佣金到余额
+  ///
+  /// [amount] uses yuan from UI input and is converted to cents for API.
   Future<Map<String, dynamic>> transferCommission(double amount) async {
-    _logger.info('[API] transferCommission: amount=$amount');
+    final amountInCents = (amount * 100).round();
+    _logger.info(
+      '[API] transferCommission: amountYuan=$amount, amountCents=$amountInCents',
+    );
     return await _authPost('/api/v1/user/transfer', data: {
-      'transfer_amount': amount,
+      'transfer_amount': amountInCents,
     });
   }
 

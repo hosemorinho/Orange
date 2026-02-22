@@ -38,20 +38,24 @@ class _InvitePageState extends ConsumerState<InvitePage>
 
     try {
       await ref.read(createInviteCodeProvider.future);
+      if (!mounted) return;
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(appLocalizations.xboardInviteCodeCreated),
-            backgroundColor: Theme.of(context).colorScheme.tertiary,
-          ),
-        );
-      }
+      // Refresh invite data from UI scope to avoid action-provider dispose timing.
+      ref.invalidate(inviteDataProviderProvider);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(appLocalizations.xboardInviteCodeCreated),
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
+        ),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${appLocalizations.xboardError}: ${ErrorSanitizer.sanitize(e.toString())}'),
+            content: Text(
+              '${appLocalizations.xboardError}: ${ErrorSanitizer.sanitize(e.toString())}',
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -68,7 +72,8 @@ class _InvitePageState extends ConsumerState<InvitePage>
     super.build(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    final isDesktop =
+        Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     final inviteDataAsync = ref.watch(inviteDataProviderProvider);
     final user = ref.watch(userInfoProvider);
@@ -135,8 +140,7 @@ class _InvitePageState extends ConsumerState<InvitePage>
                       const SizedBox(height: 24),
 
                       // Commission actions (Transfer & Withdraw)
-                      _buildCommissionActionsSection(
-                          context, inviteData.stats),
+                      _buildCommissionActionsSection(context, inviteData.stats),
                     ],
                   ),
                 ),
@@ -144,20 +148,14 @@ class _InvitePageState extends ConsumerState<InvitePage>
             ),
           );
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: colorScheme.error,
-                ),
+                Icon(Icons.error_outline, size: 64, color: colorScheme.error),
                 const SizedBox(height: 16),
                 Text(
                   appLocalizations.xboardLoadError,
@@ -190,7 +188,9 @@ class _InvitePageState extends ConsumerState<InvitePage>
   }
 
   Widget _buildCommissionActionsSection(
-      BuildContext context, DomainInviteStats stats) {
+    BuildContext context,
+    DomainInviteStats stats,
+  ) {
     final hasCommission = stats.availableCommission > 0;
 
     return Row(

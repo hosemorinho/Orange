@@ -39,24 +39,32 @@ class _CommissionWithdrawDialogState
 
     try {
       await ref.read(
-        withdrawCommissionProvider(_selectedMethod!, _accountController.text)
-            .future,
+        withdrawCommissionProvider(
+          _selectedMethod!,
+          _accountController.text,
+        ).future,
       );
+      if (!mounted) return;
 
-      if (mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(appLocalizations.withdrawSubmitted),
-            backgroundColor: Theme.of(context).colorScheme.tertiary,
-          ),
-        );
-      }
+      // Refresh invite stats from UI scope for immediate feedback.
+      ref.invalidate(inviteDataProviderProvider);
+
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(appLocalizations.withdrawSubmitted),
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
+        ),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(appLocalizations.withdrawFailed(ErrorSanitizer.sanitize(e.toString()))),
+            content: Text(
+              appLocalizations.withdrawFailed(
+                ErrorSanitizer.sanitize(e.toString()),
+              ),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -82,7 +90,7 @@ class _CommissionWithdrawDialogState
           final withdrawClose = config['withdraw_close'] as int? ?? 0;
           final methods =
               (config['withdraw_methods'] as List<dynamic>?)?.cast<String>() ??
-                  [];
+              [];
 
           if (isWithdraw == 0 || withdrawClose == 1) {
             return Column(
@@ -128,10 +136,7 @@ class _CommissionWithdrawDialogState
                   ),
                   hint: Text(appLocalizations.selectWithdrawMethod),
                   items: methods.map((method) {
-                    return DropdownMenuItem(
-                      value: method,
-                      child: Text(method),
-                    );
+                    return DropdownMenuItem(value: method, child: Text(method));
                   }).toList(),
                   onChanged: (value) {
                     setState(() => _selectedMethod = value);

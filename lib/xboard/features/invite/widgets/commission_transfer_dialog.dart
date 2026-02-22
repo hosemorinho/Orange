@@ -40,26 +40,30 @@ class _CommissionTransferDialogState
 
     try {
       await ref.read(transferCommissionProvider(amount).future);
+      if (!mounted) return;
 
-      // Refresh user info to update balance
-      ref.read(xboardUserProvider.notifier).refreshUserInfo();
+      // Refresh invite stats and user balance from UI scope.
+      ref.invalidate(inviteDataProviderProvider);
+      await ref.read(xboardUserProvider.notifier).refreshUserInfo();
 
-      if (mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              appLocalizations.transferSuccessMsg(amount.toStringAsFixed(2)),
-            ),
-            backgroundColor: Theme.of(context).colorScheme.tertiary,
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            appLocalizations.transferSuccessMsg(amount.toStringAsFixed(2)),
           ),
-        );
-      }
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
+        ),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(appLocalizations.transferFailed(ErrorSanitizer.sanitize(e.toString()))),
+            content: Text(
+              appLocalizations.transferFailed(
+                ErrorSanitizer.sanitize(e.toString()),
+              ),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -94,8 +98,9 @@ class _CommissionTransferDialogState
             const SizedBox(height: 16),
             TextFormField(
               controller: _amountController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: InputDecoration(
                 labelText: appLocalizations.transferAmount,
                 hintText: appLocalizations.enterTransferAmount,
@@ -111,8 +116,9 @@ class _CommissionTransferDialogState
                   return appLocalizations.invalidTransferAmount;
                 }
                 if (amount > maxAmount) {
-                  return appLocalizations
-                      .transferAmountExceeded(maxAmount.toStringAsFixed(2));
+                  return appLocalizations.transferAmountExceeded(
+                    maxAmount.toStringAsFixed(2),
+                  );
                 }
                 return null;
               },

@@ -104,7 +104,7 @@ final class CreateInviteCodeProvider
   }
 }
 
-String _$createInviteCodeHash() => r'c60900a1241fbcd0c52f17dea8925d8c29e45463';
+String _$createInviteCodeHash() => r'82797d334c769da975aabc83ef3c8c68f2b5cec4';
 
 /// Transfer commission to balance
 
@@ -161,7 +161,7 @@ final class TransferCommissionProvider
 }
 
 String _$transferCommissionHash() =>
-    r'a941b9a4450184ac7f0b5aa40b31f7810a6f957e';
+    r'e9b251c734a151a3f2fe0fd7806a7d4cdb9e21ea';
 
 /// Transfer commission to balance
 
@@ -286,7 +286,7 @@ final class WithdrawCommissionProvider
 }
 
 String _$withdrawCommissionHash() =>
-    r'cc7ad5fcb12f9d0488d2c4f201cd38156d6d5770';
+    r'2b3a985050364746a0f8520857c0a29a323d94ac';
 
 /// Submit withdrawal ticket
 

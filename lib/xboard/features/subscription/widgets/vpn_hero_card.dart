@@ -97,6 +97,18 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       _isStart = !_isStart;
     });
     _updateController();
+
+    // Align with dashboard/start button behavior: enabling VPN should
+    // automatically re-enable system proxy if the user turned it off.
+    if (_isStart) {
+      final networkSetting = ref.read(networkSettingProvider);
+      if (!networkSetting.systemProxy) {
+        ref
+            .read(networkSettingProvider.notifier)
+            .update((state) => state.copyWith(systemProxy: true));
+      }
+    }
+
     debouncer.call(FunctionTag.updateStatus, () {
       appController.updateStatus(_isStart);
     }, duration: commonDuration);
@@ -213,7 +225,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     }
   }
 
-  // --- Subscription helpers (ported from SubscriptionUsageCard) ---
+  // --- Subscription helpers (ported from legacy usage card) ---
 
   double _getProgressValue(DomainSubscription? subscription) {
     if (subscription != null && subscription.transferLimit > 0) {
@@ -225,7 +237,8 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
 
   double _getUsedTraffic(DomainSubscription? subscription) {
     if (subscription != null) {
-      return (subscription.uploadedBytes + subscription.downloadedBytes).toDouble();
+      return (subscription.uploadedBytes + subscription.downloadedBytes)
+          .toDouble();
     }
     return 0;
   }
@@ -924,7 +937,9 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                 ClipRRect(
                   borderRadius: BorderRadius.circular(2),
                   child: LinearProgressIndicator(
-                    value: progress.isNaN || progress.isInfinite ? 0.0 : progress,
+                    value: progress.isNaN || progress.isInfinite
+                        ? 0.0
+                        : progress,
                     minHeight: 4,
                     backgroundColor: colorScheme.primary.withValues(
                       alpha: 0.12,
@@ -1206,7 +1221,10 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     );
   }
 
-  Widget _buildImportFailedState(BuildContext context, ImportState importState) {
+  Widget _buildImportFailedState(
+    BuildContext context,
+    ImportState importState,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -1222,11 +1240,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          Icon(
-            Icons.cloud_off_outlined,
-            size: 48,
-            color: colorScheme.error,
-          ),
+          Icon(Icons.cloud_off_outlined, size: 48, color: colorScheme.error),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context).xboardImportFailed,
@@ -1255,10 +1269,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
             style: FilledButton.styleFrom(
               backgroundColor: colorScheme.primary,
               foregroundColor: colorScheme.onPrimary,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
           ),
         ],
@@ -1459,7 +1470,9 @@ class _ProgressRingPainter extends CustomPainter {
     canvas.drawCircle(center, ringRadius, bgPaint);
 
     // Foreground arc (progress-based)
-    final safeProgress = progress.isNaN || progress.isInfinite ? 0.0 : progress.clamp(0.0, 1.0);
+    final safeProgress = progress.isNaN || progress.isInfinite
+        ? 0.0
+        : progress.clamp(0.0, 1.0);
     if (safeProgress > 0) {
       final sweepAngle = 2 * pi * safeProgress;
       final scale = isActive ? 1.0 + 0.03 * pulseProgress : 1.0;

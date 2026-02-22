@@ -190,7 +190,7 @@ Uses state-based colors:
 - Background: `isStart ? tertiary : primary`
 - Foreground: `isStart ? onTertiary : onPrimary`
 
-### XBoard Connect Button (`lib/xboard/features/subscription/widgets/xboard_connect_button.dart`)
+### XBoard Hero Start Button (`lib/xboard/features/subscription/widgets/vpn_hero_card.dart`)
 
 Two modes:
 - **Floating**: Uses `tertiary`/`primary` for background
@@ -320,7 +320,7 @@ dart setup.dart android --arch arm64 \
    - Error states: Hardcoded red → Theme error color
    - Empty states: Hardcoded grey → Theme onSurfaceVariant
 
-2. **VPN Start Buttons** (`start_button.dart`, `xboard_connect_button.dart`):
+2. **VPN Start Buttons** (`start_button.dart`, `vpn_hero_card.dart`):
    - Removed hardcoded green/blue/black/white colors
    - Stop state: Uses `primary` color (slate purple)
    - Running state: Uses `tertiary` color (pink-purple accent)
@@ -344,7 +344,7 @@ dart setup.dart android --arch arm64 \
 **Files Modified**:
 - `lib/models/config.dart` - Default scheme variant
 - `lib/xboard/features/payment/pages/plans.dart` - Plan colors
-- `lib/xboard/features/subscription/widgets/xboard_connect_button.dart` - Button colors
+- `lib/xboard/features/subscription/widgets/vpn_hero_card.dart` - Button colors
 - `lib/views/dashboard/widgets/start_button.dart` - Button colors
 - `.github/workflows/codegen.yaml` - New workflow
 - `.gitignore` - Added MD file exclusions

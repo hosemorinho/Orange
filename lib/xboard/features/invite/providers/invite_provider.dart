@@ -67,6 +67,7 @@ Future<void> createInviteCode(Ref ref) async {
     await api.createInviteCode();
 
     // Refresh invite data
+    if (!ref.mounted) return;
     ref.invalidate(inviteDataProviderProvider);
   } catch (e, stackTrace) {
     _logger.error('[createInviteCode] Failed to create invite code', e, stackTrace);
@@ -82,6 +83,7 @@ Future<void> transferCommission(Ref ref, double amount) async {
     await api.transferCommission(amount);
 
     // Refresh invite data and user info
+    if (!ref.mounted) return;
     ref.invalidate(inviteDataProviderProvider);
   } catch (e, stackTrace) {
     _logger.error('[transferCommission] Failed to transfer commission', e, stackTrace);
@@ -110,6 +112,7 @@ Future<void> withdrawCommission(Ref ref, String method, String account) async {
     await api.withdrawTicket(method, account);
 
     // Refresh invite data
+    if (!ref.mounted) return;
     ref.invalidate(inviteDataProviderProvider);
   } catch (e, stackTrace) {
     _logger.error('[withdrawCommission] Failed to submit withdrawal', e, stackTrace);

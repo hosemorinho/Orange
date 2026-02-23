@@ -174,7 +174,7 @@ object State {
             return null
         }
         val configBytes = QuickSetupConfigStore.readDecrypted()
-        if (configBytes.isNullOrEmpty()) {
+        if (configBytes == null || configBytes.isEmpty()) {
             GlobalState.log("quickSetup v2: no sealed config snapshot, fallback to legacy config.yaml")
             return setupParams
         }
@@ -336,4 +336,3 @@ object State {
         }
     }
 }
-

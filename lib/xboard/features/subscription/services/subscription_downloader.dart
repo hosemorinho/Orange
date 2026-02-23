@@ -5,7 +5,6 @@ import 'package:fl_clash/state.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:socks5_proxy/socks_client.dart';
@@ -18,7 +17,6 @@ final _logger = FileLogger('subscription_downloader.dart');
 /// 并发下载（直连 + 所有代理），第一个成功就获胜
 /// 并发竞速只用于测试连通性，最终使用 FlClash 核心的 Profile.update() 下载
 class SubscriptionDownloader {
-  static const Duration _downloadTimeout = Duration(seconds: 30);
   static const Duration _racingTimeout = Duration(seconds: 10); // 竞速测试超时
   static const Duration _coreWaitTimeout = Duration(seconds: 30); // 等待核心就绪超时
 
@@ -38,24 +36,28 @@ class SubscriptionDownloader {
       // 任务0: 直连测试
       final directToken = _CancelToken();
       cancelTokens.add(directToken);
-      tasks.add(_testConnectivity(
-        url,
-        useProxy: false,
-        cancelToken: directToken,
-        taskIndex: 0,
-      ));
+      tasks.add(
+        _testConnectivity(
+          url,
+          useProxy: false,
+          cancelToken: directToken,
+          taskIndex: 0,
+        ),
+      );
 
       // 任务1+: 所有代理测试
       for (int i = 0; i < proxies.length; i++) {
         final proxyToken = _CancelToken();
         cancelTokens.add(proxyToken);
-        tasks.add(_testConnectivity(
-          url,
-          useProxy: true,
-          proxyUrl: proxies[i],
-          cancelToken: proxyToken,
-          taskIndex: i + 1,
-        ));
+        tasks.add(
+          _testConnectivity(
+            url,
+            useProxy: true,
+            proxyUrl: proxies[i],
+            cancelToken: proxyToken,
+            taskIndex: i + 1,
+          ),
+        );
       }
 
       // 等待第一个成功的连通性测试（忽略失败的）
@@ -67,10 +69,7 @@ class SubscriptionDownloader {
         token.cancel();
       }
 
-      return _ConnectivityRacingResult(
-        winner: winner,
-        success: true,
-      );
+      return _ConnectivityRacingResult(winner: winner, success: true);
     } catch (e) {
       // 取消所有任务
       for (final token in cancelTokens) {
@@ -78,12 +77,13 @@ class SubscriptionDownloader {
       }
 
       _logger.warning('所有竞速测试失败', e);
-      return _ConnectivityRacingResult(
-        winner: null,
-        success: false,
-      );
+      return _ConnectivityRacingResult(winner: null, success: false);
     }
   }
+
+  /// Public gate for callers that need to ensure the core is available
+  /// before invoking profile update/validation flows.
+  static Future<void> ensureCoreReady() => _waitForCoreReady();
 
   /// 等待 Clash 核心服务就绪（Android 特需）
   ///
@@ -136,8 +136,11 @@ class SubscriptionDownloader {
       if (!enableRacing) {
         // 禁用竞速：等待核心就绪，直接使用 FlClash 核心的 Profile.update()
         _logger.info('竞速已禁用，等待核心就绪后下载');
-        await _waitForCoreReady();
-        final profile = Profile.normal(url: url, autoUpdateDuration: const Duration(hours: 1));
+        await ensureCoreReady();
+        final profile = Profile.normal(
+          url: url,
+          autoUpdateDuration: const Duration(hours: 1),
+        );
         return await profile.update(forceDirect: true);
       }
 
@@ -153,19 +156,20 @@ class SubscriptionDownloader {
       final racingFuture = _runConnectivityRacing(url, proxies);
 
       // 同时等待核心就绪（Android 上必需，Desktop 上立即返回）
-      final coreReadyFuture = _waitForCoreReady();
+      final coreReadyFuture = ensureCoreReady();
 
       // 等待两个任务都完成（并行执行）
-      final results = await Future.wait([racingFuture, coreReadyFuture]);
-      final racingResult = results[0] as _ConnectivityRacingResult;
+      await Future.wait([racingFuture, coreReadyFuture]);
 
       // 使用 FlClash 核心的 Profile.update() 下载完整配置
       // forceDirect: 绕过 Clash 代理直连下载，避免 Clash 核心已启动
       // 但节点配置过期时导致下载超时
       _logger.info('使用 FlClash 核心下载完整配置（直连）...');
-      final profile = Profile.normal(url: url, autoUpdateDuration: const Duration(hours: 1));
+      final profile = Profile.normal(
+        url: url,
+        autoUpdateDuration: const Duration(hours: 1),
+      );
       return await profile.update(forceDirect: true);
-
     } on TimeoutException catch (e) {
       _logger.error('订阅下载超时', e);
       throw Exception('下载超时: ${e.message}');
@@ -180,7 +184,7 @@ class SubscriptionDownloader {
       rethrow;
     }
   }
-  
+
   /// 等待第一个成功的连通性测试（忽略失败的）
   static Future<_ConnectivityTestResult> _waitForFirstSuccess(
     List<Future<_ConnectivityTestResult>> tasks,
@@ -190,25 +194,27 @@ class SubscriptionDownloader {
     final errors = <Object>[];
 
     for (final task in tasks) {
-      task.then((result) {
-        if (!completer.isCompleted) {
-          completer.complete(result);
-        }
-      }).catchError((e) {
-        failedCount++;
-        errors.add(e);
+      task
+          .then((result) {
+            if (!completer.isCompleted) {
+              completer.complete(result);
+            }
+          })
+          .catchError((e) {
+            failedCount++;
+            errors.add(e);
 
-        // 如果所有任务都失败了，抛出第一个错误
-        if (failedCount == tasks.length && !completer.isCompleted) {
-          _logger.error('所有连通性测试都失败了', errors.first);
-          completer.completeError(errors.first);
-        }
-      });
+            // 如果所有任务都失败了，抛出第一个错误
+            if (failedCount == tasks.length && !completer.isCompleted) {
+              _logger.error('所有连通性测试都失败了', errors.first);
+              completer.completeError(errors.first);
+            }
+          });
     }
 
     return completer.future;
   }
-  
+
   /// 测试连通性（只获取前几个字节验证可用性）
   static Future<_ConnectivityTestResult> _testConnectivity(
     String url, {
@@ -235,7 +241,6 @@ class SubscriptionDownloader {
         useProxy: useProxy,
         proxyUrl: proxyUrl,
       );
-
     } catch (e) {
       if (cancelToken.isCancelled) {
         _logger.info('[任务$taskIndex] 已取消: $connectionType');
@@ -245,7 +250,7 @@ class SubscriptionDownloader {
       rethrow;
     }
   }
-  
+
   /// 测试 URL 连通性（只发送 HEAD 请求或读取少量数据）
   static Future<void> _pingUrl(
     String url, {
@@ -292,7 +297,10 @@ class SubscriptionDownloader {
       }
 
       // 设置请求头（使用应用的动态 User-Agent）
-      request.headers.set(HttpHeaders.userAgentHeader, globalState.packageInfo.ua);
+      request.headers.set(
+        HttpHeaders.userAgentHeader,
+        globalState.packageInfo.ua,
+      );
 
       // 检查是否已取消
       if (cancelToken.isCancelled) {
@@ -320,7 +328,6 @@ class SubscriptionDownloader {
 
       // 消耗响应流（HEAD 请求通常没有 body，但为了保险起见）
       await response.drain();
-
     } finally {
       if (cancelToken.isCancelled) {
         client?.close(force: true);
@@ -329,7 +336,7 @@ class SubscriptionDownloader {
       }
     }
   }
-  
+
   /// 解析代理配置
   ///
   /// 输入格式:
@@ -418,8 +425,5 @@ class _ConnectivityRacingResult {
   final _ConnectivityTestResult? winner;
   final bool success;
 
-  _ConnectivityRacingResult({
-    required this.winner,
-    required this.success,
-  });
+  _ConnectivityRacingResult({required this.winner, required this.success});
 }

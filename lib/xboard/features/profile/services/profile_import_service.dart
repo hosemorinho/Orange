@@ -13,9 +13,11 @@ import 'package:fl_clash/xboard/core/core.dart';
 // 初始化文件级日志器
 final _logger = FileLogger('profile_import_service.dart');
 
-final xboardProfileImportServiceProvider = Provider<XBoardProfileImportService>((ref) {
-  return XBoardProfileImportService(ref);
-});
+final xboardProfileImportServiceProvider = Provider<XBoardProfileImportService>(
+  (ref) {
+    return XBoardProfileImportService(ref);
+  },
+);
 
 class XBoardProfileImportService {
   final Ref _ref;
@@ -28,7 +30,9 @@ class XBoardProfileImportService {
   /// 查找现有的 XBoard URL 类型 profile
   Profile? _findExistingXboardProfile(List<Profile> profiles) {
     try {
-      final urlProfiles = profiles.where((p) => p.type == ProfileType.url).toList();
+      final urlProfiles = profiles
+          .where((p) => p.type == ProfileType.url)
+          .toList();
       if (urlProfiles.isEmpty) return null;
       return urlProfiles.first;
     } catch (e) {
@@ -97,6 +101,9 @@ class XBoardProfileImportService {
     try {
       _logger.info('使用 FlClash 原生 update() 更新配置: ${profile.id}');
 
+      // Ensure Android core service is ready before validation/session upload.
+      await SubscriptionDownloader.ensureCoreReady();
+
       // 使用 FlClash 原生的 update() 方法
       // 该方法会自动：下载新配置、验证、写入文件、保留 selectedMap
       final updatedProfile = await profile.update();
@@ -143,7 +150,7 @@ class XBoardProfileImportService {
 
       // 2. 强制设置为当前配置
       _ref.read(currentProfileIdProvider.notifier).value = profile.id;
-      _logger.info('已设置为当前配置: ${profile.label ?? profile.id}');
+      _logger.info('已设置为当前配置: ${profile.label}');
 
       // 3. 等待 appController 就绪后应用配置
       if (!appController.isAttach) {
@@ -189,7 +196,11 @@ class XBoardProfileImportService {
         return result;
       }
       _logger.debug('等待 ${retryDelay.inSeconds} 秒后重试');
-      onProgress?.call(ImportStatus.downloading, 0.0, '第 $attempt 次尝试失败，等待重试...');
+      onProgress?.call(
+        ImportStatus.downloading,
+        0.0,
+        '第 $attempt 次尝试失败，等待重试...',
+      );
       await Future.delayed(retryDelay);
     }
     return ImportResult.failure(
@@ -204,19 +215,19 @@ class XBoardProfileImportService {
 
       // 使用 XBoard 订阅下载服务（并发竞速）
       _logger.info('使用 XBoard 订阅下载服务（并发竞速）');
-      final profile = await SubscriptionDownloader.downloadSubscription(
-        url,
-        enableRacing: true,
-      ).timeout(
-        downloadTimeout,
-        onTimeout: () {
-          throw TimeoutException('下载超时', downloadTimeout);
-        },
-      );
+      final profile =
+          await SubscriptionDownloader.downloadSubscription(
+            url,
+            enableRacing: true,
+          ).timeout(
+            downloadTimeout,
+            onTimeout: () {
+              throw TimeoutException('下载超时', downloadTimeout);
+            },
+          );
 
-      _logger.info('配置下载和验证成功: ${profile.label ?? profile.id}');
+      _logger.info('配置下载和验证成功: ${profile.label}');
       return profile;
-
     } on TimeoutException catch (e) {
       throw Exception('下载超时: ${e.message}');
     } on SocketException catch (e) {
@@ -259,7 +270,10 @@ class XBoardProfileImportService {
     return ImportErrorType.unknownError;
   }
 
-  String _getUserFriendlyErrorMessage(dynamic error, ImportErrorType errorType) {
+  String _getUserFriendlyErrorMessage(
+    dynamic error,
+    ImportErrorType errorType,
+  ) {
     final errorString = error.toString();
 
     switch (errorType) {
@@ -289,4 +303,4 @@ class XBoardProfileImportService {
   }
 
   bool get isImporting => _isImporting;
-} 
+}

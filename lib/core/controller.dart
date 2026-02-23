@@ -17,7 +17,6 @@ class CoreController {
   late CoreHandlerInterface _interface;
   static const String _inlineConfigPrefix = 'inline-b64://';
   static const String _sessionConfigPrefix = 'session://';
-  static const int _androidInlineSoftLimitBytes = 512 * 1024;
 
   CoreController._internal() {
     if (system.isAndroid) {
@@ -87,29 +86,53 @@ class CoreController {
 
   Future<String> validateConfigWithBytes(Uint8List bytes) async {
     if (_shouldPreferSessionTransport(bytes)) {
+      // On Android, always use session transport to avoid Binder size risks.
       final sessionSource = await _buildSessionConfigSource(bytes);
-      if (sessionSource != null) {
-        return _interface.validateConfig(sessionSource);
+      if (sessionSource == null) {
+        return 'validateConfigWithBytes failed: config session unavailable; '
+            'plaintext fallback is disabled';
+      }
+      try {
+        return await _interface.validateConfig(sessionSource);
+      } on PlatformException catch (e) {
+        commonPrint.log(
+          'validateConfigWithBytes(session) PlatformException: '
+          '${e.code} ${e.message}',
+          logLevel: LogLevel.warning,
+        );
+        return 'validateConfigWithBytes failed: config session validation failed; '
+            'plaintext fallback is disabled (${e.code} ${e.message ?? ''})';
       }
     }
+
     try {
       final payload = _buildInlineConfigPayload(bytes);
-      return _interface.validateConfig(payload);
+      return await _interface.validateConfig(payload);
     } on PlatformException catch (e) {
-      // On Android, PlatformException can occur for Binder-too-large errors
-      // or SERVICE_ERROR/SERVICE_TIMEOUT when the Go core service is not yet
-      // available. Try session transport; plaintext file fallback is disabled.
+      // Small payload inline failed (Binder edge case or service transient).
+      // Retry via session transport before returning an error.
       commonPrint.log(
         'validateConfigWithBytes PlatformException: ${e.code} ${e.message}, '
         'attempting session transport only',
         logLevel: LogLevel.warning,
       );
       final sessionSource = await _buildSessionConfigSource(bytes);
-      if (sessionSource != null) {
-        return _interface.validateConfig(sessionSource);
+      if (sessionSource == null) {
+        return 'validateConfigWithBytes failed: config session unavailable; '
+            'plaintext fallback is disabled (${e.code} ${e.message ?? ''})';
       }
-      return 'validateConfigWithBytes failed: config session unavailable; '
-          'plaintext fallback is disabled (${e.code} ${e.message ?? ''})';
+      try {
+        return await _interface.validateConfig(sessionSource);
+      } on PlatformException catch (sessionError) {
+        commonPrint.log(
+          'validateConfigWithBytes(session fallback) PlatformException: '
+          '${sessionError.code} ${sessionError.message}',
+          logLevel: LogLevel.warning,
+        );
+        return 'validateConfigWithBytes failed: config session validation failed; '
+            'plaintext fallback is disabled '
+            '(${sessionError.code} ${sessionError.message ?? ''})';
+      }
     }
   }
 
@@ -384,7 +407,7 @@ class CoreController {
 
   bool _shouldPreferSessionTransport(Uint8List bytes) {
     if (!system.isAndroid) return false;
-    return bytes.length > _androidInlineSoftLimitBytes;
+    return true;
   }
 
   Future<bool> _persistAndroidQuickSetupConfigSnapshot(Uint8List bytes) async {

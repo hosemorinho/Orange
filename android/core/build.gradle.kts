@@ -55,10 +55,14 @@ dependencies {
 }
 
 val copyNativeLibs by tasks.register<Copy>("copyNativeLibs") {
+    val libclashDir = file("../../libclash/android")
+    onlyIf {
+        libclashDir.exists()
+    }
     doFirst {
         delete("src/main/jniLibs")
     }
-    from("../../libclash/android")
+    from(libclashDir)
     into("src/main/jniLibs")
 
     doLast {
@@ -76,6 +80,13 @@ val copyNativeLibs by tasks.register<Copy>("copyNativeLibs") {
 
 afterEvaluate {
     tasks.named("preBuild") {
+        dependsOn(copyNativeLibs)
+    }
+    tasks.matching {
+        it.name.startsWith("configureCMake") ||
+            it.name.startsWith("buildCMake") ||
+            it.name.startsWith("externalNativeBuild")
+    }.configureEach {
         dependsOn(copyNativeLibs)
     }
 }

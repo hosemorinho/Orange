@@ -8,6 +8,7 @@ import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/core/interface.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/plugins/service.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 
@@ -144,10 +145,19 @@ class CoreController {
     }
 
     if (system.isAndroid) {
-      // Keep a compatibility snapshot for Android quickSetup path, which
-      // still reads config.yaml when app process is not attached.
       final configFilePath = join(await appPath.homeDirPath, 'config.yaml');
-      await File(configFilePath).writeAsBytes(configBytes, flush: true);
+      final persisted = await _persistAndroidQuickSetupConfigSnapshot(
+        configBytes,
+      );
+      if (persisted) {
+        await File(configFilePath).safeDelete();
+      } else {
+        commonPrint.log(
+          'persistQuickSetupConfig unavailable, fallback to config.yaml snapshot',
+          logLevel: LogLevel.warning,
+        );
+        await File(configFilePath).writeAsBytes(configBytes, flush: true);
+      }
     }
 
     String? sessionId;
@@ -401,6 +411,24 @@ class CoreController {
     return bytes.length > _androidInlineSoftLimitBytes;
   }
 
+  Future<bool> _persistAndroidQuickSetupConfigSnapshot(Uint8List bytes) async {
+    if (!system.isAndroid) return false;
+    try {
+      return await service?.persistQuickSetupConfig(bytes) ?? false;
+    } on PlatformException catch (e) {
+      commonPrint.log(
+        'persistQuickSetupConfig PlatformException: ${e.code} ${e.message}',
+        logLevel: LogLevel.warning,
+      );
+      return false;
+    } catch (e) {
+      commonPrint.log(
+        'persistQuickSetupConfig error: $e',
+        logLevel: LogLevel.warning,
+      );
+      return false;
+    }
+  }
 
   Future<String> _validateConfigWithTempFile(Uint8List bytes) async {
     final path = await _writeTempConfigFile(bytes);

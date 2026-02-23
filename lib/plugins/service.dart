@@ -81,6 +81,19 @@ class Service {
         '';
   }
 
+  Future<bool> persistQuickSetupConfig(Uint8List bytes) async {
+    return await methodChannel.invokeMethod<bool>(
+          'persistQuickSetupConfig',
+          bytes,
+        ) ??
+        false;
+  }
+
+  Future<bool> clearQuickSetupConfig() async {
+    return await methodChannel.invokeMethod<bool>('clearQuickSetupConfig') ??
+        false;
+  }
+
   Future<bool> shutdown() async {
     return await methodChannel.invokeMethod<bool>('shutdown') ?? true;
   }

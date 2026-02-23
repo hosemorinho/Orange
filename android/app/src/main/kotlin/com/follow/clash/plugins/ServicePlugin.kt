@@ -3,6 +3,7 @@ package com.follow.clash.plugins
 import com.follow.clash.RunState
 import com.follow.clash.Service
 import com.follow.clash.State
+import com.follow.clash.QuickSetupConfigStore
 import com.follow.clash.common.Components
 import com.follow.clash.invokeMethodOnMainThread
 import com.follow.clash.models.SharedState
@@ -62,6 +63,14 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
         "syncState" -> {
             handleSyncState(call, result)
+        }
+
+        "persistQuickSetupConfig" -> {
+            handlePersistQuickSetupConfig(call, result)
+        }
+
+        "clearQuickSetupConfig" -> {
+            handleClearQuickSetupConfig(result)
         }
 
         "start" -> {
@@ -156,6 +165,34 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             State.syncState()
             result.success("")
         }
+    }
+
+    private fun handlePersistQuickSetupConfig(
+        call: MethodCall,
+        result: MethodChannel.Result,
+    ) {
+        val bytes = call.arguments<ByteArray>()
+        if (bytes == null || bytes.isEmpty()) {
+            result.error("INVALID_ARGS", "persistQuickSetupConfig requires bytes", null)
+            return
+        }
+        QuickSetupConfigStore.persist(bytes)
+            .onSuccess {
+                result.success(true)
+            }
+            .onFailure {
+                result.error("PERSIST_CONFIG_FAILED", it.message, null)
+            }
+    }
+
+    private fun handleClearQuickSetupConfig(result: MethodChannel.Result) {
+        QuickSetupConfigStore.clear()
+            .onSuccess {
+                result.success(true)
+            }
+            .onFailure {
+                result.error("CLEAR_CONFIG_FAILED", it.message, null)
+            }
     }
 
 

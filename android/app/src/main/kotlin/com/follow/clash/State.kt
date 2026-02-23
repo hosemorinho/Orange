@@ -1,21 +1,35 @@
 package com.follow.clash
 
 import android.net.VpnService
+import android.util.Base64
 import com.follow.clash.common.GlobalState
+import com.follow.clash.models.SetupParams
 import com.follow.clash.models.SharedState
 import com.follow.clash.plugins.AppPlugin
 import com.follow.clash.plugins.TilePlugin
 import com.follow.clash.service.models.NotificationParams
 import com.google.gson.Gson
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import io.flutter.embedding.engine.FlutterEngine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
+import java.security.MessageDigest
+import java.util.UUID
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.math.min
 
 enum class RunState {
     START, PENDING, STOP
 }
+
+private const val CONFIG_CHUNK_SIZE = 48 * 1024
+private const val ACTION_TIMEOUT_MS = 30_000L
 
 
 object State {
@@ -139,7 +153,8 @@ object State {
         initParams["home-dir"] = GlobalState.application.filesDir.path
         initParams["version"] = android.os.Build.VERSION.SDK_INT
         val initParamsString = Gson().toJson(initParams)
-        val setupParamsString = Gson().toJson(sharedState.setupParams)
+        val setupParams = attachSessionConfig(sharedState.setupParams)
+        val setupParamsString = Gson().toJson(setupParams)
         Service.quickSetup(
             initParamsString,
             setupParamsString,
@@ -152,6 +167,123 @@ object State {
                 }
             },
         )
+    }
+
+    private suspend fun attachSessionConfig(setupParams: SetupParams?): SetupParams? {
+        if (setupParams == null) {
+            return null
+        }
+        val configBytes = QuickSetupConfigStore.readDecrypted()
+        if (configBytes.isNullOrEmpty()) {
+            GlobalState.log("quickSetup v2: no sealed config snapshot, fallback to legacy config.yaml")
+            return setupParams
+        }
+        val sessionId = uploadConfigToSession(configBytes)
+        if (sessionId.isNullOrEmpty()) {
+            GlobalState.log("quickSetup v2: session upload failed, fallback to legacy config.yaml")
+            return setupParams
+        }
+        GlobalState.log("quickSetup v2: using config session $sessionId")
+        return setupParams.copy(configSessionId = sessionId)
+    }
+
+    private suspend fun uploadConfigToSession(configBytes: ByteArray): String? {
+        val beginRes = invokeCoreAction("beginConfigSession", null) ?: return null
+        val sessionId = beginRes.get("data")?.takeIf { it.isJsonPrimitive }?.asString
+        if (sessionId.isNullOrEmpty()) {
+            GlobalState.log("quickSetup v2: beginConfigSession returned empty session id")
+            return null
+        }
+
+        var index = 0
+        var offset = 0
+        while (offset < configBytes.size) {
+            val end = min(offset + CONFIG_CHUNK_SIZE, configBytes.size)
+            val chunk = configBytes.copyOfRange(offset, end)
+            val chunkBase64 = Base64.encodeToString(chunk, Base64.NO_WRAP)
+            val appendOk = invokeCoreAction(
+                "appendConfigChunk",
+                mapOf("session-id" to sessionId, "chunk" to chunkBase64, "index" to index),
+            ) != null
+            if (!appendOk) {
+                GlobalState.log("quickSetup v2: appendConfigChunk failed at index=$index")
+                return null
+            }
+            index += 1
+            offset = end
+        }
+
+        val sha256 = sha256Hex(configBytes)
+        val commitOk = invokeCoreAction(
+            "commitConfigSession",
+            mapOf("session-id" to sessionId, "sha256" to sha256),
+        ) != null
+        if (!commitOk) {
+            GlobalState.log("quickSetup v2: commitConfigSession failed")
+            return null
+        }
+        return sessionId
+    }
+
+    private fun sha256Hex(input: ByteArray): String {
+        return MessageDigest.getInstance("SHA-256")
+            .digest(input)
+            .joinToString("") { byte -> "%02x".format(byte) }
+    }
+
+    private suspend fun invokeCoreAction(method: String, data: Any?): JsonObject? {
+        val action = mapOf(
+            "id" to "${method}#${UUID.randomUUID()}",
+            "method" to method,
+            "data" to data,
+        )
+        val payload = Gson().toJson(action)
+        val result = withTimeoutOrNull(ACTION_TIMEOUT_MS) {
+            suspendCancellableCoroutine<String?> { cont ->
+                GlobalState.launch {
+                    try {
+                        val serviceResult = Service.invokeAction(payload) { callbackResult ->
+                            if (cont.isActive) {
+                                cont.resume(callbackResult)
+                            }
+                        }
+                        if (serviceResult.isFailure && cont.isActive) {
+                            cont.resumeWithException(
+                                serviceResult.exceptionOrNull()
+                                    ?: IllegalStateException("invokeAction failed: $method")
+                            )
+                        }
+                    } catch (e: Exception) {
+                        if (cont.isActive) {
+                            cont.resumeWithException(e)
+                        }
+                    }
+                }
+            }
+        } ?: run {
+            GlobalState.log("quickSetup v2: invokeAction timeout method=$method")
+            return null
+        }
+
+        if (result.isNullOrEmpty()) {
+            GlobalState.log("quickSetup v2: empty action result method=$method")
+            return null
+        }
+
+        return try {
+            val json = JsonParser.parseString(result).asJsonObject
+            val code = json.get("code")?.asInt ?: -1
+            if (code != 0) {
+                val errorText = json.get("data")?.toString()
+                GlobalState.log("quickSetup v2: action failed method=$method error=$errorText")
+                null
+            } else {
+                json
+            }
+        } catch (e: Exception) {
+            GlobalState.log("quickSetup v2: parse action result failed method=$method error=${e.message}")
+            null
+        }
     }
 
     private fun startService() {
@@ -204,6 +336,4 @@ object State {
         }
     }
 }
-
-
 

@@ -23,6 +23,13 @@ import kotlin.coroutines.resumeWithException
 
 class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
+    companion object {
+        // Keep this aligned with Dart FutureExt.withTimeout default (3 minutes).
+        // Short timeouts break long-running actions like validate/setup during
+        // large subscription imports.
+        private const val INVOKE_ACTION_TIMEOUT_MS = 180_000L
+    }
+
     private lateinit var flutterMethodChannel: MethodChannel
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -78,7 +85,7 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     result.error("INVALID_ARGS", "invokeAction requires String payload", null)
                     return@launch
                 }
-                val invokeResult = withTimeoutOrNull(6500L) {
+                val invokeResult = withTimeoutOrNull(INVOKE_ACTION_TIMEOUT_MS) {
                     suspendCancellableCoroutine<String?> { cont ->
                         launch {
                             try {

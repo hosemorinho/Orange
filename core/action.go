@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"unsafe"
 )
 
@@ -194,7 +195,11 @@ func handleAction(action *Action, result ActionResult) {
 		result.success(sessionId)
 		return
 	case appendConfigChunkMethod:
-		data := []byte(action.Data.(string))
+		data, err := actionDataToJSONBytes(action.Data)
+		if err != nil {
+			result.error(err.Error())
+			return
+		}
 		var params struct {
 			SessionId string `json:"session-id"`
 			Chunk     string `json:"chunk"`
@@ -211,7 +216,11 @@ func handleAction(action *Action, result ActionResult) {
 		result.success(true)
 		return
 	case commitConfigSessionMethod:
-		data := []byte(action.Data.(string))
+		data, err := actionDataToJSONBytes(action.Data)
+		if err != nil {
+			result.error(err.Error())
+			return
+		}
 		var params struct {
 			SessionId string `json:"session-id"`
 			Sha256    string `json:"sha256"`
@@ -230,5 +239,22 @@ func handleAction(action *Action, result ActionResult) {
 		if !nextHandle(action, result) {
 			result.error("unsupported method")
 		}
+	}
+}
+
+func actionDataToJSONBytes(data interface{}) ([]byte, error) {
+	switch v := data.(type) {
+	case nil:
+		return nil, fmt.Errorf("missing action data")
+	case string:
+		return []byte(v), nil
+	case []byte:
+		return v, nil
+	default:
+		encoded, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		return encoded, nil
 	}
 }

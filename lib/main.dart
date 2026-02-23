@@ -14,52 +14,55 @@ import 'common/common.dart';
 import 'xboard/core/core.dart';
 
 Future<void> main() async {
-  try {
-    WidgetsFlutterBinding.ensureInitialized();
-
-    // 启用磁盘日志
+  installGlobalLogMasking();
+  await runWithSanitizedPrintZone(() async {
     try {
-      String logDir;
-      if (system.isDesktop) {
-        logDir = await appPath.homeDirPath;
-      } else {
-        // Android: 写到外部应用目录，文件管理器可见
-        // /sdcard/Android/data/包名/files/xboard.log
-        final extDir = await getExternalStorageDirectory();
-        logDir = extDir?.path ?? await appPath.homeDirPath;
+      WidgetsFlutterBinding.ensureInitialized();
+
+      // 启用磁盘日志
+      try {
+        String logDir;
+        if (system.isDesktop) {
+          logDir = await appPath.homeDirPath;
+        } else {
+          // Android: 写到外部应用目录，文件管理器可见
+          // /sdcard/Android/data/包名/files/xboard.log
+          final extDir = await getExternalStorageDirectory();
+          logDir = extDir?.path ?? await appPath.homeDirPath;
+        }
+        final diskLogger = await DiskLogger.init(logDir);
+        if (kReleaseMode) {
+          diskLogger.minLevel = LogLevel.info;
+        }
+        XBoardLogger.setLogger(diskLogger);
+        debugPrint('[Main] 磁盘日志已启用: $logDir/xboard.log');
+      } catch (e) {
+        debugPrint('[Main] 磁盘日志初始化失败: $e');
       }
-      final diskLogger = await DiskLogger.init(logDir);
-      if (kReleaseMode) {
-        diskLogger.minLevel = LogLevel.info;
-      }
-      XBoardLogger.setLogger(diskLogger);
-      debugPrint('[Main] 磁盘日志已启用: $logDir/xboard.log');
-    } catch (e) {
-      debugPrint('[Main] 磁盘日志初始化失败: $e');
+
+      // TV 检测
+      await system.initTVDetection();
+
+      // 初始化XBoard配置模块
+      await _initializeXBoardServices();
+
+      final version = await system.version;
+      final container = await globalState.init(version);
+      HttpOverrides.global = FlClashHttpOverrides();
+      runApp(
+        UncontrolledProviderScope(
+          container: container,
+          child: const Application(),
+        ),
+      );
+    } catch (e, s) {
+      return runApp(
+        MaterialApp(
+          home: InitErrorScreen(error: e, stack: s),
+        ),
+      );
     }
-
-    // TV 检测
-    await system.initTVDetection();
-
-    // 初始化XBoard配置模块
-    await _initializeXBoardServices();
-
-    final version = await system.version;
-    final container = await globalState.init(version);
-    HttpOverrides.global = FlClashHttpOverrides();
-    runApp(
-      UncontrolledProviderScope(
-        container: container,
-        child: const Application(),
-      ),
-    );
-  } catch (e, s) {
-    return runApp(
-      MaterialApp(
-        home: InitErrorScreen(error: e, stack: s),
-      ),
-    );
-  }
+  });
 }
 
 /// 初始化XBoard配置模块

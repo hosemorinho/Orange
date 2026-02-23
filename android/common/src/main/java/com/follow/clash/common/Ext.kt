@@ -20,7 +20,6 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.RemoteException
-import android.util.Log
 import androidx.core.content.getSystemService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -87,7 +86,7 @@ val BroadcastAction.quickIntent: Intent
 fun BroadcastAction.sendBroadcast() {
     val intent = Intent().apply {
         action = this@sendBroadcast.action
-        Log.d("[sendBroadcast]", "$action")
+        GlobalState.log("sendBroadcast $action")
         setPackage(GlobalState.packageName)
     }
     GlobalState.application.sendBroadcast(

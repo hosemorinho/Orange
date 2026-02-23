@@ -2,6 +2,7 @@ import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:flutter/material.dart';
+import 'package:fl_clash/xboard/core/logger/log_sanitizer.dart';
 
 class CommonPrint {
   static CommonPrint? _instance;
@@ -14,7 +15,8 @@ class CommonPrint {
   }
 
   void log(String? text, {LogLevel logLevel = LogLevel.info}) {
-    final payload = '[APP] $text';
+    final safeText = LogSanitizer.sanitize(text ?? '');
+    final payload = '[APP] $safeText';
     debugPrint(payload);
     if (!appController.isAttach) {
       return;

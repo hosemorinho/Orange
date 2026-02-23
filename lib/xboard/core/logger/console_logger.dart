@@ -4,6 +4,7 @@
 library;
 
 import 'logger_interface.dart';
+import 'log_sanitizer.dart';
 
 /// 控制台日志实现
 class ConsoleLogger implements LoggerInterface {
@@ -70,10 +71,11 @@ class ConsoleLogger implements LoggerInterface {
     final prefix = enableColor ? '$colorCode$_prefix' : _prefix;
     final levelStr = enableColor ? '[$level]' : '[$level]';
     final resetColor = enableColor ? _resetColor : '';
+    final safeMessage = LogSanitizer.sanitize(message);
 
     // 构建日志消息
     final buffer = StringBuffer();
-    buffer.write('$prefix$timestamp$levelStr $message$resetColor');
+    buffer.write('$prefix$timestamp$levelStr $safeMessage$resetColor');
 
     // 输出主消息
     // ignore: avoid_print
@@ -81,14 +83,16 @@ class ConsoleLogger implements LoggerInterface {
 
     // 输出错误信息（保持格式一致）
     if (error != null) {
+      final safeError = LogSanitizer.sanitize(error.toString());
       // ignore: avoid_print
-      print('$prefix$timestamp$levelStr Error: $error$resetColor');
+      print('$prefix$timestamp$levelStr Error: $safeError$resetColor');
     }
 
     // 输出堆栈跟踪（保持格式一致）
     if (stackTrace != null) {
+      final safeStack = LogSanitizer.sanitize(stackTrace.toString());
       // ignore: avoid_print
-      print('$prefix$timestamp$levelStr StackTrace:\n$stackTrace$resetColor');
+      print('$prefix$timestamp$levelStr StackTrace:\n$safeStack$resetColor');
     }
   }
 
@@ -99,4 +103,3 @@ class ConsoleLogger implements LoggerInterface {
         '${now.second.toString().padLeft(2, '0')}]';
   }
 }
-

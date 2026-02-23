@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'logger_interface.dart';
 import 'console_logger.dart';
+import 'log_sanitizer.dart';
 
 /// 磁盘日志实现
 ///
@@ -49,7 +50,12 @@ class DiskLogger implements LoggerInterface {
   void _write(String line) {
     if (!_ready) return;
     try {
-      _file.writeAsStringSync('$line\n', mode: FileMode.append, flush: true);
+      final safeLine = LogSanitizer.sanitize(line);
+      _file.writeAsStringSync(
+        '$safeLine\n',
+        mode: FileMode.append,
+        flush: true,
+      );
     } catch (_) {}
   }
 

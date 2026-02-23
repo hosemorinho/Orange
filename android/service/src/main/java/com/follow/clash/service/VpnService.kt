@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.IBinder
 import android.os.Parcel
 import android.os.RemoteException
-import android.util.Log
 import androidx.core.content.getSystemService
 import com.follow.clash.common.AccessControlMode
 import com.follow.clash.common.GlobalState
@@ -130,16 +129,12 @@ class VpnService : SystemVpnService(), IBaseService,
         val fd = with(Builder()) {
             val cidr = IPV4_ADDRESS.toCIDR()
             addAddress(cidr.address, cidr.prefixLength)
-            Log.d(
-                "addAddress", "address: ${cidr.address} prefixLength:${cidr.prefixLength}"
-            )
+            GlobalState.log("addAddress address: ${cidr.address} prefixLength:${cidr.prefixLength}")
             val routeAddress = options.getIpv4RouteAddress()
             if (routeAddress.isNotEmpty()) {
                 try {
                     routeAddress.forEach { i ->
-                        Log.d(
-                            "addRoute4", "address: ${i.address} prefixLength:${i.prefixLength}"
-                        )
+                        GlobalState.log("addRoute4 address: ${i.address} prefixLength:${i.prefixLength}")
                         addRoute(i.address, i.prefixLength)
                     }
                 } catch (_: Exception) {
@@ -151,14 +146,10 @@ class VpnService : SystemVpnService(), IBaseService,
             if (options.ipv6) {
                 try {
                     val cidr = IPV6_ADDRESS.toCIDR()
-                    Log.d(
-                        "addAddress6", "address: ${cidr.address} prefixLength:${cidr.prefixLength}"
-                    )
+                    GlobalState.log("addAddress6 address: ${cidr.address} prefixLength:${cidr.prefixLength}")
                     addAddress(cidr.address, cidr.prefixLength)
                 } catch (_: Exception) {
-                    Log.d(
-                        "addAddress6", "IPv6 is not supported."
-                    )
+                    GlobalState.log("addAddress6 IPv6 is not supported.")
                 }
 
                 try {
@@ -166,10 +157,7 @@ class VpnService : SystemVpnService(), IBaseService,
                     if (routeAddress.isNotEmpty()) {
                         try {
                             routeAddress.forEach { i ->
-                                Log.d(
-                                    "addRoute6",
-                                    "address: ${i.address} prefixLength:${i.prefixLength}"
-                                )
+                                GlobalState.log("addRoute6 address: ${i.address} prefixLength:${i.prefixLength}")
                                 addRoute(i.address, i.prefixLength)
                             }
                         } catch (_: Exception) {

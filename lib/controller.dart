@@ -1,12 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
-import 'package:fl_clash/widgets/dialog.dart';
 import 'package:fl_clash/xboard/infrastructure/crypto/profile_cipher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -988,10 +989,10 @@ extension SetupControllerExt on AppController {
       setupState: setupState,
       patchConfig: realPatchConfig,
     );
-    final configFilePath = await appPath.configFilePath;
     final yamlString = await encodeYamlTask(config);
-    await File(configFilePath).safeWriteAsString(yamlString);
-    final message = await coreController.setupConfig(
+    final configBytes = Uint8List.fromList(utf8.encode(yamlString));
+    final message = await coreController.setupConfigWithBytes(
+      configBytes: configBytes,
       setupState: setupState,
       params: setupParams,
       preloadInvoke: preloadInvoke,

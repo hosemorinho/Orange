@@ -6,6 +6,8 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:flutter/foundation.dart';
 
+final _sessionIdRegex = RegExp(r'^[0-9a-f]{32}$');
+
 mixin CoreInterface {
   Future<bool> init(InitParams params);
 
@@ -73,6 +75,19 @@ mixin CoreInterface {
   FutureOr<bool> closeConnections();
 
   FutureOr<bool> resetConnections();
+
+  Future<String?> beginConfigSession();
+
+  Future<bool> appendConfigChunk({
+    required String sessionId,
+    required String chunkBase64,
+    required int index,
+  });
+
+  Future<bool> commitConfigSession({
+    required String sessionId,
+    required String sha256,
+  });
 }
 
 abstract class CoreHandlerInterface with CoreInterface {
@@ -345,5 +360,48 @@ abstract class CoreHandlerInterface with CoreInterface {
   @override
   Future<String> getMemory() async {
     return await _invoke<String>(method: ActionMethod.getMemory) ?? '';
+  }
+
+  @override
+  Future<String?> beginConfigSession() async {
+    final result = await _invoke<dynamic>(
+      method: ActionMethod.beginConfigSession,
+      timeout: const Duration(seconds: 2),
+    );
+    if (result is String && _sessionIdRegex.hasMatch(result)) {
+      return result;
+    }
+    return null;
+  }
+
+  @override
+  Future<bool> appendConfigChunk({
+    required String sessionId,
+    required String chunkBase64,
+    required int index,
+  }) async {
+    final result = await _invoke<dynamic>(
+      method: ActionMethod.appendConfigChunk,
+      data: json.encode({
+        'session-id': sessionId,
+        'chunk': chunkBase64,
+        'index': index,
+      }),
+      timeout: const Duration(seconds: 10),
+    );
+    return result == true;
+  }
+
+  @override
+  Future<bool> commitConfigSession({
+    required String sessionId,
+    required String sha256,
+  }) async {
+    final result = await _invoke<dynamic>(
+      method: ActionMethod.commitConfigSession,
+      data: json.encode({'session-id': sessionId, 'sha256': sha256}),
+      timeout: const Duration(seconds: 10),
+    );
+    return result == true;
   }
 }

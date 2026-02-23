@@ -17,8 +17,9 @@ type InitParams struct {
 }
 
 type SetupParams struct {
-	SelectedMap map[string]string `json:"selected-map"`
-	TestURL     string            `json:"test-url"`
+	SelectedMap     map[string]string `json:"selected-map"`
+	TestURL         string            `json:"test-url"`
+	ConfigSessionId string            `json:"config-session-id,omitempty"`
 }
 
 type UpdateParams struct {
@@ -105,6 +106,9 @@ const (
 	setupConfigMethod              Method = "setupConfig"
 	getConfigMethod                Method = "getConfig"
 	deleteFile                     Method = "deleteFile"
+	beginConfigSessionMethod       Method = "beginConfigSession"
+	appendConfigChunkMethod        Method = "appendConfigChunk"
+	commitConfigSessionMethod      Method = "commitConfigSession"
 )
 
 type Method string

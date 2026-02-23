@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/metacubex/mihomo/adapter"
 	"github.com/metacubex/mihomo/adapter/inbound"
 	"github.com/metacubex/mihomo/adapter/outboundgroup"
@@ -258,7 +259,17 @@ func applyConfig(params *SetupParams) error {
 	defer runLock.Unlock()
 	var err error
 	constant.DefaultTestURL = params.TestURL
-	currentConfig, err = executor.ParseWithPath(filepath.Join(constant.Path.HomeDir(), "config.yaml"))
+
+	if params.ConfigSessionId != "" {
+		buf, consumeErr := consumeCommittedConfig(params.ConfigSessionId)
+		if consumeErr != nil {
+			return fmt.Errorf("config session error: %w", consumeErr)
+		}
+		defer zeroBytes(buf)
+		currentConfig, err = executor.ParseWithBytes(buf)
+	} else {
+		currentConfig, err = executor.ParseWithPath(filepath.Join(constant.Path.HomeDir(), "config.yaml"))
+	}
 	if err != nil {
 		currentConfig, _ = config.ParseRawConfig(config.DefaultRawConfig())
 	}

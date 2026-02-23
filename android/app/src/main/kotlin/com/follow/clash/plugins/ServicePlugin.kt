@@ -14,8 +14,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
@@ -68,9 +72,42 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     private fun handleInvokeAction(call: MethodCall, result: MethodChannel.Result) {
         launch {
-            val data = call.arguments<String>()!!
-            Service.invokeAction(data) {
-                result.success(it)
+            try {
+                val data = call.arguments<String>()
+                if (data == null) {
+                    result.error("INVALID_ARGS", "invokeAction requires String payload", null)
+                    return@launch
+                }
+                val invokeResult = withTimeoutOrNull(6500L) {
+                    suspendCancellableCoroutine<String?> { cont ->
+                        launch {
+                            try {
+                                val serviceResult = Service.invokeAction(data) { callbackResult ->
+                                    if (cont.isActive) {
+                                        cont.resume(callbackResult)
+                                    }
+                                }
+                                if (serviceResult.isFailure && cont.isActive) {
+                                    cont.resumeWithException(
+                                        serviceResult.exceptionOrNull()
+                                            ?: IllegalStateException("invokeAction failed")
+                                    )
+                                }
+                            } catch (e: Exception) {
+                                if (cont.isActive) {
+                                    cont.resumeWithException(e)
+                                }
+                            }
+                        }
+                    }
+                }
+                if (invokeResult == null) {
+                    result.error("SERVICE_TIMEOUT", "invokeAction timed out", null)
+                } else {
+                    result.success(invokeResult)
+                }
+            } catch (e: Exception) {
+                result.error("SERVICE_ERROR", e.message ?: "invokeAction failed", null)
             }
         }
     }

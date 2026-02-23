@@ -185,7 +185,50 @@ func handleAction(action *Action, result ActionResult) {
 		path := action.Data.(string)
 		handleDelFile(path, result)
 		return
+	case beginConfigSessionMethod:
+		sessionId, err := beginConfigSession()
+		if err != nil {
+			result.error(err.Error())
+			return
+		}
+		result.success(sessionId)
+		return
+	case appendConfigChunkMethod:
+		data := []byte(action.Data.(string))
+		var params struct {
+			SessionId string `json:"session-id"`
+			Chunk     string `json:"chunk"`
+			Index     int    `json:"index"`
+		}
+		if err := json.Unmarshal(data, &params); err != nil {
+			result.error(err.Error())
+			return
+		}
+		if err := appendConfigChunk(params.SessionId, params.Chunk, params.Index); err != nil {
+			result.error(err.Error())
+			return
+		}
+		result.success(true)
+		return
+	case commitConfigSessionMethod:
+		data := []byte(action.Data.(string))
+		var params struct {
+			SessionId string `json:"session-id"`
+			Sha256    string `json:"sha256"`
+		}
+		if err := json.Unmarshal(data, &params); err != nil {
+			result.error(err.Error())
+			return
+		}
+		if err := commitConfigSession(params.SessionId, params.Sha256); err != nil {
+			result.error(err.Error())
+			return
+		}
+		result.success(true)
+		return
 	default:
-		nextHandle(action, result)
+		if !nextHandle(action, result) {
+			result.error("unsupported method")
+		}
 	}
 }

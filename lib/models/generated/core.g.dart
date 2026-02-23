@@ -9,12 +9,14 @@ part of '../core.dart';
 _SetupParams _$SetupParamsFromJson(Map<String, dynamic> json) => _SetupParams(
   selectedMap: Map<String, String>.from(json['selected-map'] as Map),
   testUrl: json['test-url'] as String,
+  configSessionId: json['config-session-id'] as String?,
 );
 
 Map<String, dynamic> _$SetupParamsToJson(_SetupParams instance) =>
     <String, dynamic>{
       'selected-map': instance.selectedMap,
       'test-url': instance.testUrl,
+      'config-session-id': instance.configSessionId,
     };
 
 _UpdateParams _$UpdateParamsFromJson(Map<String, dynamic> json) =>
@@ -290,6 +292,9 @@ const _$ActionMethodEnumMap = {
   ActionMethod.crash: 'crash',
   ActionMethod.setupConfig: 'setupConfig',
   ActionMethod.deleteFile: 'deleteFile',
+  ActionMethod.beginConfigSession: 'beginConfigSession',
+  ActionMethod.appendConfigChunk: 'appendConfigChunk',
+  ActionMethod.commitConfigSession: 'commitConfigSession',
   ActionMethod.setState: 'setState',
   ActionMethod.startTun: 'startTun',
   ActionMethod.stopTun: 'stopTun',

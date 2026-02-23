@@ -10,6 +10,7 @@ abstract class SetupParams with _$SetupParams {
   const factory SetupParams({
     @JsonKey(name: 'selected-map') required Map<String, String> selectedMap,
     @JsonKey(name: 'test-url') required String testUrl,
+    @JsonKey(name: 'config-session-id') String? configSessionId,
   }) = _SetupParams;
 
   factory SetupParams.fromJson(Map<String, dynamic> json) =>

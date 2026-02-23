@@ -244,6 +244,9 @@ enum ActionMethod {
   crash,
   setupConfig,
   deleteFile,
+  beginConfigSession,
+  appendConfigChunk,
+  commitConfigSession,
 
   ///Android,
   setState,

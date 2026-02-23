@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/core/config_session.dart';
 import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/core/interface.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -97,6 +97,63 @@ class CoreController {
     VoidCallback? preloadInvoke,
   }) async {
     final res = _interface.setupConfig(params);
+    if (preloadInvoke != null) {
+      preloadInvoke();
+    }
+    return res;
+  }
+
+  Future<String> setupConfigWithBytes({
+    required Uint8List configBytes,
+    required SetupParams params,
+    required SetupState setupState,
+    VoidCallback? preloadInvoke,
+  }) async {
+    Future<String> fallbackWithConfigFile() async {
+      final configFilePath = join(await appPath.homeDirPath, 'config.yaml');
+      await File(configFilePath).writeAsBytes(configBytes, flush: true);
+      return setupConfig(
+        params: params,
+        setupState: setupState,
+        preloadInvoke: preloadInvoke,
+      );
+    }
+
+    if (system.isAndroid) {
+      // Keep a compatibility snapshot for Android quickSetup path, which
+      // still reads config.yaml when app process is not attached.
+      final configFilePath = join(await appPath.homeDirPath, 'config.yaml');
+      await File(configFilePath).writeAsBytes(configBytes, flush: true);
+    }
+
+    String? sessionId;
+    try {
+      sessionId = await ConfigSessionUploader(_interface).upload(configBytes);
+    } catch (e) {
+      commonPrint.log(
+        'setupConfigWithBytes session upload failed, fallback to file: $e',
+        logLevel: LogLevel.warning,
+      );
+      sessionId = null;
+    }
+
+    if (sessionId == null) {
+      if (!system.isAndroid) {
+        return fallbackWithConfigFile();
+      }
+      return setupConfig(
+        params: params,
+        setupState: setupState,
+        preloadInvoke: preloadInvoke,
+      );
+    }
+
+    final sessionParams = SetupParams(
+      selectedMap: params.selectedMap,
+      testUrl: params.testUrl,
+      configSessionId: sessionId,
+    );
+    final res = _interface.setupConfig(sessionParams);
     if (preloadInvoke != null) {
       preloadInvoke();
     }

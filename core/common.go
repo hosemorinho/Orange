@@ -41,6 +41,7 @@ var (
 )
 
 const inlineConfigPrefix = "inline-b64://"
+const sessionConfigPrefix = "session://"
 
 func getExternalProvidersRaw() map[string]cp.Provider {
 	eps := make(map[string]cp.Provider)
@@ -188,6 +189,10 @@ func readConfigBytes(pathOrInline string) ([]byte, error) {
 	if strings.HasPrefix(pathOrInline, inlineConfigPrefix) {
 		encoded := strings.TrimPrefix(pathOrInline, inlineConfigPrefix)
 		return base64.StdEncoding.DecodeString(encoded)
+	}
+	if strings.HasPrefix(pathOrInline, sessionConfigPrefix) {
+		sessionId := strings.TrimPrefix(pathOrInline, sessionConfigPrefix)
+		return consumeCommittedConfig(sessionId)
 	}
 	return readFile(pathOrInline)
 }

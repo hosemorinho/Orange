@@ -15,6 +15,8 @@ class CoreController {
   static CoreController? _instance;
   late CoreHandlerInterface _interface;
   static const String _inlineConfigPrefix = 'inline-b64://';
+  static const String _sessionConfigPrefix = 'session://';
+  static const int _androidInlineSoftLimitBytes = 512 * 1024;
 
   CoreController._internal() {
     if (system.isAndroid) {
@@ -83,8 +85,30 @@ class CoreController {
   }
 
   Future<String> validateConfigWithBytes(Uint8List bytes) async {
-    final payload = _buildInlineConfigPayload(bytes);
-    return _interface.validateConfig(payload);
+    if (_shouldPreferSessionTransport(bytes)) {
+      final sessionSource = await _buildSessionConfigSource(bytes);
+      if (sessionSource != null) {
+        return _interface.validateConfig(sessionSource);
+      }
+    }
+    try {
+      final payload = _buildInlineConfigPayload(bytes);
+      return _interface.validateConfig(payload);
+    } on PlatformException catch (e) {
+      // On Android, PlatformException can occur for Binder-too-large errors
+      // or SERVICE_ERROR/SERVICE_TIMEOUT when the Go core service is not yet
+      // available. Try session transport first, then temp file as last resort.
+      commonPrint.log(
+        'validateConfigWithBytes PlatformException: ${e.code} ${e.message}, '
+        'attempting fallback',
+        logLevel: LogLevel.warning,
+      );
+      final sessionSource = await _buildSessionConfigSource(bytes);
+      if (sessionSource != null) {
+        return _interface.validateConfig(sessionSource);
+      }
+      return _validateConfigWithTempFile(bytes);
+    }
   }
 
   Future<String> updateConfig(UpdateParams updateParams) async {
@@ -261,10 +285,41 @@ class CoreController {
     String? overridePath,
     Uint8List? overrideBytes,
   }) async {
-    final source = overrideBytes != null
-        ? _buildInlineConfigPayload(overrideBytes)
-        : (overridePath ?? await appPath.getProfilePath(id.toString()));
-    final res = await _interface.getConfig(source);
+    final source = await _buildConfigSourceForGet(
+      id: id,
+      overridePath: overridePath,
+      overrideBytes: overrideBytes,
+    );
+    Result res;
+    try {
+      res = await _interface.getConfig(source.source);
+    } on PlatformException catch (e) {
+      if (overrideBytes != null) {
+        commonPrint.log(
+          'getConfig PlatformException: ${e.code} ${e.message}, '
+          'attempting fallback',
+          logLevel: LogLevel.warning,
+        );
+        final sessionSource = await _buildSessionConfigSource(overrideBytes);
+        if (sessionSource != null) {
+          res = await _interface.getConfig(sessionSource);
+        } else {
+          final tempPath = await _writeTempConfigFile(overrideBytes);
+          try {
+            res = await _interface.getConfig(tempPath);
+          } finally {
+            await File(tempPath).safeDelete();
+          }
+        }
+      } else {
+        rethrow;
+      }
+    } finally {
+      if (source.tempPath != null) {
+        await File(source.tempPath!).safeDelete();
+      }
+    }
+
     if (res.isSuccess) {
       final data = Map<String, dynamic>.from(res.data);
       data['rules'] = data['rule'];
@@ -340,6 +395,72 @@ class CoreController {
   String _buildInlineConfigPayload(Uint8List bytes) {
     return '$_inlineConfigPrefix${base64.encode(bytes)}';
   }
+
+  bool _shouldPreferSessionTransport(Uint8List bytes) {
+    if (!system.isAndroid) return false;
+    return bytes.length > _androidInlineSoftLimitBytes;
+  }
+
+
+  Future<String> _validateConfigWithTempFile(Uint8List bytes) async {
+    final path = await _writeTempConfigFile(bytes);
+    try {
+      return await _interface.validateConfig(path);
+    } finally {
+      await File(path).safeDelete();
+    }
+  }
+
+  Future<String> _writeTempConfigFile(Uint8List bytes) async {
+    final path = await appPath.tempFilePath;
+    final file = File(path);
+    await file.safeWriteAsBytes(bytes);
+    return path;
+  }
+
+  Future<String?> _buildSessionConfigSource(Uint8List bytes) async {
+    try {
+      final sessionId = await ConfigSessionUploader(_interface).upload(bytes);
+      if (sessionId == null) return null;
+      return '$_sessionConfigPrefix$sessionId';
+    } catch (e) {
+      commonPrint.log(
+        'session transport unavailable, fallback to path-based flow: $e',
+        logLevel: LogLevel.warning,
+      );
+      return null;
+    }
+  }
+
+  Future<_ConfigSource> _buildConfigSourceForGet({
+    required int id,
+    String? overridePath,
+    Uint8List? overrideBytes,
+  }) async {
+    if (overrideBytes == null) {
+      return _ConfigSource(
+        source: overridePath ?? await appPath.getProfilePath(id.toString()),
+      );
+    }
+
+    if (_shouldPreferSessionTransport(overrideBytes)) {
+      final sessionSource = await _buildSessionConfigSource(overrideBytes);
+      if (sessionSource != null) {
+        return _ConfigSource(source: sessionSource);
+      }
+      final tempPath = await _writeTempConfigFile(overrideBytes);
+      return _ConfigSource(source: tempPath, tempPath: tempPath);
+    }
+
+    return _ConfigSource(source: _buildInlineConfigPayload(overrideBytes));
+  }
+}
+
+class _ConfigSource {
+  final String source;
+  final String? tempPath;
+
+  const _ConfigSource({required this.source, this.tempPath});
 }
 
 final coreController = CoreController();

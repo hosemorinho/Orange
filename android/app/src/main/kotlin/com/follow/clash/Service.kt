@@ -44,7 +44,7 @@ object Service {
 
     suspend fun invokeAction(data: String, cb: ((result: String) -> Unit)?): Result<Unit> {
         val res = mutableListOf<ByteArray>()
-        return delegate.useService {
+        return delegate.useService(timeoutMillis = 30_000L) {
             it.invokeAction(
                 data, object : ICallbackInterface.Stub() {
                     override fun onResult(
@@ -69,7 +69,7 @@ object Service {
         onResult: ((result: String) -> Unit)?,
     ): Result<Unit> {
         val res = mutableListOf<ByteArray>()
-        return delegate.useService {
+        return delegate.useService(timeoutMillis = 30_000L) {
             it.quickSetup(
                 initParamsString,
                 setupParamsString,
@@ -101,7 +101,7 @@ object Service {
         cb: ((result: String?) -> Unit)?
     ): Result<Unit> {
         val results = HashMap<String, MutableList<ByteArray>>()
-        return delegate.useService {
+        return delegate.useService(timeoutMillis = 30_000L) {
             it.setEventListener(
                 when (cb != null) {
                     true -> object : IEventInterface.Stub() {

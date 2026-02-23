@@ -95,3 +95,32 @@ func TestAppendConfigChunkRejectsNegativeIndex(t *testing.T) {
 		t.Fatalf("expected negative index error")
 	}
 }
+
+func TestReadConfigBytesFromSessionSource(t *testing.T) {
+	resetConfigSessionStateForTest()
+
+	content := []byte("dns:\n  enable: true\n")
+	hash := sha256.Sum256(content)
+	expected := hex.EncodeToString(hash[:])
+
+	sessionID, err := beginConfigSession()
+	if err != nil {
+		t.Fatalf("beginConfigSession failed: %v", err)
+	}
+	chunk := base64.StdEncoding.EncodeToString(content)
+	if err := appendConfigChunk(sessionID, chunk, 0); err != nil {
+		t.Fatalf("appendConfigChunk failed: %v", err)
+	}
+	if err := commitConfigSession(sessionID, expected); err != nil {
+		t.Fatalf("commitConfigSession failed: %v", err)
+	}
+
+	got, err := readConfigBytes(sessionConfigPrefix + sessionID)
+	if err != nil {
+		t.Fatalf("readConfigBytes(session://) failed: %v", err)
+	}
+	defer zeroBytes(got)
+	if !bytes.Equal(got, content) {
+		t.Fatalf("session source content mismatch")
+	}
+}

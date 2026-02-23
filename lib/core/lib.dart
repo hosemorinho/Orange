@@ -5,6 +5,7 @@ import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/core.dart';
 import 'package:fl_clash/plugins/service.dart';
+import 'package:flutter/services.dart';
 
 import 'interface.dart';
 
@@ -52,13 +53,21 @@ class CoreLib extends CoreHandlerInterface {
     Duration? timeout,
   }) async {
     final id = '${method.name}#${utils.id}';
-    final result = await service
-        ?.invokeAction(Action(id: id, method: method, data: data))
-        .withTimeout(onTimeout: () => null);
-    if (result == null) {
-      return null;
+    try {
+      final result = await service
+          ?.invokeAction(Action(id: id, method: method, data: data))
+          .withTimeout(onTimeout: () => null);
+      if (result == null) {
+        return null;
+      }
+      return parasResult<T>(result);
+    } on PlatformException catch (e) {
+      commonPrint.log(
+        'invoke ${method.name} PlatformException: ${e.code} ${e.message}',
+        logLevel: LogLevel.error,
+      );
+      rethrow;
     }
-    return parasResult<T>(result);
   }
 
   @override

@@ -98,17 +98,18 @@ class CoreController {
     } on PlatformException catch (e) {
       // On Android, PlatformException can occur for Binder-too-large errors
       // or SERVICE_ERROR/SERVICE_TIMEOUT when the Go core service is not yet
-      // available. Try session transport first, then temp file as last resort.
+      // available. Try session transport; plaintext file fallback is disabled.
       commonPrint.log(
         'validateConfigWithBytes PlatformException: ${e.code} ${e.message}, '
-        'attempting fallback',
+        'attempting session transport only',
         logLevel: LogLevel.warning,
       );
       final sessionSource = await _buildSessionConfigSource(bytes);
       if (sessionSource != null) {
         return _interface.validateConfig(sessionSource);
       }
-      return _validateConfigWithTempFile(bytes);
+      return 'validateConfigWithBytes failed: config session unavailable; '
+          'plaintext fallback is disabled (${e.code} ${e.message ?? ''})';
     }
   }
 
@@ -134,29 +135,15 @@ class CoreController {
     required SetupState setupState,
     VoidCallback? preloadInvoke,
   }) async {
-    Future<String> fallbackWithConfigFile() async {
-      final configFilePath = join(await appPath.homeDirPath, 'config.yaml');
-      await File(configFilePath).writeAsBytes(configBytes, flush: true);
-      return setupConfig(
-        params: params,
-        setupState: setupState,
-        preloadInvoke: preloadInvoke,
-      );
-    }
-
     if (system.isAndroid) {
-      final configFilePath = join(await appPath.homeDirPath, 'config.yaml');
       final persisted = await _persistAndroidQuickSetupConfigSnapshot(
         configBytes,
       );
-      if (persisted) {
-        await File(configFilePath).safeDelete();
-      } else {
-        commonPrint.log(
-          'persistQuickSetupConfig unavailable, fallback to config.yaml snapshot',
-          logLevel: LogLevel.warning,
-        );
-        await File(configFilePath).writeAsBytes(configBytes, flush: true);
+      if (!persisted) {
+        const errorMessage =
+            'persistQuickSetupConfig failed; plaintext fallback is disabled';
+        commonPrint.log(errorMessage, logLevel: LogLevel.error);
+        return errorMessage;
       }
     }
 
@@ -165,21 +152,17 @@ class CoreController {
       sessionId = await ConfigSessionUploader(_interface).upload(configBytes);
     } catch (e) {
       commonPrint.log(
-        'setupConfigWithBytes session upload failed, fallback to file: $e',
+        'setupConfigWithBytes session upload failed: $e',
         logLevel: LogLevel.warning,
       );
       sessionId = null;
     }
 
     if (sessionId == null) {
-      if (!system.isAndroid) {
-        return fallbackWithConfigFile();
-      }
-      return setupConfig(
-        params: params,
-        setupState: setupState,
-        preloadInvoke: preloadInvoke,
-      );
+      const errorMessage =
+          'setupConfigWithBytes failed: config session unavailable; plaintext fallback is disabled';
+      commonPrint.log(errorMessage, logLevel: LogLevel.error);
+      return errorMessage;
     }
 
     final sessionParams = SetupParams(
@@ -307,26 +290,19 @@ class CoreController {
       if (overrideBytes != null) {
         commonPrint.log(
           'getConfig PlatformException: ${e.code} ${e.message}, '
-          'attempting fallback',
+          'attempting session transport only',
           logLevel: LogLevel.warning,
         );
         final sessionSource = await _buildSessionConfigSource(overrideBytes);
         if (sessionSource != null) {
           res = await _interface.getConfig(sessionSource);
         } else {
-          final tempPath = await _writeTempConfigFile(overrideBytes);
-          try {
-            res = await _interface.getConfig(tempPath);
-          } finally {
-            await File(tempPath).safeDelete();
-          }
+          throw Exception(
+            'getConfig failed: config session unavailable; plaintext fallback is disabled',
+          );
         }
       } else {
         rethrow;
-      }
-    } finally {
-      if (source.tempPath != null) {
-        await File(source.tempPath!).safeDelete();
       }
     }
 
@@ -430,22 +406,6 @@ class CoreController {
     }
   }
 
-  Future<String> _validateConfigWithTempFile(Uint8List bytes) async {
-    final path = await _writeTempConfigFile(bytes);
-    try {
-      return await _interface.validateConfig(path);
-    } finally {
-      await File(path).safeDelete();
-    }
-  }
-
-  Future<String> _writeTempConfigFile(Uint8List bytes) async {
-    final path = await appPath.tempFilePath;
-    final file = File(path);
-    await file.safeWriteAsBytes(bytes);
-    return path;
-  }
-
   Future<String?> _buildSessionConfigSource(Uint8List bytes) async {
     try {
       final sessionId = await ConfigSessionUploader(_interface).upload(bytes);
@@ -453,7 +413,7 @@ class CoreController {
       return '$_sessionConfigPrefix$sessionId';
     } catch (e) {
       commonPrint.log(
-        'session transport unavailable, fallback to path-based flow: $e',
+        'session transport unavailable: $e',
         logLevel: LogLevel.warning,
       );
       return null;
@@ -476,8 +436,9 @@ class CoreController {
       if (sessionSource != null) {
         return _ConfigSource(source: sessionSource);
       }
-      final tempPath = await _writeTempConfigFile(overrideBytes);
-      return _ConfigSource(source: tempPath, tempPath: tempPath);
+      throw Exception(
+        'getConfig failed: config session unavailable; plaintext fallback is disabled',
+      );
     }
 
     return _ConfigSource(source: _buildInlineConfigPayload(overrideBytes));
@@ -486,9 +447,8 @@ class CoreController {
 
 class _ConfigSource {
   final String source;
-  final String? tempPath;
 
-  const _ConfigSource({required this.source, this.tempPath});
+  const _ConfigSource({required this.source});
 }
 
 final coreController = CoreController();

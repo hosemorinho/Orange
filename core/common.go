@@ -26,7 +26,6 @@ import (
 	rp "github.com/metacubex/mihomo/rules/provider"
 	"github.com/metacubex/mihomo/tunnel"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -265,16 +264,15 @@ func applyConfig(params *SetupParams) error {
 	var err error
 	constant.DefaultTestURL = params.TestURL
 
-	if params.ConfigSessionId != "" {
-		buf, consumeErr := consumeCommittedConfig(params.ConfigSessionId)
-		if consumeErr != nil {
-			return fmt.Errorf("config session error: %w", consumeErr)
-		}
-		defer zeroBytes(buf)
-		currentConfig, err = executor.ParseWithBytes(buf)
-	} else {
-		currentConfig, err = executor.ParseWithPath(filepath.Join(constant.Path.HomeDir(), "config.yaml"))
+	if params.ConfigSessionId == "" {
+		return errors.New("config session id required; file-based config fallback is disabled")
 	}
+	buf, consumeErr := consumeCommittedConfig(params.ConfigSessionId)
+	if consumeErr != nil {
+		return fmt.Errorf("config session error: %w", consumeErr)
+	}
+	defer zeroBytes(buf)
+	currentConfig, err = executor.ParseWithBytes(buf)
 	if err != nil {
 		currentConfig, _ = config.ParseRawConfig(config.DefaultRawConfig())
 	}

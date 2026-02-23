@@ -153,7 +153,14 @@ object State {
         initParams["home-dir"] = GlobalState.application.filesDir.path
         initParams["version"] = android.os.Build.VERSION.SDK_INT
         val initParamsString = Gson().toJson(initParams)
-        val setupParams = attachSessionConfig(sharedState.setupParams)
+        val setupParams = try {
+            attachSessionConfig(sharedState.setupParams)
+        } catch (e: Exception) {
+            val message = e.message ?: "quickSetup v2 failed"
+            GlobalState.log(message)
+            GlobalState.application.showToast(message)
+            return
+        }
         val setupParamsString = Gson().toJson(setupParams)
         Service.quickSetup(
             initParamsString,
@@ -169,19 +176,17 @@ object State {
         )
     }
 
-    private suspend fun attachSessionConfig(setupParams: SetupParams?): SetupParams? {
+    private suspend fun attachSessionConfig(setupParams: SetupParams?): SetupParams {
         if (setupParams == null) {
-            return null
+            throw IllegalStateException("quickSetup v2: setup params missing; plaintext fallback is disabled")
         }
         val configBytes = QuickSetupConfigStore.readDecrypted()
         if (configBytes == null || configBytes.isEmpty()) {
-            GlobalState.log("quickSetup v2: no sealed config snapshot, fallback to legacy config.yaml")
-            return setupParams
+            throw IllegalStateException("quickSetup v2: sealed config snapshot missing; plaintext fallback is disabled")
         }
         val sessionId = uploadConfigToSession(configBytes)
         if (sessionId.isNullOrEmpty()) {
-            GlobalState.log("quickSetup v2: session upload failed, fallback to legacy config.yaml")
-            return setupParams
+            throw IllegalStateException("quickSetup v2: session upload failed; plaintext fallback is disabled")
         }
         GlobalState.log("quickSetup v2: using config session $sessionId")
         return setupParams.copy(configSessionId = sessionId)

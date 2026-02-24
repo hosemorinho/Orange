@@ -42,12 +42,23 @@ final userUIStateProvider = NotifierProvider<_UserUIStateNotifier, UIState>(
 );
 
 class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
-  late final XBoardStorageService _storageService;
+  XBoardStorageService get _storageService => ref.read(storageServiceProvider);
 
   @override
   UserAuthState build() {
-    _storageService = ref.read(storageServiceProvider);
     return const UserAuthState();
+  }
+
+  Future<void> _ensureStorageReady({
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    try {
+      await ref.read(storageProvider.future).timeout(timeout);
+    } catch (e) {
+      _logger.warning(
+        '[storage] not ready yet, continue without persistence: $e',
+      );
+    }
   }
 
   Future<bool> quickAuth() async {
@@ -66,6 +77,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
         DomainUser? userInfo;
         DomainSubscription? subscriptionInfo;
         try {
+          await _ensureStorageReady();
           final emailResult = await _storageService.getUserEmail().timeout(
             const Duration(seconds: 2),
           );
@@ -153,6 +165,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
   }
 
   Future<void> _silentUpdateUserData() async {
+    await _ensureStorageReady();
     try {
       // 获取订阅信息
       ref.invalidate(getSubscriptionProvider);
@@ -208,6 +221,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
   }
 
   Future<void> handleTokenExpired() async {
+    await _ensureStorageReady();
     _logger.info('处理token过期，清除认证状态');
     try {
       final api = await ref.read(xboardSdkProvider.future);
@@ -225,6 +239,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
   }
 
   Future<bool> login(String email, String password) async {
+    await _ensureStorageReady();
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       _logger.info('开始登录: $email');
@@ -328,6 +343,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
     String? inviteCode,
     String emailCode,
   ) async {
+    await _ensureStorageReady();
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       _logger.info('开始注册: $email');
@@ -413,6 +429,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
     if (!state.isAuthenticated) {
       return;
     }
+    await _ensureStorageReady();
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       _logger.info('刷新订阅信息...');
@@ -476,6 +493,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
     if (!state.isAuthenticated) {
       return;
     }
+    await _ensureStorageReady();
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       _logger.info('刷新订阅信息...');
@@ -539,6 +557,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
     if (!state.isAuthenticated) {
       return;
     }
+    await _ensureStorageReady();
     try {
       _logger.info('刷新用户详细信息...');
 
@@ -555,6 +574,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
   }
 
   Future<void> logout() async {
+    await _ensureStorageReady();
     _logger.info('用户登出');
 
     try {
@@ -585,6 +605,7 @@ class XBoardUserAuthNotifier extends Notifier<UserAuthState> {
   /// Does NOT set isLoading (won't block UI) and does NOT re-import subscription config.
   Future<void> silentRefresh() async {
     if (!state.isAuthenticated) return;
+    await _ensureStorageReady();
     try {
       _logger.info('[silentRefresh] 后台刷新用户数据...');
 

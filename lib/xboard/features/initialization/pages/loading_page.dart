@@ -31,20 +31,16 @@ class LoadingPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Logo 或应用名称
-                Icon(
-                  Icons.cloud_sync,
-                  size: 64,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.cloud_sync, size: 64, color: colorScheme.primary),
                 const SizedBox(height: 32),
 
                 // 标题
                 Text(
-                  AppLocalizations.of(context)!.xboardInitializing,
+                  AppLocalizations.of(context).xboardInitializing,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -55,7 +51,9 @@ class LoadingPage extends ConsumerWidget {
                     value: initState.progressPercentage / 100.0,
                     backgroundColor: colorScheme.surfaceContainerHighest,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      initState.isFailed ? colorScheme.error : colorScheme.primary,
+                      initState.isFailed
+                          ? colorScheme.error
+                          : colorScheme.primary,
                     ),
                   ),
                 ),
@@ -65,8 +63,8 @@ class LoadingPage extends ConsumerWidget {
                 Text(
                   '${initState.progressPercentage}%',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -84,8 +82,8 @@ class LoadingPage extends ConsumerWidget {
                     child: Text(
                       initState.currentStepDescription!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -114,8 +112,11 @@ class LoadingPage extends ConsumerWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              AppLocalizations.of(context)!.xboardInitializationFailed,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              AppLocalizations.of(
+                                context,
+                              ).xboardInitializationFailed,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
                                     color: colorScheme.error,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -125,9 +126,8 @@ class LoadingPage extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Text(
                           initState.errorMessage!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onErrorContainer,
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onErrorContainer),
                         ),
                       ],
                     ),
@@ -143,10 +143,12 @@ class LoadingPage extends ConsumerWidget {
                       // 重试按钮
                       ElevatedButton.icon(
                         onPressed: () async {
-                          await ref.read(initializationProvider.notifier).refresh();
+                          await ref
+                              .read(initializationProvider.notifier)
+                              .refresh();
                         },
                         icon: const Icon(Icons.refresh),
-                        label: Text(AppLocalizations.of(context)!.xboardRetry),
+                        label: Text(AppLocalizations.of(context).xboardRetry),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colorScheme.primary,
                           foregroundColor: colorScheme.onPrimary,
@@ -157,11 +159,13 @@ class LoadingPage extends ConsumerWidget {
                       TextButton.icon(
                         onPressed: () {
                           // 强制设置用户状态为已初始化
-                          ref.read(xboardUserProvider.notifier).forceInitialized();
+                          ref
+                              .read(xboardUserProvider.notifier)
+                              .forceInitialized();
                           context.go('/login');
                         },
                         icon: const Icon(Icons.skip_next),
-                        label: Text(AppLocalizations.of(context)!.xboardSkip),
+                        label: Text(AppLocalizations.of(context).xboardSkip),
                         style: TextButton.styleFrom(
                           foregroundColor: colorScheme.onSurfaceVariant,
                         ),
@@ -173,10 +177,10 @@ class LoadingPage extends ConsumerWidget {
                 // 提示信息
                 const SizedBox(height: 48),
                 Text(
-                  AppLocalizations.of(context)!.xboardFirstStartTip,
+                  AppLocalizations.of(context).xboardFirstStartTip,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                      ),
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],

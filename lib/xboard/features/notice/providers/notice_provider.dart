@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/adapter/state/notice_state.dart';
-import 'package:fl_clash/xboard/infrastructure/api/api.dart';
 
 /// 公告状态
 class NoticeState {
@@ -50,20 +49,14 @@ class NoticeNotifier extends Notifier<NoticeState> {
   /// 获取公告列表
   Future<void> fetchNotices() async {
     if (state.isLoading) return;
-    
+
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       final notices = await ref.read(getNoticesProvider.future);
-      state = state.copyWith(
-        notices: notices,
-        isLoading: false,
-      );
+      state = state.copyWith(notices: notices, isLoading: false);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -83,5 +76,3 @@ class NoticeNotifier extends Notifier<NoticeState> {
 final noticeProvider = NotifierProvider<NoticeNotifier, NoticeState>(
   NoticeNotifier.new,
 );
-
-

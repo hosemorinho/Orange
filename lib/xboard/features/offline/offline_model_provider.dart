@@ -66,14 +66,20 @@ class OfflineModelState {
 ///   // 显示离线标识
 /// }
 /// ```
-final offlineModelProvider =
-    Provider<OfflineModelState>((ref) => const OfflineModelState());
+final offlineModelProvider = Provider<OfflineModelState>(
+  (ref) => ref.watch(offlineModelNotifierProvider),
+);
 
 /// 离线读模型 Notifier
-class OfflineModelNotifier extends StateNotifier<OfflineModelState> {
-  OfflineModelNotifier(this._storageService) : super(const OfflineModelState());
+class OfflineModelNotifier extends Notifier<OfflineModelState> {
+  late final XBoardStorageService _storageService;
 
-  final XBoardStorageService _storageService;
+  @override
+  OfflineModelState build() {
+    _storageService = ref.watch(storageServiceProvider);
+    Future.microtask(initialize);
+    return const OfflineModelState();
+  }
 
   /// 初始化：从存储加载离线数据
   Future<void> initialize() async {
@@ -120,7 +126,10 @@ class OfflineModelNotifier extends StateNotifier<OfflineModelState> {
 
   /// 更新订阅数据（网络请求成功后调用）
   void updateSubscription(DomainSubscription subscription) {
-    state = state.copyWith(subscription: subscription, lastSyncAt: DateTime.now());
+    state = state.copyWith(
+      subscription: subscription,
+      lastSyncAt: DateTime.now(),
+    );
     _storageService.saveDomainSubscription(subscription);
     _logger.debug('离线订阅数据已更新');
   }
@@ -148,12 +157,6 @@ class OfflineModelNotifier extends StateNotifier<OfflineModelState> {
 
 /// 离线读模型 Notifier Provider
 final offlineModelNotifierProvider =
-    StateNotifierProvider<OfflineModelNotifier, OfflineModelState>((ref) {
-  final storageService = ref.watch(storageServiceProvider);
-  final notifier = OfflineModelNotifier(storageService);
-
-  // 启动时自动加载离线数据
-  Future.microtask(() => notifier.initialize());
-
-  return notifier;
-});
+    NotifierProvider<OfflineModelNotifier, OfflineModelState>(
+      OfflineModelNotifier.new,
+    );

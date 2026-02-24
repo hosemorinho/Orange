@@ -27,6 +27,7 @@ final _logger = FileLogger('credential_cipher.dart');
 class CredentialCipher {
   static String? _cachedFingerprint;
   static const _salt = 'xboard_credential_v1';
+  static const _v1Prefix = 'enc:v1:';
 
   /// 加密明文，返回 base64 编码的密文；失败返回 null
   static Future<String?> encrypt(String plaintext) async {
@@ -42,7 +43,7 @@ class CredentialCipher {
 
       // 格式: base64( IV(16) + ciphertext )
       final combined = Uint8List.fromList([...iv.bytes, ...encrypted.bytes]);
-      return base64.encode(combined);
+      return '$_v1Prefix${base64.encode(combined)}';
     } catch (e) {
       _logger.error('加密凭据失败: $e');
       return null;
@@ -52,24 +53,46 @@ class CredentialCipher {
   /// 解密 base64 密文，返回明文；失败返回 null
   static Future<String?> decrypt(String encryptedBase64) async {
     try {
+      if (!isEncryptedPayload(encryptedBase64)) return null;
+
       final key = await _deriveKey();
       if (key == null) return null;
 
-      final combined = base64.decode(encryptedBase64);
-      // 最小长度: 16字节 IV + 16字节 AES 块
-      if (combined.length < 32) return null;
-
-      final iv = enc.IV(Uint8List.fromList(combined.sublist(0, 16)));
-      final ciphertext = Uint8List.fromList(combined.sublist(16));
-
-      final encrypter = enc.Encrypter(
-        enc.AES(key, mode: enc.AESMode.cbc, padding: 'PKCS7'),
-      );
-      return encrypter.decrypt(enc.Encrypted(ciphertext), iv: iv);
+      final raw = encryptedBase64.substring(_v1Prefix.length);
+      final combined = base64.decode(raw);
+      return _decryptCombined(combined, key);
     } catch (e) {
       _logger.debug('解密凭据失败（可能是旧版明文数据）: $e');
       return null;
     }
+  }
+
+  static bool isEncryptedPayload(String value) {
+    return value.startsWith(_v1Prefix);
+  }
+
+  static Future<String?> decryptLegacy(String encryptedBase64) async {
+    try {
+      final key = await _deriveKey();
+      if (key == null) return null;
+
+      final combined = base64.decode(encryptedBase64);
+      return _decryptCombined(combined, key);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static String? _decryptCombined(List<int> combined, enc.Key key) {
+    // 最小长度: 16字节 IV + 16字节 AES 块
+    if (combined.length < 32) return null;
+
+    final iv = enc.IV(Uint8List.fromList(combined.sublist(0, 16)));
+    final ciphertext = Uint8List.fromList(combined.sublist(16));
+    final encrypter = enc.Encrypter(
+      enc.AES(key, mode: enc.AESMode.cbc, padding: 'PKCS7'),
+    );
+    return encrypter.decrypt(enc.Encrypted(ciphertext), iv: iv);
   }
 
   /// 从设备指纹 + 盐值派生 AES-256 密钥

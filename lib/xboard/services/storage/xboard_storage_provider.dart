@@ -55,7 +55,7 @@ class _PlaceholderStorage implements StorageInterface {
 
   @override
   Future<Result<bool>> setString(String key, String value) async {
-    _logger.warn('存储未就绪，无法写入: $key');
+    _logger.warning('存储未就绪，无法写入: $key');
     return Result.success(false);
   }
 
@@ -64,7 +64,7 @@ class _PlaceholderStorage implements StorageInterface {
 
   @override
   Future<Result<bool>> setInt(String key, int value) async {
-    _logger.warn('存储未就绪，无法写入: $key');
+    _logger.warning('存储未就绪，无法写入: $key');
     return Result.success(false);
   }
 
@@ -73,7 +73,7 @@ class _PlaceholderStorage implements StorageInterface {
 
   @override
   Future<Result<bool>> setBool(String key, bool value) async {
-    _logger.warn('存储未就绪，无法写入: $key');
+    _logger.warning('存储未就绪，无法写入: $key');
     return Result.success(false);
   }
 
@@ -82,28 +82,29 @@ class _PlaceholderStorage implements StorageInterface {
 
   @override
   Future<Result<bool>> setDouble(String key, double value) async {
-    _logger.warn('存储未就绪，无法写入: $key');
+    _logger.warning('存储未就绪，无法写入: $key');
     return Result.success(false);
   }
 
   @override
-  Future<Result<List<String>?>> getStringList(String key) async => Result.success(null);
+  Future<Result<List<String>?>> getStringList(String key) async =>
+      Result.success(null);
 
   @override
   Future<Result<bool>> setStringList(String key, List<String> value) async {
-    _logger.warn('存储未就绪，无法写入: $key');
+    _logger.warning('存储未就绪，无法写入: $key');
     return Result.success(false);
   }
 
   @override
   Future<Result<bool>> remove(String key) async {
-    _logger.warn('存储未就绪，无法删除: $key');
+    _logger.warning('存储未就绪，无法删除: $key');
     return Result.success(false);
   }
 
   @override
   Future<Result<bool>> clear() async {
-    _logger.warn('存储未就绪，无法清空');
+    _logger.warning('存储未就绪，无法清空');
     return Result.success(false);
   }
 

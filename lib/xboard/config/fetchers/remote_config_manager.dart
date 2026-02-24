@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:encrypt/encrypt.dart';
+import 'package:encrypt/encrypt.dart' as enc;
 import 'package:flutter/foundation.dart';
 import '../core/config_settings.dart';
 import '../../core/core.dart';
@@ -10,12 +10,7 @@ import '../../core/core.dart';
 final _logger = FileLogger('remote_config_manager.dart');
 
 /// 远程配置状态枚举
-enum RemoteConfigStatus {
-  uninitialized,
-  loading,
-  success,
-  error,
-}
+enum RemoteConfigStatus { uninitialized, loading, success, error }
 
 /// 配置获取结果
 class ConfigResult<T> {
@@ -60,18 +55,18 @@ class ConfigResult<T> {
 class MultiConfigResult {
   /// 重定向配置源结果
   final ConfigResult<Map<String, dynamic>> redirectResult;
-  
+
   /// Gitee配置源结果
   final ConfigResult<Map<String, dynamic>> giteeResult;
-  
+
   const MultiConfigResult({
     required this.redirectResult,
     required this.giteeResult,
   });
-  
+
   /// 是否有任何一个配置源成功
   bool get hasSuccess => redirectResult.isSuccess || giteeResult.isSuccess;
-  
+
   /// 获取第一个成功的配置数据
   Map<String, dynamic>? get firstSuccessfulData {
     if (redirectResult.isSuccess && redirectResult.data != null) {
@@ -82,7 +77,7 @@ class MultiConfigResult {
     }
     return null;
   }
-  
+
   /// 获取第一个成功的配置源名称
   String? get firstSuccessfulSource {
     if (redirectResult.isSuccess) return redirectResult.source;
@@ -96,7 +91,7 @@ class MultiConfigResult {
     if (giteeResult.isSuccess) return giteeResult;
     return null;
   }
-  
+
   @override
   String toString() {
     return 'MultiConfigResult{redirect: ${redirectResult.status}, gitee: ${giteeResult.status}}';
@@ -167,7 +162,10 @@ class RedirectConfigSource implements ConfigSource {
   Future<ConfigResult<Map<String, dynamic>>> fetchConfig() async {
     try {
       _logger.info('开始获取重定向配置源: $redirectUrl');
-      final rawData = await _httpClient.getString(redirectUrl, timeout: timeout);
+      final rawData = await _httpClient.getString(
+        redirectUrl,
+        timeout: timeout,
+      );
 
       if (rawData == null || rawData.trim().isEmpty) {
         _logger.error('重定向配置源获取失败: 数据为空');
@@ -177,7 +175,6 @@ class RedirectConfigSource implements ConfigSource {
       final jsonData = json.decode(rawData.trim()) as Map<String, dynamic>;
       _logger.info('重定向配置源获取成功');
       return ConfigResult.success(jsonData, sourceName);
-
     } catch (e) {
       _logger.error('重定向配置源异常', e);
       return ConfigResult.failure("重定向配置源异常: ${e.toString()}", sourceName);
@@ -209,7 +206,10 @@ class GiteeConfigSource implements ConfigSource {
   @override
   Future<ConfigResult<Map<String, dynamic>>> fetchConfig() async {
     try {
-      final encryptedData = await _httpClient.getString(giteeUrl, timeout: timeout);
+      final encryptedData = await _httpClient.getString(
+        giteeUrl,
+        timeout: timeout,
+      );
 
       if (encryptedData == null) {
         return ConfigResult.failure("Gitee配置源获取失败", sourceName);
@@ -222,14 +222,15 @@ class GiteeConfigSource implements ConfigSource {
       }
 
       return ConfigResult.success(decryptedConfig, sourceName);
-
     } catch (e) {
       return ConfigResult.failure("Gitee配置源异常: ${e.toString()}", sourceName);
     }
   }
 
   /// 解密配置数据（AES-GCM解密）
-  Future<Map<String, dynamic>?> _decryptConfigData(String encryptedBase64) async {
+  Future<Map<String, dynamic>?> _decryptConfigData(
+    String encryptedBase64,
+  ) async {
     try {
       final encryptedBytes = base64.decode(encryptedBase64);
       final keyBytes = base64.decode(encryptionKeyBase64);
@@ -243,14 +244,16 @@ class GiteeConfigSource implements ConfigSource {
 
       final nonce = encryptedBytes.sublist(0, nonceLength);
       final ciphertext = encryptedBytes.sublist(
-          nonceLength, encryptedBytes.length - tagLength);
+        nonceLength,
+        encryptedBytes.length - tagLength,
+      );
       final tag = encryptedBytes.sublist(encryptedBytes.length - tagLength);
 
-      final key = Key(keyBytes);
-      final iv = IV(nonce);
-      final encrypter = Encrypter(AES(key, mode: AESMode.gcm));
+      final key = enc.Key(keyBytes);
+      final iv = enc.IV(nonce);
+      final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.gcm));
 
-      final encrypted = Encrypted(Uint8List.fromList(ciphertext + tag));
+      final encrypted = enc.Encrypted(Uint8List.fromList(ciphertext + tag));
       final decrypted = encrypter.decrypt(encrypted, iv: iv);
 
       final jsonData = json.decode(decrypted) as Map<String, dynamic>;
@@ -287,7 +290,7 @@ class RemoteConfigSource {
 
       final uri = Uri.parse(url);
       final request = await client.getUrl(uri);
-      
+
       // 添加请求头
       if (headers != null) {
         headers!.forEach((key, value) {
@@ -296,11 +299,11 @@ class RemoteConfigSource {
       }
 
       final response = await request.close();
-      
+
       if (response.statusCode == 200) {
         final responseBody = await response.transform(utf8.decoder).join();
         final data = json.decode(responseBody) as Map<String, dynamic>;
-        
+
         client.close();
         return ConfigResult.success(data, name);
       } else {
@@ -336,28 +339,33 @@ class RemoteConfigManager {
   /// 从配置设置创建RemoteConfigManager
   factory RemoteConfigManager.fromSettings(RemoteConfigSettings settings) {
     final sources = <ConfigSource>[];
-    
+
     for (final sourceConfig in settings.sources) {
       switch (sourceConfig.name) {
         case 'redirect':
-          sources.add(RedirectConfigSource(
-            redirectUrl: sourceConfig.url,
-            timeout: sourceConfig.timeout ?? settings.timeout,
-          ));
+          sources.add(
+            RedirectConfigSource(
+              redirectUrl: sourceConfig.url,
+              timeout: sourceConfig.timeout ?? settings.timeout,
+            ),
+          );
           break;
         case 'gitee':
-          if (sourceConfig.encryptionKey == null || sourceConfig.encryptionKey!.isEmpty) {
+          if (sourceConfig.encryptionKey == null ||
+              sourceConfig.encryptionKey!.isEmpty) {
             throw Exception('Gitee配置源必须提供 encryptionKey');
           }
-          sources.add(GiteeConfigSource(
-            giteeUrl: sourceConfig.url,
-            encryptionKeyBase64: sourceConfig.encryptionKey!,
-            timeout: sourceConfig.timeout ?? settings.timeout,
-          ));
+          sources.add(
+            GiteeConfigSource(
+              giteeUrl: sourceConfig.url,
+              encryptionKeyBase64: sourceConfig.encryptionKey!,
+              timeout: sourceConfig.timeout ?? settings.timeout,
+            ),
+          );
           break;
       }
     }
-    
+
     return RemoteConfigManager(
       sources: sources,
       maxRetries: settings.maxRetries,
@@ -392,7 +400,9 @@ class RemoteConfigManager {
     late ConfigResult<Map<String, dynamic>> redirectResult;
     late ConfigResult<Map<String, dynamic>> giteeResult;
 
-    if (_enableConcurrentFetch && redirectSource != null && giteeSource != null) {
+    if (_enableConcurrentFetch &&
+        redirectSource != null &&
+        giteeSource != null) {
       // 并发请求
       final results = await Future.wait([
         _fetchWithRetry(redirectSource),
@@ -440,46 +450,47 @@ class RemoteConfigManager {
   }
 
   /// 从指定配置源获取配置
-  Future<ConfigResult<Map<String, dynamic>>> fetchFromSource(String sourceName) async {
+  Future<ConfigResult<Map<String, dynamic>>> fetchFromSource(
+    String sourceName,
+  ) async {
     final source = _configSources.firstWhere(
       (s) => s.sourceName == sourceName,
       orElse: () => throw ArgumentError('Unknown source: $sourceName'),
     );
-    
+
     return await _fetchWithRetry(source);
   }
 
   /// 获取第一个可用的配置
   Future<ConfigResult<Map<String, dynamic>>> fetchConfig() async {
     final multiResult = await fetchAllConfigs();
-    
+
     if (multiResult.hasSuccess) {
       return multiResult.firstSuccessful!;
     } else {
-      return ConfigResult.failure(
-        'All config sources failed',
-        'all',
-      );
+      return ConfigResult.failure('All config sources failed', 'all');
     }
   }
 
   /// 带重试的获取
-  Future<ConfigResult<Map<String, dynamic>>> _fetchWithRetry(ConfigSource source) async {
+  Future<ConfigResult<Map<String, dynamic>>> _fetchWithRetry(
+    ConfigSource source,
+  ) async {
     ConfigResult<Map<String, dynamic>>? lastResult;
-    
+
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       lastResult = await source.fetchConfig();
-      
+
       if (lastResult.isSuccess) {
         return lastResult;
       }
-      
+
       // 如果不是最后一次尝试，等待后重试
       if (attempt < _maxRetries) {
         await Future.delayed(_retryDelay);
       }
     }
-    
+
     return lastResult!;
   }
 
@@ -494,7 +505,8 @@ class RemoteConfigManager {
   }
 
   /// 获取所有配置源名称
-  List<String> get sourceNames => _configSources.map((s) => s.sourceName).toList();
+  List<String> get sourceNames =>
+      _configSources.map((s) => s.sourceName).toList();
 
   /// 获取配置源数量
   int get sourceCount => _configSources.length;

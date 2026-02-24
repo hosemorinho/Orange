@@ -13,22 +13,24 @@ import 'package:fl_clash/xboard/domain/domain.dart';
 /// 负责存储和读取XBoard相关数据，如用户信息、订阅信息等
 class XBoardStorageService {
   final StorageInterface _storage;
-  
+
   XBoardStorageService(this._storage);
 
   // 存储键定义
   static const String _userEmailKey = 'xboard_user_email';
-  static const String _userInfoKey = 'xboard_user_info';  // 保留兼容
-  static const String _subscriptionInfoKey = 'xboard_subscription_info';  // 保留兼容
-  static const String _domainUserKey = 'xboard_domain_user';  // 新：领域模型
-  static const String _domainSubscriptionKey = 'xboard_domain_subscription';  // 新：领域模型
+  static const String _userInfoKey = 'xboard_user_info'; // 保留兼容
+  static const String _subscriptionInfoKey = 'xboard_subscription_info'; // 保留兼容
+  static const String _domainUserKey = 'xboard_domain_user'; // 新：领域模型
+  static const String _domainSubscriptionKey =
+      'xboard_domain_subscription'; // 新：领域模型
   static const String _tunFirstUseKey = 'xboard_tun_first_use_shown';
   static const String _savedEmailKey = 'xboard_saved_email';
   static const String _savedPasswordKey = 'xboard_saved_password';
   static const String _rememberPasswordKey = 'xboard_remember_password';
-  static const String _noticeDialogReadPrefix = 'xboard_notice_dialog_read_'; // 前缀 + noticeId
-  static const String _noticeBannerDismissedKey = 'xboard_notice_banner_dismissed_until'; // 通知横幅关闭时间戳
-
+  static const String _noticeDialogReadPrefix =
+      'xboard_notice_dialog_read_'; // 前缀 + noticeId
+  static const String _noticeBannerDismissedKey =
+      'xboard_notice_banner_dismissed_until'; // 通知横幅关闭时间戳
 
   Future<Result<bool>> saveUserEmail(String email) async {
     return await _storage.setString(_userEmailKey, email);
@@ -43,13 +45,15 @@ class XBoardStorageService {
       final userJson = jsonEncode(user.toJson());
       return await _storage.setString(_domainUserKey, userJson);
     } catch (e, stackTrace) {
-      return Result.failure(XBoardStorageException(
-        message: '保存领域用户信息失败',
-        operation: 'write',
-        key: _domainUserKey,
-        originalError: e,
-        stackTrace: stackTrace,
-      ));
+      return Result.failure(
+        XBoardStorageException(
+          message: '保存领域用户信息失败',
+          operation: 'write',
+          key: _domainUserKey,
+          originalError: e,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
@@ -62,12 +66,14 @@ class XBoardStorageService {
           final Map<String, dynamic> userMap = jsonDecode(userJson);
           return Result.success(DomainUser.fromJson(userMap));
         } catch (e, stackTrace) {
-          return Result.failure(XBoardParseException(
-            message: '解析领域用户信息失败',
-            dataType: 'DomainUser',
-            originalError: e,
-            stackTrace: stackTrace,
-          ));
+          return Result.failure(
+            XBoardParseException(
+              message: '解析领域用户信息失败',
+              dataType: 'DomainUser',
+              originalError: e,
+              stackTrace: stackTrace,
+            ),
+          );
         }
       },
       failure: (error) => Result.failure(error),
@@ -76,18 +82,22 @@ class XBoardStorageService {
 
   // ===== 领域模型：订阅信息 =====
 
-  Future<Result<bool>> saveDomainSubscription(DomainSubscription subscription) async {
+  Future<Result<bool>> saveDomainSubscription(
+    DomainSubscription subscription,
+  ) async {
     try {
       final subscriptionJson = jsonEncode(subscription.toJson());
       return await _storage.setString(_domainSubscriptionKey, subscriptionJson);
     } catch (e, stackTrace) {
-      return Result.failure(XBoardStorageException(
-        message: '保存领域订阅信息失败',
-        operation: 'write',
-        key: _domainSubscriptionKey,
-        originalError: e,
-        stackTrace: stackTrace,
-      ));
+      return Result.failure(
+        XBoardStorageException(
+          message: '保存领域订阅信息失败',
+          operation: 'write',
+          key: _domainSubscriptionKey,
+          originalError: e,
+          stackTrace: stackTrace,
+        ),
+      );
     }
   }
 
@@ -97,15 +107,19 @@ class XBoardStorageService {
       success: (subscriptionJson) {
         if (subscriptionJson == null) return Result.success(null);
         try {
-          final Map<String, dynamic> subscriptionMap = jsonDecode(subscriptionJson);
+          final Map<String, dynamic> subscriptionMap = jsonDecode(
+            subscriptionJson,
+          );
           return Result.success(DomainSubscription.fromJson(subscriptionMap));
         } catch (e, stackTrace) {
-          return Result.failure(XBoardParseException(
-            message: '解析领域订阅信息失败',
-            dataType: 'DomainSubscription',
-            originalError: e,
-            stackTrace: stackTrace,
-          ));
+          return Result.failure(
+            XBoardParseException(
+              message: '解析领域订阅信息失败',
+              dataType: 'DomainSubscription',
+              originalError: e,
+              stackTrace: stackTrace,
+            ),
+          );
         }
       },
       failure: (error) => Result.failure(error),
@@ -121,8 +135,8 @@ class XBoardStorageService {
       _storage.remove(_userEmailKey),
       _storage.remove(_userInfoKey),
       _storage.remove(_subscriptionInfoKey),
-      _storage.remove(_domainUserKey),  // 清理领域模型
-      _storage.remove(_domainSubscriptionKey),  // 清理领域模型
+      _storage.remove(_domainUserKey), // 清理领域模型
+      _storage.remove(_domainSubscriptionKey), // 清理领域模型
     ]);
 
     final allSuccess = results.every((r) => r.dataOrNull == true);
@@ -198,21 +212,37 @@ class XBoardStorageService {
 
   /// 读取保存的密码（自动解密）
   ///
-  /// 兼容旧版明文数据：若解密失败，视为旧版明文密码，
-  /// 自动加密后回写存储，实现静默迁移。
+  /// 兼容策略：
+  /// 1) 新版密文（enc:v1:）→ 解密失败则安全失败并清理；
+  /// 2) 旧版无前缀密文（历史加密数据）→ 解密成功后迁移到新格式；
+  /// 3) 旧版明文 → 迁移到新格式。
   Future<String?> getSavedPassword() async {
     final result = await _storage.getString(_savedPasswordKey);
     final stored = result.dataOrNull;
     if (stored == null || stored.isEmpty) return null;
 
-    // 尝试解密（新版加密数据）
-    final decrypted = await CredentialCipher.decrypt(stored);
-    if (decrypted != null) return decrypted;
+    // 新版带版本前缀密文：解密失败视为损坏数据，安全失败
+    if (CredentialCipher.isEncryptedPayload(stored)) {
+      final decrypted = await CredentialCipher.decrypt(stored);
+      if (decrypted != null) return decrypted;
+      await _storage.remove(_savedPasswordKey);
+      return null;
+    }
 
-    // 解密失败 → 旧版明文数据，静默迁移为加密存储
-    final encrypted = await CredentialCipher.encrypt(stored);
-    if (encrypted != null) {
-      await _storage.setString(_savedPasswordKey, encrypted);
+    // 兼容历史无前缀密文（上个版本）
+    final legacyDecrypted = await CredentialCipher.decryptLegacy(stored);
+    if (legacyDecrypted != null) {
+      final migrated = await CredentialCipher.encrypt(legacyDecrypted);
+      if (migrated != null) {
+        await _storage.setString(_savedPasswordKey, migrated);
+      }
+      return legacyDecrypted;
+    }
+
+    // 旧版明文数据，静默迁移为新版加密存储
+    final migrated = await CredentialCipher.encrypt(stored);
+    if (migrated != null) {
+      await _storage.setString(_savedPasswordKey, migrated);
     }
     return stored;
   }
@@ -238,7 +268,10 @@ class XBoardStorageService {
   /// 保存公告弹窗已读时间戳
   Future<Result<bool>> saveNoticeDialogReadTime(int noticeId) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    return await _storage.setInt('$_noticeDialogReadPrefix$noticeId', timestamp);
+    return await _storage.setInt(
+      '$_noticeDialogReadPrefix$noticeId',
+      timestamp,
+    );
   }
 
   /// 获取公告弹窗已读时间戳
@@ -276,4 +309,3 @@ class XBoardStorageService {
     return await _storage.getInt(_noticeBannerDismissedKey);
   }
 }
-

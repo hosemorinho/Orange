@@ -4,7 +4,6 @@
 /// 各页面和 Provider 通过 `authGuardProvider` 监听认证状态。
 library;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 
@@ -33,29 +32,39 @@ class AuthGuardState {
 ///   // 显示登录过期提示
 /// }
 /// ```
-final authGuardProvider = Provider<AuthGuardState>((ref) {
-  return const AuthGuardState(AuthGuardStatus.authenticated);
-});
+class AuthGuardNotifier extends Notifier<AuthGuardState> {
+  @override
+  AuthGuardState build() => AuthGuardState.authenticated;
+
+  void markExpired() => state = AuthGuardState.expired;
+
+  void markLoggedOut() => state = AuthGuardState.loggedOut;
+
+  void markAuthenticated() => state = AuthGuardState.authenticated;
+}
+
+final authGuardProvider = NotifierProvider<AuthGuardNotifier, AuthGuardState>(
+  AuthGuardNotifier.new,
+);
 
 /// 认证守卫服务
 class AuthGuard {
   /// 标记令牌已过期
   static void markExpired(Ref ref) {
     _logger.warning('认证令牌已过期');
-    // 由于 Provider 是只读的，这里需要通过其他方式更新状态
-    // 实际使用中可以通过事件总线或状态管理器来处理
+    ref.read(authGuardProvider.notifier).markExpired();
   }
 
   /// 标记已登出
   static void markLoggedOut(Ref ref) {
     _logger.info('用户已登出');
-    // TODO: 更新状态
+    ref.read(authGuardProvider.notifier).markLoggedOut();
   }
 
   /// 标记已认证（登录成功后调用）
   static void markAuthenticated(Ref ref) {
     _logger.info('用户已认证');
-    // TODO: 更新状态
+    ref.read(authGuardProvider.notifier).markAuthenticated();
   }
 
   /// 检查响应是否为 401/403 认证失败

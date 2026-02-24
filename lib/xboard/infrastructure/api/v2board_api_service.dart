@@ -2,6 +2,8 @@
 ///
 /// 替代 flutter_xboard_sdk，直接使用 Dio HTTP 调用 V2Board API
 /// Auth header: `Authorization: {token}` (无 Bearer 前缀)
+library;
+
 import 'package:fl_clash/xboard/infrastructure/http/xboard_http_client.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:dio/dio.dart';
@@ -15,45 +17,37 @@ final _logger = FileLogger('v2board_api_service.dart');
 class V2BoardApiService {
   final XBoardHttpClient _http;
   String baseUrl;
-  String? _authToken;
+  String? authToken;
 
   V2BoardApiService({
     required this.baseUrl,
     required XBoardHttpClient httpClient,
-    String? authToken,
-  })  : _http = httpClient,
-        _authToken = authToken;
+    String? initialAuthToken,
+  }) : _http = httpClient,
+       authToken = initialAuthToken;
 
   // ========== Token 管理 ==========
 
-  String? get authToken => _authToken;
-
-  set authToken(String? token) {
-    _authToken = token;
-  }
-
   Future<void> loadStoredToken() async {
-    _authToken = await V2BoardTokenStorage.getToken();
+    authToken = await V2BoardTokenStorage.getToken();
   }
 
   Future<void> saveAndSetToken(String token, {String? email}) async {
-    _authToken = token;
+    authToken = token;
     await V2BoardTokenStorage.saveToken(token, email: email);
   }
 
   Future<void> clearToken() async {
-    _authToken = null;
+    authToken = null;
     await V2BoardTokenStorage.clearAuth();
   }
 
-  bool get hasAuthToken => _authToken != null && _authToken!.isNotEmpty;
+  bool get hasAuthToken => authToken != null && authToken!.isNotEmpty;
 
   /// 构建带认证的请求 Options
   Options _authOptions({Map<String, dynamic>? extra}) {
     return Options(
-      headers: _authToken != null
-          ? {'Authorization': _authToken!}
-          : null,
+      headers: authToken != null ? {'Authorization': authToken!} : null,
       extra: extra,
     );
   }
@@ -91,10 +85,7 @@ class V2BoardApiService {
     String path, {
     Map<String, dynamic>? data,
   }) async {
-    final result = await _http.post<dynamic>(
-      '$baseUrl$path',
-      data: data,
-    );
+    final result = await _http.post<dynamic>('$baseUrl$path', data: data);
     return _unwrapResult(result, path);
   }
 
@@ -174,10 +165,10 @@ class V2BoardApiService {
   /// 登录
   Future<Map<String, dynamic>> login(String email, String password) async {
     _logger.info('[API] login: $email');
-    final json = await _publicPost('/api/v1/passport/auth/login', data: {
-      'email': email,
-      'password': password,
-    });
+    final json = await _publicPost(
+      '/api/v1/passport/auth/login',
+      data: {'email': email, 'password': password},
+    );
     // V2Board 返回 {"data": {"token": "xxx", ...}}
     return json;
   }
@@ -190,10 +181,7 @@ class V2BoardApiService {
     String? emailCode,
   }) async {
     _logger.info('[API] register: $email');
-    final body = <String, dynamic>{
-      'email': email,
-      'password': password,
-    };
+    final body = <String, dynamic>{'email': email, 'password': password};
     if (inviteCode != null && inviteCode.isNotEmpty) {
       body['invite_code'] = inviteCode;
     }
@@ -210,19 +198,19 @@ class V2BoardApiService {
     String password,
   ) async {
     _logger.info('[API] forget password: $email');
-    return await _publicPost('/api/v1/passport/auth/forget', data: {
-      'email': email,
-      'email_code': emailCode,
-      'password': password,
-    });
+    return await _publicPost(
+      '/api/v1/passport/auth/forget',
+      data: {'email': email, 'email_code': emailCode, 'password': password},
+    );
   }
 
   /// 发送邮箱验证码
   Future<Map<String, dynamic>> sendEmailVerify(String email) async {
     _logger.info('[API] sendEmailVerify: $email');
-    return await _publicPost('/api/v1/passport/comm/sendEmailVerify', data: {
-      'email': email,
-    });
+    return await _publicPost(
+      '/api/v1/passport/comm/sendEmailVerify',
+      data: {'email': email},
+    );
   }
 
   /// 获取 Passport 通用配置
@@ -232,7 +220,9 @@ class V2BoardApiService {
 
   /// 检查 token 有效性
   Future<Map<String, dynamic>> checkAuth() async {
-    return await _authGet('/api/v1/passport/auth/check');
+    // 当前 V2Board 用户侧通过 /user/checkLogin 检查登录状态
+    // 返回格式: {"data": {"is_login": true/false, ...}}
+    return await _authGet('/api/v1/user/checkLogin');
   }
 
   // ================================================================
@@ -267,10 +257,10 @@ class V2BoardApiService {
     String oldPassword,
     String newPassword,
   ) async {
-    return await _authPost('/api/v1/user/changePassword', data: {
-      'old_password': oldPassword,
-      'new_password': newPassword,
-    });
+    return await _authPost(
+      '/api/v1/user/changePassword',
+      data: {'old_password': oldPassword, 'new_password': newPassword},
+    );
   }
 
   /// 更新用户信息
@@ -281,15 +271,17 @@ class V2BoardApiService {
   /// 划转佣金到余额
   Future<Map<String, dynamic>> transfer(int transferAmount) async {
     _logger.info('[API] transfer: $transferAmount');
-    return await _authPost('/api/v1/user/transfer', data: {
-      'transfer_amount': transferAmount,
-    });
+    return await _authPost(
+      '/api/v1/user/transfer',
+      data: {'transfer_amount': transferAmount},
+    );
   }
 
   /// 登出
   Future<Map<String, dynamic>> logout() async {
-    _logger.info('[API] logout');
-    return await _authGet('/api/v1/user/logout');
+    // 后端无 /user/logout 路由，登出由客户端本地清理 token 完成。
+    _logger.info('[API] logout (local-only)');
+    return {'data': true};
   }
 
   // ================================================================
@@ -304,9 +296,10 @@ class V2BoardApiService {
 
   /// 获取单个套餐
   Future<Map<String, dynamic>> fetchPlan(int id) async {
-    return await _authGet('/api/v1/user/plan/fetch', queryParameters: {
-      'id': id,
-    });
+    return await _authGet(
+      '/api/v1/user/plan/fetch',
+      queryParameters: {'id': id},
+    );
   }
 
   // ================================================================
@@ -321,16 +314,18 @@ class V2BoardApiService {
 
   /// 获取订单详情
   Future<Map<String, dynamic>> fetchOrderDetail(String tradeNo) async {
-    return await _authGet('/api/v1/user/order/detail', queryParameters: {
-      'trade_no': tradeNo,
-    });
+    return await _authGet(
+      '/api/v1/user/order/detail',
+      queryParameters: {'trade_no': tradeNo},
+    );
   }
 
   /// 检查订单状态
   Future<Map<String, dynamic>> checkOrder(String tradeNo) async {
-    return await _authGet('/api/v1/user/order/check', queryParameters: {
-      'trade_no': tradeNo,
-    });
+    return await _authGet(
+      '/api/v1/user/order/check',
+      queryParameters: {'trade_no': tradeNo},
+    );
   }
 
   /// 获取支付方式列表
@@ -349,11 +344,10 @@ class V2BoardApiService {
     String period, {
     String? couponCode,
   }) async {
-    _logger.info('[API] saveOrder: planId=$planId, period=$period, couponCode=$couponCode');
-    final data = {
-      'plan_id': planId,
-      'period': period,
-    };
+    _logger.info(
+      '[API] saveOrder: planId=$planId, period=$period, couponCode=$couponCode',
+    );
+    final data = {'plan_id': planId, 'period': period};
 
     // 添加优惠券代码（如果提供）
     if (couponCode != null && couponCode.isNotEmpty) {
@@ -367,31 +361,29 @@ class V2BoardApiService {
   ///
   /// [tradeNo] 订单号
   /// [method] 支付方式 ID
-  Future<Map<String, dynamic>> checkoutOrder(
-    String tradeNo,
-    int method,
-  ) async {
+  Future<Map<String, dynamic>> checkoutOrder(String tradeNo, int method) async {
     _logger.info('[API] checkoutOrder: tradeNo=$tradeNo, method=$method');
-    return await _authPost('/api/v1/user/order/checkout', data: {
-      'trade_no': tradeNo,
-      'method': method,
-    });
+    return await _authPost(
+      '/api/v1/user/order/checkout',
+      data: {'trade_no': tradeNo, 'method': method},
+    );
   }
 
   /// 取消订单
   Future<Map<String, dynamic>> cancelOrder(String tradeNo) async {
     _logger.info('[API] cancelOrder: tradeNo=$tradeNo');
-    return await _authPost('/api/v1/user/order/cancel', data: {
-      'trade_no': tradeNo,
-    });
+    return await _authPost(
+      '/api/v1/user/order/cancel',
+      data: {'trade_no': tradeNo},
+    );
   }
 
   /// 验证优惠券
   Future<Map<String, dynamic>> checkCoupon(String code, int planId) async {
-    return await _authPost('/api/v1/user/coupon/check', data: {
-      'code': code,
-      'plan_id': planId,
-    });
+    return await _authPost(
+      '/api/v1/user/coupon/check',
+      data: {'code': code, 'plan_id': planId},
+    );
   }
 
   // ================================================================
@@ -405,9 +397,10 @@ class V2BoardApiService {
 
   /// 获取工单详情
   Future<Map<String, dynamic>> fetchTicketDetail(int id) async {
-    return await _authGet('/api/v1/user/ticket/fetch', queryParameters: {
-      'id': id,
-    });
+    return await _authGet(
+      '/api/v1/user/ticket/fetch',
+      queryParameters: {'id': id},
+    );
   }
 
   /// 创建工单
@@ -416,35 +409,35 @@ class V2BoardApiService {
     int level,
     String message,
   ) async {
-    return await _authPost('/api/v1/user/ticket/save', data: {
-      'subject': subject,
-      'level': level,
-      'message': message,
-    });
+    return await _authPost(
+      '/api/v1/user/ticket/save',
+      data: {'subject': subject, 'level': level, 'message': message},
+    );
   }
 
   /// 回复工单
   Future<Map<String, dynamic>> replyTicket(int id, String message) async {
-    return await _authPost('/api/v1/user/ticket/reply', data: {
-      'id': id,
-      'message': message,
-    });
+    return await _authPost(
+      '/api/v1/user/ticket/reply',
+      data: {'id': id, 'message': message},
+    );
   }
 
   /// 关闭工单
   Future<Map<String, dynamic>> closeTicket(int id) async {
-    return await _authPost('/api/v1/user/ticket/close', data: {
-      'id': id,
-    });
+    return await _authPost('/api/v1/user/ticket/close', data: {'id': id});
   }
 
   /// 提现（通过工单）
-  Future<Map<String, dynamic>> withdrawTicket(String method, String account) async {
+  Future<Map<String, dynamic>> withdrawTicket(
+    String method,
+    String account,
+  ) async {
     _logger.info('[API] withdrawTicket: method=$method');
-    return await _authPost('/api/v1/user/ticket/withdraw', data: {
-      'withdraw_method': method,
-      'withdraw_account': account,
-    });
+    return await _authPost(
+      '/api/v1/user/ticket/withdraw',
+      data: {'withdraw_method': method, 'withdraw_account': account},
+    );
   }
 
   // ================================================================
@@ -491,9 +484,10 @@ class V2BoardApiService {
   /// 获取邀请详情（佣金统计）
   Future<Map<String, dynamic>> getInviteDetails(String code) async {
     _logger.info('[API] getInviteDetails: code=$code');
-    return await _authGet('/api/v1/user/invite/details', queryParameters: {
-      'code': code,
-    });
+    return await _authGet(
+      '/api/v1/user/invite/details',
+      queryParameters: {'code': code},
+    );
   }
 
   /// 获取佣金配置（提现方式）
@@ -510,9 +504,10 @@ class V2BoardApiService {
     _logger.info(
       '[API] transferCommission: amountYuan=$amount, amountCents=$amountInCents',
     );
-    return await _authPost('/api/v1/user/transfer', data: {
-      'transfer_amount': amountInCents,
-    });
+    return await _authPost(
+      '/api/v1/user/transfer',
+      data: {'transfer_amount': amountInCents},
+    );
   }
 
   // ================================================================
@@ -537,9 +532,9 @@ class V2BoardApiService {
     int limit = 30,
   }) async {
     _logger.info('[API] getTrafficLogs: offset=$offset, limit=$limit');
-    return await _authGet('/api/v1/user/stat/getTrafficLog', queryParameters: {
-      'offset': offset,
-      'limit': limit,
-    });
+    return await _authGet(
+      '/api/v1/user/stat/getTrafficLog',
+      queryParameters: {'offset': offset, 'limit': limit},
+    );
   }
 }

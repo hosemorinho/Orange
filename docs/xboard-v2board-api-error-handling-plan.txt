@@ -1,0 +1,97 @@
+# XBoard × V2Board API 错误处理与重试策略（审计改进版）
+
+## 背景
+V2Board 后端在 `passport/auth/*`、`user/*` 等接口中，大量将业务错误通过 `abort(500, message)` 返回。
+这会让客户端若仅按 HTTP 状态码重试，误将业务错误当作基础设施故障，触发域名切换与初始化长时间 loading。
+
+本文件定义 XBoard 客户端在 V2Board 语义下的错误分类与重试规则。
+
+## 后端现状（v2board）
+关键文件：
+- `J:/html/home/v2board/app/Http/Controllers/Passport/AuthController.php`
+- `J:/html/home/v2board/app/Http/Requests/Passport/AuthLogin.php`
+- `J:/html/home/v2board/app/Exceptions/Handler.php`
+
+### 1) 认证相关接口常见返回
+- `POST /api/v1/passport/auth/login`
+  - 错误邮箱/密码：`500` + `Incorrect email or password`
+  - 密码错误次数过多：`500` + `There are too many password errors...`
+  - 账号封禁：`500` + `Your account has been suspended`
+- `POST /api/v1/passport/auth/register`
+  - 注册频繁/邀请码/邮箱校验等业务错误：多为 `500` + 业务 message
+- `POST /api/v1/passport/auth/forget`
+  - 邮箱验证码错误/邮箱未注册等业务错误：多为 `500`
+- `POST /api/v1/passport/comm/sendEmailVerify`
+  - 发送频繁等：`500`
+
+### 2) 校验与鉴权
+- `422`：Laravel 表单校验失败（`errors` 字段）
+- `403`：未登录或 token 过期
+
+## 客户端策略（已落地）
+
+### A. 错误解析规则
+文件：`lib/xboard/infrastructure/api/v2board_error_parser.dart`
+
+- 强化 message 分类：
+  - `invalidCredentials`：识别 `incorrect email or password` / `email or password` / `邮箱或密码`
+  - `passwordLimitExceeded`：必须命中 `password + too many` 或 `password errors` 等关键词
+  - `registerLimitExceeded`：识别 `register frequently` / `register + too many`
+  - `rateLimitExceeded`：识别 `too many requests` / `operation too frequently` / `sending frequently`
+- `500` 默认类型由 `invalidCredentials` 改为 `unknown`，避免误归类。
+
+### B. 重试策略
+文件：`lib/xboard/infrastructure/api/v2board_error_parser.dart`
+
+- 明确不重试：
+  - `invalidCredentials`
+  - `accountSuspended`
+  - `passwordLimitExceeded`
+  - `registerLimitExceeded`
+  - `validationError`
+  - `inviteCodeRequired`
+  - `emailCodeRequired`
+  - `tokenInvalid`
+  - `unknown`
+- 保留可重试：
+  - `rateLimitExceeded`（非鉴权接口可按退避重试）
+
+### C. 鉴权端点硬门闩（禁重试/禁切域）
+文件：`lib/xboard/infrastructure/http/xboard_http_client.dart`
+
+在 `_RetryInterceptor._isInfrastructureError` 中新增：
+- 若请求路径命中以下端点：
+  - `/api/v1/passport/auth/login`
+  - `/api/v1/passport/auth/register`
+  - `/api/v1/passport/auth/forget`
+  - `/api/v1/passport/comm/sendEmailVerify`
+- 且返回属于鉴权业务错误（`422/403` 或解析后的业务 errorType），直接返回 `false`：
+  - 不进行重试
+  - 不触发 DomainPool 切域
+  - 立即将错误上抛给 UI
+
+### D. 防御性增强
+文件：`lib/xboard/infrastructure/http/xboard_http_client.dart`
+
+- 新增响应体安全转换 `_asResponseMap`，避免 `err.response?.data as Map<String, dynamic>?` 的强制类型崩溃。
+
+## 验证结果
+- `dart analyze lib/xboard/infrastructure/api/v2board_error_parser.dart lib/xboard/infrastructure/http/xboard_http_client.dart test/xboard/v2board_error_test.dart`
+  - 结果：No issues found
+- `flutter test test/xboard/v2board_error_test.dart -r expanded`
+  - 结果：All tests passed
+
+## 新增/更新测试点
+文件：`test/xboard/v2board_error_test.dart`
+
+新增或修正：
+- `register frequently` -> `registerLimitExceeded`
+- 未知 `500` -> `unknown`
+- `passwordLimitExceeded` 不应重试
+- `registerLimitExceeded` 不应重试
+
+## 后续建议（下一轮）
+1. 在登录/注册页面上直接展示后端业务 message，并禁用重复提交按钮的短时间连击。
+2. 对 `rateLimitExceeded` 引入 `Retry-After`（若后端未给可本地指数退避），并在 UI 显示剩余等待时间。
+3. 在后端逐步规范状态码（业务错误改为 `4xx`），降低客户端 message 解析依赖。
+4. 为 `_RetryInterceptor` 增加集成测试（mock Dio response），验证“鉴权业务错误不切域”。

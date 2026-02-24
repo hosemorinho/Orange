@@ -3,10 +3,7 @@
 /// 解析 V2Board 后端返回的错误信息，将消息映射到具体的错误类型
 library;
 
-import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/l10n/l10n.dart';
-
-final _logger = FileLogger('v2board_error_parser.dart');
 
 /// V2Board 错误类型
 enum V2BoardErrorType {
@@ -76,20 +73,31 @@ class V2BoardErrorParser {
 
     // 500: 业务逻辑错误 - 通过 message 区分
     if (statusCode == 500) {
+      // 账号或密码错误
+      if (message.contains('incorrect email or password') ||
+          message.contains('email or password') ||
+          message.contains('邮箱或密码')) {
+        return V2BoardErrorType.invalidCredentials;
+      }
+
       // 账号被封禁
       if (message.contains('suspended') || message.contains('封禁')) {
         return V2BoardErrorType.accountSuspended;
       }
 
       // 密码错误次数过多
-      if (message.contains('too many') ||
+      if ((message.contains('password') && message.contains('too many')) ||
+          message.contains('password errors') ||
+          message.contains('too many password') ||
           (message.contains('频繁') && message.contains('密码')) ||
           message.contains('password limit')) {
         return V2BoardErrorType.passwordLimitExceeded;
       }
 
       // IP 注册限制
-      if (message.contains('register') && message.contains('frequent') ||
+      if ((message.contains('register') && message.contains('frequent')) ||
+          (message.contains('register') && message.contains('too many')) ||
+          message.contains('register frequently') ||
           message.contains('注册频繁')) {
         return V2BoardErrorType.registerLimitExceeded;
       }
@@ -105,13 +113,17 @@ class V2BoardErrorParser {
       }
 
       // 频率限制
-      if (message.contains('frequently') || message.contains('频繁') ||
-          message.contains('too many')) {
+      if ((message.contains('too many') && message.contains('request')) ||
+          (message.contains('too many') && message.contains('send')) ||
+          message.contains('too many requests') ||
+          message.contains('sending frequently') ||
+          message.contains('operation too frequently') ||
+          message.contains('操作过于频繁')) {
         return V2BoardErrorType.rateLimitExceeded;
       }
 
-      // 默认：认证失败（邮箱或密码错误）
-      return V2BoardErrorType.invalidCredentials;
+      // 对 500 默认按未知错误处理，避免误归类为认证失败
+      return V2BoardErrorType.unknown;
     }
 
     return V2BoardErrorType.unknown;
@@ -172,9 +184,10 @@ class V2BoardErrorParser {
       case V2BoardErrorType.emailCodeRequired:
         return false; // 业务错误，不应重试
       case V2BoardErrorType.rateLimitExceeded:
+        return true; // 频率限制，应延迟重试
       case V2BoardErrorType.passwordLimitExceeded:
       case V2BoardErrorType.registerLimitExceeded:
-        return true; // 频率限制，应延迟重试
+        return false; // 鉴权场景业务限制，不应触发域名切换
       case V2BoardErrorType.unknown:
       case V2BoardErrorType.tokenInvalid:
         return false;

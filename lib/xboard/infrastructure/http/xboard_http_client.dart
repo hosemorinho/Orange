@@ -1,13 +1,10 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:fl_clash/xboard/core/core.dart';
-import 'package:fl_clash/l10n/l10n.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'user_agent_config.dart';
 import 'package:fl_clash/xboard/infrastructure/network/domain_pool.dart';
 import 'package:fl_clash/xboard/infrastructure/api/v2board_error_parser.dart';
+
+final _logger = FileLogger('xboard_http_client.dart');
 
 /// 认证失败回调（401/403）
 typedef AuthFailureCallback = void Function();
@@ -72,12 +69,21 @@ class _SecureLogInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
+    final statusCode = response.statusCode;
+    if (AuthGuard.isAuthFailure(statusCode)) {
+      _notifyAuthFailure(response.requestOptions, statusCode);
+    }
+
     if (kDebugMode) {
-      _logger.debug('[HTTP] <<<< ${response.statusCode} ${response.requestOptions.uri}');
+      _logger.debug(
+        '[HTTP] <<<< ${response.statusCode} ${response.requestOptions.uri}',
+      );
       _logger.debug('[HTTP] Response: ${response.data}');
     } else {
       // Release 模式：仅记录状态码
-      _logger.debug('[HTTP] ${response.statusCode} ${response.requestOptions.method} ${response.requestOptions.uri.path}');
+      _logger.debug(
+        '[HTTP] ${response.statusCode} ${response.requestOptions.method} ${response.requestOptions.uri.path}',
+      );
     }
     handler.next(response);
   }
@@ -88,9 +94,8 @@ class _SecureLogInterceptor extends Interceptor {
     final statusCode = err.response?.statusCode;
 
     // 检测认证失败（401/403）
-    if (statusCode == 401 || statusCode == 403) {
-      _logger.warn('[HTTP] 认证失败: ${err.requestOptions.method} $uri → $statusCode');
-      onAuthFailure?.call();
+    if (AuthGuard.isAuthFailure(statusCode)) {
+      _notifyAuthFailure(err.requestOptions, statusCode);
     }
 
     if (kDebugMode) {
@@ -100,9 +105,20 @@ class _SecureLogInterceptor extends Interceptor {
         _logger.error('[HTTP] Response: ${err.response?.data}');
       }
     } else {
-      _logger.error('[HTTP] ${err.requestOptions.method} ${uri.path} → ${statusCode ?? err.type}');
+      _logger.error(
+        '[HTTP] ${err.requestOptions.method} ${uri.path} → ${statusCode ?? err.type}',
+      );
     }
     handler.next(err);
+  }
+
+  void _notifyAuthFailure(RequestOptions options, int? statusCode) {
+    if (options.extra['_authFailureNotified'] == true) return;
+    options.extra['_authFailureNotified'] = true;
+    _logger.warning(
+      '[HTTP] 认证失败: ${options.method} ${options.uri} → $statusCode',
+    );
+    onAuthFailure?.call();
   }
 
   /// 脱敏请求头（用于 Debug 模式的可读日志）
@@ -135,49 +151,49 @@ class _SecureLogInterceptor extends Interceptor {
 /// XBoard 统一 HTTP 客户端配置
 class XBoardHttpConfig {
   // ========== 超时配置 ==========
-  
+
   /// 快速操作超时（本地缓存、健康检查）
   static const quickTimeout = Duration(seconds: 5);
-  
+
   /// 标准 API 请求超时
   static const standardTimeout = Duration(seconds: 15);
-  
+
   /// 下载操作超时（订阅、配置文件）
   static const downloadTimeout = Duration(seconds: 30);
-  
+
   /// 上传操作超时（文件上传、日志上传）
   static const uploadTimeout = Duration(seconds: 60);
-  
+
   /// 长轮询超时（WebSocket 备用方案）
   static const longPollTimeout = Duration(seconds: 90);
-  
+
   // ========== User-Agent 配置 ==========
   // 注意：不同的 UA 是有意设计的，服务端会根据 UA 返回不同格式的数据
   // ⚠️ 重要：所有 UA 必须和原始代码完全一致，特别是加密部分用于 Caddy 认证
-  
+
   /// User-Agent 配置说明
-  /// 
+  ///
   /// ⚠️ 所有 User-Agent 从配置文件读取，不再有默认值
-  /// 
+  ///
   /// 使用方式：
   /// ```dart
   /// final ua = await UserAgentConfig.get(UserAgentScenario.subscription);
   /// ```
-  /// 
+  ///
   /// 常用场景：
   /// - 订阅下载：UserAgentScenario.subscription
   /// - API/域名竞速：UserAgentScenario.api
   /// - 并发订阅：UserAgentScenario.subscriptionRacing
   /// - 消息附件：UserAgentScenario.attachment
-  
+
   // ========== 重试配置 ==========
-  
+
   /// 默认重试次数
   static const int defaultRetries = 3;
-  
+
   /// 重试延迟（指数退避）
   static Duration retryDelay(int attempt) => Duration(seconds: attempt * 2);
-  
+
   /// 是否应该重试（根据状态码判断）
   static bool shouldRetry(int? statusCode) {
     if (statusCode == null) return true;
@@ -192,7 +208,7 @@ class XBoardHttpConfig {
 }
 
 /// XBoard 统一 HTTP 客户端
-/// 
+///
 /// 功能特性：
 /// - 统一的超时配置
 /// - 统一的错误处理
@@ -201,50 +217,46 @@ class XBoardHttpConfig {
 /// - 请求/响应拦截器
 class XBoardHttpClient {
   final Dio _dio;
-  final String? _baseUrl;
-  
+
   XBoardHttpClient({
     String? baseUrl,
     Duration? timeout,
     Map<String, dynamic>? headers,
-  })  : _baseUrl = baseUrl,
-        _dio = _createDio(
-          baseUrl: baseUrl,
-          timeout: timeout,
-          headers: headers,
-        );
-  
+  }) : _dio = _createDio(baseUrl: baseUrl, timeout: timeout, headers: headers);
+
   /// 创建 Dio 实例
   static Dio _createDio({
     String? baseUrl,
     Duration? timeout,
     Map<String, dynamic>? headers,
   }) {
-    final dio = Dio(BaseOptions(
-      baseUrl: baseUrl ?? '',
-      connectTimeout: timeout ?? XBoardHttpConfig.standardTimeout,
-      receiveTimeout: timeout ?? XBoardHttpConfig.standardTimeout,
-      sendTimeout: timeout ?? XBoardHttpConfig.standardTimeout,
-      headers: {
-        'Accept': '*/*',
-        // User-Agent 由具体请求设置，从配置文件读取
-        // 参考: await UserAgentConfig.get(UserAgentScenario.xxx)
-        ...?headers,
-      },
-      validateStatus: (status) => status != null && status < 500,
-    ));
-    
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl ?? '',
+        connectTimeout: timeout ?? XBoardHttpConfig.standardTimeout,
+        receiveTimeout: timeout ?? XBoardHttpConfig.standardTimeout,
+        sendTimeout: timeout ?? XBoardHttpConfig.standardTimeout,
+        headers: {
+          'Accept': '*/*',
+          // User-Agent 由具体请求设置，从配置文件读取
+          // 参考: await UserAgentConfig.get(UserAgentScenario.xxx)
+          ...?headers,
+        },
+        validateStatus: (status) => status != null && status < 500,
+      ),
+    );
+
     // 添加安全日志拦截器（Release 模式脱敏 + 认证失败检测）
-    dio.interceptors.add(_SecureLogInterceptor(
-      onAuthFailure: _globalAuthFailureCallback,
-    ));
-    
+    dio.interceptors.add(
+      _SecureLogInterceptor(onAuthFailure: _globalAuthFailureCallback),
+    );
+
     // 添加重试拦截器
     dio.interceptors.add(_RetryInterceptor(dio));
-    
+
     return dio;
   }
-  
+
   /// GET 请求
   Future<HttpResult<T>> get<T>(
     String path, {
@@ -264,7 +276,7 @@ class XBoardHttpClient {
       return _handleError(e);
     }
   }
-  
+
   /// POST 请求
   Future<HttpResult<T>> post<T>(
     String path, {
@@ -286,7 +298,7 @@ class XBoardHttpClient {
       return _handleError(e);
     }
   }
-  
+
   /// PUT 请求
   Future<HttpResult<T>> put<T>(
     String path, {
@@ -308,7 +320,7 @@ class XBoardHttpClient {
       return _handleError(e);
     }
   }
-  
+
   /// DELETE 请求
   Future<HttpResult<T>> delete<T>(
     String path, {
@@ -330,7 +342,7 @@ class XBoardHttpClient {
       return _handleError(e);
     }
   }
-  
+
   /// 下载文件
   Future<HttpResult<void>> download(
     String urlPath,
@@ -344,16 +356,14 @@ class XBoardHttpClient {
         savePath,
         onReceiveProgress: onReceiveProgress,
         cancelToken: cancelToken,
-        options: Options(
-          receiveTimeout: XBoardHttpConfig.downloadTimeout,
-        ),
+        options: Options(receiveTimeout: XBoardHttpConfig.downloadTimeout),
       );
       return const HttpSuccess(null, 200, {});
     } catch (e) {
       return _handleError(e);
     }
   }
-  
+
   /// 上传文件
   Future<HttpResult<T>> upload<T>(
     String path,
@@ -367,20 +377,18 @@ class XBoardHttpClient {
         data: formData,
         onSendProgress: onSendProgress,
         cancelToken: cancelToken,
-        options: Options(
-          sendTimeout: XBoardHttpConfig.uploadTimeout,
-        ),
+        options: Options(sendTimeout: XBoardHttpConfig.uploadTimeout),
       );
       return _handleResponse(response);
     } catch (e) {
       return _handleError(e);
     }
   }
-  
+
   /// 处理响应
   HttpResult<T> _handleResponse<T>(Response<T> response) {
     final statusCode = response.statusCode ?? 0;
-    
+
     if (statusCode >= 200 && statusCode < 300) {
       return HttpSuccess(
         response.data as T,
@@ -395,7 +403,7 @@ class XBoardHttpClient {
       );
     }
   }
-  
+
   /// 处理错误
   HttpResult<T> _handleError<T>(dynamic error) {
     if (error is DioException) {
@@ -451,7 +459,7 @@ class XBoardHttpClient {
       errorType: HttpErrorType.unknown,
     );
   }
-  
+
   /// 转换 Headers
   Map<String, String> _convertHeaders(Headers headers) {
     final result = <String, String>{};
@@ -462,7 +470,7 @@ class XBoardHttpClient {
     });
     return result;
   }
-  
+
   /// 关闭客户端
   void close({bool force = false}) {
     _dio.close(force: force);
@@ -598,11 +606,21 @@ class _RetryInterceptor extends Interceptor {
       return false;
     }
 
+    final requestPath = _normalizeRequestPath(err.requestOptions);
+    final responseData = _asResponseMap(err.response?.data);
+
     // 使用 V2Board 错误解析器判断是否应该重试
     final errorType = V2BoardErrorParser.parseError(
       statusCode: statusCode,
-      responseData: err.response?.data as Map<String, dynamic>?,
+      responseData: responseData,
     );
+
+    // 鉴权端点里的 422/500 绝大多数是业务错误，切域名不会改善。
+    if (_isAuthEndpoint(requestPath) &&
+        _isAuthBusinessError(statusCode: statusCode, errorType: errorType)) {
+      _logger.info('[HTTP] 鉴权业务错误（禁用重试/切域）: $requestPath -> $errorType');
+      return false;
+    }
 
     final shouldRetry = V2BoardErrorParser.shouldRetry(errorType);
     if (!shouldRetry && statusCode == 500) {
@@ -610,6 +628,55 @@ class _RetryInterceptor extends Interceptor {
     }
 
     return shouldRetry;
+  }
+
+  Map<String, dynamic>? _asResponseMap(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    if (data is Map) {
+      return data.map((key, value) => MapEntry(key.toString(), value));
+    }
+    return null;
+  }
+
+  String _normalizeRequestPath(RequestOptions options) {
+    final parsed = Uri.tryParse(options.path);
+    if (parsed != null && parsed.hasAuthority) {
+      return parsed.path;
+    }
+    return options.uri.path;
+  }
+
+  bool _isAuthEndpoint(String path) {
+    return path == '/api/v1/passport/auth/login' ||
+        path == '/api/v1/passport/auth/register' ||
+        path == '/api/v1/passport/auth/forget' ||
+        path == '/api/v1/passport/comm/sendEmailVerify';
+  }
+
+  bool _isAuthBusinessError({
+    required int? statusCode,
+    required V2BoardErrorType errorType,
+  }) {
+    if (statusCode == 422 || statusCode == 403) {
+      return true;
+    }
+
+    switch (errorType) {
+      case V2BoardErrorType.invalidCredentials:
+      case V2BoardErrorType.accountSuspended:
+      case V2BoardErrorType.passwordLimitExceeded:
+      case V2BoardErrorType.registerLimitExceeded:
+      case V2BoardErrorType.inviteCodeRequired:
+      case V2BoardErrorType.emailCodeRequired:
+      case V2BoardErrorType.validationError:
+      case V2BoardErrorType.tokenInvalid:
+      case V2BoardErrorType.rateLimitExceeded:
+        return true;
+      case V2BoardErrorType.unknown:
+        return false;
+    }
   }
 
   /// Rewrite the request URL to use [newDomain], keeping the path and query intact.
@@ -632,32 +699,43 @@ class _RetryInterceptor extends Interceptor {
 /// HTTP 结果类型
 sealed class HttpResult<T> {
   const HttpResult();
-  
+
   /// 是否成功
   bool get isSuccess => this is HttpSuccess<T>;
-  
+
   /// 是否失败
   bool get isFailure => this is HttpFailure<T>;
-  
+
   /// 获取数据（如果成功）
   T? get dataOrNull => switch (this) {
     HttpSuccess(data: final data) => data,
     _ => null,
   };
-  
+
   /// 模式匹配
   R when<R>({
-    required R Function(T data, int statusCode, Map<String, String> headers) success,
-    required R Function(String message, HttpErrorType errorType, int? statusCode, dynamic data) failure,
+    required R Function(T data, int statusCode, Map<String, String> headers)
+    success,
+    required R Function(
+      String message,
+      HttpErrorType errorType,
+      int? statusCode,
+      dynamic data,
+    )
+    failure,
   }) {
     return switch (this) {
-      HttpSuccess(data: final data, statusCode: final code, headers: final headers) =>
+      HttpSuccess(
+        data: final data,
+        statusCode: final code,
+        headers: final headers,
+      ) =>
         success(data, code, headers),
       HttpFailure(
         message: final msg,
         errorType: final type,
         statusCode: final code,
-        data: final data
+        data: final data,
       ) =>
         failure(msg, type, code, data),
     };
@@ -669,7 +747,7 @@ class HttpSuccess<T> extends HttpResult<T> {
   final T data;
   final int statusCode;
   final Map<String, String> headers;
-  
+
   const HttpSuccess(this.data, this.statusCode, this.headers);
 }
 
@@ -679,7 +757,7 @@ class HttpFailure<T> extends HttpResult<T> {
   final HttpErrorType errorType;
   final int? statusCode;
   final dynamic data;
-  
+
   const HttpFailure(
     this.message, {
     this.errorType = HttpErrorType.unknown,
@@ -692,20 +770,19 @@ class HttpFailure<T> extends HttpResult<T> {
 enum HttpErrorType {
   /// 网络错误
   network,
-  
+
   /// 超时
   timeout,
-  
+
   /// 服务器错误
   server,
-  
+
   /// 证书错误
   certificate,
-  
+
   /// 请求取消
   cancel,
-  
+
   /// 未知错误
   unknown,
 }
-

@@ -12,23 +12,27 @@ import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/features/notice/notice.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_status_checker.dart';
 import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
+import 'package:fl_clash/xboard/core/core.dart';
 
 import '../widgets/vpn_hero_card.dart';
 import '../widgets/quick_actions_card.dart';
 import '../widgets/traffic_history_card.dart';
+
 class XBoardHomePage extends ConsumerStatefulWidget {
   const XBoardHomePage({super.key});
   @override
   ConsumerState<XBoardHomePage> createState() => _XBoardHomePageState();
 }
+
 class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
     with AutomaticKeepAliveClientMixin {
   bool _hasInitialized = false;
   bool _hasCheckedSubscriptionStatus = false;
-  Timer? _subscriptionRefreshTimer;  // 订阅信息定时刷新计时器
+  bool _tokenExpiredDialogVisible = false;
+  Timer? _subscriptionRefreshTimer; // 订阅信息定时刷新计时器
 
   @override
-  bool get wantKeepAlive => true;  // 保持页面状态，防止重建
+  bool get wantKeepAlive => true; // 保持页面状态，防止重建
 
   @override
   void initState() {
@@ -51,11 +55,20 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         });
       }
     });
+    ref.listenManual(authGuardProvider, (previous, next) {
+      if (next.status == AuthGuardStatus.expired) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showTokenExpiredDialog();
+        });
+      }
+    });
 
     // 监听订阅导入完成事件
     ref.listenManual(profileImportProvider, (previous, next) {
       // 从导入中变为完成（成功或失败）
-      if (previous?.isImporting == true && !next.isImporting && !_hasCheckedSubscriptionStatus) {
+      if (previous?.isImporting == true &&
+          !next.isImporting &&
+          !_hasCheckedSubscriptionStatus) {
         // Only trigger check if import actually ran (not rejected as duplicate)
         final actuallyRan = next.lastResult != null;
         if (actuallyRan) {
@@ -67,6 +80,7 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       }
     });
   }
+
   @override
   void dispose() {
     _subscriptionRefreshTimer?.cancel();
@@ -75,124 +89,138 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);  // 必须调用，配合 AutomaticKeepAliveClientMixin
+    super.build(context); // 必须调用，配合 AutomaticKeepAliveClientMixin
 
     // 根据操作系统平台判断设备类型
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
-    
+    final isDesktop =
+        Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+
     return Scaffold(
-      appBar: isDesktop ? null : AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(
-          appName,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: false,
-        actions: [
-          const CoreStatusIndicator(),
-          const SizedBox(width: 4),
-          const LanguageSelector(),
-          _buildNoticeIconButton(),
-        ],
-      ),
+      appBar: isDesktop
+          ? null
+          : AppBar(
+              automaticallyImplyLeading: false,
+              title: Text(
+                appName,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              centerTitle: false,
+              actions: [
+                const CoreStatusIndicator(),
+                const SizedBox(width: 4),
+                const LanguageSelector(),
+                _buildNoticeIconButton(),
+              ],
+            ),
       body: Consumer(
-        builder: (_, ref, __) {
+        builder: (_, ref, unused) {
           // 获取屏幕高度并计算自适应间距
           final screenHeight = MediaQuery.of(context).size.height;
-        final appBarHeight = kToolbarHeight;
-        final statusBarHeight = MediaQuery.of(context).padding.top;
-        final bottomNavHeight = 60.0; // 底部导航栏高度
-        final availableHeight = screenHeight - appBarHeight - statusBarHeight - bottomNavHeight;
-        
-        // 根据可用高度调整间距
-        double sectionSpacing;
-        double verticalPadding;
-        double horizontalPadding;
+          final appBarHeight = kToolbarHeight;
+          final statusBarHeight = MediaQuery.of(context).padding.top;
+          final bottomNavHeight = 60.0; // 底部导航栏高度
+          final availableHeight =
+              screenHeight - appBarHeight - statusBarHeight - bottomNavHeight;
 
-        if (availableHeight < 500) {
-          // 小屏幕：紧凑布局
-          sectionSpacing = 12.0;
-          verticalPadding = 12.0;
-          horizontalPadding = 16.0;
-        } else if (availableHeight < 650) {
-          // 中等屏幕：适中布局
-          sectionSpacing = 16.0;
-          verticalPadding = 16.0;
-          horizontalPadding = 20.0;
-        } else {
-          // 大屏幕：标准布局
-          sectionSpacing = 20.0;
-          verticalPadding = 20.0;
-          horizontalPadding = 24.0;
-        }
-        
-        return Container(
-          color: Theme.of(context).colorScheme.surface,
-          child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(vertical: verticalPadding),
-                  child: Center(
-                    child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: 768,
-                      minHeight: constraints.maxHeight - (2 * verticalPadding),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (isDesktop)
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                const CoreStatusIndicator(),
-                                const SizedBox(width: 8),
-                                const LanguageSelector(),
-                                const SizedBox(width: 4),
-                                _buildNoticeIconButton(),
-                              ],
+          // 根据可用高度调整间距
+          double sectionSpacing;
+          double verticalPadding;
+          double horizontalPadding;
+
+          if (availableHeight < 500) {
+            // 小屏幕：紧凑布局
+            sectionSpacing = 12.0;
+            verticalPadding = 12.0;
+            horizontalPadding = 16.0;
+          } else if (availableHeight < 650) {
+            // 中等屏幕：适中布局
+            sectionSpacing = 16.0;
+            verticalPadding = 16.0;
+            horizontalPadding = 20.0;
+          } else {
+            // 大屏幕：标准布局
+            sectionSpacing = 20.0;
+            verticalPadding = 20.0;
+            horizontalPadding = 24.0;
+          }
+
+          return Container(
+            color: Theme.of(context).colorScheme.surface,
+            child: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(vertical: verticalPadding),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: 768,
+                          minHeight:
+                              constraints.maxHeight - (2 * verticalPadding),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (isDesktop)
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    const CoreStatusIndicator(),
+                                    const SizedBox(width: 8),
+                                    const LanguageSelector(),
+                                    const SizedBox(width: 4),
+                                    _buildNoticeIconButton(),
+                                  ],
+                                ),
+                              ),
+                            const NoticeBanner(),
+                            SizedBox(height: sectionSpacing * 0.5),
+                            // VPN Hero Card (connection + subscription + mode controls)
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: horizontalPadding,
+                              ),
+                              child: const VpnHeroCard(),
                             ),
-                          ),
-                        const NoticeBanner(),
-                        SizedBox(height: sectionSpacing * 0.5),
-                        // VPN Hero Card (connection + subscription + mode controls)
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                          child: const VpnHeroCard(),
+                            SizedBox(height: sectionSpacing),
+                            // Quick actions
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: horizontalPadding,
+                              ),
+                              child: const QuickActionsCard(),
+                            ),
+                            SizedBox(height: sectionSpacing),
+                            // Traffic history (collapsible)
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: horizontalPadding,
+                              ),
+                              child: TrafficHistoryCard(
+                                initiallyExpanded: isDesktop,
+                              ),
+                            ),
+                            SizedBox(height: sectionSpacing),
+                          ],
                         ),
-                        SizedBox(height: sectionSpacing),
-                        // Quick actions
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                          child: const QuickActionsCard(),
-                        ),
-                        SizedBox(height: sectionSpacing),
-                        // Traffic history (collapsible)
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                          child: TrafficHistoryCard(
-                            initiallyExpanded: isDesktop,
-                          ),
-                        ),
-                        SizedBox(height: sectionSpacing),
-                      ],
+                      ),
                     ),
-                  ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-        );
+          );
         },
       ),
     );
   }
+
   Widget _buildNoticeIconButton() {
     return Consumer(
       builder: (context, ref, _) {
@@ -209,10 +237,8 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
             if (notices.isNotEmpty) {
               showDialog(
                 context: context,
-                builder: (context) => NoticeDetailDialog(
-                  notices: notices,
-                  initialIndex: 0,
-                ),
+                builder: (context) =>
+                    NoticeDetailDialog(notices: notices, initialIndex: 0),
               );
             }
           },
@@ -255,7 +281,10 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       if (_hasCheckedSubscriptionStatus) return;
       _hasCheckedSubscriptionStatus = true;
       if (mounted) {
-        subscriptionStatusChecker.checkSubscriptionStatusOnStartup(context, ref);
+        subscriptionStatusChecker.checkSubscriptionStatusOnStartup(
+          context,
+          ref,
+        );
       }
       return;
     }
@@ -279,9 +308,10 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       _waitForGroupsThenCheckStatus();
     }
   }
-  
+
   void _showTokenExpiredDialog() {
-    if (!mounted) return;
+    if (!mounted || _tokenExpiredDialogVisible) return;
+    _tokenExpiredDialogVisible = true;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -300,6 +330,7 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
               userNotifier.clearTokenExpiredError();
               // 处理 Token 过期（清除数据）
               await userNotifier.handleTokenExpired();
+              ref.read(authGuardProvider.notifier).markLoggedOut();
               // 使用 go_router 导航到登录页（会清除所有路由）
               if (context.mounted) {
                 context.go('/login');
@@ -309,29 +340,33 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
           ),
         ],
       ),
-    );
+    ).whenComplete(() {
+      _tokenExpiredDialogVisible = false;
+    });
   }
 
   /// 启动订阅信息定时刷新（每 5 分钟）
   void _startSubscriptionRefreshTimer() {
     _subscriptionRefreshTimer?.cancel();
-    _subscriptionRefreshTimer = Timer.periodic(
-      const Duration(minutes: 5),
-      (_) async {
-        if (!mounted) return;
-        final userState = ref.read(xboardUserProvider);
-        if (userState.isAuthenticated) {
-          try {
-            await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
-            // 刷新后检查订阅状态，如有变化则弹窗提醒
-            if (mounted) {
-              subscriptionStatusChecker.checkSubscriptionStatusOnStartup(context, ref);
-            }
-          } catch (e) {
-            // 静默失败，不影响用户体验
+    _subscriptionRefreshTimer = Timer.periodic(const Duration(minutes: 5), (
+      _,
+    ) async {
+      if (!mounted) return;
+      final userState = ref.read(xboardUserProvider);
+      if (userState.isAuthenticated) {
+        try {
+          await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
+          // 刷新后检查订阅状态，如有变化则弹窗提醒
+          if (mounted) {
+            subscriptionStatusChecker.checkSubscriptionStatusOnStartup(
+              context,
+              ref,
+            );
           }
+        } catch (e) {
+          // 静默失败，不影响用户体验
         }
-      },
-    );
+      }
+    });
   }
-} 
+}

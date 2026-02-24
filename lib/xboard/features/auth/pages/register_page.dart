@@ -1,6 +1,5 @@
 import 'package:fl_clash/xboard/features/auth/auth.dart';
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:fl_clash/xboard/core/core.dart';
@@ -76,7 +75,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
     if (isEmailVerify && _emailCodeController.text.trim().isEmpty) {
       XBoardNotification.showError(
-          appLocalizations.pleaseEnterEmailVerificationCode);
+        appLocalizations.pleaseEnterEmailVerificationCode,
+      );
       return;
     }
 
@@ -92,12 +92,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               : null,
           emailCode:
               isEmailVerify && _emailCodeController.text.trim().isNotEmpty
-                  ? _emailCodeController.text
-                  : null,
+              ? _emailCodeController.text
+              : null,
         );
 
         final data = json['data'] as Map<String, dynamic>? ?? {};
-        final token = data['token'] as String?;
+        final token = (data['auth_data'] ?? data['token']) as String?;
         if (token != null && token.isNotEmpty) {
           await api.saveAndSetToken(token, email: _fullEmail);
         }
@@ -105,14 +105,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         if (mounted) {
           final storageService = ref.read(storageServiceProvider);
           await storageService.saveCredentials(
-              _fullEmail, _passwordController.text, true);
+            _fullEmail,
+            _passwordController.text,
+            true,
+          );
           if (mounted) {
             setState(() {
               _alertType = AuthAlertType.success;
               _alertMessage = appLocalizations.xboardRegisterSuccess;
             });
             XBoardNotification.showSuccess(
-                appLocalizations.xboardRegisterSuccess);
+              appLocalizations.xboardRegisterSuccess,
+            );
           }
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted) context.pop();
@@ -132,10 +136,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             } else {
               errorMessage = ErrorSanitizer.sanitize(errorStr);
             }
-          }
-          if (errorMessage.contains('遇到了些问题') ||
-              errorMessage.contains('500')) {
-            errorMessage = appLocalizations.inviteCodeIncorrect;
           }
           setState(() {
             _alertType = AuthAlertType.error;
@@ -165,13 +165,17 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       await api.sendEmailVerify(_fullEmail);
       if (mounted) {
         XBoardNotification.showSuccess(
-            appLocalizations.verificationCodeSentCheckEmail);
+          appLocalizations.verificationCodeSentCheckEmail,
+        );
         _startCountdown();
       }
     } catch (e) {
       if (mounted) {
         XBoardNotification.showError(
-            appLocalizations.sendVerificationCodeFailed(ErrorSanitizer.sanitize(e.toString())));
+          appLocalizations.sendVerificationCodeFailed(
+            ErrorSanitizer.sanitize(e.toString()),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSendingEmailCode = false);
@@ -208,7 +212,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final configAsync = ref.watch(configProvider);
@@ -218,13 +221,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         backgroundColor: colorScheme.surface,
         body: const Center(child: CircularProgressIndicator()),
       ),
-      error: (error, stack) => _buildPage(context, colorScheme, textTheme, null),
+      error: (error, stack) =>
+          _buildPage(context, colorScheme, textTheme, null),
       data: (config) => _buildPage(context, colorScheme, textTheme, config),
     );
   }
 
-  Widget _buildPage(BuildContext context, ColorScheme colorScheme,
-      TextTheme textTheme, Map<String, dynamic>? config) {
+  Widget _buildPage(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    Map<String, dynamic>? config,
+  ) {
     return AuthScaffold(
       showBackButton: true,
       onBack: () => context.pop(),
@@ -310,8 +318,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   size: 20,
                 ),
                 onPressed: () {
-                  setState(() =>
-                      _isConfirmPasswordVisible = !_isConfirmPasswordVisible);
+                  setState(
+                    () =>
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible,
+                  );
                 },
               ),
               validator: (value) {
@@ -364,8 +374,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 style: FilledButton.styleFrom(
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
-                  disabledBackgroundColor:
-                      colorScheme.primary.withValues(alpha: 0.5),
+                  disabledBackgroundColor: colorScheme.primary.withValues(
+                    alpha: 0.5,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -421,13 +432,17 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   /// Email input: prefix + @ + suffix dropdown
   /// Matching frontend's EmailInput component with whitelist support
-  Widget _buildEmailInput(BuildContext context, ColorScheme colorScheme,
-      TextTheme textTheme, Map<String, dynamic>? config) {
+  Widget _buildEmailInput(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    Map<String, dynamic>? config,
+  ) {
     final emailSuffixes =
         (config?['email_whitelist_suffix'] as List<dynamic>?)
-                ?.map((e) => e.toString())
-                .toList() ??
-            [];
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
 
     if (emailSuffixes.isEmpty) {
       emailSuffixes.addAll([
@@ -499,7 +514,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     borderSide: BorderSide(color: colorScheme.error),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   isDense: true,
                 ),
                 keyboardType: TextInputType.emailAddress,
@@ -529,7 +546,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             Expanded(
               flex: 2,
               child: DropdownButtonFormField<String>(
-                value: _selectedEmailSuffix,
+                initialValue: _selectedEmailSuffix,
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurface,
                 ),
@@ -556,7 +573,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 12),
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
                   isDense: true,
                 ),
                 items: emailSuffixes.map((suffix) {
@@ -603,7 +622,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   /// Email code field with inline send button
   /// Matching frontend pattern: flex gap-2, input flex-1 + Button variant=outline
   Widget _buildEmailCodeField(
-      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -657,7 +679,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     borderSide: BorderSide(color: colorScheme.error),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   isDense: true,
                 ),
                 validator: (value) {
@@ -676,8 +700,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             SizedBox(
               height: 44,
               child: OutlinedButton(
-                onPressed:
-                    (_countdown > 0 || _isSendingEmailCode) ? null : _sendEmailCode,
+                onPressed: (_countdown > 0 || _isSendingEmailCode)
+                    ? null
+                    : _sendEmailCode,
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: colorScheme.primary),
                   shape: RoundedRectangleBorder(

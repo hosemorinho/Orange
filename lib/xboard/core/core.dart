@@ -45,3 +45,6 @@ export 'utils/utils.dart';
 // ===== 导出错误净化 =====
 export 'error_sanitizer.dart';
 
+// ===== 导出认证守卫 =====
+export 'auth/auth_guard.dart';
+

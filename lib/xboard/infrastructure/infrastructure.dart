@@ -43,4 +43,5 @@ export 'cache/cache.dart';
 
 // ===== 导出加密模块 =====
 export 'crypto/profile_cipher.dart';
+export 'crypto/credential_cipher.dart';
 

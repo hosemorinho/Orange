@@ -1,12 +1,136 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'user_agent_config.dart';
 import 'package:fl_clash/xboard/infrastructure/network/domain_pool.dart';
+import 'package:fl_clash/xboard/infrastructure/api/v2board_error_parser.dart';
 
-// 初始化文件级日志器
-final _logger = FileLogger('xboard_http_client.dart');
+/// 认证失败回调（401/403）
+typedef AuthFailureCallback = void Function();
+
+/// 全局认证失败回调（由 SDK Provider 注册）
+AuthFailureCallback? _globalAuthFailureCallback;
+
+/// 注册认证失败回调
+void registerAuthFailureCallback(AuthFailureCallback callback) {
+  _globalAuthFailureCallback = callback;
+  _logger.info('已注册认证失败回调');
+}
+
+/// 需要脱敏的敏感字段名
+const _sensitiveFields = [
+  'authorization',
+  'token',
+  'password',
+  'passwd',
+  'secret',
+  'api_key',
+  'apikey',
+  'api-key',
+  'x-sign',
+  'x-ticket',
+  'cookie',
+  'set-cookie',
+];
+
+/// 需要脱敏的邮箱字段
+const _emailFields = ['email', 'mail', 'username', 'user'];
+
+/// 敏感日志拦截器
+///
+/// - Debug 模式：记录完整日志
+/// - Release 模式：
+///   - 禁用请求体/响应体日志
+///   - 请求头脱敏（Authorization、token、邮箱等）
+///   - 仅记录请求方法、路径、状态码、耗时
+/// - 认证失败检测：401/403 时触发回调
+class _SecureLogInterceptor extends Interceptor {
+  _SecureLogInterceptor({this.onAuthFailure});
+
+  /// 认证失败回调
+  final AuthFailureCallback? onAuthFailure;
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (kDebugMode) {
+      // Debug 模式：完整日志
+      _logger.debug('[HTTP] >>>> ${options.method} ${options.uri}');
+      _logger.debug('[HTTP] Headers: ${_sanitizeHeaders(options.headers)}');
+      if (options.data != null) {
+        _logger.debug('[HTTP] Body: ${options.data}');
+      }
+    } else {
+      // Release 模式：仅记录基本信息 + 脱敏请求头
+      _logger.debug('[HTTP] ${options.method} ${options.uri.path}');
+    }
+    handler.next(options);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (kDebugMode) {
+      _logger.debug('[HTTP] <<<< ${response.statusCode} ${response.requestOptions.uri}');
+      _logger.debug('[HTTP] Response: ${response.data}');
+    } else {
+      // Release 模式：仅记录状态码
+      _logger.debug('[HTTP] ${response.statusCode} ${response.requestOptions.method} ${response.requestOptions.uri.path}');
+    }
+    handler.next(response);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    final uri = err.requestOptions.uri;
+    final statusCode = err.response?.statusCode;
+
+    // 检测认证失败（401/403）
+    if (statusCode == 401 || statusCode == 403) {
+      _logger.warn('[HTTP] 认证失败: ${err.requestOptions.method} $uri → $statusCode');
+      onAuthFailure?.call();
+    }
+
+    if (kDebugMode) {
+      _logger.error('[HTTP] ERROR ${err.type}: $uri');
+      _logger.error('[HTTP] ${err.message}');
+      if (err.response != null) {
+        _logger.error('[HTTP] Response: ${err.response?.data}');
+      }
+    } else {
+      _logger.error('[HTTP] ${err.requestOptions.method} ${uri.path} → ${statusCode ?? err.type}');
+    }
+    handler.next(err);
+  }
+
+  /// 脱敏请求头（用于 Debug 模式的可读日志）
+  static Map<String, dynamic> _sanitizeHeaders(Map<String, dynamic>? headers) {
+    if (headers == null || headers.isEmpty) return {};
+    final sanitized = <String, dynamic>{};
+    for (final entry in headers.entries) {
+      final key = entry.key.toLowerCase();
+      if (_sensitiveFields.any((sensitive) => key.contains(sensitive))) {
+        sanitized[entry.key] = '***';
+      } else if (_emailFields.any((emailField) => key.contains(emailField))) {
+        sanitized[entry.key] = _maskEmail('${entry.value}');
+      } else {
+        sanitized[entry.key] = entry.value;
+      }
+    }
+    return sanitized;
+  }
+
+  /// 邮箱脱敏：user@example.com → u***@example.com
+  static String _maskEmail(String email) {
+    final parts = email.split('@');
+    if (parts.length != 2) return '***';
+    final local = parts[0];
+    if (local.isEmpty) return '***@${parts[1]}';
+    return '${local[0]}***@${parts[1]}';
+  }
+}
 
 /// XBoard 统一 HTTP 客户端配置
 class XBoardHttpConfig {
@@ -110,14 +234,9 @@ class XBoardHttpClient {
       validateStatus: (status) => status != null && status < 500,
     ));
     
-    // 添加日志拦截器（仅在 Debug 模式）
-    dio.interceptors.add(LogInterceptor(
-      requestHeader: true,
-      requestBody: true,
-      responseHeader: false,
-      responseBody: true,
-      error: true,
-      logPrint: (obj) => _logger.debug('[HTTP] $obj'),
+    // 添加安全日志拦截器（Release 模式脱敏 + 认证失败检测）
+    dio.interceptors.add(_SecureLogInterceptor(
+      onAuthFailure: _globalAuthFailureCallback,
     ));
     
     // 添加重试拦截器
@@ -475,7 +594,22 @@ class _RetryInterceptor extends Interceptor {
 
     // Server-side errors (5xx), 408 timeout, 429 rate limit
     final statusCode = err.response?.statusCode;
-    return XBoardHttpConfig.shouldRetry(statusCode);
+    if (!XBoardHttpConfig.shouldRetry(statusCode)) {
+      return false;
+    }
+
+    // 使用 V2Board 错误解析器判断是否应该重试
+    final errorType = V2BoardErrorParser.parseError(
+      statusCode: statusCode,
+      responseData: err.response?.data as Map<String, dynamic>?,
+    );
+
+    final shouldRetry = V2BoardErrorParser.shouldRetry(errorType);
+    if (!shouldRetry && statusCode == 500) {
+      _logger.info('[HTTP] V2Board 业务错误（不重试）: $errorType');
+    }
+
+    return shouldRetry;
   }
 
   /// Rewrite the request URL to use [newDomain], keeping the path and query intact.

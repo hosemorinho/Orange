@@ -6,3 +6,4 @@ export 'v2board_error_localizer.dart';
 export 'v2board_response.dart';
 export 'v2board_mappers.dart';
 export 'v2board_token_storage.dart';
+export 'v2board_error_parser.dart';

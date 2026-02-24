@@ -7,6 +7,7 @@ import 'package:fl_clash/xboard/infrastructure/api/api.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import 'package:fl_clash/xboard/adapter/state/payment_state.dart';
 import 'package:fl_clash/xboard/adapter/state/order_state.dart';
+import 'payment_ui_state_provider.dart';
 
 // 初始化文件级日志器
 final _logger = FileLogger('xboard_payment_provider.dart');
@@ -90,7 +91,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       ref.read(pendingOrdersProvider.notifier).state = [];
       return;
     }
-    ref.read(userUIStateProvider.notifier).state = const UIState(isLoading: true);
+    ref.read(paymentUIStateNotifierProvider).state = const UIState(isLoading: true);
     try {
       _logger.info('加载待支付订单...');
       ref.invalidate(getOrdersProvider);
@@ -102,11 +103,11 @@ class XBoardPaymentNotifier extends Notifier<void> {
         order.status == OrderStatus.pending || order.status == OrderStatus.processing
       ).toList();
       ref.read(pendingOrdersProvider.notifier).state = pendingOrders;
-      ref.read(userUIStateProvider.notifier).state = const UIState(isLoading: false);
+      ref.read(paymentUIStateNotifierProvider).state = const UIState(isLoading: false);
       _logger.info('待支付订单加载成功，共 ${pendingOrders.length} 个');
     } catch (e) {
       _logger.info('加载待支付订单失败: $e');
-      ref.read(userUIStateProvider.notifier).state = UIState(
+      ref.read(paymentUIStateNotifierProvider).state = UIState(
         isLoading: false,
         errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
@@ -143,7 +144,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
     } catch (e, stackTrace) {
       _logger.error('[Payment] 加载支付方式失败: $e');
       _logger.error('[Payment] 错误堆栈: $stackTrace');
-      ref.read(userUIStateProvider.notifier).state = UIState(
+      ref.read(paymentUIStateNotifierProvider).state = UIState(
         errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
     }
@@ -157,12 +158,12 @@ class XBoardPaymentNotifier extends Notifier<void> {
     if (!userAuthState.isAuthenticated) {
       // TODO: Provider error messages should be handled in UI layer with i18n
       // This error is displayed through UIState and should use AppLocalizations in the UI
-      ref.read(userUIStateProvider.notifier).state = UIState(
+      ref.read(paymentUIStateNotifierProvider).state = UIState(
         errorMessage: V2BoardErrorLocalizer.localize('请先登录'),
       );
       return null;
     }
-    ref.read(userUIStateProvider.notifier).state = const UIState(isLoading: true);
+    ref.read(paymentUIStateNotifierProvider).state = const UIState(isLoading: true);
     try {
       _logger.info('创建订单: planId=$planId, period=$period, couponCode=$couponCode');
 
@@ -190,14 +191,14 @@ class XBoardPaymentNotifier extends Notifier<void> {
         ref.read(paymentProcessStateProvider.notifier).state = PaymentProcessState(
           currentOrderTradeNo: tradeNo,
         );
-        ref.read(userUIStateProvider.notifier).state = const UIState(isLoading: false);
+        ref.read(paymentUIStateNotifierProvider).state = const UIState(isLoading: false);
         await loadPendingOrders();
         _logger.info('订单创建成功: tradeNo=$tradeNo');
         await Future.delayed(const Duration(seconds: 1)); // 添加延迟，确保订单在服务器端完全就绪
         return tradeNo;
       } else {
         // TODO: Provider error messages should be handled in UI layer with i18n
-        ref.read(userUIStateProvider.notifier).state = UIState(
+        ref.read(paymentUIStateNotifierProvider).state = UIState(
           isLoading: false,
           errorMessage: V2BoardErrorLocalizer.localize('创建订单失败'),
         );
@@ -205,7 +206,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       }
     } catch (e) {
       _logger.info('创建订单失败: $e');
-      ref.read(userUIStateProvider.notifier).state = UIState(
+      ref.read(paymentUIStateNotifierProvider).state = UIState(
         isLoading: false,
         errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
@@ -224,7 +225,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
     if (!userAuthState.isAuthenticated) {
       // TODO: Provider error messages should be handled in UI layer with i18n
       // This error is displayed through UIState and should use AppLocalizations in the UI
-      ref.read(userUIStateProvider.notifier).state = UIState(
+      ref.read(paymentUIStateNotifierProvider).state = UIState(
         errorMessage: V2BoardErrorLocalizer.localize('请先登录'),
       );
       return null;
@@ -268,7 +269,7 @@ class XBoardPaymentNotifier extends Notifier<void> {
       ref.read(paymentProcessStateProvider.notifier).state = const PaymentProcessState(
         isProcessingPayment: false,
       );
-      ref.read(userUIStateProvider.notifier).state = UIState(
+      ref.read(paymentUIStateNotifierProvider).state = UIState(
         errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
       return null;
@@ -279,12 +280,12 @@ class XBoardPaymentNotifier extends Notifier<void> {
     if (!userAuthState.isAuthenticated) {
       // TODO: Provider error messages should be handled in UI layer with i18n
       // This error is displayed through UIState and should use AppLocalizations in the UI
-      ref.read(userUIStateProvider.notifier).state = UIState(
+      ref.read(paymentUIStateNotifierProvider).state = UIState(
         errorMessage: V2BoardErrorLocalizer.localize('请先登录'),
       );
       return 0;
     }
-    ref.read(userUIStateProvider.notifier).state = const UIState(isLoading: true);
+    ref.read(paymentUIStateNotifierProvider).state = const UIState(isLoading: true);
     try {
       // 获取所有订单并筛选待支付的
       ref.invalidate(getOrdersProvider);
@@ -305,13 +306,13 @@ class XBoardPaymentNotifier extends Notifier<void> {
         }
       }
 
-      ref.read(userUIStateProvider.notifier).state = const UIState(isLoading: false);
+      ref.read(paymentUIStateNotifierProvider).state = const UIState(isLoading: false);
       await loadPendingOrders();
       _logger.info('取消订单成功，共取消 $canceledCount 个订单');
       return canceledCount;
     } catch (e) {
       _logger.info('取消订单失败: $e');
-      ref.read(userUIStateProvider.notifier).state = UIState(
+      ref.read(paymentUIStateNotifierProvider).state = UIState(
         isLoading: false,
         errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );

@@ -179,8 +179,17 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
       }
     }
   }
-  void _completePayment() {
-    XBoardNotification.showSuccess(AppLocalizations.of(context).xboardPaymentCompleted);
+  /// 用户点击"已完成支付"：触发一次状态查询后返回首页
+  ///
+  /// 不直接提示"支付成功"——成功仅由后端订单状态 completed 驱动。
+  /// 若查询发现已完成则 _checkPaymentStatus 内部会展示成功；
+  /// 否则提示用户稍后在订单中查看。
+  Future<void> _completePayment() async {
+    await _checkPaymentStatus(silent: false);
+    if (!mounted) return;
+    // 如果 _checkPaymentStatus 已经检测到 completed 并触发了 popUntil，
+    // 此处不会执行。否则告知用户稍后查看订单。
+    XBoardNotification.showInfo(AppLocalizations.of(context).xboardPaymentSubmittedCheckOrder);
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
   void _cancelPayment() {
@@ -454,7 +463,7 @@ class _PaymentGatewayPageState extends ConsumerState<PaymentGatewayPage> {
                             child: ElevatedButton.icon(
                               onPressed: _completePayment,
                               icon: const Icon(Icons.check_circle),
-                              label: Text(AppLocalizations.of(context).xboardPaymentComplete),
+                              label: Text(AppLocalizations.of(context).xboardPaymentDoneButton),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.tertiary,
                                 foregroundColor: colorScheme.onTertiary,

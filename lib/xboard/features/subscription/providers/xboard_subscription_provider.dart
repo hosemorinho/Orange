@@ -5,6 +5,7 @@ import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/infrastructure/api/v2board_error_localizer.dart';
 import 'package:fl_clash/xboard/adapter/state/plan_state.dart';
+import 'subscription_ui_state_provider.dart';
 
 // 初始化文件级日志器
 final _logger = FileLogger('xboard_subscription_provider.dart');
@@ -27,12 +28,12 @@ class XBoardSubscriptionNotifier extends Notifier<List<DomainPlan>> {
     final userAuthState = ref.read(xboardUserAuthProvider);
     if (!userAuthState.isAuthenticated) {
       state = <DomainPlan>[];
-      ref.read(userUIStateProvider.notifier).state = const UIState(
+      ref.read(subscriptionUIStateNotifierProvider).state = const UIState(
         errorMessage: 'NOT_LOGGED_IN',
       );
       return;
     }
-    ref.read(userUIStateProvider.notifier).state = const UIState(isLoading: true);
+    ref.read(subscriptionUIStateNotifierProvider).state = const UIState(isLoading: true);
     try {
       _logger.info('开始加载套餐列表...');
       final plans = await ref.read(getPlansProvider.future);
@@ -45,14 +46,14 @@ class XBoardSubscriptionNotifier extends Notifier<List<DomainPlan>> {
         return a.sort!.compareTo(b.sort!);
       });
       state = visiblePlans;
-      ref.read(userUIStateProvider.notifier).state = UIState(
+      ref.read(subscriptionUIStateNotifierProvider).state = UIState(
         isLoading: false,
         lastUpdated: DateTime.now(),
       );
       _logger.info('套餐列表加载成功，共 ${visiblePlans.length} 个可见套餐');
     } catch (e) {
       _logger.info('加载套餐列表失败: $e');
-      ref.read(userUIStateProvider.notifier).state = UIState(
+      ref.read(subscriptionUIStateNotifierProvider).state = UIState(
         isLoading: false,
         errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
       );
@@ -79,23 +80,23 @@ class XBoardSubscriptionNotifier extends Notifier<List<DomainPlan>> {
   void _clearPlans() {
     _logger.info('清空套餐列表');
     state = <DomainPlan>[];
-    ref.read(userUIStateProvider.notifier).state = const UIState();
+    ref.read(subscriptionUIStateNotifierProvider).state = const UIState();
   }
   void clearError() {
-    final uiState = ref.read(userUIStateProvider);
+    final uiState = ref.read(subscriptionUIStateNotifierProvider);
     if (uiState.errorMessage != null) {
-      ref.read(userUIStateProvider.notifier).state = uiState.clearError();
+      ref.read(subscriptionUIStateNotifierProvider).state = uiState.clearError();
     }
   }
   bool get needsRefresh {
-    final uiState = ref.read(userUIStateProvider);
+    final uiState = ref.read(subscriptionUIStateNotifierProvider);
     if (uiState.lastUpdated == null) return true;
     final now = DateTime.now();
     final diff = now.difference(uiState.lastUpdated!);
     return diff.inMinutes > 10; // 10分钟后需要刷新
   }
   Future<void> autoRefreshIfNeeded() async {
-    final uiState = ref.read(userUIStateProvider);
+    final uiState = ref.read(subscriptionUIStateNotifierProvider);
     if (needsRefresh && !uiState.isLoading) {
       await refreshPlans();
     }

@@ -9,7 +9,6 @@ import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/adapter/state/order_state.dart';
 import 'package:fl_clash/xboard/adapter/state/payment_state.dart';
-import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/payment/providers/xboard_payment_provider.dart';
 import 'package:fl_clash/xboard/features/payment/widgets/payment_waiting_overlay.dart';
@@ -41,7 +40,8 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    final isDesktop =
+        Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     return Scaffold(
       appBar: AppBar(
@@ -68,35 +68,35 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
           padding: const EdgeInsets.all(16),
           child: Center(
             child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 768),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Page header
-                Text(
-                  appLocalizations.xboardOrderHistory,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+              constraints: const BoxConstraints(maxWidth: 768),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Page header
+                  Text(
+                    appLocalizations.xboardOrderHistory,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  appLocalizations.xboardOrderHistoryDesc,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  const SizedBox(height: 8),
+                  Text(
+                    appLocalizations.xboardOrderHistoryDesc,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // Status filter
-                _buildFilterButtons(theme),
-                const SizedBox(height: 16),
+                  // Status filter
+                  _buildFilterButtons(theme),
+                  const SizedBox(height: 16),
 
-                // Orders list
-                _buildOrdersList(),
-              ],
+                  // Orders list
+                  _buildOrdersList(),
+                ],
+              ),
             ),
-          ),
           ),
         ),
       ),
@@ -112,9 +112,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
       children: OrderStatusFilter.values.map((filter) {
         final isSelected = _selectedFilter == filter;
         return Material(
-          color: isSelected
-              ? colorScheme.primary
-              : colorScheme.surface,
+          color: isSelected ? colorScheme.primary : colorScheme.surface,
           borderRadius: BorderRadius.circular(8),
           child: InkWell(
             onTap: () {
@@ -373,7 +371,9 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
             );
           }
         }
-      } else if (paymentData != null && paymentData is String && paymentData.isNotEmpty) {
+      } else if (paymentData != null &&
+          paymentData is String &&
+          paymentData.isNotEmpty) {
         // Redirect payment URL
         PaymentWaitingManager.updateStep(PaymentStep.waitingPayment);
         await _launchPaymentUrl(paymentData);
@@ -393,7 +393,9 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${appLocalizations.xboardLoadFailed}: ${ErrorSanitizer.sanitize(e.toString())}'),
+            content: Text(
+              '${appLocalizations.xboardLoadFailed}: ${ErrorSanitizer.sanitize(e.toString())}',
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -439,7 +441,9 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
         PaymentWaitingManager.hide();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${appLocalizations.xboardLoadFailed}: ${ErrorSanitizer.sanitize(e.toString())}'),
+            content: Text(
+              '${appLocalizations.xboardLoadFailed}: ${ErrorSanitizer.sanitize(e.toString())}',
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -486,7 +490,9 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${appLocalizations.xboardCancelFailed}: ${ErrorSanitizer.sanitize(e.toString())}'),
+              content: Text(
+                '${appLocalizations.xboardCancelFailed}: ${ErrorSanitizer.sanitize(e.toString())}',
+              ),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );

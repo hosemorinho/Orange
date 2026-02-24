@@ -12,8 +12,13 @@ final paymentUIStateProvider = Provider<UIState>((ref) {
 });
 
 /// 支付 UI State Notifier
-class PaymentUIStateNotifier extends StateNotifier<UIState> {
-  PaymentUIStateNotifier() : super(const UIState());
+class PaymentUIStateNotifier extends Notifier<UIState> {
+  @override
+  UIState build() => const UIState();
+
+  void setState(UIState next) {
+    state = next;
+  }
 
   void setLoading(bool loading) {
     state = state.copyWith(isLoading: loading);
@@ -30,6 +35,6 @@ class PaymentUIStateNotifier extends StateNotifier<UIState> {
 
 /// 支付 UI State Notifier Provider
 final paymentUIStateNotifierProvider =
-    StateNotifierProvider<PaymentUIStateNotifier, UIState>((ref) {
-  return PaymentUIStateNotifier();
-});
+    NotifierProvider<PaymentUIStateNotifier, UIState>(
+      PaymentUIStateNotifier.new,
+    );

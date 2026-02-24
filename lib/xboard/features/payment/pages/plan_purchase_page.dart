@@ -9,6 +9,7 @@ import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/payment/providers/xboard_payment_provider.dart';
+import 'package:fl_clash/xboard/features/payment/providers/payment_ui_state_provider.dart';
 import 'package:fl_clash/xboard/adapter/state/payment_state.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import '../widgets/payment_waiting_overlay.dart';
@@ -49,16 +50,15 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
   // 用户余额
   double? _userBalance;
-  bool _isLoadingBalance = false;
 
   // 优惠券状态
   final TextEditingController _couponController = TextEditingController();
   bool _isCouponValidating = false;
-  bool? _isCouponValid;          // null=未验证, true=有效, false=无效
+  bool? _isCouponValid; // null=未验证, true=有效, false=无效
   String? _couponErrorMessage;
-  int? _couponType;              // 1=固定金额(分), 2=百分比
+  int? _couponType; // 1=固定金额(分), 2=百分比
   int? _couponValue;
-  String? _validatedCouponCode;  // 验证通过的代码（传给下单接口）
+  String? _validatedCouponCode; // 验证通过的代码（传给下单接口）
 
   @override
   void initState() {
@@ -89,7 +89,6 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   // ========== 数据加载 ==========
 
   Future<void> _loadUserBalance() async {
-    setState(() => _isLoadingBalance = true);
     try {
       // 使用 xboardUserProvider 获取用户信息
       final userInfo = ref.read(xboardUserProvider).userInfo;
@@ -99,10 +98,6 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       }
     } catch (e) {
       _logger.debug('[购买] 加载用户余额失败: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoadingBalance = false);
-      }
     }
   }
 
@@ -271,13 +266,17 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         } else {
           setState(() {
             _isCouponValid = false;
-            _couponErrorMessage = AppLocalizations.of(context).xboardUnsupportedCouponType;
+            _couponErrorMessage = AppLocalizations.of(
+              context,
+            ).xboardUnsupportedCouponType;
           });
         }
       } else {
         setState(() {
           _isCouponValid = false;
-          _couponErrorMessage = AppLocalizations.of(context).xboardInvalidOrExpiredCoupon;
+          _couponErrorMessage = AppLocalizations.of(
+            context,
+          ).xboardInvalidOrExpiredCoupon;
         });
       }
     } catch (e) {
@@ -308,13 +307,17 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
   Future<void> _proceedToPurchase() async {
     if (_selectedPeriod == null) {
-      XBoardNotification.showError(AppLocalizations.of(context).xboardPleaseSelectPaymentPeriod);
+      XBoardNotification.showError(
+        AppLocalizations.of(context).xboardPleaseSelectPaymentPeriod,
+      );
       return;
     }
 
     try {
       String? tradeNo;
-      _logger.debug('[购买] 开始购买流程，套餐ID: ${widget.plan.id}, 周期: $_selectedPeriod');
+      _logger.debug(
+        '[购买] 开始购买流程，套餐ID: ${widget.plan.id}, 周期: $_selectedPeriod',
+      );
 
       // 显示支付等待页面
       if (mounted) {
@@ -334,8 +337,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       );
 
       if (tradeNo == null) {
-        final errorMessage = ref.read(userUIStateProvider).errorMessage;
-        throw Exception('${AppLocalizations.of(context).xboardOrderCreationFailed}: $errorMessage');
+        final errorMessage = ref
+            .read(paymentUIStateNotifierProvider)
+            .errorMessage;
+        throw Exception(
+          '${AppLocalizations.of(context).xboardOrderCreationFailed}: $errorMessage',
+        );
       }
 
       _logger.debug('[购买] 订单创建成功: $tradeNo');
@@ -343,14 +350,22 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
       // 计算实付金额（使用优惠后的价格）
       final displayFinalPrice = _couponType != null
-          ? PriceCalculator.calculateFinalPrice(_getCurrentPrice(), _couponType, _couponValue)
+          ? PriceCalculator.calculateFinalPrice(
+              _getCurrentPrice(),
+              _couponType,
+              _couponValue,
+            )
           : _getCurrentPrice();
       final balanceToUse = _userBalance != null && _userBalance! > 0
-          ? (_userBalance! > displayFinalPrice ? displayFinalPrice : _userBalance!)
+          ? (_userBalance! > displayFinalPrice
+                ? displayFinalPrice
+                : _userBalance!)
           : 0.0;
       final actualPayAmount = displayFinalPrice - balanceToUse;
 
-      _logger.debug('[购买] 实付金额: $actualPayAmount (价格: $displayFinalPrice, 余额抵扣: $balanceToUse)');
+      _logger.debug(
+        '[购买] 实付金额: $actualPayAmount (价格: $displayFinalPrice, 余额抵扣: $balanceToUse)',
+      );
 
       // 使用 xboardAvailablePaymentMethodsProvider 获取支付方式
       var paymentMethods = ref.read(xboardAvailablePaymentMethodsProvider);
@@ -374,7 +389,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       }
 
       if (paymentMethods.isEmpty) {
-        throw Exception(AppLocalizations.of(context).xboardNoPaymentMethodsAvailable);
+        throw Exception(
+          AppLocalizations.of(context).xboardNoPaymentMethodsAvailable,
+        );
       }
 
       DomainPaymentMethod? selectedMethod;
@@ -396,10 +413,18 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       // Show order confirmation dialog
       final basePrice = _getCurrentPrice();
       final couponDiscount = _couponType != null
-          ? PriceCalculator.calculateDiscountAmount(basePrice, _couponType, _couponValue)
+          ? PriceCalculator.calculateDiscountAmount(
+              basePrice,
+              _couponType,
+              _couponValue,
+            )
           : null;
       final priceAfterCoupon = _couponType != null
-          ? PriceCalculator.calculateFinalPrice(basePrice, _couponType, _couponValue)
+          ? PriceCalculator.calculateFinalPrice(
+              basePrice,
+              _couponType,
+              _couponValue,
+            )
           : basePrice;
       final fee = selectedMethod.calculateFee(priceAfterCoupon);
       final totalBeforeBalance = priceAfterCoupon + fee;
@@ -422,16 +447,20 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       await _submitPayment(tradeNo, selectedMethod);
     } catch (e) {
       _logger.error('购买流程出错: $e');
-        if (mounted) {
+      if (mounted) {
         PaymentWaitingManager.hide();
-        XBoardNotification.showError(AppLocalizations.of(context).xboardOperationFailedError(ErrorSanitizer.sanitize(e.toString())));
+        XBoardNotification.showError(
+          AppLocalizations.of(
+            context,
+          ).xboardOperationFailedError(ErrorSanitizer.sanitize(e.toString())),
+        );
       }
     }
   }
 
   void _showPaymentWaiting(String? tradeNo) {
-          PaymentWaitingManager.show(
-            context,
+    PaymentWaitingManager.show(
+      context,
       onClose: () => Navigator.of(context).pop(),
       onPaymentSuccess: _handlePaymentSuccess,
       tradeNo: tradeNo,
@@ -448,7 +477,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     }
 
     if (mounted) {
-      XBoardNotification.showSuccess(AppLocalizations.of(context).xboardPaymentSuccess);
+      XBoardNotification.showSuccess(
+        AppLocalizations.of(context).xboardPaymentSuccess,
+      );
     }
 
     Future.delayed(const Duration(milliseconds: 500), () {
@@ -494,19 +525,24 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     return selected;
   }
 
-  Future<void> _submitPayment(String tradeNo, DomainPaymentMethod method) async {
+  Future<void> _submitPayment(
+    String tradeNo,
+    DomainPaymentMethod method,
+  ) async {
     _logger.debug('[支付] 提交支付: $tradeNo, 方式: ${method.id}');
-      PaymentWaitingManager.updateStep(PaymentStep.loadingPayment);
-      PaymentWaitingManager.updateStep(PaymentStep.verifyPayment);
+    PaymentWaitingManager.updateStep(PaymentStep.loadingPayment);
+    PaymentWaitingManager.updateStep(PaymentStep.verifyPayment);
 
     final paymentNotifier = ref.read(xboardPaymentProvider.notifier);
-      final paymentResult = await paymentNotifier.submitPayment(
-        tradeNo: tradeNo,
+    final paymentResult = await paymentNotifier.submitPayment(
+      tradeNo: tradeNo,
       method: method.id.toString(),
-      );
+    );
 
     if (paymentResult == null) {
-      throw Exception(AppLocalizations.of(context).xboardPaymentFailedEmptyResult);
+      throw Exception(
+        AppLocalizations.of(context).xboardPaymentFailedEmptyResult,
+      );
     }
 
     if (!mounted) return;
@@ -514,7 +550,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     final paymentType = paymentResult['type'] as int? ?? 0;
     final paymentData = paymentResult['data'];
 
-    _logger.debug('[支付] type=$paymentType, data=$paymentData (${paymentData.runtimeType})');
+    _logger.debug(
+      '[支付] type=$paymentType, data=$paymentData (${paymentData.runtimeType})',
+    );
 
     // type: -1 余额支付成功（data 是 bool）
     // type: 0 跳转支付（data 是 String）
@@ -524,40 +562,48 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       if (paymentData == true) {
         await _handleBalancePaymentSuccess();
       } else {
-        throw Exception(AppLocalizations.of(context).xboardPaymentFailedBalanceError);
+        throw Exception(
+          AppLocalizations.of(context).xboardPaymentFailedBalanceError,
+        );
       }
-    } else if (paymentData != null && paymentData is String && paymentData.isNotEmpty) {
+    } else if (paymentData != null &&
+        paymentData is String &&
+        paymentData.isNotEmpty) {
       // 付费订单，data 是支付URL（String）
       PaymentWaitingManager.updateStep(PaymentStep.waitingPayment);
       await _launchPaymentUrl(paymentData, tradeNo);
     } else {
-      throw Exception(AppLocalizations.of(context).xboardPaymentFailedInvalidData);
+      throw Exception(
+        AppLocalizations.of(context).xboardPaymentFailedInvalidData,
+      );
     }
   }
 
   Future<void> _handleBalancePaymentSuccess() async {
     _logger.debug('[支付] 余额支付成功');
-          PaymentWaitingManager.hide();
+    PaymentWaitingManager.hide();
 
-          try {
-            final userProvider = ref.read(xboardUserProvider.notifier);
-            userProvider.refreshSubscriptionInfoAfterPayment();
-          } catch (e) {
+    try {
+      final userProvider = ref.read(xboardUserProvider.notifier);
+      userProvider.refreshSubscriptionInfoAfterPayment();
+    } catch (e) {
       _logger.debug('[余额支付] 刷新订阅信息失败: $e');
-          }
+    }
 
-          if (mounted) {
-            XBoardNotification.showSuccess(AppLocalizations.of(context).xboardPaymentSuccess);
+    if (mounted) {
+      XBoardNotification.showSuccess(
+        AppLocalizations.of(context).xboardPaymentSuccess,
+      );
 
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted) {
-                try {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                } catch (e) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          try {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          } catch (e) {
             _logger.debug('[余额支付] 导航失败: $e');
-                }
-              }
-            });
+          }
+        }
+      });
     }
   }
 
@@ -565,27 +611,33 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     try {
       if (!mounted) return;
 
-        await Clipboard.setData(ClipboardData(text: url));
-        final uri = Uri.parse(url);
+      await Clipboard.setData(ClipboardData(text: url));
+      final uri = Uri.parse(url);
 
-        if (!await canLaunchUrl(uri)) {
-          throw Exception(AppLocalizations.of(context).xboardCannotOpenPaymentUrl);
-        }
-
-        final launched = await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication,
+      if (!await canLaunchUrl(uri)) {
+        throw Exception(
+          AppLocalizations.of(context).xboardCannotOpenPaymentUrl,
         );
+      }
 
-        if (!launched) {
-          throw Exception(AppLocalizations.of(context).xboardCannotLaunchBrowser);
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        throw Exception(AppLocalizations.of(context).xboardCannotLaunchBrowser);
       }
 
       _logger.debug('[支付] 支付页面已在浏览器中打开: $tradeNo');
     } catch (e) {
       if (mounted) {
         PaymentWaitingManager.hide();
-        XBoardNotification.showError(AppLocalizations.of(context).xboardOpenPaymentPageError(ErrorSanitizer.sanitize(e.toString())));
+        XBoardNotification.showError(
+          AppLocalizations.of(
+            context,
+          ).xboardOpenPaymentPageError(ErrorSanitizer.sanitize(e.toString())),
+        );
       }
     }
   }
@@ -603,14 +655,22 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     final content = Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 1200,
-        ),
+        constraints: const BoxConstraints(maxWidth: 1200),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: isDesktopLayout
-              ? _buildTwoColumnLayout(context, periods, currentPrice, colorScheme)
-              : _buildSingleColumnLayout(context, periods, currentPrice, colorScheme),
+              ? _buildTwoColumnLayout(
+                  context,
+                  periods,
+                  currentPrice,
+                  colorScheme,
+                )
+              : _buildSingleColumnLayout(
+                  context,
+                  periods,
+                  currentPrice,
+                  colorScheme,
+                ),
         ),
       ),
     );
@@ -717,7 +777,11 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         isValid: _isCouponValid,
         errorMessage: _couponErrorMessage,
         discountAmount: _couponType != null
-            ? PriceCalculator.calculateDiscountAmount(currentPrice, _couponType, _couponValue)
+            ? PriceCalculator.calculateDiscountAmount(
+                currentPrice,
+                _couponType,
+                _couponValue,
+              )
             : null,
         onValidate: _validateCoupon,
         onChanged: _onCouponChanged,
@@ -825,10 +889,18 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
             PriceSummaryCard(
               originalPrice: currentPrice,
               finalPrice: _couponType != null
-                  ? PriceCalculator.calculateFinalPrice(currentPrice, _couponType, _couponValue)
+                  ? PriceCalculator.calculateFinalPrice(
+                      currentPrice,
+                      _couponType,
+                      _couponValue,
+                    )
                   : null,
               discountAmount: _couponType != null
-                  ? PriceCalculator.calculateDiscountAmount(currentPrice, _couponType, _couponValue)
+                  ? PriceCalculator.calculateDiscountAmount(
+                      currentPrice,
+                      _couponType,
+                      _couponValue,
+                    )
                   : null,
               userBalance: _userBalance,
             ),
@@ -844,7 +916,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       height: 54,
       child: Consumer(
         builder: (context, ref, child) {
-          final paymentState = ref.watch(userUIStateProvider);
+          final paymentState = ref.watch(paymentUIStateNotifierProvider);
           return FilledButton.tonal(
             onPressed: paymentState.isLoading ? null : _proceedToPurchase,
             style: FilledButton.styleFrom(

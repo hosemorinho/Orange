@@ -1499,6 +1499,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentComplete": MessageLookupByLibrary.simpleMessage("支付完成"),
     "xboardPaymentCompleted": MessageLookupByLibrary.simpleMessage("支付完成！"),
     "xboardPaymentDetails": MessageLookupByLibrary.simpleMessage("支付详情"),
+    "xboardPaymentDoneButton": MessageLookupByLibrary.simpleMessage("已完成支付"),
     "xboardPaymentFailed": MessageLookupByLibrary.simpleMessage("支付失败"),
     "xboardPaymentFailedBalanceError": MessageLookupByLibrary.simpleMessage(
       "支付失败: 余额支付未成功",
@@ -1547,6 +1548,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardPaymentPageOpenedInBrowserNote":
         MessageLookupByLibrary.simpleMessage("已在浏览器中打开支付页面，完成支付后请返回应用"),
+    "xboardPaymentSubmittedCheckOrder": MessageLookupByLibrary.simpleMessage(
+      "已提交支付，请稍后在订单中查看最新状态",
+    ),
     "xboardPaymentSuccess": MessageLookupByLibrary.simpleMessage("支付成功"),
     "xboardPaymentSuccessful": MessageLookupByLibrary.simpleMessage("🎉 支付成功！"),
     "xboardPaymentSummary": MessageLookupByLibrary.simpleMessage("支付详情"),

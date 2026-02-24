@@ -2172,6 +2172,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentDetails": MessageLookupByLibrary.simpleMessage(
       "Payment Details",
     ),
+    "xboardPaymentDoneButton": MessageLookupByLibrary.simpleMessage(
+      "I\'ve Paid",
+    ),
     "xboardPaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Payment Failed",
     ),
@@ -2234,6 +2237,9 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage(
           "Payment page opened in browser, please return to app after payment",
         ),
+    "xboardPaymentSubmittedCheckOrder": MessageLookupByLibrary.simpleMessage(
+      "Payment submitted. Please check order status later.",
+    ),
     "xboardPaymentSuccess": MessageLookupByLibrary.simpleMessage(
       "Payment successful",
     ),

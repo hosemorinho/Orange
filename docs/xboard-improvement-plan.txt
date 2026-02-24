@@ -1,0 +1,191 @@
+# XBoard 改进计划（核验整合版）
+
+更新日期：2026-02-24  
+适用范围：`lib/xboard`（产品、客户端、后端协同）
+
+## 1. 审查基线
+
+- 代码规模：`291` 个 Dart 文件，约 `47,929` 行（`lib/xboard`）。
+- 静态分析：`dart analyze lib/xboard` = `153 issues`。
+- 测试现状：`lib/xboard` 下无 `_test.dart` 文件（模块级自动化测试缺失）。
+
+## 2. 问题核验与结论（先校正，再排期）
+
+### 2.1 已确认（优先进入计划）
+
+1. 明文保存密码（P0）
+- 现状：记住密码会保存明文，底层为 `SharedPreferences`。
+- 证据：`lib/xboard/services/storage/xboard_storage_service.dart:150`、`lib/xboard/services/storage/xboard_storage_service.dart:27`、`lib/xboard/infrastructure/storage/shared_prefs_storage.dart:9`
+
+2. 多处关闭 TLS 证书校验（P0）
+- 现状：存在 `badCertificateCallback => true`。
+- 证据：`lib/xboard/config/fetchers/remote_config_manager.dart:117`、`lib/xboard/infrastructure/network/domain_racing_service.dart:201`、`lib/xboard/infrastructure/network/doh_txt_resolver.dart:92`、`lib/xboard/features/subscription/services/subscription_downloader.dart:272`
+
+3. 支付可“手动完成”并展示成功（P0）
+- 现状：`_completePayment()` 不依赖后端订单确认即提示成功并返回首页。
+- 证据：`lib/xboard/features/payment/pages/payment_gateway_page.dart:181`、`lib/xboard/features/payment/pages/payment_gateway_page.dart:183`、`lib/xboard/features/payment/pages/payment_gateway_page.dart:455`
+
+4. HTTP 日志可能包含敏感信息（P1）
+- 现状：启用 `LogInterceptor` 的请求头、请求体、响应体记录，未看到 release 分级开关。
+- 证据：`lib/xboard/infrastructure/http/xboard_http_client.dart:99`、`lib/xboard/infrastructure/http/xboard_http_client.dart:100`、`lib/xboard/infrastructure/http/xboard_http_client.dart:101`、`lib/xboard/infrastructure/http/xboard_http_client.dart:103`
+
+5. 跨功能共享 UI 状态导致耦合（P1）
+- 现状：`userUIStateProvider` 同时被支付与订阅读写。
+- 证据：`lib/xboard/features/auth/providers/xboard_user_provider.dart:36`、`lib/xboard/features/payment/providers/xboard_payment_provider.dart:93`、`lib/xboard/features/subscription/providers/xboard_subscription_provider.dart:30`
+
+6. 存储初始化失败被静默兜底（P1）
+- 现状：`storageProvider` 未就绪时使用 `_PlaceholderStorage` 返回空/false。
+- 证据：`lib/xboard/services/storage/xboard_storage_provider.dart:23`、`lib/xboard/services/storage/xboard_storage_provider.dart:30`
+
+7. 票务页面国际化未收口（P2）
+- 现状：页面文案存在硬编码中文。
+- 证据：`lib/xboard/features/ticket/pages/create_ticket_page.dart:102`、`lib/xboard/features/ticket/pages/create_ticket_page.dart:261`、`lib/xboard/features/ticket/pages/ticket_detail_page.dart:323`
+
+8. 切标签触发高频刷新（P2）
+- 现状：每次切换 tab 都触发静默刷新/数据刷新。
+- 证据：`lib/xboard/router/shell_layout.dart:23`、`lib/xboard/router/shell_layout.dart:28`、`lib/xboard/router/shell_layout.dart:32`、`lib/xboard/router/shell_layout.dart:39`
+
+9. 可维护性风险：巨型文件（P2）
+- 现状：核心文件体量过大，变更风险高。
+- 证据：`lib/xboard/features/subscription/widgets/vpn_hero_card.dart`、`lib/xboard/features/shared/widgets/notice_banner.dart`、`lib/xboard/features/payment/pages/plan_purchase_page.dart`
+
+### 2.2 需修正表述（并非“无实现”，而是“需优化”）
+
+1. “支付等待无超时兜底” -> 需要修正  
+- 当前已有轮询超时与重试上限（10 分钟/最大重试），并提供后续处理入口。
+- 证据：`lib/xboard/features/payment/widgets/payment_waiting_overlay.dart:39`、`lib/xboard/features/payment/widgets/payment_waiting_overlay.dart:40`、`lib/xboard/features/payment/widgets/payment_waiting_overlay.dart:146`
+
+2. “初始化卡死无降级” -> 需要修正  
+- 当前有超时、重试、fallback、skip 到登录页路径。
+- 证据：`lib/xboard/features/initialization/providers/initialization_provider.dart:19`、`lib/xboard/features/initialization/providers/initialization_provider.dart:51`、`lib/xboard/features/initialization/providers/initialization_provider.dart:162`、`lib/xboard/features/initialization/pages/loading_page.dart:152`
+
+3. “工单/订单空状态空白” -> 需要修正  
+- 当前已有空状态组件与 CTA。
+- 证据：`lib/xboard/features/ticket/pages/ticket_list_page.dart:102`、`lib/xboard/features/order/pages/orders_page.dart:214`
+
+4. “续费入口太深” -> 需要修正  
+- 当前有到期/异常对话框与卡片 CTA 可直达套餐购买。
+- 证据：`lib/xboard/features/subscription/services/subscription_status_checker.dart:181`、`lib/xboard/features/subscription/services/subscription_status_checker.dart:248`、`lib/xboard/features/subscription/widgets/vpn_hero_card.dart:1146`
+
+5. “完全无离线能力” -> 需要修正为“离线能力不完整”  
+- 当前已缓存用户/订阅基础信息，但并未形成完整离线读模型（订单、套餐、节点可用性等）。
+- 证据：`lib/xboard/features/auth/providers/xboard_user_provider.dart:60`、`lib/xboard/features/auth/providers/xboard_user_provider.dart:68`、`lib/xboard/services/storage/xboard_storage_service.dart:92`
+
+## 3. 分阶段改进路线（执行版）
+
+## Phase 0（2026-02-24 ~ 2026-03-02）：安全止血与信任修复
+
+目标：消除可被利用的安全风险，修复支付成功误导。
+
+1. TLS 校验收口
+- 动作：移除生产路径 `badCertificateCallback => true`；如确需调试，仅限 Debug 宏开关。
+- 输出：安全网关策略文档 + 代码守卫。
+- 验收：`rg "badCertificateCallback\\s*=\\s*\\(.*\\)\\s*=>\\s*true" lib/xboard` 仅允许测试代码出现。
+
+2. 记住密码安全化
+- 动作：不再持久化明文密码；改为 token 或系统安全存储（Keychain/Keystore）。
+- 输出：迁移策略（旧字段清理、灰度回滚策略）。
+- 验收：`xboard_saved_password` 不再落明文，旧版本升级后可自动清理。
+
+3. 支付成功链路纠偏
+- 动作：`_completePayment()` 改为“稍后查看订单状态”，不再提示成功；成功仅由订单状态 `completed` 驱动。
+- 输出：支付状态机与文案规范。
+- 验收：仅后端确认成功时出现成功提示，客服“已支付未到账”工单占比下降。
+
+4. 日志脱敏与分级
+- 动作：release 关闭 body/header 明文日志；脱敏 `Authorization`、邮箱、可能的 token 字段。
+- 输出：日志策略（Debug/Release）。
+- 验收：release 包日志抽样无敏感字段。
+
+## Phase 1（2026-03-03 ~ 2026-03-16）：可靠性与体验补强
+
+目标：降低“能用但不稳”的体感，增强弱网可恢复性。
+
+1. 存储初始化从“静默失败”改为“显式状态”
+- 动作：移除 `_PlaceholderStorage` 或只用于只读场景；写操作失败可感知并重试。
+- 验收：存储未就绪时 UI 有明确状态，关键流程（登录、记住密码）可重试可观测。
+
+2. 令牌过期处理一致化
+- 动作：将 token 过期收敛到单一守卫，避免各页面重复弹窗/竞态。
+- 验收：401 后统一回收会话并路由至登录；无重复弹窗。
+
+3. 离线能力从“局部缓存”升级到“最小可用”
+- 动作：定义离线读模型（用户信息、订阅摘要、上次可用套餐快照、上次订单摘要、关键通知）。
+- 验收：断网时主界面可展示“最近快照 + 明确离线标识”，不出现核心白屏。
+
+4. 刷新策略治理
+- 动作：tab 切换改为 TTL + 事件驱动，避免每次都打远端。
+- 验收：同等使用路径下请求数下降，冷/热切页响应时间更稳定。
+
+## Phase 2（2026-03-17 ~ 2026-04-07）：结构化降债与质量体系
+
+目标：把“架构优势”落实到可维护实现层。
+
+1. 大文件拆分与边界治理
+- 动作：优先拆 `vpn_hero_card.dart`、`plan_purchase_page.dart`、`notice_banner.dart`、`xboard_user_provider.dart`。
+- 验收：单文件目标 `< 400` 行（允许少量例外但需有说明）；组件职责清晰。
+
+2. 状态管理解耦
+- 动作：支付、订阅、用户 UI 状态分域，避免共享 `userUIStateProvider`。
+- 验收：跨页面加载/错误互相污染问题消失。
+
+3. 错误处理策略统一
+- 动作：Provider/Feature 层减少“catch 后直接返回 false/null”；明确可恢复与不可恢复错误分类。
+- 验收：关键链路错误可追踪（含 error code、埋点、用户可读提示）。
+
+4. 测试补网
+- 动作：新增最小回归集：认证、支付状态机、订阅刷新、初始化降级、i18n 文案键检测。
+- 验收：`lib/xboard` 关键路径测试覆盖率阶段目标 40%（先保回归，再扩展）。
+
+## 4. 负责人分工（建议）
+
+1. PM
+- 输出：优先级定义、成功口径（支付成功/失败/待确认）、离线体验文案。
+
+2. Client（Flutter）
+- 执行：安全修复、状态解耦、UI 路径改造、i18n 收口。
+
+3. Backend
+- 执行：支付确认 API 契约、订单查询一致性、可重放幂等校验。
+
+4. QA
+- 执行：弱网/断网/超时/回前台/多端回归用例。
+
+5. Security
+- 执行：证书策略评审、敏感信息日志审计。
+
+## 5. 里程碑验收指标（建议）
+
+1. 安全指标
+- 生产代码中无 `badCertificateCallback => true`。
+- 无明文密码持久化。
+
+2. 交易指标
+- “支付成功但订单未完成”投诉率连续两周下降。
+- 支付状态确认平均时长可观测、可告警。
+
+3. 稳定性指标
+- 弱网下初始化成功率提升。
+- Tab 切换平均请求数下降。
+
+4. 工程指标
+- `dart analyze lib/xboard` 问题总量持续下降（按周追踪）。
+- `lib/xboard` 新增关键链路自动化测试并纳入 CI。
+
+## 6. 立即可执行的 Top 10（按顺序）
+
+1. 去除生产 TLS 绕过（P0）  
+2. 记住密码改安全存储（P0）  
+3. 禁止手动“伪成功”支付（P0）  
+4. Release 日志脱敏（P1）  
+5. 存储未就绪状态显式化（P1）  
+6. Token 过期统一守卫（P1）  
+7. Tab 切换刷新改 TTL 策略（P2）  
+8. 工单/详情页 i18n 补齐（P2）  
+9. 拆分 `xboard_user_provider.dart`（P2）  
+10. 增加支付与认证最小回归测试（P2）  
+
+## 7. 备注
+
+- 本计划已对“原始锐评”逐条做代码核验，保留了高风险问题，也修正了已实现但表述不准确的项。  
+- `ui-ux-pro-max` 技能脚本目录为空（无可执行脚本），本次采用手工核验与代码证据整合。

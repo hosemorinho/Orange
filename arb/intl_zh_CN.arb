@@ -1576,5 +1576,7 @@
   "xboardFixedFee": "固定",
   "xboardPercentFee": "比例",
   "xboardResetTrafficDescription": "重置已用流量",
-  "xboardPaymentMethod": "支付方式"
+  "xboardPaymentMethod": "支付方式",
+  "xboardPaymentSubmittedCheckOrder": "已提交支付，请稍后在订单中查看最新状态",
+  "xboardPaymentDoneButton": "已完成支付"
 }

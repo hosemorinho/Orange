@@ -1575,5 +1575,7 @@
   "xboardFixedFee": "Fixed",
   "xboardPercentFee": "Percent",
   "xboardResetTrafficDescription": "Reset traffic usage",
-  "xboardPaymentMethod": "Payment Method"
+  "xboardPaymentMethod": "Payment Method",
+  "xboardPaymentSubmittedCheckOrder": "Payment submitted. Please check order status later.",
+  "xboardPaymentDoneButton": "I've Paid"
 }

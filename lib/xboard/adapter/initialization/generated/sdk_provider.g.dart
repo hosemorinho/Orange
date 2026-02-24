@@ -70,4 +70,4 @@ final class XboardSdkProvider
   }
 }
 
-String _$xboardSdkHash() => r'c57408a04dec13342e8d22a02cff26365c2f0a1e';
+String _$xboardSdkHash() => r'29c705ffd5da9712d7359f4dcc8788eadfb88e7b';

@@ -47,6 +47,13 @@ Future<V2BoardApiService> xboardSdk(Ref ref) async {
 
     _logger.info('[SdkProvider] 使用域名: $fastestUrl');
 
+    // 1.5 注册全局认证失败回调（在创建 HTTP 客户端之前）
+    registerAuthFailureCallback(() {
+      _logger.warn('[SdkProvider] 检测到认证失败，标记令牌过期');
+      // 通知全局认证守卫
+      AuthGuard.markExpired(ref);
+    });
+
     // 2. 创建 HTTP 客户端（直连）
     final httpClient = XBoardHttpClient(
       baseUrl: fastestUrl,

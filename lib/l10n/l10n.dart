@@ -11338,6 +11338,26 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Payment submitted. Please check order status later.`
+  String get xboardPaymentSubmittedCheckOrder {
+    return Intl.message(
+      'Payment submitted. Please check order status later.',
+      name: 'xboardPaymentSubmittedCheckOrder',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `I've Paid`
+  String get xboardPaymentDoneButton {
+    return Intl.message(
+      'I\'ve Paid',
+      name: 'xboardPaymentDoneButton',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

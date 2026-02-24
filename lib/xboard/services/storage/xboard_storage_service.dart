@@ -124,9 +124,19 @@ class XBoardStorageService {
       _storage.remove(_domainUserKey),  // 清理领域模型
       _storage.remove(_domainSubscriptionKey),  // 清理领域模型
     ]);
-    
+
     final allSuccess = results.every((r) => r.dataOrNull == true);
     return Result.success(allSuccess);
+  }
+
+  // ===== 离线数据管理 =====
+
+  Future<Result<bool>> clearDomainUser() async {
+    return await _storage.remove(_domainUserKey);
+  }
+
+  Future<Result<bool>> clearDomainSubscription() async {
+    return await _storage.remove(_domainSubscriptionKey);
   }
 
   // ===== TUN 首次使用标记 =====
@@ -140,31 +150,42 @@ class XBoardStorageService {
     return await _storage.setBool(_tunFirstUseKey, true);
   }
 
-  // ===== 登录凭据 =====
+  // ===== 登录凭据（设备绑定加密） =====
 
+  /// 保存登录凭据
+  ///
+  /// 密码使用设备绑定 AES-256-CBC 加密后存储，不保存明文。
+  /// 如果加密失败（极端情况），密码不会被存储。
   Future<Result<bool>> saveCredentials(
     String email,
     String password,
     bool rememberPassword,
   ) async {
+    String encryptedPassword = '';
+    if (rememberPassword && password.isNotEmpty) {
+      final encrypted = await CredentialCipher.encrypt(password);
+      // 加密失败时不存储密码，保证安全底线
+      encryptedPassword = encrypted ?? '';
+    }
+
     final results = await Future.wait([
       _storage.setString(_savedEmailKey, email),
-      _storage.setString(_savedPasswordKey, rememberPassword ? password : ''),
+      _storage.setString(_savedPasswordKey, encryptedPassword),
       _storage.setBool(_rememberPasswordKey, rememberPassword),
     ]);
-    
+
     final allSuccess = results.every((r) => r.dataOrNull == true);
     return Result.success(allSuccess);
   }
 
   Future<Result<Map<String, dynamic>>> getSavedCredentials() async {
     final emailResult = await _storage.getString(_savedEmailKey);
-    final passwordResult = await _storage.getString(_savedPasswordKey);
+    final password = await getSavedPassword();
     final rememberResult = await _storage.getBool(_rememberPasswordKey);
-    
+
     return Result.success({
       'email': emailResult.dataOrNull,
-      'password': passwordResult.dataOrNull,
+      'password': password,
       'rememberPassword': rememberResult.dataOrNull ?? false,
     });
   }
@@ -175,9 +196,25 @@ class XBoardStorageService {
     return result.dataOrNull;
   }
 
+  /// 读取保存的密码（自动解密）
+  ///
+  /// 兼容旧版明文数据：若解密失败，视为旧版明文密码，
+  /// 自动加密后回写存储，实现静默迁移。
   Future<String?> getSavedPassword() async {
     final result = await _storage.getString(_savedPasswordKey);
-    return result.dataOrNull;
+    final stored = result.dataOrNull;
+    if (stored == null || stored.isEmpty) return null;
+
+    // 尝试解密（新版加密数据）
+    final decrypted = await CredentialCipher.decrypt(stored);
+    if (decrypted != null) return decrypted;
+
+    // 解密失败 → 旧版明文数据，静默迁移为加密存储
+    final encrypted = await CredentialCipher.encrypt(stored);
+    if (encrypted != null) {
+      await _storage.setString(_savedPasswordKey, encrypted);
+    }
+    return stored;
   }
 
   Future<bool> getRememberPassword() async {
@@ -191,7 +228,7 @@ class XBoardStorageService {
       _storage.remove(_savedPasswordKey),
       _storage.remove(_rememberPasswordKey),
     ]);
-    
+
     final allSuccess = results.every((r) => r.dataOrNull == true);
     return Result.success(allSuccess);
   }

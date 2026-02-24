@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart';
+import 'package:flutter/foundation.dart';
 import '../core/config_settings.dart';
 import '../../core/core.dart';
 
@@ -114,7 +115,10 @@ class SimpleHttpClient implements IHttpClient {
     HttpClient? client;
     try {
       client = HttpClient();
-      client.badCertificateCallback = (cert, host, port) => true;
+      // TLS 验证：仅在调试模式下允许绕过（生产环境强制验证）
+      if (kDebugMode) {
+        client.badCertificateCallback = (cert, host, port) => true;
+      }
       client.connectionTimeout = timeout ?? const Duration(seconds: 10);
 
       final request = await client.getUrl(Uri.parse(url));
@@ -275,7 +279,10 @@ class RemoteConfigSource {
   Future<ConfigResult<Map<String, dynamic>>> fetch() async {
     try {
       final client = HttpClient();
-      client.badCertificateCallback = (cert, host, port) => true;
+      // 仅调试模式下绕过 TLS 验证（生产环境强制证书校验）
+      if (kDebugMode) {
+        client.badCertificateCallback = (cert, host, port) => true;
+      }
       client.connectionTimeout = timeout;
 
       final uri = Uri.parse(url);

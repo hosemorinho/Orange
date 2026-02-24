@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/infrastructure/http/user_agent_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 final _logger = FileLogger('domain_racing_service.dart');
@@ -197,7 +198,8 @@ class DomainRacingService {
         );
       }
 
-      if (isIpWithPort) {
+      // IP:Port 形式的域名可能使用自签证书；仅调试模式下绕过 TLS 验证
+      if (isIpWithPort && kDebugMode) {
         client.badCertificateCallback = (_, __, ___) => true;
       }
 

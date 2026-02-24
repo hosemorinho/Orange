@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/xboard/config/xboard_config.dart';
@@ -269,7 +270,10 @@ class SubscriptionDownloader {
       // 创建 HttpClient
       client = HttpClient();
       client.connectionTimeout = _racingTimeout;
-      client.badCertificateCallback = (cert, host, port) => true;
+      // 仅调试模式下绕过 TLS 验证（生产环境要求面板服务器使用有效证书）
+      if (kDebugMode) {
+        client.badCertificateCallback = (cert, host, port) => true;
+      }
       // 绕过 FlClashHttpOverrides 代理，避免 Clash 核心已启动时流量被路由到过期节点
       client.findProxy = (uri) => 'DIRECT';
 

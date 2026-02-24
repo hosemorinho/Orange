@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:fl_clash/xboard/core/core.dart';
+import 'package:flutter/foundation.dart';
 
 final _logger = FileLogger('doh_txt_resolver.dart');
 
@@ -85,11 +86,14 @@ class DohTxtResolver {
       final base64url = base64Url.encode(dnsQuery).replaceAll('=', '');
       final uri = Uri.parse('https://$serverIp/dns-query?dns=$base64url');
 
-      // Direct IP connection with certificate bypass
-      // Bypass FlClashHttpOverrides proxy (avoid accessing appController._ref before attach)
+      // 通过 IP 直连 DoH 服务器（绕过 FlClashHttpOverrides 代理）
+      // 生产环境依赖 Cloudflare/Alibaba DoH 服务器为其 IP 颁发的有效证书
       client = HttpClient();
       client.findProxy = (uri) => 'DIRECT';
-      client.badCertificateCallback = (cert, host, port) => true;
+      // 仅调试模式下绕过 TLS 验证（生产环境强制证书校验）
+      if (kDebugMode) {
+        client.badCertificateCallback = (cert, host, port) => true;
+      }
       client.connectionTimeout = _timeout;
 
       final request = await client.getUrl(uri);

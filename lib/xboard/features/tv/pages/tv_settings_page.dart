@@ -24,9 +24,6 @@ class TvSettingsPage extends ConsumerWidget {
     final mode = ref.watch(
       patchClashConfigProvider.select((state) => state.mode),
     );
-    final tun = ref.watch(
-      patchClashConfigProvider.select((state) => state.tun.enable),
-    );
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -63,19 +60,6 @@ class TvSettingsPage extends ConsumerWidget {
                   autofocus: true,
                   trailing: const _ThemeLabel(),
                   onPressed: () => showThemeDialog(context, ref),
-                ),
-                const SizedBox(height: 8),
-
-                // TUN mode
-                _TvSettingRow(
-                  icon: Icons.security,
-                  title: 'TUN',
-                  trailing: _TunToggle(tun: tun),
-                  onPressed: () {
-                    ref
-                        .read(patchClashConfigProvider.notifier)
-                        .update((state) => state.copyWith.tun(enable: !tun));
-                  },
                 ),
                 const SizedBox(height: 8),
 
@@ -280,35 +264,6 @@ class _ThemeLabel extends ConsumerWidget {
       style: theme.textTheme.bodyLarge?.copyWith(
         color: theme.colorScheme.primary,
         fontWeight: FontWeight.w600,
-      ),
-    );
-  }
-}
-
-class _TunToggle extends StatelessWidget {
-  final bool tun;
-
-  const _TunToggle({required this.tun});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: tun
-            ? colorScheme.primaryContainer
-            : colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        tun ? 'ON' : 'OFF',
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: tun
-              ? colorScheme.onPrimaryContainer
-              : colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.bold,
-        ),
       ),
     );
   }

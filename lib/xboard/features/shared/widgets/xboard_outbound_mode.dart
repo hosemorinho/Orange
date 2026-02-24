@@ -1,4 +1,5 @@
 import 'package:fl_clash/controller.dart';
+import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/widgets/widgets.dart';
@@ -69,6 +70,7 @@ class XBoardOutboundMode extends StatelessWidget {
         final tunEnabled = ref.watch(
           patchClashConfigProvider.select((state) => state.tun.enable),
         );
+        final showTunControl = !system.isAndroid;
         return LayoutBuilder(
           builder: (context, constraints) {
             // 根据可用宽度调整布局
@@ -110,12 +112,19 @@ class XBoardOutboundMode extends StatelessWidget {
                     width: buttonWidth,
                     child: _buildModeSelector(context, mode, isNarrow, ref),
                   ),
-                  SizedBox(height: isNarrow ? 10 : 12),
-                  _buildTunRow(context, tunEnabled, isNarrow, ref),
+                  if (showTunControl) ...[
+                    SizedBox(height: isNarrow ? 10 : 12),
+                    _buildTunRow(context, tunEnabled, isNarrow, ref),
+                  ],
                   const SizedBox(height: 6),
                   Flexible(
                     child: Text(
-                      _getModeDescription(mode, tunEnabled, l10n),
+                      _getModeDescription(
+                        mode,
+                        tunEnabled,
+                        l10n,
+                        showTunStatus: showTunControl,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurface.withValues(alpha: 0.65),
                         fontSize: 12,
@@ -233,9 +242,12 @@ class XBoardOutboundMode extends StatelessWidget {
   String _getModeDescription(
     Mode mode,
     bool tunEnabled,
-    AppLocalizations l10n,
-  ) {
-    final tunStatus = tunEnabled ? ' | ${l10n.xboardTunEnabled}' : '';
+    AppLocalizations l10n, {
+    required bool showTunStatus,
+  }) {
+    final tunStatus = showTunStatus && tunEnabled
+        ? ' | ${l10n.xboardTunEnabled}'
+        : '';
     switch (mode) {
       case Mode.rule:
         return '${l10n.xboardProxyModeRuleDescription}$tunStatus';

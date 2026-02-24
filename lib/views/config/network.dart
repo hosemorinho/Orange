@@ -339,7 +339,7 @@ final networkItems = [
     items: [
       if (system.isDesktop) const TUNItem(),
       if (system.isMacOS) const AutoSetSystemDnsItem(),
-      const TunStackItem(),
+      if (!system.isAndroid) const TunStackItem(),
       if (!system.isDesktop) ...[
         const RouteModeItem(),
         const RouteAddressItem(),

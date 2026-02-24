@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'controller.dart';
+import 'xboard/infrastructure/api/v2board_error_localizer.dart';
 import 'xboard/xboard.dart';
 import 'package:fl_clash/xboard/router/app_router.dart' as xboard_router;
 import 'package:fl_clash/xboard/features/initialization/initialization.dart';
@@ -243,6 +244,7 @@ class ApplicationState extends ConsumerState<Application> {
         final locale = ref.watch(
           appSettingProvider.select((state) => state.locale),
         );
+        V2BoardErrorLocalizer.setAppLocale(locale);
         final themeProps = ref.watch(themeSettingProvider);
         return MaterialApp.router(
           debugShowCheckedModeBanner: false,

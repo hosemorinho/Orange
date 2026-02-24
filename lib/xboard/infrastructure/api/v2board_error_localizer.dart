@@ -153,8 +153,22 @@ class V2BoardErrorLocalizer {
     '工单内容': 'Ticket message',
   };
 
+  /// 当前 app 内选择的语言（由 Application 层同步）
+  static String? _appLocale;
+
+  /// 由 Application 层在 locale 变化时调用，保持与 app 设置同步
+  static void setAppLocale(String? locale) {
+    _appLocale = locale;
+  }
+
   /// 判断当前环境是否为中文
+  ///
+  /// 优先使用 app 内语言设置，未设置时回退到系统语言。
   static bool get _isChinese {
+    final appLocale = _appLocale;
+    if (appLocale != null) {
+      return appLocale.startsWith('zh');
+    }
     final locale = PlatformDispatcher.instance.locale;
     return locale.languageCode == 'zh';
   }

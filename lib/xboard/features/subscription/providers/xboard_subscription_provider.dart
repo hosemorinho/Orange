@@ -22,18 +22,21 @@ class XBoardSubscriptionNotifier extends Notifier<List<DomainPlan>> {
         _clearPlans();
       }
     });
-    return const <DomainPlan>[];  // 明确指定类型
+    return const <DomainPlan>[]; // 明确指定类型
   }
+
   Future<void> loadPlans() async {
     final userAuthState = ref.read(xboardUserAuthProvider);
     if (!userAuthState.isAuthenticated) {
       state = <DomainPlan>[];
-      ref.read(subscriptionUIStateNotifierProvider).state = const UIState(
-        errorMessage: 'NOT_LOGGED_IN',
-      );
+      ref
+          .read(subscriptionUIStateNotifierProvider.notifier)
+          .setState(const UIState(errorMessage: 'NOT_LOGGED_IN'));
       return;
     }
-    ref.read(subscriptionUIStateNotifierProvider).state = const UIState(isLoading: true);
+    ref
+        .read(subscriptionUIStateNotifierProvider.notifier)
+        .setState(const UIState(isLoading: true));
     try {
       _logger.info('开始加载套餐列表...');
       final plans = await ref.read(getPlansProvider.future);
@@ -46,23 +49,30 @@ class XBoardSubscriptionNotifier extends Notifier<List<DomainPlan>> {
         return a.sort!.compareTo(b.sort!);
       });
       state = visiblePlans;
-      ref.read(subscriptionUIStateNotifierProvider).state = UIState(
-        isLoading: false,
-        lastUpdated: DateTime.now(),
-      );
+      ref
+          .read(subscriptionUIStateNotifierProvider.notifier)
+          .setState(UIState(isLoading: false, lastUpdated: DateTime.now()));
       _logger.info('套餐列表加载成功，共 ${visiblePlans.length} 个可见套餐');
     } catch (e) {
       _logger.info('加载套餐列表失败: $e');
-      ref.read(subscriptionUIStateNotifierProvider).state = UIState(
-        isLoading: false,
-        errorMessage: V2BoardErrorLocalizer.localize(ErrorSanitizer.sanitize(e.toString())),
-      );
+      ref
+          .read(subscriptionUIStateNotifierProvider.notifier)
+          .setState(
+            UIState(
+              isLoading: false,
+              errorMessage: V2BoardErrorLocalizer.localize(
+                ErrorSanitizer.sanitize(e.toString()),
+              ),
+            ),
+          );
     }
   }
+
   Future<void> refreshPlans() async {
     _logger.info('刷新套餐列表...');
     await loadPlans();
   }
+
   DomainPlan? getPlanById(int planId) {
     try {
       return state.firstWhere((plan) => plan.id == planId);
@@ -70,24 +80,35 @@ class XBoardSubscriptionNotifier extends Notifier<List<DomainPlan>> {
       return null;
     }
   }
+
   List<DomainPlan> get plansWithPrice {
     return state.where((plan) => plan.hasPrice).toList();
   }
 
   List<DomainPlan> get recommendedPlans {
-    return state.where((plan) => plan.isVisible && plan.hasPrice).take(3).toList();
+    return state
+        .where((plan) => plan.isVisible && plan.hasPrice)
+        .take(3)
+        .toList();
   }
+
   void _clearPlans() {
     _logger.info('清空套餐列表');
     state = <DomainPlan>[];
-    ref.read(subscriptionUIStateNotifierProvider).state = const UIState();
+    ref
+        .read(subscriptionUIStateNotifierProvider.notifier)
+        .setState(const UIState());
   }
+
   void clearError() {
     final uiState = ref.read(subscriptionUIStateNotifierProvider);
     if (uiState.errorMessage != null) {
-      ref.read(subscriptionUIStateNotifierProvider).state = uiState.clearError();
+      ref
+          .read(subscriptionUIStateNotifierProvider.notifier)
+          .setState(uiState.clearError());
     }
   }
+
   bool get needsRefresh {
     final uiState = ref.read(subscriptionUIStateNotifierProvider);
     if (uiState.lastUpdated == null) return true;
@@ -95,6 +116,7 @@ class XBoardSubscriptionNotifier extends Notifier<List<DomainPlan>> {
     final diff = now.difference(uiState.lastUpdated!);
     return diff.inMinutes > 10; // 10分钟后需要刷新
   }
+
   Future<void> autoRefreshIfNeeded() async {
     final uiState = ref.read(subscriptionUIStateNotifierProvider);
     if (needsRefresh && !uiState.isLoading) {
@@ -102,9 +124,11 @@ class XBoardSubscriptionNotifier extends Notifier<List<DomainPlan>> {
     }
   }
 }
-final xboardSubscriptionProvider = NotifierProvider<XBoardSubscriptionNotifier, List<DomainPlan>>(
-  XBoardSubscriptionNotifier.new,
-);
+
+final xboardSubscriptionProvider =
+    NotifierProvider<XBoardSubscriptionNotifier, List<DomainPlan>>(
+      XBoardSubscriptionNotifier.new,
+    );
 
 final xboardPlanProvider = Provider.family<DomainPlan?, int>((ref, planId) {
   final plans = ref.watch(xboardSubscriptionProvider);
@@ -122,5 +146,8 @@ final xboardPlansWithPriceProvider = Provider<List<DomainPlan>>((ref) {
 
 final xboardRecommendedPlansProvider = Provider<List<DomainPlan>>((ref) {
   final plans = ref.watch(xboardSubscriptionProvider);
-  return plans.where((plan) => plan.isVisible && plan.hasPrice).take(3).toList();
+  return plans
+      .where((plan) => plan.isVisible && plan.hasPrice)
+      .take(3)
+      .toList();
 });

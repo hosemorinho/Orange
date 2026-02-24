@@ -250,7 +250,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     if (subscription != null && subscription.transferLimit > 0) {
       return subscription.transferLimit.toDouble();
     }
-    return userInfo?.transferLimit?.toDouble() ?? 0;
+    return userInfo?.transferLimit.toDouble() ?? 0;
   }
 
   int? _calculateRemainingDays(
@@ -1072,8 +1072,6 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   }
 
   Widget _buildNoProfileState(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final userState = ref.watch(xboardUserProvider);
     final domainSubscriptionInfo = ref.watch(subscriptionInfoProvider);
 

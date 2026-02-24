@@ -15,17 +15,18 @@ import '../styles/html_styles.dart';
 enum NoticeRenderType {
   /// Markdown 渲染
   markdown,
+
   /// HTML 渲染
   html,
 }
 
 /// 全局配置：选择通知内容的渲染方式
-/// 
+///
 /// 可选值：
 /// - null: 自动检测内容格式（默认，推荐）
 /// - NoticeRenderType.markdown: 强制使用 Markdown 渲染
 /// - NoticeRenderType.html: 强制使用 HTML 渲染
-/// 
+///
 /// 设置为 null 时，程序会自动判断内容是 HTML 还是 Markdown
 const NoticeRenderType? kNoticeRenderType = null;
 
@@ -34,6 +35,7 @@ class NoticeBanner extends ConsumerStatefulWidget {
   @override
   ConsumerState<NoticeBanner> createState() => _NoticeBannerState();
 }
+
 class _NoticeBannerState extends ConsumerState<NoticeBanner>
     with TickerProviderStateMixin {
   late PageController _pageController;
@@ -54,7 +56,9 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
 
     // Listen for notices loaded, then check for popup dialog notices
     ref.listenManual(noticeProvider, (previous, next) {
-      if (!_hasCheckedDialogNotices && !next.isLoading && next.notices.isNotEmpty) {
+      if (!_hasCheckedDialogNotices &&
+          !next.isLoading &&
+          next.notices.isNotEmpty) {
         _hasCheckedDialogNotices = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _checkAndShowDialogNotices(next.notices);
@@ -117,6 +121,7 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
     });
     _autoScrollTimer?.cancel();
   }
+
   @override
   Widget build(BuildContext context) {
     final noticeState = ref.watch(noticeProvider);
@@ -140,7 +145,6 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
       _startAutoScroll(topNotices.length);
     });
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
 
     return MouseRegion(
@@ -187,7 +191,9 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
               _buildNavButton(
                 icon: Icons.chevron_left_rounded,
                 onTap: () {
-                  final prevPage = (_currentIndex - 1 + topNotices.length) % topNotices.length;
+                  final prevPage =
+                      (_currentIndex - 1 + topNotices.length) %
+                      topNotices.length;
                   _pageController.animateToPage(
                     prevPage,
                     duration: const Duration(milliseconds: 300),
@@ -328,10 +334,11 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
 
     // 找到所有标签包含"弹窗"的公告
     final dialogNotices = notices.where((notice) {
-      return notice.tags.any((tag) =>
-        tag.toString().toLowerCase() == '弹窗' ||
-        tag.toString().toLowerCase() == 'popup' ||
-        tag.toString().toLowerCase() == 'dialog'
+      return notice.tags.any(
+        (tag) =>
+            tag.toString().toLowerCase() == '弹窗' ||
+            tag.toString().toLowerCase() == 'popup' ||
+            tag.toString().toLowerCase() == 'dialog',
       );
     }).toList();
 
@@ -354,7 +361,10 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
   }
 
   /// 显示公告弹窗对话框
-  Future<void> _showNoticePopupDialog(dynamic notice, XBoardStorageService storageService) async {
+  Future<void> _showNoticePopupDialog(
+    dynamic notice,
+    XBoardStorageService storageService,
+  ) async {
     if (!mounted) return;
 
     await showDialog(
@@ -396,11 +406,12 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
     });
   }
 }
+
 class NoticeDetailDialog extends StatefulWidget {
   final List<dynamic> notices; // 使用 Notice 类型的列表
   final int initialIndex;
   final ValueChanged<int>? onPageChanged;
-  
+
   const NoticeDetailDialog({
     super.key,
     required this.notices,
@@ -410,19 +421,20 @@ class NoticeDetailDialog extends StatefulWidget {
   @override
   State<NoticeDetailDialog> createState() => _NoticeDetailDialogState();
 }
-class _NoticeDetailDialogState extends State<NoticeDetailDialog> 
+
+class _NoticeDetailDialogState extends State<NoticeDetailDialog>
     with SingleTickerProviderStateMixin {
   late PageController _pageController;
   late int _currentIndex;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  
+
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex.clamp(0, widget.notices.length - 1);
     _pageController = PageController(initialPage: _currentIndex);
-    
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -433,21 +445,21 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
     );
     _animationController.forward();
   }
-  
+
   @override
   void dispose() {
     _pageController.dispose();
     _animationController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return PopScope(
       onPopInvokedWithResult: (didPop, result) {
         // 当对话框关闭时（无论通过什么方式），移除焦点
@@ -462,50 +474,57 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: screenWidth > 600 ? 600 : double.infinity,
-            maxHeight: screenHeight * 0.85,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 24,
           ),
-          decoration: BoxDecoration(
-            // 在暗色主题下使用稍亮的背景色以区分弹窗
-            color: isDark 
-                ? Theme.of(context).colorScheme.surfaceContainerHighest
-                : Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(24),
-            // 添加明显的边框
-            border: Border.all(
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: screenWidth > 600 ? 600 : double.infinity,
+              maxHeight: screenHeight * 0.85,
+            ),
+            decoration: BoxDecoration(
+              // 在暗色主题下使用稍亮的背景色以区分弹窗
               color: isDark
-                  ? Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)
-                  : Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
-              width: isDark ? 1.5 : 1,
+                  ? Theme.of(context).colorScheme.surfaceContainerHighest
+                  : Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(24),
+              // 添加明显的边框
+              border: Border.all(
+                color: isDark
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.3)
+                    : Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.1),
+                width: isDark ? 1.5 : 1,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildHeader(),
+                Flexible(
+                  child: widget.notices.length == 1
+                      ? _buildSingleNotice()
+                      : _buildMultipleNotices(),
+                ),
+              ],
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildHeader(),
-              Flexible(
-                child: widget.notices.length == 1
-                    ? _buildSingleNotice()
-                    : _buildMultipleNotices(),
-              ),
-            ],
-          ),
-        ),
         ),
       ),
     );
   }
-  
+
   Widget _buildHeader() {
     final currentNotice = widget.notices[_currentIndex];
     final title = currentNotice.title ?? '无标题';
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
       decoration: BoxDecoration(
@@ -513,12 +532,12 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
         color: isDark
             ? Theme.of(context).colorScheme.surfaceContainer
             : Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(24),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: isDark ? 0.2 : 0.1),
+            color: Theme.of(
+              context,
+            ).colorScheme.outline.withValues(alpha: isDark ? 0.2 : 0.1),
             width: 1,
           ),
         ),
@@ -543,15 +562,16 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
           const SizedBox(width: 8),
           if (widget.notices.length > 1) ...[
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 4,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -579,7 +599,9 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
                 padding: const EdgeInsets.all(6.0),
                 child: Icon(
                   Icons.close_rounded,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
                   size: 20,
                 ),
               ),
@@ -589,6 +611,7 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
       ),
     );
   }
+
   Widget _buildSingleNotice() {
     final notice = widget.notices[0];
     return SingleChildScrollView(
@@ -597,6 +620,7 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
       child: _buildNoticeContent(notice),
     );
   }
+
   Widget _buildMultipleNotices() {
     return Column(
       children: [
@@ -624,10 +648,10 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
       ],
     );
   }
-  
+
   Widget _buildNavigationBar() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
@@ -635,12 +659,12 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
         color: isDark
             ? Theme.of(context).colorScheme.surfaceContainer
             : Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(24),
-        ),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: isDark ? 0.2 : 0.1),
+            color: Theme.of(
+              context,
+            ).colorScheme.outline.withValues(alpha: isDark ? 0.2 : 0.1),
             width: 1,
           ),
         ),
@@ -672,7 +696,7 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
       ),
     );
   }
-  
+
   Widget _buildNavButton({
     required IconData icon,
     required String label,
@@ -688,62 +712,68 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: enabled 
-                ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5)
+            color: enabled
+                ? Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withValues(alpha: 0.5)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: enabled 
+              color: enabled
                   ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)
-                  : Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                  : Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: isReversed ? [
-              Text(
-                label,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: enabled 
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.outline,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                icon,
-                size: 20,
-                color: enabled 
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.outline,
-              ),
-            ] : [
-              Icon(
-                icon,
-                size: 20,
-                color: enabled 
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.outline,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: enabled 
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.outline,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+            children: isReversed
+                ? [
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: enabled
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.outline,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      icon,
+                      size: 20,
+                      color: enabled
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.outline,
+                    ),
+                  ]
+                : [
+                    Icon(
+                      icon,
+                      size: 20,
+                      color: enabled
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.outline,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: enabled
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.outline,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
           ),
         ),
       ),
     );
   }
-  
+
   Widget _buildPageIndicator() {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -765,13 +795,16 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
       ),
     );
   }
+
   Widget _buildNoticeContent(dynamic notice) {
     String formatTime(dynamic timeValue) {
       if (timeValue == null) return '未知时间';
       try {
         DateTime dateTime;
         if (timeValue is int) {
-          final timestamp = timeValue > 1000000000000 ? timeValue : timeValue * 1000;
+          final timestamp = timeValue > 1000000000000
+              ? timeValue
+              : timeValue * 1000;
           dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
         } else if (timeValue is String) {
           dateTime = DateTime.parse(timeValue);
@@ -783,6 +816,7 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
         return timeValue.toString();
       }
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -791,24 +825,27 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
           Text(
             formatTime(notice.createdAt),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
           const SizedBox(height: 12),
         ],
-        
+
         // 内容区域 - 根据配置选择渲染方式
         _buildContentWidget(notice),
       ],
     );
   }
+
   /// 根据配置构建内容Widget（Markdown或HTML）
   Widget _buildContentWidget(dynamic notice) {
     final content = notice.content ?? '暂无内容';
-    
+
     // 如果配置为 null，自动检测内容格式
     final renderType = kNoticeRenderType ?? _detectContentType(content);
-    
+
     switch (renderType) {
       case NoticeRenderType.markdown:
         return _buildMarkdownContent(content);
@@ -816,36 +853,36 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
         return _buildHtmlContent(content);
     }
   }
-  
+
   /// 自动检测内容类型
-  /// 
+  ///
   /// 通过检查内容中是否包含 HTML 标签来判断：
   /// - 如果包含常见的 HTML 标签，认为是 HTML
   /// - 否则认为是 Markdown
   NoticeRenderType _detectContentType(String content) {
     // 去除首尾空白
     final trimmedContent = content.trim();
-    
+
     // 如果内容为空，默认使用 Markdown
     if (trimmedContent.isEmpty) {
       return NoticeRenderType.markdown;
     }
-    
+
     // 常见的 HTML 标签模式
     final htmlTagPattern = RegExp(
       r'<(p|div|span|h[1-6]|ul|ol|li|br|hr|strong|em|a|img|table|tr|td|th|blockquote|pre|code)[>\s]',
       caseSensitive: false,
     );
-    
+
     // 如果匹配到 HTML 标签，使用 HTML 渲染
     if (htmlTagPattern.hasMatch(trimmedContent)) {
       return NoticeRenderType.html;
     }
-    
+
     // 默认使用 Markdown 渲染
     return NoticeRenderType.markdown;
   }
-  
+
   /// 构建Markdown内容
   Widget _buildMarkdownContent(String content) {
     return MarkdownBody(
@@ -854,7 +891,7 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
       onTapLink: (text, href, title) => _handleLinkTap(href),
     );
   }
-  
+
   /// 构建HTML内容
   Widget _buildHtmlContent(String content) {
     return NoticeHtmlStyles.buildNoticeHtml(
@@ -863,22 +900,22 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
       onTapUrl: (url) => _handleLinkTap(url),
     );
   }
-  
+
   String _processMarkdownForDialog(String markdownText) {
     return markdownText.trim();
   }
-  
+
   String _processHtmlForDialog(String htmlText) {
     return htmlText.trim();
   }
-  
+
   /// 处理Markdown/HTML中的链接点击
   void _handleLinkTap(String? href) async {
     if (href == null || href.isEmpty) return;
-    
+
     try {
       final uri = Uri.parse(href);
-      
+
       // 检查是否可以启动该链接
       if (await canLaunchUrl(uri)) {
         await launchUrl(
@@ -931,7 +968,9 @@ class NoticePopupDialog extends StatelessWidget {
             border: Border.all(
               color: isDark
                   ? Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)
-                  : Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                  : Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.1),
               width: isDark ? 1.5 : 1,
             ),
           ),
@@ -950,19 +989,22 @@ class NoticePopupDialog extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                    notice.title ?? '重要通知',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    textAlign: TextAlign.center,
+                  notice.title ?? '重要通知',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
+                  textAlign: TextAlign.center,
+                ),
               ),
 
               // 内容区域（自适应高度，可滚动）
               Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
                   physics: const ClampingScrollPhysics(),
                   child: _buildNoticeContent(context, notice),
                 ),
@@ -1038,10 +1080,7 @@ class NoticePopupDialog extends StatelessWidget {
       final uri = Uri.parse(href);
 
       if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication,
-        );
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         if (context.mounted) {
           XBoardNotification.showError('无法打开链接: $href');

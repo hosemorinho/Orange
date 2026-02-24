@@ -12,13 +12,11 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/widgets/input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:fl_clash/xboard/features/shared/dialogs/theme_dialog.dart';
 import 'package:fl_clash/views/hotkey.dart';
 import 'package:fl_clash/views/config/advanced.dart';
 import 'package:fl_clash/views/access.dart' show AccessView;
 
-import '../widgets/bypass_domain_card.dart';
 import '../widgets/lan_sharing_widgets.dart';
 
 class XBoardSettingsPage extends ConsumerWidget {
@@ -92,17 +90,22 @@ class XBoardSettingsPage extends ConsumerWidget {
                               children: [
                                 if (subscription?.planName != null) ...[
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: colorScheme.primaryContainer,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       subscription!.planName!,
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        color: colorScheme.onPrimaryContainer,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color:
+                                                colorScheme.onPrimaryContainer,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                     ),
                                   ),
                                   const SizedBox(width: 6),
@@ -215,19 +218,24 @@ class XBoardSettingsPage extends ConsumerWidget {
                         subtitle: appLocalizations.xboardBypassDomainDesc,
                         onTap: () async {
                           final bypassDomain = ref.read(
-                            networkSettingProvider.select((state) => state.bypassDomain),
-                          );
-                          final result = await Navigator.of(context).push<List<String>>(
-                            MaterialPageRoute(
-                              builder: (context) => ListInputPage(
-                                title: appLocalizations.xboardBypassDomain,
-                                items: bypassDomain,
-                                titleBuilder: (item) => Text(item),
-                              ),
+                            networkSettingProvider.select(
+                              (state) => state.bypassDomain,
                             ),
                           );
+                          final result = await Navigator.of(context)
+                              .push<List<String>>(
+                                MaterialPageRoute(
+                                  builder: (context) => ListInputPage(
+                                    title: appLocalizations.xboardBypassDomain,
+                                    items: bypassDomain,
+                                    titleBuilder: (item) => Text(item),
+                                  ),
+                                ),
+                              );
                           if (result != null) {
-                            ref.read(networkSettingProvider.notifier).update(
+                            ref
+                                .read(networkSettingProvider.notifier)
+                                .update(
                                   (state) => state.copyWith(
                                     bypassDomain: List.from(result),
                                   ),
@@ -377,11 +385,6 @@ class XBoardSettingsPage extends ConsumerWidget {
     );
   }
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return '-';
-    return DateFormat.yMMMd().format(date);
-  }
-
   Future<void> _updateNotificationSetting(
     WidgetRef ref,
     BuildContext context, {
@@ -415,10 +418,7 @@ class _SubsectionHeader extends StatelessWidget {
   final String title;
   final IconData icon;
 
-  const _SubsectionHeader({
-    required this.title,
-    required this.icon,
-  });
+  const _SubsectionHeader({required this.title, required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -439,11 +439,7 @@ class _SubsectionHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 18,
-            color: colorScheme.primary,
-          ),
+          Icon(icon, size: 18, color: colorScheme.primary),
           const SizedBox(width: 8),
           Text(
             title,
@@ -485,11 +481,7 @@ class _SettingTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 20,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -513,10 +505,7 @@ class _SettingTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (trailing != null) ...[
-              const SizedBox(width: 8),
-              trailing!,
-            ],
+            if (trailing != null) ...[const SizedBox(width: 8), trailing!],
           ],
         ),
       ),
@@ -543,10 +532,7 @@ class _LoadingSwitch extends StatefulWidget {
   final bool value;
   final Future<void> Function(bool) onChanged;
 
-  const _LoadingSwitch({
-    required this.value,
-    required this.onChanged,
-  });
+  const _LoadingSwitch({required this.value, required this.onChanged});
 
   @override
   State<_LoadingSwitch> createState() => _LoadingSwitchState();
@@ -621,11 +607,7 @@ class _NetworkSettingItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 24,
-            color: colorScheme.primary,
-          ),
+          Icon(icon, size: 24, color: colorScheme.primary),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -647,13 +629,9 @@ class _NetworkSettingItem extends StatelessWidget {
               ],
             ),
           ),
-          Icon(
-            Icons.chevron_right,
-            color: colorScheme.onSurfaceVariant,
-          ),
+          Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
         ],
       ),
     );
   }
 }
-

@@ -26,7 +26,10 @@ class XBoardOutboundMode extends StatelessWidget {
   }
 
   Future<void> _handleTunToggle(
-      BuildContext context, WidgetRef ref, bool selected) async {
+    BuildContext context,
+    WidgetRef ref,
+    bool selected,
+  ) async {
     if (selected) {
       final storageService = ref.read(storageServiceProvider);
       final hasShownResult = await storageService.hasTunFirstUseShown();
@@ -36,20 +39,20 @@ class XBoardOutboundMode extends StatelessWidget {
           final shouldEnable = await TunIntroductionDialog.show(context);
           if (shouldEnable == true) {
             await storageService.markTunFirstUseShown();
-            ref.read(patchClashConfigProvider.notifier).update(
-                  (state) => state.copyWith.tun(enable: true),
-                );
+            ref
+                .read(patchClashConfigProvider.notifier)
+                .update((state) => state.copyWith.tun(enable: true));
           }
         }
       } else {
-        ref.read(patchClashConfigProvider.notifier).update(
-              (state) => state.copyWith.tun(enable: true),
-            );
+        ref
+            .read(patchClashConfigProvider.notifier)
+            .update((state) => state.copyWith.tun(enable: true));
       }
     } else {
-      ref.read(patchClashConfigProvider.notifier).update(
-            (state) => state.copyWith.tun(enable: false),
-          );
+      ref
+          .read(patchClashConfigProvider.notifier)
+          .update((state) => state.copyWith.tun(enable: false));
     }
   }
 
@@ -61,21 +64,23 @@ class XBoardOutboundMode extends StatelessWidget {
     return Consumer(
       builder: (context, ref, child) {
         final mode = ref.watch(
-            patchClashConfigProvider.select((state) => state.mode));
-        final tunEnabled = ref.watch(patchClashConfigProvider
-            .select((state) => state.tun.enable));
+          patchClashConfigProvider.select((state) => state.mode),
+        );
+        final tunEnabled = ref.watch(
+          patchClashConfigProvider.select((state) => state.tun.enable),
+        );
         return LayoutBuilder(
           builder: (context, constraints) {
             // 根据可用宽度调整布局
             final isNarrow = constraints.maxWidth < 280;
-            final buttonWidth = isNarrow
-                ? null
-                : double.infinity;
+            final buttonWidth = isNarrow ? null : double.infinity;
             final horizontalPadding = isNarrow ? 8.0 : 14.0;
 
             return Container(
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.15,
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: EdgeInsets.symmetric(
@@ -87,21 +92,13 @@ class XBoardOutboundMode extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.tune,
-                        color: colorScheme.primary,
-                        size: 18,
-                      ),
+                      Icon(Icons.tune, color: colorScheme.primary, size: 18),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           l10n.xboardProxyMode,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -120,9 +117,9 @@ class XBoardOutboundMode extends StatelessWidget {
                     child: Text(
                       _getModeDescription(mode, tunEnabled, l10n),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurface.withValues(alpha: 0.65),
-                            fontSize: 12,
-                          ),
+                        color: colorScheme.onSurface.withValues(alpha: 0.65),
+                        fontSize: 12,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -136,7 +133,12 @@ class XBoardOutboundMode extends StatelessWidget {
     );
   }
 
-  Widget _buildModeSelector(BuildContext context, Mode mode, bool isNarrow, WidgetRef ref) {
+  Widget _buildModeSelector(
+    BuildContext context,
+    Mode mode,
+    bool isNarrow,
+    WidgetRef ref,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     final thumbColor = switch (mode) {
       Mode.rule => colorScheme.secondaryContainer,
@@ -156,9 +158,9 @@ class XBoardOutboundMode extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 Intl.message(Mode.rule.name),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -173,9 +175,9 @@ class XBoardOutboundMode extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 Intl.message(Mode.global.name),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -186,21 +188,23 @@ class XBoardOutboundMode extends StatelessWidget {
         if (value != null) _handleModeChange(ref, value);
       },
       thumbColor: thumbColor,
-      backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+        alpha: 0.3,
+      ),
     );
   }
 
-  Widget _buildTunRow(BuildContext context, bool tunEnabled, bool isNarrow, WidgetRef ref) {
+  Widget _buildTunRow(
+    BuildContext context,
+    bool tunEnabled,
+    bool isNarrow,
+    WidgetRef ref,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
 
     return Row(
       children: [
-        Icon(
-          Icons.vpn_lock,
-          size: 16,
-          color: colorScheme.onSurfaceVariant,
-        ),
+        Icon(Icons.vpn_lock, size: 16, color: colorScheme.onSurfaceVariant),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -227,9 +231,11 @@ class XBoardOutboundMode extends StatelessWidget {
   }
 
   String _getModeDescription(
-      Mode mode, bool tunEnabled, AppLocalizations l10n) {
-    final tunStatus =
-        tunEnabled ? ' | ${l10n.xboardTunEnabled}' : '';
+    Mode mode,
+    bool tunEnabled,
+    AppLocalizations l10n,
+  ) {
+    final tunStatus = tunEnabled ? ' | ${l10n.xboardTunEnabled}' : '';
     switch (mode) {
       case Mode.rule:
         return '${l10n.xboardProxyModeRuleDescription}$tunStatus';

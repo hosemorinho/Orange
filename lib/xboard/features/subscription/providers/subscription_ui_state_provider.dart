@@ -12,8 +12,13 @@ final subscriptionUIStateProvider = Provider<UIState>((ref) {
 });
 
 /// 订阅 UI State Notifier
-class SubscriptionUIStateNotifier extends StateNotifier<UIState> {
-  SubscriptionUIStateNotifier() : super(const UIState());
+class SubscriptionUIStateNotifier extends Notifier<UIState> {
+  @override
+  UIState build() => const UIState();
+
+  void setState(UIState next) {
+    state = next;
+  }
 
   void setLoading(bool loading) {
     state = state.copyWith(isLoading: loading);
@@ -30,6 +35,6 @@ class SubscriptionUIStateNotifier extends StateNotifier<UIState> {
 
 /// 订阅 UI State Notifier Provider
 final subscriptionUIStateNotifierProvider =
-    StateNotifierProvider<SubscriptionUIStateNotifier, UIState>((ref) {
-  return SubscriptionUIStateNotifier();
-});
+    NotifierProvider<SubscriptionUIStateNotifier, UIState>(
+      SubscriptionUIStateNotifier.new,
+    );

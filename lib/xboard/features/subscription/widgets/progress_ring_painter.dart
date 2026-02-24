@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// 进度环形绘制器
@@ -23,7 +24,7 @@ class ProgressRingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     const strokeWidth = 3.5;
-    const startAngle = -pi / 2; // 12 o'clock
+    const startAngle = -math.pi / 2; // 12 o'clock
 
     // Background ring (full circle, low opacity)
     final bgPaint = Paint()
@@ -38,7 +39,7 @@ class ProgressRingPainter extends CustomPainter {
         ? 0.0
         : progress.clamp(0.0, 1.0);
     if (safeProgress > 0) {
-      final sweepAngle = 2 * pi * safeProgress;
+      final sweepAngle = 2 * math.pi * safeProgress;
       final scale = isActive ? 1.0 + 0.03 * pulseProgress : 1.0;
       final effectiveRadius = ringRadius * scale;
 

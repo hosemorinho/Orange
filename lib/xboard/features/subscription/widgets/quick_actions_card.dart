@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 
@@ -13,7 +12,8 @@ class QuickActionsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appLocalizations = AppLocalizations.of(context);
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    final isDesktop =
+        Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     return XBDashboardCard(
       child: Column(
@@ -111,11 +111,7 @@ class _CompactActionTile extends StatelessWidget {
                   color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  icon,
-                  size: 18,
-                  color: colorScheme.primary,
-                ),
+                child: Icon(icon, size: 18, color: colorScheme.primary),
               ),
               const SizedBox(height: 6),
               Text(

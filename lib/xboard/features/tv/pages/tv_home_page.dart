@@ -1,9 +1,7 @@
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/widgets/text.dart';
-import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart';
 import 'package:flutter/material.dart';
@@ -31,19 +29,13 @@ class TvHomePage extends ConsumerWidget {
             child: Row(
               children: [
                 // LEFT: Connection control
-                Expanded(
-                  flex: 2,
-                  child: _ConnectionPanel(),
-                ),
+                Expanded(flex: 2, child: _ConnectionPanel()),
                 VerticalDivider(
                   width: 1,
                   color: colorScheme.outlineVariant.withValues(alpha: 0.3),
                 ),
                 // RIGHT: Node selection
-                const Expanded(
-                  flex: 3,
-                  child: TvNodeGrid(),
-                ),
+                const Expanded(flex: 3, child: TvNodeGrid()),
               ],
             ),
           ),
@@ -64,8 +56,9 @@ class _ConnectionPanel extends ConsumerWidget {
     final isStart = ref.watch(isStartProvider);
     final groups = ref.watch(groupsProvider);
     final selectedMap = ref.watch(selectedMapProvider);
-    final mode =
-        ref.watch(patchClashConfigProvider.select((state) => state.mode));
+    final mode = ref.watch(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
 
     // Resolve current node
     final (:group, :proxy) = resolveCurrentNode(
@@ -133,13 +126,12 @@ class _NodeLatency extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final delayState = ref.watch(getDelayProvider(
-      proxyName: proxy.name,
-      testUrl: ref.read(appSettingProvider).testUrl,
-    ));
-    return LatencyIndicator(
-      delayValue: delayState,
-      isCompact: true,
+    final delayState = ref.watch(
+      getDelayProvider(
+        proxyName: proxy.name,
+        testUrl: ref.read(appSettingProvider).testUrl,
+      ),
     );
+    return LatencyIndicator(delayValue: delayState, isCompact: true);
   }
 }

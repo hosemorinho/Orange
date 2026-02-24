@@ -1,6 +1,7 @@
 import 'package:fl_clash/common/utils.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:flutter/material.dart';
+
 class LatencyIndicator extends StatelessWidget {
   final int? delayValue;
   final VoidCallback? onTap;
@@ -23,6 +24,7 @@ class LatencyIndicator extends StatelessWidget {
     }
     return _buildTestedState(context);
   }
+
   Widget _buildTestingState(BuildContext context) {
     if (isCompact) {
       return SizedBox(
@@ -50,7 +52,7 @@ class LatencyIndicator extends StatelessWidget {
           if (!isCompact) ...[
             const SizedBox(width: 4),
             Text(
-              AppLocalizations.of(context)!.xboardLatencyTesting,
+              AppLocalizations.of(context).xboardLatencyTesting,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w500,
@@ -61,6 +63,7 @@ class LatencyIndicator extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildUntestedState(BuildContext context) {
     if (isCompact) {
       return GestureDetector(
@@ -94,7 +97,7 @@ class LatencyIndicator extends StatelessWidget {
             const SizedBox(width: 4),
           ],
           Text(
-            AppLocalizations.of(context)!.xboardLatencyAutoTesting,
+            AppLocalizations.of(context).xboardLatencyAutoTesting,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -103,8 +106,11 @@ class LatencyIndicator extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildTestedState(BuildContext context) {
-    final displayText = delayValue! < 0 ? AppLocalizations.of(context)!.xboardLatencyTimeout : '${delayValue}ms';
+    final displayText = delayValue! < 0
+        ? AppLocalizations.of(context).xboardLatencyTimeout
+        : '${delayValue}ms';
     final color = utils.getDelayColor(delayValue!);
     if (isCompact) {
       return GestureDetector(
@@ -112,12 +118,20 @@ class LatencyIndicator extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
           decoration: BoxDecoration(
-            color: color?.withValues(alpha: 0.1) ?? Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+            color:
+                color?.withValues(alpha: 0.1) ??
+                Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: color?.withValues(alpha: 0.3) ?? Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
+            border: Border.all(
+              color:
+                  color?.withValues(alpha: 0.3) ??
+                  Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+            ),
           ),
           child: Text(
-            delayValue! < 0 ? AppLocalizations.of(context)!.xboardLatencyTimeout : '$delayValue',
+            delayValue! < 0
+                ? AppLocalizations.of(context).xboardLatencyTimeout
+                : '$delayValue',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: color,
               fontWeight: FontWeight.w600,
@@ -135,10 +149,7 @@ class LatencyIndicator extends StatelessWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 6),
           Text(
@@ -153,13 +164,14 @@ class LatencyIndicator extends StatelessWidget {
     );
   }
 }
+
 class LatencyQuality {
   static const int excellent = 50;
   static const int good = 100;
   static const int fair = 200;
   static const int poor = 500;
   static String getQualityLevel(BuildContext context, int delay) {
-    final loc = AppLocalizations.of(context)!;
+    final loc = AppLocalizations.of(context);
     if (delay < 0) return loc.xboardLatencyTimeout;
     if (delay <= excellent) return loc.xboardLatencyExcellent;
     if (delay <= good) return loc.xboardLatencyGood;
@@ -167,8 +179,9 @@ class LatencyQuality {
     if (delay <= poor) return loc.xboardLatencyPoor;
     return loc.xboardLatencyVeryPoor;
   }
+
   static String getQualityDescription(BuildContext context, int delay) {
-    final loc = AppLocalizations.of(context)!;
+    final loc = AppLocalizations.of(context);
     if (delay < 0) return loc.xboardLatencyTimeoutDesc;
     if (delay <= excellent) return loc.xboardLatencyExcellentDesc;
     if (delay <= good) return loc.xboardLatencyGoodDesc;
@@ -176,6 +189,7 @@ class LatencyQuality {
     if (delay <= poor) return loc.xboardLatencyPoorDesc;
     return loc.xboardLatencyVeryPoorDesc;
   }
+
   static IconData getQualityIcon(int delay) {
     if (delay < 0) return Icons.signal_wifi_off;
     if (delay <= excellent) return Icons.signal_wifi_4_bar;

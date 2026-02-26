@@ -95,6 +95,9 @@ jobs:
           # Commit all generated files including .g.dart and .freezed.dart
           git add -A
           git commit -m "chore: update generated files [skip ci]" || true
+
+          # Pull remote changes before push to avoid rejection
+          git pull --rebase origin "${GITHUB_REF_NAME}"
           git push
 
       - name: Comment on PR (if non-generated changes)

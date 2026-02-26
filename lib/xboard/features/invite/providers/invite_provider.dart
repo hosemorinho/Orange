@@ -57,21 +57,24 @@ class InviteDataProvider extends _$InviteDataProvider {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _fetchInviteData());
   }
-}
 
-/// Create a new invite code
-@riverpod
-Future<void> createInviteCode(Ref ref) async {
-  try {
-    final api = await ref.read(xboardSdkProvider.future);
-    await api.createInviteCode();
-
-    // Refresh invite data
-    if (!ref.mounted) return;
-    ref.invalidate(inviteDataProviderProvider);
-  } catch (e, stackTrace) {
-    _logger.error('[createInviteCode] Failed to create invite code', e, stackTrace);
-    rethrow;
+  /// Create a new invite code and refresh data
+  ///
+  /// This is a method on the notifier (not a standalone provider) to avoid
+  /// autoDispose ref lifecycle issues with one-shot async actions.
+  Future<void> createCode() async {
+    try {
+      final api = await ref.read(xboardSdkProvider.future);
+      if (!ref.mounted) return;
+      await api.createInviteCode();
+      if (!ref.mounted) return;
+      // Refresh invite data inline
+      state = const AsyncValue.loading();
+      state = await AsyncValue.guard(() => _fetchInviteData());
+    } catch (e, stackTrace) {
+      _logger.error('[createCode] Failed to create invite code', e, stackTrace);
+      rethrow;
+    }
   }
 }
 

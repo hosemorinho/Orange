@@ -2481,6 +2481,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "3. Return to app after payment, system will detect automatically",
     ),
     "xboardRunningTime": m54,
+    "xboardScanToRegister": MessageLookupByLibrary.simpleMessage(
+      "Scan to register",
+    ),
     "xboardSearchNode": MessageLookupByLibrary.simpleMessage("Search nodes"),
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage(
       "Secure encryption",
@@ -2519,6 +2522,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Settled Commission",
     ),
     "xboardSetup": MessageLookupByLibrary.simpleMessage("Setup"),
+    "xboardShowQrCode": MessageLookupByLibrary.simpleMessage("Show QR Code"),
     "xboardSixMonthCycle": MessageLookupByLibrary.simpleMessage(
       "6-month cycle",
     ),

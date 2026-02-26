@@ -43,7 +43,7 @@ final class InviteDataProviderProvider
 }
 
 String _$inviteDataProviderHash() =>
-    r'83e717339d46abd92f5fea9aaa08c43f031e738b';
+    r'582abff1659b6e16706c3422c76d88cea077da9c';
 
 /// Invite data provider
 ///
@@ -67,44 +67,6 @@ abstract class _$InviteDataProvider extends $AsyncNotifier<InviteData> {
     element.handleValue(ref, created);
   }
 }
-
-/// Create a new invite code
-
-@ProviderFor(createInviteCode)
-const createInviteCodeProvider = CreateInviteCodeProvider._();
-
-/// Create a new invite code
-
-final class CreateInviteCodeProvider
-    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
-    with $FutureModifier<void>, $FutureProvider<void> {
-  /// Create a new invite code
-  const CreateInviteCodeProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'createInviteCodeProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$createInviteCodeHash();
-
-  @$internal
-  @override
-  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<void> create(Ref ref) {
-    return createInviteCode(ref);
-  }
-}
-
-String _$createInviteCodeHash() => r'82797d334c769da975aabc83ef3c8c68f2b5cec4';
 
 /// Transfer commission to balance
 

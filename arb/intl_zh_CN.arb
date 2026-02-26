@@ -1212,6 +1212,8 @@
   "xboardNoInviteCodesDesc": "创建你的第一个邀请码以开始赚取佣金",
   "xboardMaxInviteCodesReached": "最多允许 5 个邀请码",
   "xboardInviteCodeCreated": "邀请码创建成功",
+  "xboardShowQrCode": "显示二维码",
+  "xboardScanToRegister": "扫描二维码注册",
   "xboardWithdrawTransferComingSoon": "提现和转账功能即将推出",
   "xboardLoadError": "加载数据失败",
   "xboardError": "错误",

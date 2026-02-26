@@ -37,11 +37,8 @@ class _InvitePageState extends ConsumerState<InvitePage>
     setState(() => _isCreatingCode = true);
 
     try {
-      await ref.read(createInviteCodeProvider.future);
+      await ref.read(inviteDataProviderProvider.notifier).createCode();
       if (!mounted) return;
-
-      // Refresh invite data from UI scope to avoid action-provider dispose timing.
-      ref.invalidate(inviteDataProviderProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

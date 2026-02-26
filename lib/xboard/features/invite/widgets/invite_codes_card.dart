@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
@@ -36,6 +37,8 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
   String? _copiedLink;
   Timer? _copyCodeResetTimer;
   Timer? _copyLinkResetTimer;
+  /// Tracks which invite code has its QR code expanded
+  String? _expandedQrCode;
 
   @override
   void dispose() {
@@ -218,6 +221,22 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
     );
   }
 
+  /// Builds the invite link for a given code
+  Future<String?> _buildInviteLink(String code) async {
+    String baseUrl;
+    try {
+      final config = await ref.read(getConfigProvider.future);
+      baseUrl = (config['app_url'] as String?) ?? '';
+      if (baseUrl.endsWith('/')) {
+        baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+      }
+    } catch (_) {
+      baseUrl = '';
+    }
+    if (baseUrl.isEmpty) return null;
+    return '$baseUrl/#/register?invite=$code';
+  }
+
   Widget _buildCodesList(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -226,89 +245,196 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
       children: widget.codes.map((code) {
         final isCopiedCode = _copiedCode == code.code;
         final isCopiedLink = _copiedLink == code.code;
+        final isQrExpanded = _expandedQrCode == code.code;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             border: Border.all(
               color: colorScheme.outline.withValues(alpha: 0.2),
             ),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
+          child: Column(
             children: [
-              // Code display
-              Expanded(
-                child: Text(
-                  code.code,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Code display
+                    Expanded(
+                      child: Text(
+                        code.code,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // QR code toggle button
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _expandedQrCode = isQrExpanded ? null : code.code;
+                        });
+                      },
+                      icon: Icon(
+                        isQrExpanded ? Icons.qr_code : Icons.qr_code_2,
+                        size: 20,
+                      ),
+                      tooltip: appLocalizations.xboardShowQrCode,
+                      style: IconButton.styleFrom(
+                        foregroundColor: isQrExpanded
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // Copy code button
+                    OutlinedButton.icon(
+                      onPressed: () => _copyCode(code.code),
+                      icon: Icon(
+                        isCopiedCode ? Icons.check : Icons.content_copy,
+                        size: 16,
+                        color: isCopiedCode ? Colors.green : null,
+                      ),
+                      label: Text(
+                        isCopiedCode
+                            ? appLocalizations.xboardCopied
+                            : appLocalizations.xboardCopyCode,
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: isCopiedCode
+                            ? Colors.green
+                            : colorScheme.onSurface.withValues(alpha: 0.7),
+                        side: BorderSide(
+                          color: isCopiedCode
+                              ? Colors.green
+                              : colorScheme.outline.withValues(alpha: 0.3),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Copy link button
+                    FilledButton.icon(
+                      onPressed: () => _copyLink(code.code),
+                      icon: Icon(
+                        isCopiedLink ? Icons.check : Icons.link,
+                        size: 16,
+                        color:
+                            isCopiedLink ? Colors.green : colorScheme.onPrimary,
+                      ),
+                      label: Text(
+                        isCopiedLink
+                            ? appLocalizations.xboardLinkCopied
+                            : appLocalizations.xboardCopyLink,
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: isCopiedLink
+                            ? Colors.green
+                            : colorScheme.primaryContainer,
+                        foregroundColor: isCopiedLink
+                            ? Colors.white
+                            : colorScheme.onPrimaryContainer,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Expandable QR code section
+              if (isQrExpanded)
+                _buildQrCodeSection(context, code.code),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildQrCodeSection(BuildContext context, String code) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return FutureBuilder<String?>(
+      future: _buildInviteLink(code),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+
+        final inviteLink = snapshot.data;
+        if (inviteLink == null) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              appLocalizations.xboardError,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.error,
+              ),
+            ),
+          );
+        }
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Column(
+            children: [
+              Divider(
+                color: colorScheme.outline.withValues(alpha: 0.15),
+                height: 1,
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: QrImageView(
+                  data: inviteLink,
+                  version: QrVersions.auto,
+                  size: 200,
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.circle,
+                    color: Colors.black,
+                  ),
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.circle,
+                    color: Colors.black,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              // Copy code button
-              OutlinedButton.icon(
-                onPressed: () => _copyCode(code.code),
-                icon: Icon(
-                  isCopiedCode ? Icons.check : Icons.content_copy,
-                  size: 16,
-                  color: isCopiedCode ? Colors.green : null,
-                ),
-                label: Text(
-                  isCopiedCode
-                      ? appLocalizations.xboardCopied
-                      : appLocalizations.xboardCopyCode,
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: isCopiedCode
-                      ? Colors.green
-                      : colorScheme.onSurface.withValues(alpha: 0.7),
-                  side: BorderSide(
-                    color: isCopiedCode
-                        ? Colors.green
-                        : colorScheme.outline.withValues(alpha: 0.3),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Copy link button
-              FilledButton.icon(
-                onPressed: () => _copyLink(code.code),
-                icon: Icon(
-                  isCopiedLink ? Icons.check : Icons.link,
-                  size: 16,
-                  color: isCopiedLink ? Colors.green : colorScheme.onPrimary,
-                ),
-                label: Text(
-                  isCopiedLink
-                      ? appLocalizations.xboardLinkCopied
-                      : appLocalizations.xboardCopyLink,
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: isCopiedLink
-                      ? Colors.green
-                      : colorScheme.primaryContainer,
-                  foregroundColor: isCopiedLink
-                      ? Colors.white
-                      : colorScheme.onPrimaryContainer,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
+              const SizedBox(height: 8),
+              Text(
+                appLocalizations.xboardScanToRegister,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
             ],
           ),
         );
-      }).toList(),
+      },
     );
   }
 }

@@ -1211,6 +1211,8 @@
   "xboardNoInviteCodesDesc": "Create your first invite code to start earning commission",
   "xboardMaxInviteCodesReached": "Maximum 5 invite codes allowed",
   "xboardInviteCodeCreated": "Invite code created successfully",
+  "xboardShowQrCode": "Show QR Code",
+  "xboardScanToRegister": "Scan to register",
   "xboardWithdrawTransferComingSoon": "Withdrawal and transfer features coming soon",
   "xboardLoadError": "Failed to load data",
   "xboardError": "Error",

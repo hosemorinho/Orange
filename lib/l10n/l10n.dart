@@ -8744,6 +8744,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Show QR Code`
+  String get xboardShowQrCode {
+    return Intl.message(
+      'Show QR Code',
+      name: 'xboardShowQrCode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scan to register`
+  String get xboardScanToRegister {
+    return Intl.message(
+      'Scan to register',
+      name: 'xboardScanToRegister',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Withdrawal and transfer features coming soon`
   String get xboardWithdrawTransferComingSoon {
     return Intl.message(

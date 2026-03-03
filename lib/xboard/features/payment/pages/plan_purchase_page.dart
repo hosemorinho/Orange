@@ -237,6 +237,8 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   }
 
   double _getPayableAmount() {
+    if (_selectedPeriod == null) return 0.0;
+
     final currentPrice = _getCurrentPrice();
     final displayFinalPrice = _couponType != null
         ? PriceCalculator.calculateFinalPrice(
@@ -245,11 +247,13 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
             _couponValue,
           )
         : currentPrice;
-    final balanceToUse = _userBalance != null && _userBalance! > 0
-        ? (_userBalance! > displayFinalPrice
-              ? displayFinalPrice
-              : _userBalance!)
+
+    // 使用用户余额（如果已加载且大于 0）
+    final balance = _userBalance;
+    final balanceToUse = balance != null && balance > 0
+        ? (balance > displayFinalPrice ? displayFinalPrice : balance)
         : 0.0;
+
     final payableAmount = displayFinalPrice - balanceToUse;
     return payableAmount < 0 ? 0 : payableAmount;
   }
@@ -415,18 +419,18 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
       DomainPaymentMethod? selectedMethod;
 
-      // 如果实付金额为0（余额完全抵扣），自动选择第一个支付方式，跳过用户选择
+      // 如果实付金额为 0（余额完全抵扣），自动选择第一个支付方式用于下单
       if (actualPayAmount <= 0) {
-        _logger.debug('[购买] 实付金额为0，自动选择第一个支付方式');
+        _logger.debug('[购买] 实付金额为 0，使用余额支付');
         selectedMethod = paymentMethods.first;
-        // 显示支付等待页面
-        if (mounted) {
-          _showPaymentWaiting(tradeNo);
-        }
       } else {
         // 需要实际支付，让用户选择支付方式
+        _logger.debug('[购买] 需要支付金额：$actualPayAmount，显示支付方式选择');
         selectedMethod = await _selectPaymentMethod(paymentMethods, tradeNo);
-        if (selectedMethod == null) return;
+        if (selectedMethod == null) {
+          _logger.debug('[购买] 用户取消选择支付方式');
+          return;
+        }
       }
 
       // Show order confirmation dialog

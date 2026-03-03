@@ -263,97 +263,231 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    // Code display
-                    Expanded(
-                      child: Text(
-                        code.code,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontFamily: 'monospace',
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final compactLayout = constraints.maxWidth < 680;
+                    if (!compactLayout) {
+                      return Row(
+                        children: [
+                          // Code display
+                          Expanded(
+                            child: Text(
+                              code.code,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontFamily: 'monospace',
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // QR code toggle button
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _expandedQrCode = isQrExpanded
+                                    ? null
+                                    : code.code;
+                              });
+                            },
+                            icon: Icon(
+                              isQrExpanded ? Icons.qr_code : Icons.qr_code_2,
+                              size: 20,
+                            ),
+                            tooltip: appLocalizations.xboardShowQrCode,
+                            style: IconButton.styleFrom(
+                              foregroundColor: isQrExpanded
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurface.withValues(
+                                      alpha: 0.6,
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          // Copy code button
+                          OutlinedButton.icon(
+                            onPressed: () => _copyCode(code.code),
+                            icon: Icon(
+                              isCopiedCode ? Icons.check : Icons.content_copy,
+                              size: 16,
+                              color: isCopiedCode ? successColor : null,
+                            ),
+                            label: Text(
+                              isCopiedCode
+                                  ? appLocalizations.xboardCopied
+                                  : appLocalizations.xboardCopyCode,
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: isCopiedCode
+                                  ? successColor
+                                  : colorScheme.onSurface.withValues(
+                                      alpha: 0.7,
+                                    ),
+                              side: BorderSide(
+                                color: isCopiedCode
+                                    ? successColor
+                                    : colorScheme.outline.withValues(
+                                        alpha: 0.3,
+                                      ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Copy link button
+                          FilledButton.icon(
+                            onPressed: () => _copyLink(code.code),
+                            icon: Icon(
+                              isCopiedLink ? Icons.check : Icons.link,
+                              size: 16,
+                              color: isCopiedLink
+                                  ? successColor
+                                  : colorScheme.onPrimary,
+                            ),
+                            label: Text(
+                              isCopiedLink
+                                  ? appLocalizations.xboardLinkCopied
+                                  : appLocalizations.xboardCopyLink,
+                            ),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: isCopiedLink
+                                  ? successBackground
+                                  : colorScheme.primaryContainer,
+                              foregroundColor: isCopiedLink
+                                  ? successForeground
+                                  : colorScheme.onPrimaryContainer,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Compact layout: code on top to prevent vertical wrapping.
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Text(
+                            code.code,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // QR code toggle button
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _expandedQrCode = isQrExpanded ? null : code.code;
-                        });
-                      },
-                      icon: Icon(
-                        isQrExpanded ? Icons.qr_code : Icons.qr_code_2,
-                        size: 20,
-                      ),
-                      tooltip: appLocalizations.xboardShowQrCode,
-                      style: IconButton.styleFrom(
-                        foregroundColor: isQrExpanded
-                            ? colorScheme.primary
-                            : colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    // Copy code button
-                    OutlinedButton.icon(
-                      onPressed: () => _copyCode(code.code),
-                      icon: Icon(
-                        isCopiedCode ? Icons.check : Icons.content_copy,
-                        size: 16,
-                        color: isCopiedCode ? successColor : null,
-                      ),
-                      label: Text(
-                        isCopiedCode
-                            ? appLocalizations.xboardCopied
-                            : appLocalizations.xboardCopyCode,
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: isCopiedCode
-                            ? successColor
-                            : colorScheme.onSurface.withValues(alpha: 0.7),
-                        side: BorderSide(
-                          color: isCopiedCode
-                              ? successColor
-                              : colorScheme.outline.withValues(alpha: 0.3),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: () => _copyCode(code.code),
+                              icon: Icon(
+                                isCopiedCode ? Icons.check : Icons.content_copy,
+                                size: 16,
+                                color: isCopiedCode ? successColor : null,
+                              ),
+                              label: Text(
+                                isCopiedCode
+                                    ? appLocalizations.xboardCopied
+                                    : appLocalizations.xboardCopyCode,
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: isCopiedCode
+                                    ? successColor
+                                    : colorScheme.onSurface.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                side: BorderSide(
+                                  color: isCopiedCode
+                                      ? successColor
+                                      : colorScheme.outline.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                            ),
+                            FilledButton.icon(
+                              onPressed: () => _copyLink(code.code),
+                              icon: Icon(
+                                isCopiedLink ? Icons.check : Icons.link,
+                                size: 16,
+                                color: isCopiedLink
+                                    ? successColor
+                                    : colorScheme.onPrimary,
+                              ),
+                              label: Text(
+                                isCopiedLink
+                                    ? appLocalizations.xboardLinkCopied
+                                    : appLocalizations.xboardCopyLink,
+                              ),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: isCopiedLink
+                                    ? successBackground
+                                    : colorScheme.primaryContainer,
+                                foregroundColor: isCopiedLink
+                                    ? successForeground
+                                    : colorScheme.onPrimaryContainer,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _expandedQrCode = isQrExpanded
+                                      ? null
+                                      : code.code;
+                                });
+                              },
+                              icon: Icon(
+                                isQrExpanded ? Icons.qr_code : Icons.qr_code_2,
+                                size: 18,
+                              ),
+                              label: Text(appLocalizations.xboardShowQrCode),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: isQrExpanded
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurface.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                side: BorderSide(
+                                  color: isQrExpanded
+                                      ? colorScheme.primary.withValues(
+                                          alpha: 0.5,
+                                        )
+                                      : colorScheme.outline.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Copy link button
-                    FilledButton.icon(
-                      onPressed: () => _copyLink(code.code),
-                      icon: Icon(
-                        isCopiedLink ? Icons.check : Icons.link,
-                        size: 16,
-                        color: isCopiedLink
-                            ? successColor
-                            : colorScheme.onPrimary,
-                      ),
-                      label: Text(
-                        isCopiedLink
-                            ? appLocalizations.xboardLinkCopied
-                            : appLocalizations.xboardCopyLink,
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: isCopiedLink
-                            ? successBackground
-                            : colorScheme.primaryContainer,
-                        foregroundColor: isCopiedLink
-                            ? successForeground
-                            : colorScheme.onPrimaryContainer,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ),
               // Expandable QR code section

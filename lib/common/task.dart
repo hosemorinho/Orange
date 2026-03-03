@@ -192,6 +192,7 @@ Future<Map<String, dynamic>> _makeRealProfileTask(
     'https://223.6.6.6/dns-query',
     'https://1.1.1.1/dns-query',
     'https://1.0.0.1/dns-query',
+    'tls://223.5.5.5',
   ];
   if (overrideDns || !isEnableDns) {
     final dns = switch (!isEnableDns) {
@@ -218,11 +219,14 @@ Future<Map<String, dynamic>> _makeRealProfileTask(
   final configuredProxyServerDoh = realPatchConfig.dns.proxyServerNameserver
       .map((item) => item.trim())
       .where(
-        (item) => item.isNotEmpty && item.toLowerCase().startsWith('https://'),
+        (item) =>
+            item.isNotEmpty &&
+            (item.toLowerCase().startsWith('https://') ||
+                item.toLowerCase().startsWith('tls://')),
       )
       .toSet()
       .toList();
-  // Always use DoH for resolving proxy node domains.
+  // Always use encrypted DNS endpoints (DoH/TLS) for proxy node domains.
   final proxyServerNameserver = {
     ...configuredProxyServerDoh,
     ...defaultProxyServerDoh,

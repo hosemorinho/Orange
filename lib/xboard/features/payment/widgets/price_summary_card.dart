@@ -32,8 +32,7 @@ class PriceSummaryCard extends StatelessWidget {
     final balanceToUse = hasBalance
         ? (userBalance! > displayFinalPrice ? displayFinalPrice : userBalance!)
         : 0.0;
-    final actualPayAmount =
-        displayFinalPrice - balanceToUse + (handlingFee ?? 0.0);
+    final totalAmount = displayFinalPrice + (handlingFee ?? 0.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,6 +77,16 @@ class PriceSummaryCard extends StatelessWidget {
                 ),
               ],
 
+              if (balanceToUse > 0) ...[
+                const SizedBox(height: 6),
+                _PriceRow(
+                  label: l10n.xboardDeductibleDuringPayment,
+                  price: balanceToUse,
+                  isDiscount: true,
+                  colorScheme: colorScheme,
+                ),
+              ],
+
               // Divider before total
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -90,11 +99,7 @@ class PriceSummaryCard extends StatelessWidget {
               // Total
               _FinalPriceRow(
                 label: l10n.xboardTotal,
-                price: actualPayAmount,
-                balanceDeducted: balanceToUse > 0 ? balanceToUse : null,
-                remainingBalance: hasBalance && userBalance! > displayFinalPrice
-                    ? userBalance! - displayFinalPrice
-                    : null,
+                price: totalAmount,
                 colorScheme: colorScheme,
               ),
             ],
@@ -152,16 +157,12 @@ class _PriceRow extends StatelessWidget {
 class _FinalPriceRow extends StatelessWidget {
   final String label;
   final double price;
-  final double? balanceDeducted;
-  final double? remainingBalance;
   final ColorScheme colorScheme;
 
   const _FinalPriceRow({
     required this.label,
     required this.price,
     required this.colorScheme,
-    this.balanceDeducted,
-    this.remainingBalance,
   });
 
   @override

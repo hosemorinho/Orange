@@ -13,7 +13,6 @@ import 'package:fl_clash/xboard/features/payment/providers/payment_ui_state_prov
 import 'package:fl_clash/xboard/adapter/state/payment_state.dart';
 import 'package:fl_clash/xboard/adapter/initialization/sdk_provider.dart';
 import '../widgets/payment_waiting_overlay.dart';
-import '../widgets/payment_method_selector_dialog.dart';
 import '../widgets/coupon_input_section.dart';
 import '../widgets/plan_header_card.dart';
 import '../widgets/period_selector.dart';
@@ -51,6 +50,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
   // 用户余额
   double? _userBalance;
+  int? _selectedPaymentMethodId;
 
   // 优惠券状态
   final TextEditingController _couponController = TextEditingController();
@@ -75,6 +75,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         });
       }
       _loadUserBalance();
+      await _loadPaymentMethods();
 
       // Check plan conflict: warn if buying a different plan while active
       await _checkPlanConflict();
@@ -100,6 +101,39 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     } catch (e) {
       _logger.debug('[购买] 加载用户余额失败: $e');
     }
+  }
+
+  Future<List<DomainPaymentMethod>> _loadPaymentMethods({
+    bool forceRefresh = false,
+  }) async {
+    if (forceRefresh) {
+      ref.invalidate(getPaymentMethodsProvider);
+    }
+    await ref.read(xboardPaymentProvider.notifier).loadPaymentMethods();
+    final methods = ref.read(xboardAvailablePaymentMethodsProvider);
+    if (mounted && methods.isNotEmpty) {
+      final hasSelected =
+          _selectedPaymentMethodId != null &&
+          methods.any((m) => m.id == _selectedPaymentMethodId);
+      if (!hasSelected) {
+        setState(() {
+          _selectedPaymentMethodId = methods.first.id;
+        });
+      }
+    }
+    return methods;
+  }
+
+  DomainPaymentMethod? _getSelectedPaymentMethod(
+    List<DomainPaymentMethod> methods,
+  ) {
+    if (methods.isEmpty) return null;
+    for (final method in methods) {
+      if (method.id == _selectedPaymentMethodId) {
+        return method;
+      }
+    }
+    return methods.first;
   }
 
   Future<void> _checkPlanConflict() async {
@@ -391,7 +425,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       );
 
       // 使用 xboardAvailablePaymentMethodsProvider 获取支付方式
-      var paymentMethods = ref.read(xboardAvailablePaymentMethodsProvider);
+      var paymentMethods = await _loadPaymentMethods(forceRefresh: true);
 
       // 如果支付方式为空，尝试重新加载
       if (paymentMethods.isEmpty) {
@@ -417,21 +451,16 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         );
       }
 
-      DomainPaymentMethod? selectedMethod;
-
-      // 如果实付金额为 0（余额完全抵扣），自动选择第一个支付方式用于下单
-      if (actualPayAmount <= 0) {
-        _logger.debug('[购买] 实付金额为 0，使用余额支付');
-        selectedMethod = paymentMethods.first;
-      } else {
-        // 需要实际支付，让用户选择支付方式
-        _logger.debug('[购买] 需要支付金额：$actualPayAmount，显示支付方式选择');
-        selectedMethod = await _selectPaymentMethod(paymentMethods, tradeNo);
-        if (selectedMethod == null) {
-          _logger.debug('[购买] 用户取消选择支付方式');
-          return;
-        }
+      final selectedMethod = _getSelectedPaymentMethod(paymentMethods);
+      if (selectedMethod == null) {
+        throw Exception(
+          AppLocalizations.of(context).xboardNoPaymentMethodsAvailable,
+        );
       }
+
+      _logger.debug(
+        '[购买] 使用支付方式: ${selectedMethod.name} (id: ${selectedMethod.id})',
+      );
 
       // Show order confirmation dialog
       final basePrice = _getCurrentPrice();
@@ -514,38 +543,6 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         }
       }
     });
-  }
-
-  Future<DomainPaymentMethod?> _selectPaymentMethod(
-    List<DomainPaymentMethod> methods,
-    String tradeNo,
-  ) async {
-    if (methods.length == 1) {
-      // 单一支付方式，直接显示等待页面并返回
-      if (mounted) {
-        _showPaymentWaiting(tradeNo);
-      }
-      return methods.first;
-    }
-
-    PaymentWaitingManager.hide();
-    if (!mounted) return null;
-
-    final selected = await showPaymentMethodSelector(
-      context,
-      paymentMethods: methods,
-    );
-
-    if (selected == null) {
-      _logger.debug('[支付] 用户取消选择支付方式');
-      return null;
-    }
-
-    if (mounted) {
-      _showPaymentWaiting(tradeNo);
-    }
-
-    return selected;
   }
 
   Future<void> _submitPayment(
@@ -1061,6 +1058,17 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     double currentPrice,
     ColorScheme colorScheme,
   ) {
+    final l10n = AppLocalizations.of(context);
+    final paymentMethods = ref.watch(xboardAvailablePaymentMethodsProvider);
+    final selectedMethod = _getSelectedPaymentMethod(paymentMethods);
+    final displayFinalPrice = _couponType != null
+        ? PriceCalculator.calculateFinalPrice(
+            currentPrice,
+            _couponType,
+            _couponValue,
+          )
+        : currentPrice;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1074,13 +1082,67 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppLocalizations.of(context).xboardPaymentDetails,
+            l10n.xboardPaymentDetails,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurfaceVariant,
             ),
           ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.xboardPaymentMethod,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (paymentMethods.isEmpty)
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.xboardNoPaymentMethodsAvailable,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () => _loadPaymentMethods(forceRefresh: true),
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: Text(l10n.xboardRefresh),
+                ),
+              ],
+            )
+          else
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final method in paymentMethods)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(method.name),
+                        selected:
+                            method.id ==
+                            (_selectedPaymentMethodId ??
+                                paymentMethods.first.id),
+                        onSelected: (selected) {
+                          if (!selected) return;
+                          setState(() {
+                            _selectedPaymentMethodId = method.id;
+                          });
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
           const SizedBox(height: 10),
           // Price summary
           if (_selectedPeriod != null)
@@ -1101,6 +1163,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                     )
                   : null,
               userBalance: _userBalance,
+              handlingFee: selectedMethod?.calculateFee(displayFinalPrice),
             ),
         ],
       ),

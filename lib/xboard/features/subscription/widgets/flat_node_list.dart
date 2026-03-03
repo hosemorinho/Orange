@@ -265,7 +265,6 @@ class _FlatNodeListViewState extends ConsumerState<FlatNodeListView> {
                         final node = filtered[index];
                         return _FlatNodeCard(
                           proxy: node.proxy,
-                          groupName: node.groupName,
                           isSelected: node.isSelected,
                           onTap: () => _selectNode(node),
                         );
@@ -342,13 +341,11 @@ class _FlatNode {
 
 class _FlatNodeCard extends ConsumerWidget {
   final Proxy proxy;
-  final String groupName;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _FlatNodeCard({
     required this.proxy,
-    required this.groupName,
     required this.isSelected,
     required this.onTap,
   });
@@ -368,10 +365,9 @@ class _FlatNodeCard extends ConsumerWidget {
 
     final displayName = _displayName(proxy.name, flag);
     final protocol = proxy.type.toUpperCase();
-    final detailTag =
-        tags.isNotEmpty && tags.first.toLowerCase() != protocol.toLowerCase()
-        ? tags.first
-        : groupName;
+    final detailTag = tags
+        .where((tag) => tag.toLowerCase() != protocol.toLowerCase())
+        .firstOrNull;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -407,7 +403,18 @@ class _FlatNodeCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   alignment: Alignment.center,
-                  child: Text(flag ?? '🌐', style: theme.textTheme.titleMedium),
+                  child: flag != null
+                      ? Text(
+                          flag,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontFamily: 'Twemoji',
+                          ),
+                        )
+                      : Icon(
+                          Icons.public_outlined,
+                          size: 20,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -436,17 +443,19 @@ class _FlatNodeCard extends ConsumerWidget {
                                 ? colorScheme.primary
                                 : colorScheme.onSurfaceVariant,
                           ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              detailTag,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
+                          if (detailTag != null) ...[
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                detailTag,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ],

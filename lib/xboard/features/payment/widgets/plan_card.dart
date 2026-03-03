@@ -5,13 +5,7 @@ import 'package:flutter/material.dart';
 import '../utils/price_calculator.dart';
 import 'plan_description_widget.dart';
 
-/// Plan card component
-///
-/// Features:
-/// - Header with plan name
-/// - Feature list with checkmarks
-/// - Purchase button
-/// - Hover effects on desktop
+/// Plan card component - Compact version
 class PlanCard extends StatefulWidget {
   final DomainPlan plan;
   final VoidCallback onPurchase;
@@ -80,7 +74,7 @@ class _PlanCardState extends State<PlanCard> {
             children: [
               // Header with plan name and price
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
@@ -88,15 +82,17 @@ class _PlanCardState extends State<PlanCard> {
                     Expanded(
                       child: Text(
                         plan.name,
-                        style: theme.textTheme.titleLarge?.copyWith(
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (plan.hasPrice)
                       Text(
                         _getLowestPrice(plan),
-                        style: theme.textTheme.titleLarge?.copyWith(
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: colorScheme.primary,
                         ),
@@ -107,14 +103,14 @@ class _PlanCardState extends State<PlanCard> {
 
               // Features section with tags
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Feature tags
+                    // Feature tags - more compact
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                      spacing: 6,
+                      runSpacing: 6,
                       children: [
                         _buildFeatureTag(
                           context,
@@ -143,11 +139,11 @@ class _PlanCardState extends State<PlanCard> {
 
                     // Description (if exists)
                     if (plan.description != null) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Divider(
                         color: colorScheme.outline.withValues(alpha: 0.1),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 6),
                       PlanDescriptionWidget(content: plan.description!),
                     ],
                   ],
@@ -156,26 +152,26 @@ class _PlanCardState extends State<PlanCard> {
 
               const Spacer(),
 
-              // Purchase button
+              // Purchase button - compact height
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(14),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 48,
+                  height: 42,
                   child: FilledButton(
                     onPressed: widget.onPurchase,
                     style: FilledButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       elevation: 0,
                     ),
                     child: Text(
                       AppLocalizations.of(context).xboardBuyNow,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -192,10 +188,10 @@ class _PlanCardState extends State<PlanCard> {
   Widget _buildFeatureTag(BuildContext context, IconData icon, String text) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: colorScheme.primary.withValues(alpha: 0.2),
           width: 1,
@@ -206,16 +202,16 @@ class _PlanCardState extends State<PlanCard> {
         children: [
           Icon(
             icon,
-            size: 14,
+            size: 13,
             color: colorScheme.primary,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 4),
           Text(
             text,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
-                  fontSize: 12,
+                  fontSize: 11,
                 ),
           ),
         ],

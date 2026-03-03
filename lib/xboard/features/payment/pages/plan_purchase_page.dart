@@ -775,12 +775,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
           currentPrice,
           colorScheme,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         _buildCouponCard(context, colorScheme),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         _buildPaymentDetailsCard(context, currentPrice, colorScheme),
         if (widget.embedded) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _buildActionButtons(context, colorScheme),
         ],
       ],
@@ -873,7 +873,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
@@ -882,14 +882,14 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             onTap: () {
               setState(() {
                 _isMobilePlanSectionExpanded = !_isMobilePlanSectionExpanded;
               });
             },
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+              padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
               child: Row(
                 children: [
                   Expanded(
@@ -905,11 +905,11 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                             color: colorScheme.onSurface,
                           ),
                         ),
-                        const SizedBox(height: 3),
+                        const SizedBox(height: 2),
                         Text(
                           subtitle,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             color: colorScheme.onSurfaceVariant,
                           ),
                           maxLines: 1,
@@ -918,7 +918,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   AnimatedRotation(
                     turns: _isMobilePlanSectionExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 180),
@@ -934,11 +934,11 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
           AnimatedCrossFade(
             firstChild: const SizedBox.shrink(),
             secondChild: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
               child: Column(
                 children: [
                   _buildPlanSummaryCard(context, colorScheme),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   _buildPeriodSelectorCard(context, periods, colorScheme),
                 ],
               ),
@@ -957,10 +957,10 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   Widget _buildCouponCard(BuildContext context, ColorScheme colorScheme) {
     final currentPrice = _getCurrentPrice();
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
@@ -986,10 +986,10 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   // Plan summary card
   Widget _buildPlanSummaryCard(BuildContext context, ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
@@ -1000,12 +1000,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
           Text(
             AppLocalizations.of(context).xboardPlanSummary,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           PlanHeaderCard(plan: widget.plan),
         ],
       ),
@@ -1019,10 +1019,10 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     ColorScheme colorScheme,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
@@ -1058,10 +1058,10 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     ColorScheme colorScheme,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
@@ -1072,12 +1072,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
           Text(
             AppLocalizations.of(context).xboardPaymentDetails,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           // Price summary
           if (_selectedPeriod != null)
             PriceSummaryCard(
@@ -1107,7 +1107,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   Widget _buildActionButtons(BuildContext context, ColorScheme colorScheme) {
     return SizedBox(
       width: double.infinity,
-      height: 46,
+      height: 44,
       child: Consumer(
         builder: (context, ref, child) {
           final paymentState = ref.watch(paymentUIStateNotifierProvider);
@@ -1117,7 +1117,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
               backgroundColor: colorScheme.primaryContainer,
               foregroundColor: colorScheme.onPrimaryContainer,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
             child: paymentState.isLoading
@@ -1125,8 +1125,8 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                        width: 18,
-                        height: 18,
+                        width: 16,
+                        height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
@@ -1134,7 +1134,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Text(
                         AppLocalizations.of(context).xboardProcessing,
                         style: const TextStyle(

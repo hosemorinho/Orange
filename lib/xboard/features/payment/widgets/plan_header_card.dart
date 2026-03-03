@@ -6,10 +6,7 @@ import 'package:fl_clash/xboard/domain/domain.dart';
 class PlanHeaderCard extends StatelessWidget {
   final DomainPlan plan;
 
-  const PlanHeaderCard({
-    super.key,
-    required this.plan,
-  });
+  const PlanHeaderCard({super.key, required this.plan});
 
   String _getTrafficDisplay(BuildContext context) {
     if (plan.transferQuota == 0) {
@@ -29,10 +26,10 @@ class PlanHeaderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: colorScheme.primary.withValues(alpha: 0.2),
           width: 1,
@@ -44,34 +41,34 @@ class PlanHeaderCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.workspace_premium,
                   color: colorScheme.primary,
-                  size: 28,
+                  size: 22,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   plan.name,
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
                     color: colorScheme.onSurface,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: [
               _buildCompactInfo(
                 context,
@@ -105,10 +102,10 @@ class PlanHeaderCard extends StatelessWidget {
   Widget _buildCompactInfo(BuildContext context, IconData icon, String text) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: colorScheme.primary.withValues(alpha: 0.3),
           width: 1,
@@ -117,12 +114,12 @@ class PlanHeaderCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: colorScheme.primary, size: 14),
-          const SizedBox(width: 6),
+          Icon(icon, color: colorScheme.primary, size: 13),
+          const SizedBox(width: 5),
           Text(
             text,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface,
             ),

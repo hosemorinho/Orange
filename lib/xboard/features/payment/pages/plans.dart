@@ -207,7 +207,7 @@ class _PlansViewState extends ConsumerState<PlansView> {
                     );
                   }
                   return SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1200),
@@ -217,7 +217,7 @@ class _PlansViewState extends ConsumerState<PlansView> {
                             final crossAxisCount = width < 500
                                 ? 1
                                 : (width < 800 ? 2 : 3);
-                            const spacing = 16.0;
+                            const spacing = 12.0;
                             final totalSpacing = spacing * (crossAxisCount - 1);
                             final cardWidth =
                                 (width - totalSpacing) / crossAxisCount;

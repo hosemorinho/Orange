@@ -32,25 +32,17 @@ class PriceSummaryCard extends StatelessWidget {
     final balanceToUse = hasBalance
         ? (userBalance! > displayFinalPrice ? displayFinalPrice : userBalance!)
         : 0.0;
-    final actualPayAmount = displayFinalPrice - balanceToUse + (handlingFee ?? 0.0);
+    final actualPayAmount =
+        displayFinalPrice - balanceToUse + (handlingFee ?? 0.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.xboardOrderSummary,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 16),
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: colorScheme.outlineVariant.withValues(alpha: 0.5),
               width: 1,
@@ -67,7 +59,7 @@ class PriceSummaryCard extends StatelessWidget {
 
               // Discount
               if (hasDiscount) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 _PriceRow(
                   label: l10n.xboardDiscount,
                   price: discountAmount!,
@@ -78,7 +70,7 @@ class PriceSummaryCard extends StatelessWidget {
 
               // Handling fee
               if (hasFee) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 _PriceRow(
                   label: l10n.xboardHandlingFee,
                   price: handlingFee!,
@@ -88,7 +80,7 @@ class PriceSummaryCard extends StatelessWidget {
 
               // Divider before total
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Divider(
                   height: 1,
                   color: colorScheme.outlineVariant.withValues(alpha: 0.3),
@@ -133,7 +125,7 @@ class _PriceRow extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 12,
             color: isDiscount
                 ? colorScheme.tertiary
                 : colorScheme.onSurfaceVariant,
@@ -145,7 +137,7 @@ class _PriceRow extends StatelessWidget {
               ? '-${PriceCalculator.formatPrice(price)}'
               : PriceCalculator.formatPrice(price),
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: isDiscount ? FontWeight.w600 : FontWeight.normal,
             color: isDiscount
                 ? colorScheme.tertiary
@@ -179,8 +171,8 @@ class _FinalPriceRow extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
             color: colorScheme.onSurface,
           ),
         ),
@@ -188,8 +180,8 @@ class _FinalPriceRow extends StatelessWidget {
         Text(
           PriceCalculator.formatPrice(price),
           style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
             color: colorScheme.primary,
           ),
         ),

@@ -47,6 +47,7 @@ class PlanPurchasePage extends ConsumerStatefulWidget {
 class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   // 周期选择
   String? _selectedPeriod;
+  bool _isMobilePlanSectionExpanded = false;
 
   // 用户余额
   double? _userBalance;
@@ -233,6 +234,24 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       orElse: () => {},
     );
     return selectedPeriod['price']?.toDouble() ?? 0.0;
+  }
+
+  double _getPayableAmount() {
+    final currentPrice = _getCurrentPrice();
+    final displayFinalPrice = _couponType != null
+        ? PriceCalculator.calculateFinalPrice(
+            currentPrice,
+            _couponType,
+            _couponValue,
+          )
+        : currentPrice;
+    final balanceToUse = _userBalance != null && _userBalance! > 0
+        ? (_userBalance! > displayFinalPrice
+              ? displayFinalPrice
+              : _userBalance!)
+        : 0.0;
+    final payableAmount = displayFinalPrice - balanceToUse;
+    return payableAmount < 0 ? 0 : payableAmount;
   }
 
   // ========== 优惠券 ==========
@@ -651,13 +670,14 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     final colorScheme = Theme.of(context).colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktopLayout = screenWidth > 900;
+    final bodyBottomPadding = isDesktopLayout ? 14.0 : 92.0;
 
     final content = Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
+        constraints: const BoxConstraints(maxWidth: 1160),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(12, 12, 12, bodyBottomPadding),
           child: isDesktopLayout
               ? _buildTwoColumnLayout(
                   context,
@@ -694,6 +714,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         title: Text(AppLocalizations.of(context).xboardPurchaseSubscription),
       ),
       body: content,
+      bottomNavigationBar: isDesktopLayout
+          ? null
+          : _buildMobileStickyActionBar(context, colorScheme),
     );
   }
 
@@ -713,21 +736,21 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
           child: Column(
             children: [
               _buildPlanSummaryCard(context, colorScheme),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildPeriodSelectorCard(context, periods, colorScheme),
             ],
           ),
         ),
-        const SizedBox(width: 20),
+        const SizedBox(width: 14),
         // Right column: Payment details
         Expanded(
           flex: 7,
           child: Column(
             children: [
               _buildCouponCard(context, colorScheme),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildPaymentDetailsCard(context, currentPrice, colorScheme),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildActionButtons(context, colorScheme),
             ],
           ),
@@ -746,16 +769,187 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildPlanSummaryCard(context, colorScheme),
-        const SizedBox(height: 16),
-        _buildPeriodSelectorCard(context, periods, colorScheme),
-        const SizedBox(height: 16),
+        _buildMobilePlanAndPeriodSection(
+          context,
+          periods,
+          currentPrice,
+          colorScheme,
+        ),
+        const SizedBox(height: 10),
         _buildCouponCard(context, colorScheme),
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
         _buildPaymentDetailsCard(context, currentPrice, colorScheme),
-        const SizedBox(height: 16),
-        _buildActionButtons(context, colorScheme),
+        if (widget.embedded) ...[
+          const SizedBox(height: 10),
+          _buildActionButtons(context, colorScheme),
+        ],
       ],
+    );
+  }
+
+  Widget _buildMobileStickyActionBar(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final payableAmount = _getPayableAmount();
+    final hasPeriodSelected = _selectedPeriod != null;
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          border: Border(
+            top: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 46,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.xboardTotal,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      hasPeriodSelected
+                          ? PriceCalculator.formatPrice(payableAmount)
+                          : '--',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: hasPeriodSelected
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(flex: 2, child: _buildActionButtons(context, colorScheme)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobilePlanAndPeriodSection(
+    BuildContext context,
+    List<Map<String, dynamic>> periods,
+    double currentPrice,
+    ColorScheme colorScheme,
+  ) {
+    final selectedLabel = _getSelectedPeriodLabel();
+    final subtitle = selectedLabel.isNotEmpty
+        ? '$selectedLabel · ${PriceCalculator.formatPrice(currentPrice)}'
+        : AppLocalizations.of(context).xboardPleaseSelectPaymentPeriod;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () {
+              setState(() {
+                _isMobilePlanSectionExpanded = !_isMobilePlanSectionExpanded;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${AppLocalizations.of(context).xboardPlanSummary} / '
+                          '${AppLocalizations.of(context).xboardSelectPaymentPeriod}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AnimatedRotation(
+                    turns: _isMobilePlanSectionExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 180),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(
+                children: [
+                  _buildPlanSummaryCard(context, colorScheme),
+                  const SizedBox(height: 10),
+                  _buildPeriodSelectorCard(context, periods, colorScheme),
+                ],
+              ),
+            ),
+            crossFadeState: _isMobilePlanSectionExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
+      ),
     );
   }
 
@@ -763,10 +957,10 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   Widget _buildCouponCard(BuildContext context, ColorScheme colorScheme) {
     final currentPrice = _getCurrentPrice();
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
@@ -792,10 +986,10 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   // Plan summary card
   Widget _buildPlanSummaryCard(BuildContext context, ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
@@ -811,7 +1005,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           PlanHeaderCard(plan: widget.plan),
         ],
       ),
@@ -825,10 +1019,10 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     ColorScheme colorScheme,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
@@ -864,10 +1058,10 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     ColorScheme colorScheme,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
@@ -883,7 +1077,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           // Price summary
           if (_selectedPeriod != null)
             PriceSummaryCard(
@@ -913,7 +1107,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   Widget _buildActionButtons(BuildContext context, ColorScheme colorScheme) {
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: 46,
       child: Consumer(
         builder: (context, ref, child) {
           final paymentState = ref.watch(paymentUIStateNotifierProvider);
@@ -931,8 +1125,8 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: 18,
+                        height: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
@@ -943,16 +1137,18 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                       const SizedBox(width: 12),
                       Text(
                         AppLocalizations.of(context).xboardProcessing,
-                        style: const TextStyle(fontSize: 16),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   )
                 : Text(
                     AppLocalizations.of(context).xboardContinueToPayment,
                     style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
           );

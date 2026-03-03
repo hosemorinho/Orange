@@ -30,11 +30,11 @@ class PeriodSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
           child: Text(
             AppLocalizations.of(context).xboardSelectPaymentPeriod,
             style: TextStyle(
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurfaceVariant,
             ),
@@ -54,7 +54,7 @@ class PeriodSelector extends StatelessWidget {
         final isSelected = selectedPeriod == period['period'];
         return Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 2),
             child: _PeriodCard(
               period: period,
               isSelected: isSelected,
@@ -77,9 +77,9 @@ class PeriodSelector extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        childAspectRatio: 2.5,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
+        childAspectRatio: 3.0,
+        crossAxisSpacing: 5,
+        mainAxisSpacing: 5,
       ),
       itemCount: periods.length,
       itemBuilder: (context, index) {
@@ -124,20 +124,19 @@ class _PeriodCard extends StatelessWidget {
           )
         : periodPrice;
 
-    final hasDiscount = isSelected &&
-        couponType != null &&
-        displayPrice < periodPrice;
+    final hasDiscount =
+        isSelected && couponType != null && displayPrice < periodPrice;
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: isSelected
               ? colorScheme.primary.withValues(alpha: 0.08)
               : colorScheme.surface,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
                 ? colorScheme.primary
@@ -154,7 +153,7 @@ class _PeriodCard extends StatelessWidget {
                 Text(
                   period['label'],
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: isSelected
                         ? colorScheme.primary
@@ -164,7 +163,7 @@ class _PeriodCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 if (hasDiscount)
                   Column(
                     children: [
@@ -181,7 +180,7 @@ class _PeriodCard extends StatelessWidget {
                       Text(
                         PriceCalculator.formatPrice(displayPrice),
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: colorScheme.primary,
                         ),
@@ -192,7 +191,7 @@ class _PeriodCard extends StatelessWidget {
                   Text(
                     PriceCalculator.formatPrice(periodPrice),
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: isSelected
                           ? colorScheme.primary
@@ -207,14 +206,14 @@ class _PeriodCard extends StatelessWidget {
                 top: 0,
                 right: 0,
                 child: Container(
-                  padding: const EdgeInsets.all(2),
+                  padding: const EdgeInsets.all(1.5),
                   decoration: BoxDecoration(
                     color: colorScheme.primary,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.check,
-                    size: 12,
+                    size: 10,
                     color: colorScheme.onPrimary,
                   ),
                 ),

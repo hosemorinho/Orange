@@ -29,15 +29,15 @@ class CouponInputSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
           child: Row(
             children: [
-              Icon(Icons.local_offer, color: colorScheme.secondary, size: 20),
+              Icon(Icons.local_offer, color: colorScheme.secondary, size: 18),
               const SizedBox(width: 6),
               Text(
                 AppLocalizations.of(context).xboardCouponOptional,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -58,11 +58,8 @@ class CouponInputSection extends StatelessWidget {
                 onChanged: onChanged,
               ),
             ),
-            const SizedBox(width: 8),
-            _ValidateButton(
-              isValidating: isValidating,
-              onPressed: onValidate,
-            ),
+            const SizedBox(width: 6),
+            _ValidateButton(isValidating: isValidating, onPressed: onValidate),
           ],
         ),
         if (errorMessage != null) ...[
@@ -83,24 +80,26 @@ class _DiscountBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [colorScheme.tertiary.withValues(alpha: 0.7), colorScheme.tertiary],
-        ),
-        borderRadius: BorderRadius.circular(12),
+        color: colorScheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle, color: colorScheme.onTertiary, size: 14),
+          Icon(
+            Icons.check_circle,
+            color: colorScheme.onTertiaryContainer,
+            size: 12,
+          ),
           const SizedBox(width: 4),
           Text(
             '-\u00A5${discountAmount.toStringAsFixed(2)}',
             style: TextStyle(
-              color: colorScheme.onTertiary,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+              color: colorScheme.onTertiaryContainer,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -130,58 +129,54 @@ class _CouponTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
-      height: 44,
+      height: 40,
       child: TextField(
         controller: controller,
         style: TextStyle(
           color: colorScheme.onSurface,
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
           filled: true,
           fillColor: colorScheme.surface,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
               color: colorScheme.outline.withValues(alpha: 0.5),
             ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
               color: colorScheme.outline.withValues(alpha: 0.5),
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(
-              color: colorScheme.primary,
-              width: 2,
-            ),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: colorScheme.primary, width: 1.6),
           ),
           hintText: AppLocalizations.of(context).xboardEnterCouponCode,
           hintStyle: TextStyle(
             color: colorScheme.outline,
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.normal,
           ),
           prefixIcon: Icon(
             Icons.confirmation_number_outlined,
             color: _getIconColor(colorScheme),
-            size: 20,
+            size: 18,
           ),
           suffixIcon: isValid != null
               ? Icon(
                   isValid! ? Icons.check_circle : Icons.cancel,
                   color: isValid! ? colorScheme.tertiary : colorScheme.error,
-                  size: 20,
+                  size: 18,
                 )
               : null,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+            horizontal: 14,
+            vertical: 10,
           ),
         ),
         onChanged: (_) => onChanged(),
@@ -194,16 +189,13 @@ class _ValidateButton extends StatelessWidget {
   final bool isValidating;
   final VoidCallback onPressed;
 
-  const _ValidateButton({
-    required this.isValidating,
-    required this.onPressed,
-  });
+  const _ValidateButton({required this.isValidating, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
-      height: 44,
+      height: 40,
       child: OutlinedButton(
         onPressed: isValidating
             ? null
@@ -212,27 +204,29 @@ class _ValidateButton extends StatelessWidget {
                 onPressed();
               },
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: colorScheme.primary),
+          side: BorderSide(color: colorScheme.outlineVariant),
           foregroundColor: colorScheme.primary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
         ),
         child: isValidating
             ? SizedBox(
-                width: 18,
-                height: 18,
+                width: 16,
+                height: 16,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    colorScheme.primary,
+                  ),
                 ),
               )
             : Text(
                 AppLocalizations.of(context).xboardVerify,
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
                 ),
               ),
       ),
@@ -249,10 +243,10 @@ class _ErrorMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
         color: colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: [
@@ -261,10 +255,7 @@ class _ErrorMessage extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: TextStyle(
-                color: colorScheme.error,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: colorScheme.error, fontSize: 12),
             ),
           ),
         ],

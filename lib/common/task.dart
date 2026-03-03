@@ -187,6 +187,12 @@ Future<Map<String, dynamic>> _makeRealProfileTask(
   }
   final isEnableDns = rawConfig['dns']['enable'] == true;
   final systemDns = 'system://';
+  const defaultProxyServerDoh = [
+    'https://223.5.5.5/dns-query',
+    'https://223.6.6.6/dns-query',
+    'https://1.1.1.1/dns-query',
+    'https://1.0.0.1/dns-query',
+  ];
   if (overrideDns || !isEnableDns) {
     final dns = switch (!isEnableDns) {
       true => realPatchConfig.dns.copyWith(
@@ -209,6 +215,19 @@ Future<Map<String, dynamic>> _makeRealProfileTask(
       rawConfig['dns']['nameserver'] = [...nameserver, systemDns];
     }
   }
+  final configuredProxyServerDoh = realPatchConfig.dns.proxyServerNameserver
+      .map((item) => item.trim())
+      .where(
+        (item) => item.isNotEmpty && item.toLowerCase().startsWith('https://'),
+      )
+      .toSet()
+      .toList();
+  // Always use DoH for resolving proxy node domains.
+  final proxyServerNameserver = {
+    ...configuredProxyServerDoh,
+    ...defaultProxyServerDoh,
+  }.toList();
+  rawConfig['dns']['proxy-server-nameserver'] = proxyServerNameserver;
   List<String> rules = [];
   if (rawConfig['rules'] != null) {
     rules = List<String>.from(rawConfig['rules']);

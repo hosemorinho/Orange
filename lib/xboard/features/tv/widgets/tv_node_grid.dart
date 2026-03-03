@@ -10,6 +10,7 @@ import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'tv_design_tokens.dart';
 import 'tv_focus_card.dart';
 
 /// D-pad navigable node grid for TV.
@@ -70,33 +71,48 @@ class _TvNodeGridState extends ConsumerState<TvNodeGrid> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Icon(Icons.dns, size: 24, color: colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                appLocalizations.xboardSwitchNode,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.34,
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${nodes.length}',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.dns_rounded, size: 22, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  appLocalizations.xboardSwitchNode,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '${nodes.length}',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         Expanded(
@@ -109,12 +125,12 @@ class _TvNodeGridState extends ConsumerState<TvNodeGrid> {
                     );
                     return FocusTraversalGroup(
                       child: GridView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: crossAxisCount,
-                          childAspectRatio: 3.0,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
+                          childAspectRatio: 2.9,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
                         ),
                         itemCount: nodes.length,
                         itemBuilder: (context, index) {
@@ -151,47 +167,71 @@ class _TvNodeGridState extends ConsumerState<TvNodeGrid> {
     ColorScheme colorScheme,
   ) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.cloud_off, size: 48, color: colorScheme.onSurfaceVariant),
-          const SizedBox(height: 12),
-          Text(
-            appLocalizations.xboardNoAvailableNodes,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            appLocalizations.checkNetwork,
-            style: theme.textTheme.bodyMedium?.copyWith(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 420),
+        padding: const EdgeInsets.all(20),
+        decoration: TvDesignTokens.panel(colorScheme),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.cloud_off_rounded,
+              size: 44,
               color: colorScheme.onSurfaceVariant,
             ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: 220,
-            child: TvFocusCard(
-              autofocus: true,
-              onPressed: _isRefreshing ? null : _refreshNodes,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.refresh, size: 20, color: colorScheme.onSurface),
-                  const SizedBox(width: 8),
-                  Text(
-                    _isRefreshing
-                        ? appLocalizations.xboardInitializing
-                        : appLocalizations.xboardUpdateNodes,
-                    style: theme.textTheme.titleSmall,
-                  ),
-                ],
+            const SizedBox(height: 12),
+            Text(
+              appLocalizations.xboardNoAvailableNodes,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              appLocalizations.checkNetwork,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: 240,
+              child: TvFocusCard(
+                autofocus: true,
+                onPressed: _isRefreshing ? null : _refreshNodes,
+                borderRadius: BorderRadius.circular(
+                  TvDesignTokens.controlRadius,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 11,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.refresh_rounded,
+                      size: 20,
+                      color: colorScheme.onSurface,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isRefreshing
+                          ? appLocalizations.xboardInitializing
+                          : appLocalizations.xboardUpdateNodes,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -284,17 +324,28 @@ class _TvNodeCardState extends ConsumerState<_TvNodeCard> {
       isSelected: widget.isSelected,
       onPressed: widget.onTap,
       onFocusChange: (focused) => setState(() => _isFocused = focused),
+      borderRadius: BorderRadius.circular(TvDesignTokens.controlRadius),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          Icon(
-            Icons.dns,
-            size: 20,
-            color: widget.isSelected
-                ? colorScheme.primary
-                : colorScheme.onSurfaceVariant,
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: widget.isSelected
+                  ? colorScheme.primaryContainer
+                  : colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              Icons.dns_rounded,
+              size: 18,
+              color: widget.isSelected
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+            ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -303,10 +354,10 @@ class _TvNodeCardState extends ConsumerState<_TvNodeCard> {
                 EmojiText(
                   widget.proxy.name,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: widget.isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                        ? FontWeight.w700
+                        : FontWeight.w500,
                     color: widget.isSelected
                         ? colorScheme.primary
                         : colorScheme.onSurface,
@@ -314,11 +365,24 @@ class _TvNodeCardState extends ConsumerState<_TvNodeCard> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  widget.proxy.type,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 12,
+                const SizedBox(height: 2),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.45,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    widget.proxy.type,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],

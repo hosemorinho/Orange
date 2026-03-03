@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../widgets/tv_connect_button.dart';
+import '../widgets/tv_design_tokens.dart';
 import '../widgets/tv_mode_selector.dart';
 import '../widgets/tv_node_grid.dart';
 import '../widgets/tv_traffic_bar.dart';
@@ -18,30 +19,44 @@ class TvHomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: Column(
-        children: [
-          Expanded(
-            child: Row(
+      body: DecoratedBox(
+        decoration: TvDesignTokens.background(colorScheme),
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: TvDesignTokens.pagePadding,
+            child: Column(
               children: [
-                // LEFT: Connection control
-                Expanded(flex: 2, child: _ConnectionPanel()),
-                VerticalDivider(
-                  width: 1,
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: _TvPanel(
+                          emphasized: true,
+                          child: _ConnectionPanel(),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        flex: 3,
+                        child: _TvPanel(child: TvNodeGrid()),
+                      ),
+                    ],
+                  ),
                 ),
-                // RIGHT: Node selection
-                const Expanded(flex: 3, child: TvNodeGrid()),
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: const TvTrafficBar(),
+                ),
               ],
             ),
           ),
-          // Bottom traffic bar
-          const TvTrafficBar(),
-        ],
+        ),
       ),
     );
   }
@@ -61,61 +76,123 @@ class _ConnectionPanel extends ConsumerWidget {
     );
 
     // Resolve current node
-    final (:group, :proxy) = resolveCurrentNode(
+    final resolved = resolveCurrentNode(
       groups: groups,
       selectedMap: selectedMap,
       mode: mode,
     );
+    final proxy = resolved.proxy;
 
     return Padding(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(24),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Status text
-          Text(
-            isStart
-                ? appLocalizations.xboardConnected
-                : appLocalizations.xboardDisconnected,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: isStart ? colorScheme.tertiary : colorScheme.onSurface,
-            ),
+          Row(
+            children: [
+              Icon(
+                isStart ? Icons.verified_rounded : Icons.link_off_rounded,
+                size: 22,
+                color: isStart
+                    ? colorScheme.tertiary
+                    : colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isStart
+                    ? appLocalizations.xboardConnected
+                    : appLocalizations.xboardDisconnected,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: isStart ? colorScheme.tertiary : colorScheme.onSurface,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
 
-          // Current node info
-          if (proxy != null) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.45,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Row(
               children: [
-                Flexible(
-                  child: EmojiText(
-                    proxy.name,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                Icon(Icons.dns_rounded, size: 18, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        appLocalizations.xboardCurrentNode,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      if (proxy != null)
+                        EmojiText(
+                          proxy.name,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      else
+                        Text(
+                          '--',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                _NodeLatency(proxy: proxy),
+                if (proxy != null) ...[
+                  const SizedBox(width: 8),
+                  _NodeLatency(proxy: proxy),
+                ],
               ],
             ),
-            const SizedBox(height: 24),
-          ] else
-            const SizedBox(height: 32),
+          ),
+          const Spacer(),
 
           // Connect button
-          const TvConnectButton(),
-          const SizedBox(height: 32),
+          const Center(child: TvConnectButton()),
+          const SizedBox(height: 28),
 
           // Mode selector
           const TvModeSelector(),
+          const SizedBox(height: 6),
         ],
       ),
+    );
+  }
+}
+
+class _TvPanel extends StatelessWidget {
+  final Widget child;
+  final bool emphasized;
+
+  const _TvPanel({required this.child, this.emphasized = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: TvDesignTokens.panel(colorScheme, emphasized: emphasized),
+      clipBehavior: Clip.antiAlias,
+      child: child,
     );
   }
 }

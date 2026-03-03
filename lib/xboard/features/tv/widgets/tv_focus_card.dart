@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'tv_design_tokens.dart';
 
 /// Base focusable container for all TV interactive elements.
 ///
@@ -65,26 +66,47 @@ class _TvFocusCardState extends State<TvFocusCard> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final radius = widget.borderRadius ?? BorderRadius.circular(12);
+    final radius =
+        widget.borderRadius ??
+        BorderRadius.circular(TvDesignTokens.controlRadius);
 
-    Color bgColor;
-    Border? border;
+    Color bgColor = colorScheme.surfaceContainerLow.withValues(alpha: 0.34);
+    Border border = Border.all(
+      color: colorScheme.outlineVariant.withValues(alpha: 0.28),
+      width: 1,
+    );
+    List<BoxShadow> shadow = const [];
+
+    if (widget.isSelected) {
+      bgColor = colorScheme.primaryContainer.withValues(alpha: 0.52);
+      border = Border.all(
+        color: colorScheme.primary.withValues(alpha: 0.42),
+        width: 1.2,
+      );
+    }
+
+    if (_isFocused) {
+      bgColor = colorScheme.surfaceContainerHighest.withValues(alpha: 0.92);
+      border = Border.all(color: colorScheme.primary, width: 2.4);
+      shadow = [
+        BoxShadow(
+          color: colorScheme.primary.withValues(alpha: 0.28),
+          blurRadius: 20,
+          spreadRadius: 0.4,
+        ),
+      ];
+    }
 
     if (_isFocused && widget.isSelected) {
-      bgColor = colorScheme.primaryContainer;
-      border = Border.all(color: colorScheme.primary, width: 3);
-    } else if (_isFocused) {
-      bgColor = colorScheme.surfaceContainerHighest;
-      border = Border.all(color: colorScheme.primary, width: 3);
-    } else if (widget.isSelected) {
-      bgColor = colorScheme.primaryContainer.withValues(alpha: 0.5);
-      border = Border.all(
-        color: colorScheme.primary.withValues(alpha: 0.3),
-        width: 1,
-      );
-    } else {
-      bgColor = Colors.transparent;
-      border = null;
+      bgColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
+      border = Border.all(color: colorScheme.primary, width: 2.6);
+      shadow = [
+        BoxShadow(
+          color: colorScheme.primary.withValues(alpha: 0.34),
+          blurRadius: 24,
+          spreadRadius: 0.8,
+        ),
+      ];
     }
 
     return Focus(
@@ -94,17 +116,24 @@ class _TvFocusCardState extends State<TvFocusCard> {
       onKeyEvent: _handleKeyEvent,
       child: GestureDetector(
         onTap: widget.onPressed,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding:
-              widget.padding ??
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: radius,
-            border: border,
+        child: AnimatedScale(
+          duration: TvDesignTokens.focusDuration,
+          curve: Curves.easeOutCubic,
+          scale: _isFocused ? 1.02 : 1,
+          child: AnimatedContainer(
+            duration: TvDesignTokens.focusDuration,
+            curve: Curves.easeOutCubic,
+            padding:
+                widget.padding ??
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: radius,
+              border: border,
+              boxShadow: shadow,
+            ),
+            child: widget.child,
           ),
-          child: widget.child,
         ),
       ),
     );

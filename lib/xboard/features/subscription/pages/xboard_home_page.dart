@@ -99,6 +99,10 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       appBar: isDesktop
           ? null
           : AppBar(
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
               automaticallyImplyLeading: false,
               title: Text(
                 appName,
@@ -116,105 +120,143 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
             ),
       body: Consumer(
         builder: (_, ref, unused) {
-          // 获取屏幕高度并计算自适应间距
+          final colorScheme = Theme.of(context).colorScheme;
           final screenHeight = MediaQuery.of(context).size.height;
           final appBarHeight = kToolbarHeight;
           final statusBarHeight = MediaQuery.of(context).padding.top;
-          final bottomNavHeight = 60.0; // 底部导航栏高度
+          final bottomNavHeight = 60.0;
           final availableHeight =
               screenHeight - appBarHeight - statusBarHeight - bottomNavHeight;
 
-          // 根据可用高度调整间距
           double sectionSpacing;
           double verticalPadding;
           double horizontalPadding;
 
           if (availableHeight < 500) {
-            // 小屏幕：紧凑布局
             sectionSpacing = 12.0;
             verticalPadding = 12.0;
             horizontalPadding = 16.0;
           } else if (availableHeight < 650) {
-            // 中等屏幕：适中布局
-            sectionSpacing = 16.0;
+            sectionSpacing = 14.0;
             verticalPadding = 16.0;
             horizontalPadding = 20.0;
           } else {
-            // 大屏幕：标准布局
-            sectionSpacing = 20.0;
+            sectionSpacing = 16.0;
             verticalPadding = 20.0;
             horizontalPadding = 24.0;
           }
 
-          return Container(
-            color: Theme.of(context).colorScheme.surface,
-            child: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(vertical: verticalPadding),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: 768,
-                          minHeight:
-                              constraints.maxHeight - (2 * verticalPadding),
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        colorScheme.surface.withValues(alpha: 0.98),
+                        colorScheme.surfaceContainerLowest.withValues(
+                          alpha: 0.98,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (isDesktop)
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: -80,
+                right: -60,
+                child: IgnorePointer(
+                  child: Container(
+                    width: 220,
+                    height: 220,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: colorScheme.primary.withValues(alpha: 0.08),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 140,
+                left: -70,
+                child: IgnorePointer(
+                  child: Container(
+                    width: 180,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: colorScheme.primary.withValues(alpha: 0.05),
+                    ),
+                  ),
+                ),
+              ),
+              SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(vertical: verticalPadding),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: 700,
+                            minHeight:
+                                constraints.maxHeight - (2 * verticalPadding),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (isDesktop)
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: horizontalPadding,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      const CoreStatusIndicator(),
+                                      const SizedBox(width: 8),
+                                      const LanguageSelector(),
+                                      const SizedBox(width: 4),
+                                      _buildNoticeIconButton(),
+                                    ],
+                                  ),
+                                ),
+                              const NoticeBanner(),
+                              SizedBox(height: sectionSpacing * 0.5),
                               Padding(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: horizontalPadding,
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    const CoreStatusIndicator(),
-                                    const SizedBox(width: 8),
-                                    const LanguageSelector(),
-                                    const SizedBox(width: 4),
-                                    _buildNoticeIconButton(),
-                                  ],
+                                child: const VpnHeroCard(),
+                              ),
+                              SizedBox(height: sectionSpacing),
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding,
+                                ),
+                                child: const QuickActionsCard(),
+                              ),
+                              SizedBox(height: sectionSpacing),
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding,
+                                ),
+                                child: const TrafficHistoryCard(
+                                  initiallyExpanded: false,
                                 ),
                               ),
-                            const NoticeBanner(),
-                            SizedBox(height: sectionSpacing * 0.5),
-                            // VPN Hero Card (connection + subscription + mode controls)
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: horizontalPadding,
-                              ),
-                              child: const VpnHeroCard(),
-                            ),
-                            SizedBox(height: sectionSpacing),
-                            // Quick actions
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: horizontalPadding,
-                              ),
-                              child: const QuickActionsCard(),
-                            ),
-                            SizedBox(height: sectionSpacing),
-                            // Traffic history (collapsible)
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: horizontalPadding,
-                              ),
-                              child: TrafficHistoryCard(
-                                initiallyExpanded: isDesktop,
-                              ),
-                            ),
-                            SizedBox(height: sectionSpacing),
-                          ],
+                              SizedBox(height: sectionSpacing),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
+            ],
           );
         },
       ),

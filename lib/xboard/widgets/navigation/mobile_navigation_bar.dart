@@ -15,40 +15,52 @@ class MobileNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appLocalizations = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
-    return NavigationBar(
-      selectedIndex: selectedIndex,
-      height: 60,
-      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-      destinations: [
-        NavigationDestination(
-          icon: const Icon(Icons.home_outlined, size: 22),
-          selectedIcon: const Icon(Icons.home, size: 22),
-          label: appLocalizations.xboardHome,
+    return NavigationBarTheme(
+      data: NavigationBarThemeData(
+        height: 64,
+        backgroundColor: colorScheme.surface.withValues(alpha: 0.95),
+        indicatorColor: colorScheme.primary.withValues(alpha: 0.14),
+        surfaceTintColor: Colors.transparent,
+        labelTextStyle: WidgetStatePropertyAll(
+          Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
-        NavigationDestination(
-          icon: const Icon(Icons.shopping_bag_outlined, size: 22),
-          selectedIcon: const Icon(Icons.shopping_bag, size: 22),
-          label: appLocalizations.xboardPlans,
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.support_agent_outlined, size: 22),
-          selectedIcon: const Icon(Icons.support_agent, size: 22),
-          label: appLocalizations.xboardTickets,
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.people_outline, size: 22),
-          selectedIcon: const Icon(Icons.people, size: 22),
-          label: appLocalizations.xboardInvite,
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.settings_outlined, size: 22),
-          selectedIcon: const Icon(Icons.settings, size: 22),
-          label: appLocalizations.xboardSettings,
-        ),
-      ],
-      onDestinationSelected: onDestinationSelected,
+      ),
+      child: NavigationBar(
+        selectedIndex: selectedIndex,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.home_outlined, size: 22),
+            selectedIcon: const Icon(Icons.home, size: 22),
+            label: appLocalizations.xboardHome,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.shopping_bag_outlined, size: 22),
+            selectedIcon: const Icon(Icons.shopping_bag, size: 22),
+            label: appLocalizations.xboardPlans,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.support_agent_outlined, size: 22),
+            selectedIcon: const Icon(Icons.support_agent, size: 22),
+            label: appLocalizations.xboardTickets,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.people_outline, size: 22),
+            selectedIcon: const Icon(Icons.people, size: 22),
+            label: appLocalizations.xboardInvite,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.settings_outlined, size: 22),
+            selectedIcon: const Icon(Icons.settings, size: 22),
+            label: appLocalizations.xboardSettings,
+          ),
+        ],
+        onDestinationSelected: onDestinationSelected,
+      ),
     );
   }
 }
-

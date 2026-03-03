@@ -9,14 +9,28 @@ import 'package:fl_clash/xboard/features/latency/widgets/latency_indicator.dart'
 import 'package:fl_clash/xboard/features/shared/utils/node_resolver.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/enum/enum.dart';
+
 class NodeSelectorBar extends ConsumerWidget {
   const NodeSelectorBar({super.key});
+
+  void _openNodeSelector(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.40),
+      builder: (_) => const FlatNodeListView(),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final groups = ref.watch(groupsProvider);
     final selectedMap = ref.watch(selectedMapProvider);
-    final mode = ref.watch(patchClashConfigProvider.select((state) => state.mode));
+    final mode = ref.watch(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
 
     if (groups.isEmpty) {
       return _buildEmptyState(context);
@@ -34,7 +48,14 @@ class NodeSelectorBar extends ConsumerWidget {
       child: _buildProxyDisplay(context, ref, group, proxy, mode),
     );
   }
-  Widget _buildProxyDisplay(BuildContext context, WidgetRef ref, Group group, Proxy proxy, Mode mode) {
+
+  Widget _buildProxyDisplay(
+    BuildContext context,
+    WidgetRef ref,
+    Group group,
+    Proxy proxy,
+    Mode mode,
+  ) {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -49,11 +70,7 @@ class NodeSelectorBar extends ConsumerWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const FlatNodeListView(),
-              ),
-            );
+            _openNodeSelector(context);
           },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
@@ -130,11 +147,7 @@ class NodeSelectorBar extends ConsumerWidget {
                 const SizedBox(width: 12),
                 FilledButton(
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const FlatNodeListView(),
-                      ),
-                    );
+                    _openNodeSelector(context);
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
@@ -162,17 +175,21 @@ class NodeSelectorBar extends ConsumerWidget {
       ),
     );
   }
+
   Widget _buildProxyLatency(WidgetRef ref, Proxy proxy) {
-    final delayState = ref.watch(getDelayProvider(
-      proxyName: proxy.name,
-      testUrl: ref.read(appSettingProvider).testUrl,
-    ));
+    final delayState = ref.watch(
+      getDelayProvider(
+        proxyName: proxy.name,
+        testUrl: ref.read(appSettingProvider).testUrl,
+      ),
+    );
     return LatencyIndicator(
       delayValue: delayState,
       onTap: () => _handleManualTest(ref, proxy),
       showIcon: true,
     );
   }
+
   Widget _buildEmptyState(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
@@ -228,11 +245,7 @@ class NodeSelectorBar extends ConsumerWidget {
             ),
             FilledButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const FlatNodeListView(),
-                  ),
-                );
+                _openNodeSelector(context);
               },
               style: FilledButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
@@ -258,6 +271,7 @@ class NodeSelectorBar extends ConsumerWidget {
       ),
     );
   }
+
   void _handleManualTest(WidgetRef ref, Proxy proxy) {
     final testUrl = ref.read(appSettingProvider).testUrl;
     proxies_common.proxyDelayTest(proxy, testUrl);

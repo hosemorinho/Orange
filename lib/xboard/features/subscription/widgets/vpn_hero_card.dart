@@ -18,7 +18,6 @@ import 'package:fl_clash/xboard/features/subscription/services/subscription_stat
 import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/l10n/l10n.dart';
-import 'package:fl_clash/widgets/text.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -129,9 +128,14 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
   }
 
   void _navigateToProxies() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const FlatNodeListView()));
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.40),
+      builder: (_) => const FlatNodeListView(),
+    );
   }
 
   // --- Mode change logic (ported from XBoardOutboundMode) ---
@@ -343,13 +347,11 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
 
-    final bgColor = _isStart
-        ? colorScheme.tertiaryContainer
-        : colorScheme.primaryContainer;
-    final statusColor = _isStart ? colorScheme.tertiary : colorScheme.primary;
-    final onStatusColor = _isStart
-        ? colorScheme.onTertiary
-        : colorScheme.onPrimary;
+    final bgColor = colorScheme.surface;
+    final statusColor = _isStart
+        ? const Color(0xFF2FB36C)
+        : colorScheme.primary;
+    const onStatusColor = Colors.white;
 
     // Subscription data
     final userInfo = ref.userInfo;
@@ -365,16 +367,19 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            bgColor.withValues(alpha: 0.3),
-            bgColor.withValues(alpha: 0.1),
-          ],
-        ),
+        color: bgColor.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -428,8 +433,8 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     double totalTraffic,
     int? remainingDays,
   ) {
-    const buttonSize = 88.0;
-    const ringSize = 108.0;
+    const buttonSize = 108.0;
+    const ringSize = 150.0;
 
     // 检查订阅状态
     final userState = ref.watch(xboardUserProvider);
@@ -445,21 +450,48 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
 
     return Column(
       children: [
-        // Status text
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: statusColor.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: statusColor,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _isStart
+                    ? AppLocalizations.of(context).xboardConnected
+                    : AppLocalizations.of(context).xboardDisconnected,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                  color: statusColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
         Text(
           _isStart
               ? AppLocalizations.of(context).xboardConnected
-              : AppLocalizations.of(context).xboardDisconnected,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: statusColor,
+              : AppLocalizations.of(context).xboardTapToConnect,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 8),
-
-        // Node pill
-        _buildNodePill(proxy, colorScheme, theme),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
 
         // Circular button with progress ring
         SizedBox(
@@ -489,13 +521,21 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
                   width: buttonSize,
                   height: buttonSize,
                   decoration: BoxDecoration(
-                    color: statusColor,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        statusColor.withValues(alpha: 0.95),
+                        statusColor.withValues(alpha: 0.78),
+                      ],
+                    ),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: statusColor.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        spreadRadius: 1,
+                        color: statusColor.withValues(alpha: 0.34),
+                        blurRadius: 20,
+                        spreadRadius: 1.5,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
@@ -512,7 +552,15 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
             ],
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 18),
+
+        // Controls row (Rule/Global + TUN)
+        _buildControlsRow(theme, colorScheme, mode, tunEnabled),
+        const SizedBox(height: 12),
+
+        // Node pill
+        _buildNodePill(proxy, colorScheme, theme),
+        const SizedBox(height: 12),
 
         // 订阅状态警告提示
         if (subscriptionStatus != null &&
@@ -528,10 +576,7 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
           totalTraffic,
           remainingDays,
         ),
-        const SizedBox(height: 16),
-
-        // Controls row
-        _buildControlsRow(theme, colorScheme, mode, tunEnabled),
+        const SizedBox(height: 4),
       ],
     );
   }
@@ -744,32 +789,39 @@ class _VpnHeroCardState extends ConsumerState<VpnHeroCard>
     return GestureDetector(
       onTap: _navigateToProxies,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(20),
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.035),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.dns_outlined,
-              size: 14,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 6),
+            Icon(Icons.dns_outlined, size: 16, color: colorScheme.primary),
+            const SizedBox(width: 8),
             ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 160),
+              constraints: const BoxConstraints(maxWidth: 170),
               child: EmojiText(
                 proxy.name,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             _buildLatency(proxy),
             const SizedBox(width: 4),
             Icon(

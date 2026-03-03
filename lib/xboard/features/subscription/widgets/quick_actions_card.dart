@@ -12,24 +12,26 @@ class QuickActionsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appLocalizations = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
     final isDesktop =
         Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     return XBDashboardCard(
+      padding: EdgeInsets.zero,
+      backgroundColor: Colors.transparent,
+      borderColor: Colors.transparent,
+      showBorder: false,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          XBSectionTitle(
-            title: appLocalizations.xboardQuickActions,
-            icon: Icons.flash_on,
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 2),
           Row(
             children: [
               Expanded(
                 child: _CompactActionTile(
                   icon: Icons.shopping_bag_outlined,
                   title: appLocalizations.xboardPurchaseSubscription,
+                  tintColor: colorScheme.primary,
                   onTap: () {
                     if (isDesktop) {
                       context.go('/plans');
@@ -44,6 +46,7 @@ class QuickActionsCard extends ConsumerWidget {
                 child: _CompactActionTile(
                   icon: Icons.receipt_long_outlined,
                   title: appLocalizations.xboardMyOrders,
+                  tintColor: colorScheme.primary,
                   onTap: () => context.push('/orders'),
                 ),
               ),
@@ -52,6 +55,7 @@ class QuickActionsCard extends ConsumerWidget {
                 child: _CompactActionTile(
                   icon: Icons.support_agent_outlined,
                   title: appLocalizations.xboardSupportTickets,
+                  tintColor: colorScheme.primary,
                   onTap: () {
                     if (isDesktop) {
                       context.go('/support');
@@ -66,6 +70,7 @@ class QuickActionsCard extends ConsumerWidget {
                 child: _CompactActionTile(
                   icon: Icons.person_add_outlined,
                   title: appLocalizations.xboardInviteFriends,
+                  tintColor: colorScheme.primary,
                   onTap: () => context.go('/invite'),
                 ),
               ),
@@ -80,11 +85,13 @@ class QuickActionsCard extends ConsumerWidget {
 class _CompactActionTile extends StatelessWidget {
   final IconData icon;
   final String title;
+  final Color tintColor;
   final VoidCallback onTap;
 
   const _CompactActionTile({
     required this.icon,
     required this.title,
+    required this.tintColor,
     required this.onTap,
   });
 
@@ -94,31 +101,41 @@ class _CompactActionTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Material(
-      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      borderRadius: BorderRadius.circular(12),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(10),
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: Icon(icon, size: 18, color: colorScheme.primary),
+                child: Icon(icon, size: 20, color: tintColor),
               ),
               const SizedBox(height: 6),
               Text(
                 title,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 1,

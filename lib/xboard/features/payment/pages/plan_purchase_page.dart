@@ -270,7 +270,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     return selectedPeriod['price']?.toDouble() ?? 0.0;
   }
 
-  double _getPayableAmount() {
+  double _getOrderTotalAmount() {
     if (_selectedPeriod == null) return 0.0;
 
     final currentPrice = _getCurrentPrice();
@@ -282,14 +282,11 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
           )
         : currentPrice;
 
-    // 使用用户余额（如果已加载且大于 0）
-    final balance = _userBalance;
-    final balanceToUse = balance != null && balance > 0
-        ? (balance > displayFinalPrice ? displayFinalPrice : balance)
-        : 0.0;
+    final paymentMethods = ref.watch(xboardAvailablePaymentMethodsProvider);
+    final selectedMethod = _getSelectedPaymentMethod(paymentMethods);
+    final fee = selectedMethod?.calculateFee(displayFinalPrice) ?? 0.0;
 
-    final payableAmount = displayFinalPrice - balanceToUse;
-    return payableAmount < 0 ? 0 : payableAmount;
+    return displayFinalPrice + fee;
   }
 
   // ========== 优惠券 ==========
@@ -793,7 +790,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     ColorScheme colorScheme,
   ) {
     final l10n = AppLocalizations.of(context);
-    final payableAmount = _getPayableAmount();
+    final totalAmount = _getOrderTotalAmount();
     final hasPeriodSelected = _selectedPeriod != null;
 
     return SafeArea(
@@ -838,7 +835,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                     const SizedBox(height: 1),
                     Text(
                       hasPeriodSelected
-                          ? PriceCalculator.formatPrice(payableAmount)
+                          ? PriceCalculator.formatPrice(totalAmount)
                           : '--',
                       style: TextStyle(
                         fontSize: 15,

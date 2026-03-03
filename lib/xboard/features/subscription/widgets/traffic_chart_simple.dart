@@ -145,10 +145,7 @@ class _TrafficChartSimpleState extends ConsumerState<TrafficChartSimple> {
           const SizedBox(height: 16),
           Text(
             l10n.xboardTrafficNoData,
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
           ),
         ],
       ),
@@ -172,7 +169,7 @@ class _TrafficChartSimpleState extends ConsumerState<TrafficChartSimple> {
               width: 12,
               height: 12,
               decoration: BoxDecoration(
-                color: _getRateColor(rate),
+                color: _getRateColor(rate, colorScheme),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -248,7 +245,7 @@ class _TrafficChartSimpleState extends ConsumerState<TrafficChartSimple> {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: _getRateColor(group.rate),
+                          color: _getRateColor(group.rate, colorScheme),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -279,19 +276,19 @@ class _TrafficChartSimpleState extends ConsumerState<TrafficChartSimple> {
     );
   }
 
-  Color _getRateColor(double rate) {
+  Color _getRateColor(double rate, ColorScheme colorScheme) {
     if (rate == 1.0) {
-      return Colors.blue.shade600;
+      return colorScheme.primary;
     } else if (rate == 1.5) {
-      return Colors.green.shade600;
+      return colorScheme.tertiary;
     } else if (rate == 2.0) {
-      return Colors.orange.shade600;
+      return colorScheme.secondary;
     } else if (rate == 3.0) {
-      return Colors.red.shade600;
+      return colorScheme.error;
     } else if (rate == 0.5) {
-      return Colors.purple.shade600;
+      return colorScheme.primary.withValues(alpha: 0.78);
     } else {
-      return Colors.grey.shade600;
+      return colorScheme.onSurfaceVariant;
     }
   }
 
@@ -331,16 +328,19 @@ class _TrafficChartPainter extends CustomPainter {
     _drawXAxisLabels(canvas, size, padding, chartWidth);
   }
 
-  void _drawYAxis(Canvas canvas, Size size, EdgeInsets padding, double chartHeight) {
+  void _drawYAxis(
+    Canvas canvas,
+    Size size,
+    EdgeInsets padding,
+    double chartHeight,
+  ) {
     const yTicks = 5;
     final paint = Paint()
       ..color = colorScheme.outlineVariant
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
 
-    final textPainter = TextPainter(
-      textDirection: ui.TextDirection.ltr,
-    );
+    final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
 
     for (int i = 0; i <= yTicks; i++) {
       final value = (maxValue / yTicks) * (yTicks - i);
@@ -358,15 +358,15 @@ class _TrafficChartPainter extends CustomPainter {
       final label = gb < 0.01 ? '0' : gb.toStringAsFixed(1);
       textPainter.text = TextSpan(
         text: '$label GB',
-        style: TextStyle(
-          color: colorScheme.onSurfaceVariant,
-          fontSize: 10,
-        ),
+        style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 10),
       );
       textPainter.layout();
       textPainter.paint(
         canvas,
-        Offset(padding.left - textPainter.width - 8, y - textPainter.height / 2),
+        Offset(
+          padding.left - textPainter.width - 8,
+          y - textPainter.height / 2,
+        ),
       );
     }
   }
@@ -399,8 +399,9 @@ class _TrafficChartPainter extends CustomPainter {
         );
 
         final paint = Paint()
-          ..color = _getRateColor(group.rate)
-              .withValues(alpha: hoveredIndex == i ? 1.0 : 0.7)
+          ..color = _getRateColor(
+            group.rate,
+          ).withValues(alpha: hoveredIndex == i ? 1.0 : 0.7)
           ..style = PaintingStyle.fill;
 
         canvas.drawRRect(
@@ -420,9 +421,7 @@ class _TrafficChartPainter extends CustomPainter {
     double chartWidth,
   ) {
     final barWidth = chartWidth / data.length;
-    final textPainter = TextPainter(
-      textDirection: ui.TextDirection.ltr,
-    );
+    final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
 
     for (int i = 0; i < data.length; i++) {
       final day = data[i];
@@ -433,10 +432,7 @@ class _TrafficChartPainter extends CustomPainter {
 
       textPainter.text = TextSpan(
         text: label,
-        style: TextStyle(
-          color: colorScheme.onSurfaceVariant,
-          fontSize: 10,
-        ),
+        style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 10),
       );
       textPainter.layout();
       textPainter.paint(
@@ -448,17 +444,17 @@ class _TrafficChartPainter extends CustomPainter {
 
   Color _getRateColor(double rate) {
     if (rate == 1.0) {
-      return Colors.blue.shade600;
+      return colorScheme.primary;
     } else if (rate == 1.5) {
-      return Colors.green.shade600;
+      return colorScheme.tertiary;
     } else if (rate == 2.0) {
-      return Colors.orange.shade600;
+      return colorScheme.secondary;
     } else if (rate == 3.0) {
-      return Colors.red.shade600;
+      return colorScheme.error;
     } else if (rate == 0.5) {
-      return Colors.purple.shade600;
+      return colorScheme.primary.withValues(alpha: 0.78);
     } else {
-      return Colors.grey.shade600;
+      return colorScheme.onSurfaceVariant;
     }
   }
 

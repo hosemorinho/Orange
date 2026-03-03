@@ -31,6 +31,9 @@ class CoreStatusIndicator extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final coreStatus = ref.watch(coreStatusProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+    final successBg = colorScheme.tertiaryContainer;
+    final successFg = colorScheme.onTertiaryContainer;
 
     return Tooltip(
       message: appLocalizations.coreStatus,
@@ -42,11 +45,8 @@ class CoreStatusIndicator extends ConsumerWidget {
                 iconSize: 20,
                 padding: EdgeInsets.zero,
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.greenAccent,
-                  foregroundColor: switch (Theme.brightnessOf(context)) {
-                    Brightness.light => context.colorScheme.onSurfaceVariant,
-                    Brightness.dark => context.colorScheme.onPrimaryFixedVariant,
-                  },
+                  backgroundColor: successBg,
+                  foregroundColor: successFg,
                 ),
                 onPressed: () => _handleConnection(context, ref),
                 icon: const Icon(Icons.check, fontWeight: FontWeight.w900),
@@ -59,15 +59,12 @@ class CoreStatusIndicator extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   backgroundColor: switch (coreStatus) {
                     CoreStatus.connecting => null,
-                    CoreStatus.connected => Colors.greenAccent,
+                    CoreStatus.connected => successBg,
                     CoreStatus.disconnected => context.colorScheme.error,
                   },
                   foregroundColor: switch (coreStatus) {
                     CoreStatus.connecting => null,
-                    CoreStatus.connected => switch (Theme.brightnessOf(context)) {
-                      Brightness.light => context.colorScheme.onSurfaceVariant,
-                      Brightness.dark => null,
-                    },
+                    CoreStatus.connected => successFg,
                     CoreStatus.disconnected => context.colorScheme.onError,
                   },
                 ),
@@ -76,21 +73,21 @@ class CoreStatusIndicator extends ConsumerWidget {
                   width: globalState.measure.bodyMediumHeight,
                   child: switch (coreStatus) {
                     CoreStatus.connecting => Padding(
-                        padding: const EdgeInsets.all(2),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          color: context.colorScheme.onPrimary,
-                          backgroundColor: Colors.transparent,
-                        ),
+                      padding: const EdgeInsets.all(2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        color: context.colorScheme.onPrimary,
+                        backgroundColor: Colors.transparent,
                       ),
+                    ),
                     CoreStatus.connected => const Icon(
-                        Icons.check_sharp,
-                        fontWeight: FontWeight.w900,
-                      ),
+                      Icons.check_sharp,
+                      fontWeight: FontWeight.w900,
+                    ),
                     CoreStatus.disconnected => const Icon(
-                        Icons.restart_alt_sharp,
-                        fontWeight: FontWeight.w900,
-                      ),
+                      Icons.restart_alt_sharp,
+                      fontWeight: FontWeight.w900,
+                    ),
                   },
                 ),
                 label: Text(switch (coreStatus) {

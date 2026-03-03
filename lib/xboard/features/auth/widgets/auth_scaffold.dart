@@ -26,12 +26,11 @@ class AuthScaffold extends StatelessWidget {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              colorScheme.primaryContainer.withValues(alpha: 0.15),
-              colorScheme.surface,
-              colorScheme.primaryContainer.withValues(alpha: 0.15),
+              colorScheme.surface.withValues(alpha: 0.98),
+              colorScheme.surfaceContainerLowest.withValues(alpha: 0.98),
             ],
           ),
         ),
@@ -66,24 +65,18 @@ class AuthScaffold extends StatelessWidget {
                       constraints: const BoxConstraints(maxWidth: 448),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: colorScheme.surface,
-                          borderRadius: BorderRadius.circular(16),
+                          color: colorScheme.surface.withValues(alpha: 0.96),
+                          borderRadius: BorderRadius.circular(22),
                           border: Border.all(
-                            color: colorScheme.outlineVariant
-                                .withValues(alpha: 0.5),
+                            color: colorScheme.outlineVariant.withValues(
+                              alpha: 0.35,
+                            ),
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color:
-                                  colorScheme.shadow.withValues(alpha: 0.08),
-                              blurRadius: 24,
+                              color: colorScheme.shadow.withValues(alpha: 0.05),
+                              blurRadius: 20,
                               offset: const Offset(0, 8),
-                            ),
-                            BoxShadow(
-                              color:
-                                  colorScheme.shadow.withValues(alpha: 0.04),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),

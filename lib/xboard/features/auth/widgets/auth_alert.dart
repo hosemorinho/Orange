@@ -41,9 +41,9 @@ class AuthAlert extends StatelessWidget {
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: iconColor,
-                    fontWeight: FontWeight.w500,
-                  ),
+                color: iconColor,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
           // Close button
@@ -65,29 +65,29 @@ class AuthAlert extends StatelessWidget {
 
     return switch (type) {
       AuthAlertType.success => (
-          colorScheme.tertiary.withValues(alpha: 0.1),
-          colorScheme.tertiary,
-          colorScheme.tertiary,
-          Icons.check_circle,
-        ),
+        colorScheme.tertiary.withValues(alpha: 0.1),
+        colorScheme.tertiary,
+        colorScheme.tertiary,
+        Icons.check_circle,
+      ),
       AuthAlertType.error => (
-          colorScheme.error.withValues(alpha: 0.1),
-          colorScheme.error,
-          colorScheme.error,
-          Icons.cancel,
-        ),
+        colorScheme.error.withValues(alpha: 0.1),
+        colorScheme.error,
+        colorScheme.error,
+        Icons.cancel,
+      ),
       AuthAlertType.warning => (
-          const Color(0xFFf59e0b).withValues(alpha: 0.1),
-          const Color(0xFFf59e0b),
-          const Color(0xFFf59e0b),
-          Icons.warning_rounded,
-        ),
+        colorScheme.secondary.withValues(alpha: 0.12),
+        colorScheme.secondary,
+        colorScheme.secondary,
+        Icons.warning_rounded,
+      ),
       AuthAlertType.info => (
-          const Color(0xFF3b82f6).withValues(alpha: 0.1),
-          const Color(0xFF3b82f6),
-          const Color(0xFF3b82f6),
-          Icons.info,
-        ),
+        colorScheme.primary.withValues(alpha: 0.12),
+        colorScheme.primary,
+        colorScheme.primary,
+        Icons.info,
+      ),
     };
   }
 }

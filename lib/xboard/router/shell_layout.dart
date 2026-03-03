@@ -16,10 +16,7 @@ import 'package:go_router/go_router.dart';
 class AdaptiveShellLayout extends ConsumerWidget {
   final StatefulNavigationShell child;
 
-  const AdaptiveShellLayout({
-    super.key,
-    required this.child,
-  });
+  const AdaptiveShellLayout({super.key, required this.child});
 
   void _onDestinationSelected(BuildContext context, WidgetRef ref, int index) {
     // 全局：每次标签页切换时刷新用户和订阅信息（火速转发，不阻塞UI）
@@ -49,48 +46,66 @@ class AdaptiveShellLayout extends ConsumerWidget {
     }
 
     // 执行路由导航（使用 goBranch 保持各分支的导航状态）
-    child.goBranch(
-      index,
-      initialLocation: index == child.currentIndex,
-    );
+    child.goBranch(index, initialLocation: index == child.currentIndex);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    final isDesktop =
+        Platform.isLinux || Platform.isWindows || Platform.isMacOS;
     final currentIndex = child.currentIndex;
+    final colorScheme = Theme.of(context).colorScheme;
 
     if (isDesktop) {
-      return Row(
-        children: [
-          DesktopNavigationRail(
-            selectedIndex: currentIndex,
-            onDestinationSelected: (index) => _onDestinationSelected(context, ref, index),
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [colorScheme.surface, colorScheme.surfaceContainerLowest],
           ),
-          Expanded(
-            child: Stack(
-              children: [
-                child,
-                const Positioned(
-                  right: 16,
-                  bottom: 16,
-                  child: CrispChatButton(),
-                ),
-              ],
+        ),
+        child: Row(
+          children: [
+            DesktopNavigationRail(
+              selectedIndex: currentIndex,
+              onDestinationSelected: (index) =>
+                  _onDestinationSelected(context, ref, index),
             ),
-          ),
-        ],
+            Expanded(
+              child: Stack(
+                children: [
+                  child,
+                  const Positioned(
+                    right: 16,
+                    bottom: 16,
+                    child: CrispChatButton(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       );
     } else {
       return Scaffold(
-        body: child,
+        body: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [colorScheme.surface, colorScheme.surfaceContainerLowest],
+            ),
+          ),
+          child: child,
+        ),
         floatingActionButton: const CrispChatButton(),
         bottomNavigationBar: MobileNavigationBar(
           selectedIndex: currentIndex,
-          onDestinationSelected: (index) => _onDestinationSelected(context, ref, index),
+          onDestinationSelected: (index) =>
+              _onDestinationSelected(context, ref, index),
         ),
       );
     }
   }
 }
-

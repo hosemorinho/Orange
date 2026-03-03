@@ -114,7 +114,9 @@ class OrderCard extends StatelessWidget {
                 child: _ActionButton(
                   label: appLocalizations.xboardDetail,
                   icon: Icons.info_outline,
-                  backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  backgroundColor: colorScheme.primaryContainer.withValues(
+                    alpha: 0.3,
+                  ),
                   foregroundColor: colorScheme.primary,
                   onTap: onTap,
                 ),
@@ -127,7 +129,9 @@ class OrderCard extends StatelessWidget {
                   child: _ActionButton(
                     label: appLocalizations.xboardPay,
                     icon: Icons.payment,
-                    backgroundColor: colorScheme.tertiary.withValues(alpha: 0.15),
+                    backgroundColor: colorScheme.tertiary.withValues(
+                      alpha: 0.15,
+                    ),
                     foregroundColor: colorScheme.tertiary,
                     onTap: onPay,
                   ),
@@ -141,7 +145,9 @@ class OrderCard extends StatelessWidget {
                   child: _ActionButton(
                     label: appLocalizations.xboardCancel,
                     icon: Icons.cancel_outlined,
-                    backgroundColor: colorScheme.errorContainer.withValues(alpha: 0.3),
+                    backgroundColor: colorScheme.errorContainer.withValues(
+                      alpha: 0.3,
+                    ),
                     foregroundColor: colorScheme.error,
                     onTap: onCancel,
                   ),
@@ -173,15 +179,19 @@ class OrderCard extends StatelessWidget {
         ),
         Text(
           value,
-          style: valueStyle ?? theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style:
+              valueStyle ??
+              theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
       ],
     );
   }
 
-  Widget _buildStatusBadge(BuildContext context, ThemeData theme, OrderStatus status) {
+  Widget _buildStatusBadge(
+    BuildContext context,
+    ThemeData theme,
+    OrderStatus status,
+  ) {
     final statusConfig = _getStatusConfig(theme, status);
 
     return Container(
@@ -222,20 +232,20 @@ class OrderCard extends StatelessWidget {
 
     switch (status) {
       case OrderStatus.pending:
-        // Warning colors (yellow/orange)
+        // Warning colors
         return (
-          backgroundColor: colorScheme.error.withValues(alpha: 0.7).withValues(alpha: 0.15),
-          textColor: colorScheme.error.withValues(alpha: 0.7),
-          dotColor: colorScheme.error.withValues(alpha: 0.7),
+          backgroundColor: colorScheme.secondary.withValues(alpha: 0.15),
+          textColor: colorScheme.secondary,
+          dotColor: colorScheme.secondary,
         );
 
       case OrderStatus.processing:
-        // Purple colors
-        final purpleColor = Color(0xFF9333EA);
+        // In-progress colors
+        final processingColor = colorScheme.primary;
         return (
-          backgroundColor: purpleColor.withValues(alpha: 0.15),
-          textColor: purpleColor,
-          dotColor: purpleColor,
+          backgroundColor: processingColor.withValues(alpha: 0.15),
+          textColor: processingColor,
+          dotColor: processingColor,
         );
 
       case OrderStatus.completed:
@@ -336,11 +346,7 @@ class _ActionButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 16,
-                color: foregroundColor,
-              ),
+              Icon(icon, size: 16, color: foregroundColor),
               const SizedBox(width: 6),
               Text(
                 label,

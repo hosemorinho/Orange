@@ -2,7 +2,7 @@ import 'package:fl_clash/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// 桌面端侧边导航栏
+/// Desktop side navigation rail.
 class DesktopNavigationRail extends ConsumerWidget {
   final int selectedIndex;
   final Function(int) onDestinationSelected;
@@ -16,44 +16,28 @@ class DesktopNavigationRail extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = colorScheme.brightness == Brightness.dark;
 
     return Container(
       width: 88,
       decoration: BoxDecoration(
-        // 浅色模式使用纯色，深色模式使用渐变色
-        gradient: isDark
-            ? LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  colorScheme.surfaceContainer,
-                  colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                ],
-              )
-            : null,
-        color: isDark ? null : colorScheme.surfaceContainer,
+        color: colorScheme.surface.withValues(alpha: 0.95),
+        border: Border(
+          right: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+          ),
+        ),
       ),
       child: Column(
         children: [
           const SizedBox(height: 24),
-
-          // 导航项
-          Expanded(
-            child: _buildNavigationItems(context, colorScheme),
-          ),
-
+          Expanded(child: _buildNavigationItems(context, colorScheme)),
           const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  /// 导航项
-  Widget _buildNavigationItems(
-    BuildContext context,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildNavigationItems(BuildContext context, ColorScheme colorScheme) {
     final appLocalizations = AppLocalizations.of(context);
 
     return NavigationRail(
@@ -63,11 +47,8 @@ class DesktopNavigationRail extends ConsumerWidget {
       labelType: NavigationRailLabelType.all,
       leading: null,
       useIndicator: true,
-      indicatorColor: colorScheme.primaryContainer,
-      selectedIconTheme: IconThemeData(
-        color: colorScheme.primary,
-        size: 26,
-      ),
+      indicatorColor: colorScheme.primary.withValues(alpha: 0.14),
+      selectedIconTheme: IconThemeData(color: colorScheme.primary, size: 24),
       selectedLabelTextStyle: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
@@ -75,7 +56,7 @@ class DesktopNavigationRail extends ConsumerWidget {
       ),
       unselectedIconTheme: IconThemeData(
         color: colorScheme.onSurfaceVariant,
-        size: 24,
+        size: 22,
       ),
       unselectedLabelTextStyle: TextStyle(
         fontSize: 11,
@@ -111,6 +92,4 @@ class DesktopNavigationRail extends ConsumerWidget {
       onDestinationSelected: onDestinationSelected,
     );
   }
-
 }
-

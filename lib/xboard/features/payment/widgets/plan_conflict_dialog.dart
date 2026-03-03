@@ -25,16 +25,13 @@ class PlanConflictDialog extends StatelessWidget {
     return AlertDialog(
       icon: Icon(
         Icons.warning_amber_rounded,
-        color: Colors.amber.shade700,
+        color: colorScheme.secondary,
         size: 48,
       ),
       title: Text(l10n.xboardPlanConflictTitle),
       content: Text(
         l10n.xboardPlanConflictMessage,
-        style: TextStyle(
-          color: colorScheme.onSurfaceVariant,
-          height: 1.5,
-        ),
+        style: TextStyle(color: colorScheme.onSurfaceVariant, height: 1.5),
       ),
       actions: [
         TextButton(

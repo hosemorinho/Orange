@@ -69,10 +69,17 @@ List<String> extractNodeTags(String nodeName) {
 /// extractCountryFlag('Tokyo Node'); // null
 /// ```
 String? extractCountryFlag(String nodeName) {
-  final emojiRegex = RegExp(
-    r'[\u{1F1E6}-\u{1F1FF}]{2}',
-    unicode: true,
-  );
-  final match = emojiRegex.firstMatch(nodeName);
-  return match?.group(0);
+  final runes = nodeName.runes.toList(growable: false);
+  for (var i = 0; i < runes.length - 1; i++) {
+    final first = runes[i];
+    final second = runes[i + 1];
+    if (_isRegionalIndicator(first) && _isRegionalIndicator(second)) {
+      return String.fromCharCodes([first, second]);
+    }
+  }
+  return null;
+}
+
+bool _isRegionalIndicator(int codePoint) {
+  return codePoint >= 0x1F1E6 && codePoint <= 0x1F1FF;
 }

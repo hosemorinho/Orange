@@ -37,6 +37,7 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
   String? _copiedLink;
   Timer? _copyCodeResetTimer;
   Timer? _copyLinkResetTimer;
+
   /// Tracks which invite code has its QR code expanded
   String? _expandedQrCode;
 
@@ -240,6 +241,9 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
   Widget _buildCodesList(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final successColor = colorScheme.tertiary;
+    final successBackground = colorScheme.tertiaryContainer;
+    final successForeground = colorScheme.onTertiaryContainer;
 
     return Column(
       children: widget.codes.map((code) {
@@ -298,7 +302,7 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
                       icon: Icon(
                         isCopiedCode ? Icons.check : Icons.content_copy,
                         size: 16,
-                        color: isCopiedCode ? Colors.green : null,
+                        color: isCopiedCode ? successColor : null,
                       ),
                       label: Text(
                         isCopiedCode
@@ -307,11 +311,11 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
                       ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: isCopiedCode
-                            ? Colors.green
+                            ? successColor
                             : colorScheme.onSurface.withValues(alpha: 0.7),
                         side: BorderSide(
                           color: isCopiedCode
-                              ? Colors.green
+                              ? successColor
                               : colorScheme.outline.withValues(alpha: 0.3),
                         ),
                         padding: const EdgeInsets.symmetric(
@@ -327,8 +331,9 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
                       icon: Icon(
                         isCopiedLink ? Icons.check : Icons.link,
                         size: 16,
-                        color:
-                            isCopiedLink ? Colors.green : colorScheme.onPrimary,
+                        color: isCopiedLink
+                            ? successColor
+                            : colorScheme.onPrimary,
                       ),
                       label: Text(
                         isCopiedLink
@@ -337,10 +342,10 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
                       ),
                       style: FilledButton.styleFrom(
                         backgroundColor: isCopiedLink
-                            ? Colors.green
+                            ? successBackground
                             : colorScheme.primaryContainer,
                         foregroundColor: isCopiedLink
-                            ? Colors.white
+                            ? successForeground
                             : colorScheme.onPrimaryContainer,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -352,8 +357,7 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
                 ),
               ),
               // Expandable QR code section
-              if (isQrExpanded)
-                _buildQrCodeSection(context, code.code),
+              if (isQrExpanded) _buildQrCodeSection(context, code.code),
             ],
           ),
         );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class XBContainer extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -18,10 +19,25 @@ class XBContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
     Widget content = Container(
       padding: padding,
       margin: margin,
-      color: backgroundColor ?? colorScheme.surface,
+      decoration: BoxDecoration(
+        gradient: backgroundColor != null
+            ? null
+            : LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  colorScheme.surface.withValues(alpha: isDark ? 0.90 : 0.98),
+                  colorScheme.surfaceContainerLowest.withValues(
+                    alpha: isDark ? 0.92 : 0.98,
+                  ),
+                ],
+              ),
+        color: backgroundColor,
+      ),
       child: child,
     );
     if (safeArea) {
@@ -32,7 +48,9 @@ class XBContainer extends StatelessWidget {
           bottom: MediaQuery.viewPaddingOf(context).bottom,
         );
       }
-      final double realPaddingTop = safePadding.top > height * 0.5 ? 0 : safePadding.top;
+      final double realPaddingTop = safePadding.top > height * 0.5
+          ? 0
+          : safePadding.top;
       content = Padding(
         padding: EdgeInsets.only(
           left: safePadding.left,

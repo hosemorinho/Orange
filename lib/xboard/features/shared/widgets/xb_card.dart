@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class XBCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -22,31 +23,47 @@ class XBCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final defaultBorderRadius = BorderRadius.circular(16);
+    final isDark = colorScheme.brightness == Brightness.dark;
+    final defaultBorderRadius = BorderRadius.circular(20);
     return Container(
       margin: margin,
-      child: Material(
-        elevation: 0,
-        borderRadius: borderRadius ?? defaultBorderRadius,
-        color: backgroundColor ??
-               (isSelected
-                 ? colorScheme.primaryContainer
-                 : colorScheme.surfaceContainer),
-        child: InkWell(
-          onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
           borderRadius: borderRadius ?? defaultBorderRadius,
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              borderRadius: borderRadius ?? defaultBorderRadius,
-              border: isSelected
-                  ? Border.all(
-                      color: colorScheme.primary,
-                      width: 2,
-                    )
-                  : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
             ),
-            child: child,
+          ],
+        ),
+        child: Material(
+          elevation: 0,
+          borderRadius: borderRadius ?? defaultBorderRadius,
+          color:
+              backgroundColor ??
+              (isSelected
+                  ? colorScheme.primaryContainer.withValues(alpha: 0.65)
+                  : colorScheme.surface.withValues(
+                      alpha: isDark ? 0.86 : 0.96,
+                    )),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: borderRadius ?? defaultBorderRadius,
+            child: Container(
+              padding: padding,
+              decoration: BoxDecoration(
+                borderRadius: borderRadius ?? defaultBorderRadius,
+                border: Border.all(
+                  color: isSelected
+                      ? colorScheme.primary.withValues(alpha: 0.6)
+                      : colorScheme.outlineVariant.withValues(alpha: 0.35),
+                  width: isSelected ? 1.4 : 1.0,
+                ),
+              ),
+              child: child,
+            ),
           ),
         ),
       ),

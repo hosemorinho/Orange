@@ -106,10 +106,14 @@ class ApplicationState extends ConsumerState<Application> {
         await appController.attach(currentContext, ref);
         return;
       }
-      debugPrint('[Application] Navigator context is null, retry ${i + 1}/5...');
+      debugPrint(
+        '[Application] Navigator context is null, retry ${i + 1}/5...',
+      );
       await Future.delayed(const Duration(milliseconds: 100));
     }
-    debugPrint('[Application] Navigator context still null after retries, force exit');
+    debugPrint(
+      '[Application] Navigator context still null after retries, force exit',
+    );
     exit(0);
   }
 
@@ -123,17 +127,16 @@ class ApplicationState extends ConsumerState<Application> {
         final completer = Completer<void>();
 
         // Listen for initialization state changes
-        final sub = ref.listenManual(
-          initializationProvider,
-          (previous, current) {
-            if ((current.isReady || current.isFailed) && !completer.isCompleted) {
-              debugPrint('[Application] 初始化状态: ${current.status}');
-              debugPrint('[Application] 错误信息: ${current.errorMessage}');
-              completer.complete();
-            }
-          },
-          fireImmediately: true,
-        );
+        final sub = ref.listenManual(initializationProvider, (
+          previous,
+          current,
+        ) {
+          if ((current.isReady || current.isFailed) && !completer.isCompleted) {
+            debugPrint('[Application] 初始化状态: ${current.status}');
+            debugPrint('[Application] 错误信息: ${current.errorMessage}');
+            completer.complete();
+          }
+        }, fireImmediately: true);
 
         // Wait for init or timeout
         await completer.future.timeout(
@@ -269,17 +272,13 @@ class ApplicationState extends ConsumerState<Application> {
           locale: utils.getLocaleForString(locale) ?? _getAutoLocale(),
           supportedLocales: AppLocalizations.delegate.supportedLocales,
           themeMode: themeProps.themeMode,
-          theme: ThemeData(
-            useMaterial3: true,
-            pageTransitionsTheme: _pageTransitionsTheme,
+          theme: _buildThemeData(
             colorScheme: _getAppColorScheme(
               brightness: Brightness.light,
               primaryColor: themeProps.primaryColor,
             ),
           ),
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            pageTransitionsTheme: _pageTransitionsTheme,
+          darkTheme: _buildThemeData(
             colorScheme: _getAppColorScheme(
               brightness: Brightness.dark,
               primaryColor: themeProps.primaryColor,
@@ -287,6 +286,169 @@ class ApplicationState extends ConsumerState<Application> {
           ),
         );
       },
+    );
+  }
+
+  ThemeData _buildThemeData({required ColorScheme colorScheme}) {
+    final isDark = colorScheme.brightness == Brightness.dark;
+    final base = ThemeData(
+      useMaterial3: true,
+      pageTransitionsTheme: _pageTransitionsTheme,
+      colorScheme: colorScheme,
+    );
+    final shadowColor = isDark
+        ? Colors.black.withValues(alpha: 0.22)
+        : Colors.black.withValues(alpha: 0.05);
+
+    return base.copyWith(
+      scaffoldBackgroundColor: colorScheme.surfaceContainerLowest,
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        titleSpacing: 16,
+        iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
+      ),
+      cardTheme: CardThemeData(
+        color: colorScheme.surface.withValues(alpha: isDark ? 0.86 : 0.96),
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shadowColor: shadowColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+          ),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: colorScheme.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+          ),
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: colorScheme.surface,
+        modalBackgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        showDragHandle: false,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        isDense: true,
+        filled: true,
+        fillColor: colorScheme.surfaceContainerHighest.withValues(
+          alpha: isDark ? 0.30 : 0.45,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
+        hintStyle: TextStyle(
+          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.72),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: colorScheme.primary.withValues(alpha: 0.35),
+            width: 1.2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: colorScheme.error.withValues(alpha: 0.55),
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+      chipTheme: base.chipTheme.copyWith(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+        labelStyle: TextStyle(
+          color: colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 64,
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: isDark ? 0.88 : 0.95,
+        ),
+        indicatorColor: colorScheme.primary.withValues(alpha: 0.14),
+        surfaceTintColor: Colors.transparent,
+        labelTextStyle: WidgetStatePropertyAll(
+          base.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        useIndicator: true,
+        indicatorColor: colorScheme.primary.withValues(alpha: 0.14),
+        selectedIconTheme: IconThemeData(color: colorScheme.primary, size: 24),
+        selectedLabelTextStyle: TextStyle(
+          color: colorScheme.primary,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedIconTheme: IconThemeData(
+          color: colorScheme.onSurfaceVariant,
+          size: 22,
+        ),
+        unselectedLabelTextStyle: TextStyle(
+          color: colorScheme.onSurfaceVariant,
+          fontSize: 11,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: colorScheme.inverseSurface,
+        contentTextStyle: TextStyle(color: colorScheme.onInverseSurface),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
     );
   }
 
@@ -308,7 +470,8 @@ class ApplicationState extends ConsumerState<Application> {
         final isInitialized = userState.isInitialized;
         final path = state.uri.path;
         final isLoadingPage = path == '/loading';
-        final isAuthPage = path == '/login' ||
+        final isAuthPage =
+            path == '/login' ||
             path == '/register' ||
             path == '/forgot-password';
 

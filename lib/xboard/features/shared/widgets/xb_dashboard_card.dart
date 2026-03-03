@@ -24,7 +24,7 @@ class XBDashboardCard extends StatelessWidget {
     this.padding,
     this.backgroundColor,
     this.borderColor,
-    this.borderRadius = 16.0,
+    this.borderRadius = 22.0,
     this.onTap,
     this.showBorder = true,
     this.shadows,
@@ -32,28 +32,36 @@ class XBDashboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
 
-    final effectiveBackgroundColor = backgroundColor ??
-      colorScheme.surfaceContainerHighest.withValues(alpha: 0.15);
+    final effectiveBackgroundColor =
+        backgroundColor ??
+        colorScheme.surface.withValues(alpha: isDark ? 0.86 : 0.96);
 
-    final effectiveBorderColor = borderColor ??
-      colorScheme.outline.withValues(alpha: 0.2);
+    final effectiveBorderColor =
+        borderColor ?? colorScheme.outlineVariant.withValues(alpha: 0.35);
+
+    final effectiveShadows =
+        shadows ??
+        [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ];
 
     final card = Container(
       decoration: BoxDecoration(
         color: effectiveBackgroundColor,
         borderRadius: BorderRadius.circular(borderRadius),
         border: showBorder
-          ? Border.all(
-              color: effectiveBorderColor,
-              width: 1.0,
-            )
-          : null,
-        boxShadow: shadows,
+            ? Border.all(color: effectiveBorderColor, width: 1.0)
+            : null,
+        boxShadow: effectiveShadows,
       ),
-      padding: padding ?? const EdgeInsets.all(20),
+      padding: padding ?? const EdgeInsets.all(18),
       child: child,
     );
 
@@ -95,11 +103,7 @@ class XBSectionTitle extends StatelessWidget {
     return Row(
       children: [
         if (icon != null) ...[
-          Icon(
-            icon,
-            size: 20,
-            color: iconColor ?? colorScheme.primary,
-          ),
+          Icon(icon, size: 20, color: iconColor ?? colorScheme.primary),
           const SizedBox(width: 8),
         ],
         Text(
@@ -108,10 +112,7 @@ class XBSectionTitle extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        if (trailing != null) ...[
-          const Spacer(),
-          trailing!,
-        ],
+        if (trailing != null) ...[const Spacer(), trailing!],
       ],
     );
   }
@@ -149,9 +150,7 @@ class XBInfoChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             text,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: effectiveColor,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: effectiveColor),
           ),
         ],
       ),
@@ -164,11 +163,7 @@ class XBStatusBadge extends StatelessWidget {
   final String label;
   final Color color;
 
-  const XBStatusBadge({
-    super.key,
-    required this.label,
-    required this.color,
-  });
+  const XBStatusBadge({super.key, required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {

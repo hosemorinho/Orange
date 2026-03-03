@@ -164,34 +164,6 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                   ),
                 ),
               ),
-              Positioned(
-                top: -80,
-                right: -60,
-                child: IgnorePointer(
-                  child: Container(
-                    width: 220,
-                    height: 220,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: colorScheme.primary.withValues(alpha: 0.08),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 140,
-                left: -70,
-                child: IgnorePointer(
-                  child: Container(
-                    width: 180,
-                    height: 180,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: colorScheme.primary.withValues(alpha: 0.05),
-                    ),
-                  ),
-                ),
-              ),
               SafeArea(
                 child: LayoutBuilder(
                   builder: (context, constraints) {

@@ -63,6 +63,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         Consumer(
           builder: (_, ref, _) {
             final coreStatus = ref.watch(coreStatusProvider);
+            final successBg = context.colorScheme.tertiaryContainer;
+            final successFg = context.colorScheme.onTertiaryContainer;
             return Tooltip(
               message: appLocalizations.coreStatus,
               child: FadeScaleBox(
@@ -73,15 +75,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                         iconSize: 20,
                         padding: EdgeInsets.zero,
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.greenAccent,
-                          foregroundColor: switch (Theme.brightnessOf(
-                            context,
-                          )) {
-                            Brightness.light =>
-                              context.colorScheme.onSurfaceVariant,
-                            Brightness.dark =>
-                              context.colorScheme.onPrimaryFixedVariant,
-                          },
+                          backgroundColor: successBg,
+                          foregroundColor: successFg,
                         ),
                         onPressed: _handleConnection,
                         icon: Icon(Icons.check, fontWeight: FontWeight.w900),
@@ -94,19 +89,13 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                           padding: EdgeInsets.symmetric(horizontal: 12),
                           backgroundColor: switch (coreStatus) {
                             CoreStatus.connecting => null,
-                            CoreStatus.connected => Colors.greenAccent,
+                            CoreStatus.connected => successBg,
                             CoreStatus.disconnected =>
                               context.colorScheme.error,
                           },
                           foregroundColor: switch (coreStatus) {
                             CoreStatus.connecting => null,
-                            CoreStatus.connected => switch (Theme.brightnessOf(
-                              context,
-                            )) {
-                              Brightness.light =>
-                                context.colorScheme.onSurfaceVariant,
-                              Brightness.dark => null,
-                            },
+                            CoreStatus.connected => successFg,
                             CoreStatus.disconnected =>
                               context.colorScheme.onError,
                           },

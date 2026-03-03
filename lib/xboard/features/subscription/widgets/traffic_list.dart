@@ -10,11 +10,7 @@ class TrafficList extends ConsumerStatefulWidget {
   final List<AggregatedTraffic> data;
   final bool loading;
 
-  const TrafficList({
-    super.key,
-    required this.data,
-    this.loading = false,
-  });
+  const TrafficList({super.key, required this.data, this.loading = false});
 
   @override
   ConsumerState<TrafficList> createState() => _TrafficListState();
@@ -45,13 +41,7 @@ class _TrafficListState extends ConsumerState<TrafficList> {
         final day = widget.data[index];
         final isExpanded = _expandedIndex == index;
 
-        return _buildTrafficCard(
-          day,
-          index,
-          isExpanded,
-          l10n,
-          colorScheme,
-        );
+        return _buildTrafficCard(day, index, isExpanded, l10n, colorScheme);
       },
     );
   }
@@ -105,10 +95,7 @@ class _TrafficListState extends ConsumerState<TrafficList> {
           const SizedBox(height: 16),
           Text(
             l10n.xboardTrafficNoData,
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
           ),
         ],
       ),
@@ -124,9 +111,7 @@ class _TrafficListState extends ConsumerState<TrafficList> {
   ) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(
-          color: colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -182,10 +167,7 @@ class _TrafficListState extends ConsumerState<TrafficList> {
 
           // Details - Expandable
           if (isExpanded) ...[
-            Divider(
-              height: 1,
-              color: colorScheme.outlineVariant,
-            ),
+            Divider(height: 1, color: colorScheme.outlineVariant),
             Container(
               padding: const EdgeInsets.all(16),
               color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
@@ -211,8 +193,10 @@ class _TrafficListState extends ConsumerState<TrafficList> {
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: _getRateColor(group.rate, colorScheme)
-                            .withValues(alpha: 0.15),
+                        color: _getRateColor(
+                          group.rate,
+                          colorScheme,
+                        ).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -224,7 +208,10 @@ class _TrafficListState extends ConsumerState<TrafficList> {
                                   '${group.rate}x',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w600,
-                                    color: _getRateColor(group.rate, colorScheme),
+                                    color: _getRateColor(
+                                      group.rate,
+                                      colorScheme,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -233,8 +220,10 @@ class _TrafficListState extends ConsumerState<TrafficList> {
                                     '(${l10n.upload}: ${group.uploadGB} GB / ${l10n.download}: ${group.downloadGB} GB)',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: _getRateColor(group.rate, colorScheme)
-                                          .withValues(alpha: 0.8),
+                                      color: _getRateColor(
+                                        group.rate,
+                                        colorScheme,
+                                      ).withValues(alpha: 0.8),
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -260,9 +249,7 @@ class _TrafficListState extends ConsumerState<TrafficList> {
                     padding: const EdgeInsets.only(top: 12),
                     decoration: BoxDecoration(
                       border: Border(
-                        top: BorderSide(
-                          color: colorScheme.outlineVariant,
-                        ),
+                        top: BorderSide(color: colorScheme.outlineVariant),
                       ),
                     ),
                     child: Row(
@@ -297,19 +284,19 @@ class _TrafficListState extends ConsumerState<TrafficList> {
 
   /// Get color for different rate multipliers
   Color _getRateColor(double rate, ColorScheme colorScheme) {
-    // Match frontend colors: 1x=Blue, 1.5x=Green, 2x=Orange, 3x=Red, 0.5x=Purple
+    // Map rates to theme-aware semantic colors for visual consistency.
     if (rate == 1.0) {
-      return Colors.blue.shade600; // Blue for 1x
+      return colorScheme.primary;
     } else if (rate == 1.5) {
-      return Colors.green.shade600; // Green for 1.5x
+      return colorScheme.tertiary;
     } else if (rate == 2.0) {
-      return Colors.orange.shade600; // Orange for 2x
+      return colorScheme.secondary;
     } else if (rate == 3.0) {
-      return Colors.red.shade600; // Red for 3x
+      return colorScheme.error;
     } else if (rate == 0.5) {
-      return Colors.purple.shade600; // Purple for 0.5x
+      return colorScheme.primary.withValues(alpha: 0.78);
     } else {
-      return colorScheme.onSurfaceVariant; // Default
+      return colorScheme.onSurfaceVariant;
     }
   }
 

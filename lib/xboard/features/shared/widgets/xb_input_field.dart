@@ -56,7 +56,7 @@ class XBInputField extends StatelessWidget {
                 ),
               ),
             ),
-            if (labelTrailing != null) labelTrailing!,
+            if (labelTrailing case final Widget trailing) trailing,
           ],
         ),
         const SizedBox(height: 6),
@@ -68,58 +68,60 @@ class XBInputField extends StatelessWidget {
           validator: validator,
           onChanged: onChanged,
           enabled: enabled,
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurface,
-          ),
+          style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: hintText,
             prefixIcon: prefixIcon != null
-                ? Icon(prefixIcon,
-                    color: colorScheme.onSurfaceVariant, size: 20)
+                ? Icon(
+                    prefixIcon,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 20,
+                  )
                 : null,
             suffixIcon: suffixIcon,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: colorScheme.outline.withValues(alpha: 0.5),
-              ),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: colorScheme.outline.withValues(alpha: 0.5),
-              ),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
-                color: colorScheme.primary,
-                width: 2,
+                color: colorScheme.primary.withValues(alpha: 0.35),
+                width: 1.2,
               ),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: colorScheme.error),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: colorScheme.error.withValues(alpha: 0.55),
+              ),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: colorScheme.error, width: 2),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: colorScheme.error.withValues(alpha: 0.72),
+                width: 1.2,
+              ),
             ),
             disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: colorScheme.outline.withValues(alpha: 0.3),
-              ),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
             ),
             filled: true,
             fillColor: enabled
-                ? colorScheme.surface
-                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.45)
+                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
             hintStyle: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.72),
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
             isDense: true,
           ),
         ),

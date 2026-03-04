@@ -190,24 +190,27 @@ class _InvitePageState extends ConsumerState<InvitePage>
   ) {
     final hasCommission = stats.availableCommission > 0;
 
-    return Row(
-      children: [
-        Expanded(
-          child: FilledButton.icon(
-            onPressed: hasCommission ? () => _showTransferDialog(stats) : null,
-            icon: const Icon(Icons.swap_horiz),
-            label: Text(appLocalizations.transferToWallet),
+    return SizedBox(
+      width: double.infinity,
+      child: Row(
+        children: [
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: hasCommission ? () => _showTransferDialog(stats) : null,
+              icon: const Icon(Icons.swap_horiz),
+              label: Text(appLocalizations.transferToWallet),
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: hasCommission ? () => _showWithdrawDialog(stats) : null,
-            icon: const Icon(Icons.account_balance_outlined),
-            label: Text(appLocalizations.withdraw),
+          const SizedBox(width: 12),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: hasCommission ? () => _showWithdrawDialog(stats) : null,
+              icon: const Icon(Icons.account_balance_outlined),
+              label: Text(appLocalizations.withdraw),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

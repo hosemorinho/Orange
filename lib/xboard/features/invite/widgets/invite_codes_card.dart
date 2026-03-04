@@ -126,7 +126,7 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
 
     return XBDashboardCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
           Row(
@@ -246,6 +246,7 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
     final successForeground = colorScheme.onTertiaryContainer;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: widget.codes.map((code) {
         final isCopiedCode = _copiedCode == code.code;
         final isCopiedLink = _copiedLink == code.code;
@@ -372,7 +373,7 @@ class _InviteCodesCardState extends ConsumerState<InviteCodesCard> {
                     }
 
                     return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // Compact layout: code on top to prevent vertical wrapping.
                         SingleChildScrollView(

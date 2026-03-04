@@ -47,7 +47,7 @@ class PlanPurchasePage extends ConsumerStatefulWidget {
 class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   // 周期选择
   String? _selectedPeriod;
-  bool _isMobilePlanSectionExpanded = false;
+  bool _isMobilePlanSectionExpanded = true;
 
   // 用户余额
   double? _userBalance;
@@ -978,11 +978,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
   // Plan summary card
   Widget _buildPlanSummaryCard(BuildContext context, ColorScheme colorScheme) {
-    return XBPurchaseCard(
-      showShadow: false,
-      showBorder: true,
-      child: PlanHeaderCard(plan: widget.plan),
-    );
+    return const SizedBox.shrink();
   }
 
   // Period selector card

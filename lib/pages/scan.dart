@@ -29,7 +29,7 @@ class _ScanPageState extends State<ScanPage> with WidgetsBindingObserver {
     unawaited(controller.start());
   }
 
-  _handleBarcode(BarcodeCapture barcodeCapture) {
+  void _handleBarcode(BarcodeCapture barcodeCapture) {
     final barcode = barcodeCapture.barcodes.first;
     if (barcode.type == BarcodeType.url) {
       Navigator.pop<String>(context, barcode.rawValue);

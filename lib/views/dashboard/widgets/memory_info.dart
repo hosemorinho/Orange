@@ -31,7 +31,7 @@ class _MemoryInfoState extends State<MemoryInfo> {
     super.dispose();
   }
 
-  _updateMemory() async {
+  Future<void> _updateMemory() async {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final rss = ProcessInfo.currentRss;
       if (coreController.isCompleted) {

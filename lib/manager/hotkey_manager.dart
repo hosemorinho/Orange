@@ -28,7 +28,7 @@ class _HotKeyManagerState extends ConsumerState<HotKeyManager> {
     }, fireImmediately: true);
   }
 
-  _handleHotKeyAction(HotAction action) async {
+  Future<void> _handleHotKeyAction(HotAction action) async {
     switch (action) {
       case HotAction.mode:
         await appController.updateMode();
@@ -43,7 +43,7 @@ class _HotKeyManagerState extends ConsumerState<HotKeyManager> {
     }
   }
 
-  _updateHotKeys({
+  Future<void> _updateHotKeys({
     required List<HotKeyAction> hotKeyActions,
   }) async {
     await hotKeyManager.unregisterAll();
@@ -69,7 +69,7 @@ class _HotKeyManagerState extends ConsumerState<HotKeyManager> {
     await Future.wait(hotkeyActionHandles);
   }
 
-  _buildShortcuts(Widget child) {
+  Widget _buildShortcuts(Widget child) {
     return Shortcuts(
       shortcuts: {
         utils.controlSingleActivator(LogicalKeyboardKey.keyW):

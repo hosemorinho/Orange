@@ -14,7 +14,7 @@ class FadeBox extends StatelessWidget {
     return AnimatedSwitcher(
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
-      layoutBuilder: (currentChild, previousChildren) => Align(
+      layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) => Align(
         alignment: realAlignment,
         child: Stack(
           alignment: realAlignment,
@@ -89,7 +89,7 @@ class FadeRotationScaleBox extends StatelessWidget {
           ),
         );
       },
-      layoutBuilder: (currentChild, previousChildren) => Stack(
+      layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) => Stack(
         alignment: realAlignment,
         children: <Widget>[
           ...previousChildren,

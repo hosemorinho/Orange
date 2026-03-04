@@ -157,22 +157,24 @@ class _PlanCardState extends State<PlanCard> {
                 padding: const EdgeInsets.all(14),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 42,
+                  height: 44,
                   child: FilledButton(
                     onPressed: widget.onPurchase,
                     style: FilledButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       elevation: 0,
+                      padding: EdgeInsets.zero,
                     ),
                     child: Text(
                       AppLocalizations.of(context).xboardBuyNow,
                       style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
                       ),
                     ),
                   ),
@@ -193,7 +195,7 @@ class _PlanCardState extends State<PlanCard> {
         color: colorScheme.primaryContainer.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: colorScheme.primary.withValues(alpha: 0.2),
+          color: colorScheme.primary.withValues(alpha: 0.25),
           width: 1,
         ),
       ),

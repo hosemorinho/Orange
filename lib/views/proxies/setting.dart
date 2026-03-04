@@ -199,7 +199,7 @@ class ProxiesSetting extends StatelessWidget {
     );
   }
 
-  _buildGroupStyleSetting() {
+  List<Widget> _buildGroupStyleSetting() {
     return generateSection(
       title: appLocalizations.iconStyle,
       items: [

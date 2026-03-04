@@ -16,12 +16,12 @@ class Render {
     return _instance!;
   }
 
-  active() {
+  void active() {
     resume();
     pause();
   }
 
-  pause() {
+  void pause() {
     throttler.call(
       FunctionTag.renderPause,
       _pause,
@@ -29,7 +29,7 @@ class Render {
     );
   }
 
-  resume() {
+  void resume() {
     throttler.cancel(FunctionTag.renderPause);
     _resume();
   }

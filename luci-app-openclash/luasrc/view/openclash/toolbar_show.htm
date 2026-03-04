@@ -1,0 +1,283 @@
+<%
+local fs = require "luci.openclash"
+local util = require "luci.util"
+local jsonc = require "luci.jsonc"
+local branding = (fs.get_branding and fs.get_branding()) or {}
+local brand_theme_color = util.pcdata(branding.theme_color or "")
+local brand_name = util.pcdata(branding.app_name or "OpenClash")
+local brand_icon_url = util.pcdata(branding.app_icon_url or "")
+local brand_package_name = util.pcdata(branding.app_package_name or "")
+local brand_crisp_id_json = jsonc.stringify(branding.crisp_website_id or "")
+local brand_show = branding.show_branding == true
+local brand_has_icon = branding.app_icon_url and branding.app_icon_url ~= ""
+%>
+<head>
+<style>
+
+:root {
+	--oc-brand-primary: <%=brand_theme_color ~= "" and brand_theme_color or "#3b82f6"%>;
+}
+
+.tabs > li {
+    vertical-align: middle !important;;
+}
+
+.tool_brand {
+	border: none !important;
+	margin-left: 8px !important;
+}
+
+.tool_brand::after {
+	display: none !important;
+}
+
+.tool_brand_span {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 5px 10px;
+	border-radius: 999px;
+	border: 1px solid var(--oc-brand-primary);
+	background: #ffffff;
+	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
+
+.tool_brand_icon {
+	width: 20px;
+	height: 20px;
+	border-radius: 5px;
+	object-fit: cover;
+}
+
+.tool_brand_dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--oc-brand-primary);
+	box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.tool_brand_name {
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--oc-brand-primary);
+	letter-spacing: 0.2px;
+}
+
+.tool_label:hover {
+	border-color: rgba(0, 0, 0, 0) !important;;
+	background-color: unset !important;;
+	color: unset !important;;
+	cursor: unset !important;;
+}
+
+.tool_label::after {
+	border-color: rgba(0, 0, 0, 0) !important;;
+	background-color: unset !important;;
+	color: unset !important;;
+	cursor: unset !important;;
+	content: unset !important;;
+}
+
+.tool_label_span {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.tool_label_select {
+	width: auto;
+}
+
+.tool_switch_btn {
+	background: var(--oc-brand-primary) !important;
+	border-color: var(--oc-brand-primary) !important;
+}
+
+.tool_switch_btn:hover {
+	filter: brightness(1.04);
+}
+</style>
+</head>
+
+<% if brand_show then %>
+<li id="tool_brand" class="tool_brand">
+	<span class="tool_brand_span" <% if brand_package_name ~= "" then %>title="<%=brand_package_name%>"<% end %>>
+		<% if brand_has_icon then %>
+		<img class="tool_brand_icon" src="<%=brand_icon_url%>" alt="<%=brand_name%>" />
+		<% else %>
+		<span class="tool_brand_dot"></span>
+		<% end %>
+		<span class="tool_brand_name"><%=brand_name%></span>
+	</span>
+</li>
+<% end %>
+
+<li id="tool_label" class="tool_label">
+	<span class="tool_label_span">
+	&nbsp;&nbsp;<%:Current Config File%>:&nbsp;
+	<select class="tool_label_select" id="cfg_name">
+	</select>&nbsp;&nbsp;
+	<input type="button" class="btn cbi-button cbi-button-apply tool_switch_btn" value="<%:SwiTch%>" onclick="return switch_config(this)" />
+	&nbsp;
+	</span>
+</li>
+
+<script type="text/javascript">//<![CDATA[
+
+		var config_name = document.getElementById('cfg_name');
+		var tool_label = document.getElementById('tool_label');
+		var tool_brand = document.getElementById('tool_brand');
+		var Commit = document.getElementById('cbi-table-1-Commit');
+		var Apply = document.getElementById('cbi-table-1-Apply');
+		var Back = document.getElementById('cbi-table-1-Back');
+		var Load_Config = document.getElementById('cbi-table-1-Load_Config');
+		var Delete_Unused_Servers = document.getElementById('cbi-table-1-Delete_Unused_Servers');
+		var Delete_Servers = document.getElementById('cbi-table-1-Delete_Servers');
+		var Delete_Proxy_Provider = document.getElementById('cbi-table-1-Delete_Proxy_Provider');
+		var Delete_Groups = document.getElementById('cbi-table-1-Delete_Groups');
+		var rule_mg = document.getElementById('cbi-table-1-rule_mg');
+		var pro_mg = document.getElementById('cbi-table-1-pro_mg');
+
+		setTimeout("get_header()",100);
+		
+		if (Commit) {
+			Commit.style.textAlign="center";
+		}
+		if (Apply) {
+			Apply.style.textAlign="center";
+		}
+		if (Back) {
+			Back.style.textAlign="center";
+		}
+		if (Load_Config) {
+			Load_Config.style.textAlign="center";
+			Delete_Unused_Servers.style.textAlign="center";
+			Delete_Servers.style.textAlign="center";
+			Delete_Proxy_Provider.style.textAlign="center";
+			Delete_Groups.style.textAlign="center";
+		}
+		if (rule_mg) {
+    		rule_mg.style.textAlign="center";
+    		pro_mg.style.textAlign="center";
+		}
+
+		if (tool_label.style.display != "none") {
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "config_name")%>', null, function(x, status) {
+				if (x && x.status == 200 && status.config_name != "") {
+					for(var i in status.config_name){
+     	 	  			config_name.options.add(new Option(status.config_name[i].name,status.config_name[i].name));
+    				}
+    				if (status.config_path != "") {
+    					config_name.value = status.config_path;
+    				}
+    			else
+    			{
+    				config_name.options.add(new Option("<%:Not Select%>",""));
+    				config_name.value = "";
+    			}
+				}
+				else if (x && x.status == 200 && status.config_path != "") {
+					config_name.options.add(new Option(status.config_path,status.config_path));
+					config_name.value = status.config_path;
+				}
+				else {
+					tool_label.style.display = "none";
+				}
+			});
+		};
+	
+	function get_header() {
+		var header = document.getElementsByClassName("tabmenu-item-log ")[0];
+		if (header) {
+			if (tool_brand) {
+				insertAfter(tool_brand, header);
+				insertAfter(tool_label, tool_brand);
+			}
+			else {
+				insertAfter(tool_label,header);
+			}
+		}
+		else {
+			setTimeout("get_header()",100);
+		}
+	}
+		
+	function insertAfter(newElement, targetElement) {
+		var parent = targetElement.parentNode;
+		if (parent.lastChild == targetElement) {
+			parent.appendChild(newElement, targetElement); 
+		}
+		else {
+			parent.insertBefore(newElement, targetElement.nextSibling);
+		};
+	};
+	
+	function switch_config(btn)
+	{
+		if (config_name.value && config_name.value != "") {
+			btn.disabled = true;
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_config")%>', {config_name: config_name.value}, function(x, status) {
+				if (x && x.status == 200) {
+					btn.disabled = false;
+					alert(' <%:Config File%>: ' + config_name.value + ' <%:switching succeeded!%>')
+					window.location.href=location.pathname;
+				}
+				else {
+					alert(' <%:Config File%>: ' + config_name.value + ' <%:switching failed!%>')
+				}
+			});
+			return false;
+		}
+	}
+
+	function restore_config(btn)
+    {
+        btn.value    = '<%:Restore Default Config%>';
+        btn.disabled = true;
+        var r = confirm("<%:Are you sure want to restore the default config?%>")
+        if (r == true) {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "restore")%>', null, function(x, status) {
+        	if ( x && x.status == 200 ) {
+        		alert('<%:Restore succeeded!%>')
+        		window.location.href='<%="settings"%>';
+        	}
+        	else {
+				alert('<%:Restore failed!%>')
+				window.location.href='<%="settings"%>';
+           }
+        });
+        }
+        btn.disabled = false;
+        return false; 
+    }
+	
+	function winOpen(url)
+	{
+		var winOpen = window.open(url);
+		if(winOpen == null || typeof(winOpen) == 'undefined'){
+			window.location.href=url;
+		}
+	}
+
+	(function initOpenClashCrisp() {
+		var crispWebsiteId = <%=brand_crisp_id_json%>;
+		if (!crispWebsiteId) {
+			return;
+		}
+		if (window.__OC_CRISP_INIT__) {
+			return;
+		}
+
+		window.__OC_CRISP_INIT__ = true;
+		window.$crisp = window.$crisp || [];
+		window.CRISP_WEBSITE_ID = crispWebsiteId;
+
+		if (!document.querySelector('script[data-oc-crisp="1"]')) {
+			var crispScript = document.createElement('script');
+			crispScript.src = 'https://client.crisp.chat/l.js';
+			crispScript.async = true;
+			crispScript.setAttribute('data-oc-crisp', '1');
+			(document.head || document.body).appendChild(crispScript);
+		}
+	})();
+//]]></script>

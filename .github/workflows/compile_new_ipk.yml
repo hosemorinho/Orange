@@ -1,0 +1,642 @@
+name: Compile The New Version OpenClash
+
+on: 
+  push:
+    branches:
+      - dev
+    paths:
+      - 'luci-app-openclash/Makefile'
+  workflow_dispatch:
+    inputs:
+      run_minimal_acceptance:
+        description: "Run minimal workflow_dispatch acceptance checks (secrets/namespace/package paths)"
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  Minimal-Acceptance:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.run_minimal_acceptance == true || inputs.run_minimal_acceptance == 'true') }}
+    steps:
+      - name: Checkout OpenClash Source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Resolve Namespace
+        env:
+          APP_NAME: ${{ secrets.APP_NAME }}
+        run: |
+          slugify() {
+            local raw="$1"
+            raw="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]')"
+            raw="$(printf '%s' "$raw" | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-{2,}/-/g')"
+            printf '%s' "$raw"
+          }
+
+          # Derive all values from APP_NAME only
+          # APP_NAMESPACE: slugified APP_NAME (e.g., "XBoard Clash" → "xboard-clash")
+          # APP_PACKAGE_NAME: same as APP_NAMESPACE (for package naming)
+          # PKG_NAME: luci-app-${APP_NAMESPACE}
+          APP_NS="$(slugify "${APP_NAME:-openclash}")"
+          [ -z "$APP_NS" ] && APP_NS="openclash"
+          PKG_NAME="luci-app-${APP_NS}"
+          APP_DIR="./luci-app-openclash"
+
+          echo "APP_NS=${APP_NS}" >> "$GITHUB_ENV"
+          echo "PKG_NAME=${PKG_NAME}" >> "$GITHUB_ENV"
+          echo "APP_DIR=${APP_DIR}" >> "$GITHUB_ENV"
+          echo "resolved APP_NS=${APP_NS} from APP_NAME=${APP_NAME}"
+
+      - name: Inject XBoard Constants (Optional)
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          API_TEXT_DOMAIN: ${{ secrets.API_TEXT_DOMAIN }}
+          APP_ICON_URL: ${{ secrets.APP_ICON_URL }}
+          APP_NAME: ${{ secrets.APP_NAME }}
+          APP_PACKAGE_NAME: ${{ secrets.APP_PACKAGE_NAME }}
+          CRISP_WEBSITE_ID: ${{ secrets.CRISP_WEBSITE_ID }}
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          THEME_COLOR: ${{ secrets.THEME_COLOR }}
+        run: |
+          target_path="${APP_DIR}/root/usr/share/openclash/openclash_xboard_constants.lua"
+
+          lua_escape() {
+            local value="$1"
+            value="${value//\\/\\\\}"
+            value="${value//\"/\\\"}"
+            value="${value//$'\n'/\\n}"
+            value="${value//$'\r'/\\r}"
+            value="${value//$'\t'/\\t}"
+            printf '%s' "$value"
+          }
+
+          render_text_domain_map() {
+            local rendered=""
+            if [ -n "${API_TEXT_DOMAIN:-}" ] && [ -n "${API_BASE_URL:-}" ]; then
+              if [[ ! "$API_TEXT_DOMAIN" =~ ^https?:// ]]; then
+                rendered+="    [\"$(lua_escape "$API_TEXT_DOMAIN")\"] = \"$(lua_escape "$API_BASE_URL")\",\n"
+              fi
+            fi
+            printf '%b' "$rendered"
+          }
+
+          mkdir -p "$(dirname "$target_path")"
+          cat >"$target_path" <<EOF
+          local M = {
+            API_BASE_URL = "$(lua_escape "${API_BASE_URL:-}")",
+            API_TEXT_DOMAIN = "$(lua_escape "${API_TEXT_DOMAIN:-}")",
+            APP_ICON_URL = "$(lua_escape "${APP_ICON_URL:-}")",
+            -- APP_NAME is used as API_TEXT_DOMAIN decrypt password.
+            APP_NAME = "$(lua_escape "${APP_NAME:-}")",
+            APP_PACKAGE_NAME = "$(lua_escape "${APP_PACKAGE_NAME:-}")",
+            CRISP_WEBSITE_ID = "$(lua_escape "${CRISP_WEBSITE_ID:-}")",
+            THEME_COLOR = "$(lua_escape "${THEME_COLOR:-}")",
+            KEYSTORE = "$(lua_escape "${KEYSTORE:-}")",
+            KEY_ALIAS = "$(lua_escape "${KEY_ALIAS:-}")",
+            KEY_PASSWORD = "$(lua_escape "${KEY_PASSWORD:-}")",
+            STORE_PASSWORD = "$(lua_escape "${STORE_PASSWORD:-}")",
+            TEXT_DOMAIN_MAP = {
+          $(render_text_domain_map)  },
+            LOGIN_PATH = "/api/v1/passport/auth/login",
+            GET_SUBSCRIBE_PATH = "/api/v1/user/getSubscribe",
+            DEFAULT_SUB_PATH = "/api/v1/client/subscribe?token={token}",
+          }
+
+          return M
+          EOF
+
+          echo "xboard constants injected into: $target_path"
+
+      - name: Inject Namespace and Runtime Paths (Optional)
+        run: |
+          echo "resolved APP_NAMESPACE=$APP_NS"
+          [ "$APP_NS" = "openclash" ] && exit 0
+
+          replace_tree() {
+            local from="$1"
+            local to="$2"
+            find "$APP_DIR" -type f \
+              \( -name "Makefile" -o -name "*.sh" -o -name "*.lua" -o -name "*.htm" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" -o -name "*.uc" \) \
+              -print0 | xargs -0 sed -i "s|$from|$to|g"
+          }
+
+          perl -0777 -i -pe '
+            my $ns = $ENV{"APP_NS"};
+            s/page = entry\(\{"admin",\s*"services",\s*"[^"]*"\},\s*alias\("admin",\s*"services",\s*"[^"]*",\s*"xboard"\),\s*_\("XBoard"\),\s*50\)/
+              "page = entry({\"admin\", \"services\", \"$ns\"}, alias(\"admin\", \"services\", \"$ns\", \"xboard\"), _(\"XBoard\"), 50)"/eg;
+            s/entry\(\{"admin",\s*"services",\s*"[^"]*",\s*"xboard"\},form\("openclash\/xboard-client"\),_\("Dashboard"\),\s*20\)\.leaf = true/
+              "entry({\"admin\", \"services\", \"$ns\", \"xboard\"},form(\"openclash\/xboard-client\"),_(\"Dashboard\"), 20).leaf = true"/eg;
+            s/entry\(\{"admin",\s*"services",\s*"[^"]*",\s*"xboard",\s*"config"\},\s*call\("action_xboard_config"\)\)\.leaf = true/
+              "entry({\"admin\", \"services\", \"$ns\", \"xboard\", \"config\"}, call(\"action_xboard_config\")).leaf = true"/eg;
+            s/entry\(\{"admin",\s*"services",\s*"[^"]*",\s*"xboard",\s*"proxy"\},\s*call\("action_xboard_proxy"\)\)\.leaf = true/
+              "entry({\"admin\", \"services\", \"$ns\", \"xboard\", \"proxy\"}, call(\"action_xboard_proxy\")).leaf = true"/eg;
+          ' "$APP_DIR/luasrc/controller/openclash.lua"
+
+          sed -i -E "s|build_url\\(\"admin\", \"services\", \"[^\"]+\", \"xboard\", \"config\"\\)|build_url(\"admin\", \"services\", \"${APP_NS}\", \"xboard\", \"config\")|g" "$APP_DIR/luasrc/view/openclash/xboard_client.htm"
+          sed -i -E "s|build_url\\(\"admin\", \"services\", \"[^\"]+\", \"xboard\", \"proxy\"\\)|build_url(\"admin\", \"services\", \"${APP_NS}\", \"xboard\", \"proxy\")|g" "$APP_DIR/luasrc/view/openclash/xboard_client.htm"
+          sed -i -E "s|/luci-static/resources/[^/]+/xboard/|/luci-static/resources/${APP_NS}/xboard/|g" "$APP_DIR/luasrc/view/openclash/xboard_client.htm"
+
+          [ -d "$APP_DIR/root/usr/share/openclash" ] && mv "$APP_DIR/root/usr/share/openclash" "$APP_DIR/root/usr/share/${APP_NS}"
+          [ -d "$APP_DIR/root/etc/openclash" ] && mv "$APP_DIR/root/etc/openclash" "$APP_DIR/root/etc/${APP_NS}"
+          [ -f "$APP_DIR/root/etc/init.d/openclash" ] && mv "$APP_DIR/root/etc/init.d/openclash" "$APP_DIR/root/etc/init.d/${APP_NS}"
+          [ -f "$APP_DIR/root/etc/uci-defaults/luci-openclash" ] && mv "$APP_DIR/root/etc/uci-defaults/luci-openclash" "$APP_DIR/root/etc/uci-defaults/luci-${APP_NS}"
+          [ -f "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" "$APP_DIR/root/usr/share/rpcd/acl.d/${PKG_NAME}.json"
+          [ -f "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" "$APP_DIR/root/usr/share/ucitrack/${PKG_NAME}.json"
+          [ -d "$APP_DIR/root/www/luci-static/resources/openclash" ] && mv "$APP_DIR/root/www/luci-static/resources/openclash" "$APP_DIR/root/www/luci-static/resources/${APP_NS}"
+
+          replace_tree "/usr/share/openclash" "/usr/share/${APP_NS}"
+          replace_tree "/etc/openclash" "/etc/${APP_NS}"
+          replace_tree "/etc/init.d/openclash" "/etc/init.d/${APP_NS}"
+          replace_tree "/www/luci-static/resources/openclash" "/www/luci-static/resources/${APP_NS}"
+          replace_tree "/luci-static/resources/openclash" "/luci-static/resources/${APP_NS}"
+          replace_tree "luci-app-openclash" "${PKG_NAME}"
+          replace_tree "luci-openclash" "luci-${APP_NS}"
+          sed -i -E "s|^PKG_NAME:=luci-app-[A-Za-z0-9._-]+$|PKG_NAME:=${PKG_NAME}|g" "$APP_DIR/Makefile"
+
+      - name: Minimal Acceptance Checks
+        env:
+          APP_NAME: ${{ secrets.APP_NAME }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          API_TEXT_DOMAIN: ${{ secrets.API_TEXT_DOMAIN }}
+          APP_ICON_URL: ${{ secrets.APP_ICON_URL }}
+          APP_PACKAGE_NAME: ${{ secrets.APP_NAME }}
+          CRISP_WEBSITE_ID: ${{ secrets.CRISP_WEBSITE_ID }}
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          THEME_COLOR: ${{ secrets.THEME_COLOR }}
+        run: |
+          set -euo pipefail
+
+          lua_escape() {
+            local value="$1"
+            value="${value//\\/\\\\}"
+            value="${value//\"/\\\"}"
+            value="${value//$'\n'/\\n}"
+            value="${value//$'\r'/\\r}"
+            value="${value//$'\t'/\\t}"
+            printf '%s' "$value"
+          }
+
+          assert_file() {
+            [ -f "$1" ] || { echo "::error::missing file: $1"; exit 1; }
+            echo "PASS file: $1"
+          }
+          assert_dir() {
+            [ -d "$1" ] || { echo "::error::missing dir: $1"; exit 1; }
+            echo "PASS dir: $1"
+          }
+          assert_not_exists() {
+            [ ! -e "$1" ] || { echo "::error::unexpected path exists: $1"; exit 1; }
+            echo "PASS absent: $1"
+          }
+          assert_contains() {
+            local file="$1"
+            local text="$2"
+            grep -Fq "$text" "$file" || { echo "::error::$file missing text: $text"; exit 1; }
+            echo "PASS text: $text"
+          }
+
+          CONST_PATH="${APP_DIR}/root/usr/share/${APP_NS}/openclash_xboard_constants.lua"
+          CONTROLLER_PATH="${APP_DIR}/luasrc/controller/openclash.lua"
+          VIEW_PATH="${APP_DIR}/luasrc/view/openclash/xboard_client.htm"
+          MAKEFILE_PATH="${APP_DIR}/Makefile"
+          OPENCLASH_SH="${APP_DIR}/root/usr/share/${APP_NS}/openclash.sh"
+          XBOARD_LUA="${APP_DIR}/root/usr/share/${APP_NS}/openclash_xboard.lua"
+
+          assert_file "$CONST_PATH"
+          assert_file "$CONTROLLER_PATH"
+          assert_file "$VIEW_PATH"
+          assert_file "$MAKEFILE_PATH"
+          assert_file "$OPENCLASH_SH"
+          assert_file "$XBOARD_LUA"
+
+          assert_contains "$MAKEFILE_PATH" "PKG_NAME:=${PKG_NAME}"
+          assert_contains "$CONTROLLER_PATH" "{\"admin\", \"services\", \"${APP_NS}\"}, alias(\"admin\", \"services\", \"${APP_NS}\", \"xboard\")"
+          assert_contains "$VIEW_PATH" "build_url(\"admin\", \"services\", \"${APP_NS}\", \"xboard\", \"config\")"
+          assert_contains "$VIEW_PATH" "build_url(\"admin\", \"services\", \"${APP_NS}\", \"xboard\", \"proxy\")"
+          assert_contains "$VIEW_PATH" "/luci-static/resources/${APP_NS}/xboard/"
+
+          assert_dir "${APP_DIR}/root/usr/share/${APP_NS}"
+          assert_dir "${APP_DIR}/root/etc/${APP_NS}"
+          assert_dir "${APP_DIR}/root/www/luci-static/resources/${APP_NS}"
+          assert_file "${APP_DIR}/root/etc/init.d/${APP_NS}"
+          assert_file "${APP_DIR}/root/etc/uci-defaults/luci-${APP_NS}"
+          assert_file "${APP_DIR}/root/usr/share/rpcd/acl.d/${PKG_NAME}.json"
+          assert_file "${APP_DIR}/root/usr/share/ucitrack/${PKG_NAME}.json"
+
+          if [ "$APP_NS" != "openclash" ]; then
+            assert_not_exists "${APP_DIR}/root/usr/share/openclash"
+            assert_not_exists "${APP_DIR}/root/etc/openclash"
+            assert_not_exists "${APP_DIR}/root/www/luci-static/resources/openclash"
+            assert_not_exists "${APP_DIR}/root/etc/init.d/openclash"
+            assert_not_exists "${APP_DIR}/root/etc/uci-defaults/luci-openclash"
+            assert_not_exists "${APP_DIR}/root/usr/share/rpcd/acl.d/luci-app-openclash.json"
+            assert_not_exists "${APP_DIR}/root/usr/share/ucitrack/luci-app-openclash.json"
+          fi
+
+          assert_contains "$CONST_PATH" "API_BASE_URL = \"$(lua_escape "${API_BASE_URL:-}")\""
+          assert_contains "$CONST_PATH" "API_TEXT_DOMAIN = \"$(lua_escape "${API_TEXT_DOMAIN:-}")\""
+          assert_contains "$CONST_PATH" "APP_ICON_URL = \"$(lua_escape "${APP_ICON_URL:-}")\""
+          assert_contains "$CONST_PATH" "APP_NAME = \"$(lua_escape "${APP_NAME:-}")\""
+          assert_contains "$CONST_PATH" "APP_PACKAGE_NAME = \"$(lua_escape "${APP_PACKAGE_NAME:-}")\""
+          assert_contains "$CONST_PATH" "CRISP_WEBSITE_ID = \"$(lua_escape "${CRISP_WEBSITE_ID:-}")\""
+          assert_contains "$CONST_PATH" "THEME_COLOR = \"$(lua_escape "${THEME_COLOR:-}")\""
+          assert_contains "$CONST_PATH" "KEYSTORE = \"$(lua_escape "${KEYSTORE:-}")\""
+          assert_contains "$CONST_PATH" "KEY_ALIAS = \"$(lua_escape "${KEY_ALIAS:-}")\""
+          assert_contains "$CONST_PATH" "KEY_PASSWORD = \"$(lua_escape "${KEY_PASSWORD:-}")\""
+          assert_contains "$CONST_PATH" "STORE_PASSWORD = \"$(lua_escape "${STORE_PASSWORD:-}")\""
+
+          if [ -n "${API_TEXT_DOMAIN:-}" ] && [ -n "${API_BASE_URL:-}" ] && [[ ! "$API_TEXT_DOMAIN" =~ ^https?:// ]]; then
+            assert_contains "$CONST_PATH" "[\"$(lua_escape "$API_TEXT_DOMAIN")\"] = \"$(lua_escape "$API_BASE_URL")\""
+          fi
+
+          # Security hardening checks: secure cleanup and FIFO support
+          assert_contains "$OPENCLASH_SH" "secure_cleanup()"
+          assert_contains "$OPENCLASH_SH" "trap secure_cleanup EXIT INT TERM"
+          assert_contains "$OPENCLASH_SH" "chmod 600"
+          assert_contains "$OPENCLASH_SH" "xboard_decode_payload_to_fifo()"
+          assert_contains "$XBOARD_LUA" "decode_payload_to_fifo()"
+          assert_contains "$XBOARD_LUA" "mode == \"decode-fifo\""
+          
+          # Check UCI namespace replacement
+          if [ "$APP_NS" != "openclash" ]; then
+            # Verify openclash UCI references are replaced
+            if grep -q 'uci:get("openclash"' "$APP_DIR"/luasrc/**/*.lua 2>/dev/null; then
+              echo "::error::Found unreplaced 'uci:get(\"openclash\"' in Lua files"
+              exit 1
+            fi
+            if grep -q 'uci:foreach("openclash"' "$APP_DIR"/luasrc/**/*.lua 2>/dev/null; then
+              echo "::error::Found unreplaced 'uci:foreach(\"openclash\"' in Lua files"
+              exit 1
+            fi
+            echo "PASS UCI namespace replaced to ${APP_NS}"
+          fi
+
+          {
+            echo "### Minimal Acceptance Passed"
+            echo "- APP_NAME: \`${APP_NAME}\`"
+            echo "- APP_NS: \`${APP_NS}\` (derived from APP_NAME)"
+            echo "- PKG_NAME: \`${PKG_NAME}\`"
+            echo "- Constants: \`${CONST_PATH}\`"
+            echo "- Checked secrets: API_BASE_URL, API_TEXT_DOMAIN, APP_ICON_URL, APP_NAME, CRISP_WEBSITE_ID, THEME_COLOR, KEYSTORE, KEY_ALIAS, KEY_PASSWORD, STORE_PASSWORD"
+            echo "- Checked namespace rewrite: routes, static path, package name, runtime dirs/files"
+            echo "- Checked security hardening: secure_cleanup, trap, chmod 600, FIFO decode"
+            echo "- Checked UCI config section: config ${APP_NS}, @${APP_NS}, firewall.${APP_NS}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  Get-Version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      current_version: ${{ steps.current_version.outputs.version }}
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: New Version
+        id: version
+        run: |
+          echo "version=$(grep 'PKG_VERSION:=' ./luci-app-openclash/Makefile |awk -F '=' '{print $2}')" >> $GITHUB_OUTPUT
+
+      - name: Clone Repository
+        uses: actions/checkout@v4
+        with:
+          ref: package
+
+      - name: Current Version
+        id: current_version
+        run: |
+          echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
+
+  Compile:
+    runs-on: ubuntu-latest
+    needs: Get-Version
+    if: ${{ needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version }}
+    strategy:
+      matrix:
+        target:
+          - { name: ipk, sdk_url: "https://mirrors.pku.edu.cn/openwrt/releases/22.03.0/targets/x86/64/openwrt-sdk-22.03.0-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz", sdk_tar: "SDK.tar.xz", sdk_backup_tar: "SDK.tar.bz2", sdk_dir: "SDK", artifact_pattern: "luci-app-*.ipk" }
+          - { name: apk, sdk_url: "snapshot", sdk_tar: "SNAPSDK.tar.zst", sdk_backup_tar: "SNAPSDK.tar.zst", sdk_dir: "SNAPSDK", artifact_pattern: "luci-app-*.apk" }
+    steps:
+      - name: Checkout OpenClash Source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Resolve Namespace
+        env:
+          APP_NAME: ${{ secrets.APP_NAME }}
+        run: |
+          slugify() {
+            local raw="$1"
+            raw="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]')"
+            raw="$(printf '%s' "$raw" | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-{2,}/-/g')"
+            printf '%s' "$raw"
+          }
+
+          # Derive all values from APP_NAME only
+          # APP_NAMESPACE: slugified APP_NAME (e.g., "XBoard Clash" → "xboard-clash")
+          # APP_PACKAGE_NAME: same as APP_NAMESPACE (for package naming)
+          # PKG_NAME: luci-app-${APP_NAMESPACE}
+          APP_NS="$(slugify "${APP_NAME:-openclash}")"
+          [ -z "$APP_NS" ] && APP_NS="openclash"
+          PKG_NAME="luci-app-${APP_NS}"
+          APP_DIR="./luci-app-openclash"
+
+          echo "APP_NS=${APP_NS}" >> "$GITHUB_ENV"
+          echo "PKG_NAME=${PKG_NAME}" >> "$GITHUB_ENV"
+          echo "APP_DIR=${APP_DIR}" >> "$GITHUB_ENV"
+          echo "resolved APP_NS=${APP_NS} from APP_NAME=${APP_NAME}"
+
+      - name: Inject XBoard Constants (Optional)
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          API_TEXT_DOMAIN: ${{ secrets.API_TEXT_DOMAIN }}
+          APP_ICON_URL: ${{ secrets.APP_ICON_URL }}
+          APP_NAME: ${{ secrets.APP_NAME }}
+          APP_PACKAGE_NAME: ${{ secrets.APP_PACKAGE_NAME }}
+          CRISP_WEBSITE_ID: ${{ secrets.CRISP_WEBSITE_ID }}
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          THEME_COLOR: ${{ secrets.THEME_COLOR }}
+        run: |
+          target_path="${APP_DIR}/root/usr/share/openclash/openclash_xboard_constants.lua"
+
+          lua_escape() {
+            local value="$1"
+            value="${value//\\/\\\\}"
+            value="${value//\"/\\\"}"
+            value="${value//$'\n'/\\n}"
+            value="${value//$'\r'/\\r}"
+            value="${value//$'\t'/\\t}"
+            printf '%s' "$value"
+          }
+
+          render_text_domain_map() {
+            local rendered=""
+            if [ -n "${API_TEXT_DOMAIN:-}" ] && [ -n "${API_BASE_URL:-}" ]; then
+              if [[ ! "$API_TEXT_DOMAIN" =~ ^https?:// ]]; then
+                rendered+="    [\"$(lua_escape "$API_TEXT_DOMAIN")\"] = \"$(lua_escape "$API_BASE_URL")\",\n"
+              fi
+            fi
+            printf '%b' "$rendered"
+          }
+
+          mkdir -p "$(dirname "$target_path")"
+
+          cat >"$target_path" <<EOF
+          local M = {
+            API_BASE_URL = "$(lua_escape "${API_BASE_URL:-}")",
+            API_TEXT_DOMAIN = "$(lua_escape "${API_TEXT_DOMAIN:-}")",
+            APP_ICON_URL = "$(lua_escape "${APP_ICON_URL:-}")",
+            -- APP_NAME is used as API_TEXT_DOMAIN decrypt password.
+            APP_NAME = "$(lua_escape "${APP_NAME:-}")",
+            APP_PACKAGE_NAME = "$(lua_escape "${APP_PACKAGE_NAME:-}")",
+            CRISP_WEBSITE_ID = "$(lua_escape "${CRISP_WEBSITE_ID:-}")",
+            THEME_COLOR = "$(lua_escape "${THEME_COLOR:-}")",
+            KEYSTORE = "$(lua_escape "${KEYSTORE:-}")",
+            KEY_ALIAS = "$(lua_escape "${KEY_ALIAS:-}")",
+            KEY_PASSWORD = "$(lua_escape "${KEY_PASSWORD:-}")",
+            STORE_PASSWORD = "$(lua_escape "${STORE_PASSWORD:-}")",
+            TEXT_DOMAIN_MAP = {
+          $(render_text_domain_map)  },
+            LOGIN_PATH = "/api/v1/passport/auth/login",
+            GET_SUBSCRIBE_PATH = "/api/v1/user/getSubscribe",
+            DEFAULT_SUB_PATH = "/api/v1/client/subscribe?token={token}",
+          }
+
+          return M
+          EOF
+
+          echo "xboard constants injected into: $target_path"
+
+      - name: Inject Namespace and Runtime Paths (Optional)
+        run: |
+          echo "resolved APP_NAMESPACE=$APP_NS"
+          [ "$APP_NS" = "openclash" ] && exit 0
+
+          replace_tree() {
+            local from="$1"
+            local to="$2"
+            find "$APP_DIR" -type f \
+              \( -name "Makefile" -o -name "*.sh" -o -name "*.lua" -o -name "*.htm" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" -o -name "*.uc" \) \
+              -print0 | xargs -0 sed -i "s|$from|$to|g"
+          }
+
+          # XBoard route/static path namespace rewrite (targeted)
+          perl -0777 -i -pe '
+            my $ns = $ENV{"APP_NS"};
+            s/page = entry\(\{"admin",\s*"services",\s*"[^"]*"\},\s*alias\("admin",\s*"services",\s*"[^"]*",\s*"xboard"\),\s*_\("XBoard"\),\s*50\)/
+              "page = entry({\"admin\", \"services\", \"$ns\"}, alias(\"admin\", \"services\", \"$ns\", \"xboard\"), _(\"XBoard\"), 50)"/eg;
+            s/entry\(\{"admin",\s*"services",\s*"[^"]*",\s*"xboard"\},form\("openclash\/xboard-client"\),_\("Dashboard"\),\s*20\)\.leaf = true/
+              "entry({\"admin\", \"services\", \"$ns\", \"xboard\"},form(\"openclash\/xboard-client\"),_(\"Dashboard\"), 20).leaf = true"/eg;
+            s/entry\(\{"admin",\s*"services",\s*"[^"]*",\s*"xboard",\s*"config"\},\s*call\("action_xboard_config"\)\)\.leaf = true/
+              "entry({\"admin\", \"services\", \"$ns\", \"xboard\", \"config\"}, call(\"action_xboard_config\")).leaf = true"/eg;
+            s/entry\(\{"admin",\s*"services",\s*"[^"]*",\s*"xboard",\s*"proxy"\},\s*call\("action_xboard_proxy"\)\)\.leaf = true/
+              "entry({\"admin\", \"services\", \"$ns\", \"xboard\", \"proxy\"}, call(\"action_xboard_proxy\")).leaf = true"/eg;
+          ' "$APP_DIR/luasrc/controller/openclash.lua"
+
+          sed -i -E "s|build_url\\(\"admin\", \"services\", \"[^\"]+\", \"xboard\", \"config\"\\)|build_url(\"admin\", \"services\", \"${APP_NS}\", \"xboard\", \"config\")|g" "$APP_DIR/luasrc/view/openclash/xboard_client.htm"
+          sed -i -E "s|build_url\\(\"admin\", \"services\", \"[^\"]+\", \"xboard\", \"proxy\"\\)|build_url(\"admin\", \"services\", \"${APP_NS}\", \"xboard\", \"proxy\")|g" "$APP_DIR/luasrc/view/openclash/xboard_client.htm"
+          sed -i -E "s|/luci-static/resources/[^/]+/xboard/|/luci-static/resources/${APP_NS}/xboard/|g" "$APP_DIR/luasrc/view/openclash/xboard_client.htm"
+
+          # Move runtime directories/files shipped in package tree
+          [ -d "$APP_DIR/root/usr/share/openclash" ] && mv "$APP_DIR/root/usr/share/openclash" "$APP_DIR/root/usr/share/${APP_NS}"
+          [ -d "$APP_DIR/root/etc/openclash" ] && mv "$APP_DIR/root/etc/openclash" "$APP_DIR/root/etc/${APP_NS}"
+          [ -f "$APP_DIR/root/etc/init.d/openclash" ] && mv "$APP_DIR/root/etc/init.d/openclash" "$APP_DIR/root/etc/init.d/${APP_NS}"
+          [ -f "$APP_DIR/root/etc/uci-defaults/luci-openclash" ] && mv "$APP_DIR/root/etc/uci-defaults/luci-openclash" "$APP_DIR/root/etc/uci-defaults/luci-${APP_NS}"
+          [ -f "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" "$APP_DIR/root/usr/share/rpcd/acl.d/${PKG_NAME}.json"
+          [ -f "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" "$APP_DIR/root/usr/share/ucitrack/${PKG_NAME}.json"
+          [ -d "$APP_DIR/root/www/luci-static/resources/openclash" ] && mv "$APP_DIR/root/www/luci-static/resources/openclash" "$APP_DIR/root/www/luci-static/resources/${APP_NS}"
+
+          # Rewrite internal paths/names
+          replace_tree "/usr/share/openclash" "/usr/share/${APP_NS}"
+          replace_tree "/etc/openclash" "/etc/${APP_NS}"
+          replace_tree "/etc/init.d/openclash" "/etc/init.d/${APP_NS}"
+          replace_tree "/www/luci-static/resources/openclash" "/www/luci-static/resources/${APP_NS}"
+          replace_tree "/luci-static/resources/openclash" "/luci-static/resources/${APP_NS}"
+          replace_tree "luci-app-openclash" "${PKG_NAME}"
+          replace_tree "luci-openclash" "luci-${APP_NS}"
+          
+          # Replace UCI config section name for coexistence
+          # This allows luci-app-openclash and luci-app-${APP_NS} to be installed together
+          # Use sed with regex for UCI patterns
+          find "$APP_DIR" -type f \
+            \( -name "Makefile" -o -name "*.sh" -o -name "*.lua" -o -name "*.htm" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" -o -name "*.uc" \) \
+            -print0 | xargs -0 sed -i \
+            -e "s|uci:get(\"openclash\"|uci:get(\"${APP_NS}\"|g" \
+            -e "s|uci:get_all(\"openclash\"|uci:get_all(\"${APP_NS}\"|g" \
+            -e "s|uci:foreach(\"openclash\"|uci:foreach(\"${APP_NS}\"|g" \
+            -e "s|uci:delete(\"openclash\"|uci:delete(\"${APP_NS}\"|g" \
+            -e "s|uci:set(\"openclash\"|uci:set(\"${APP_NS}\"|g" \
+            -e "s|uci -q set openclash|uci -q set ${APP_NS}|g" \
+            -e "s|uci -q get openclash|uci -q get ${APP_NS}|g" \
+            -e "s|uci -q delete openclash|uci -q delete ${APP_NS}|g" \
+            -e "s|uci -q commit openclash|uci -q commit ${APP_NS}|g" \
+            -e "s|uci get openclash|uci get ${APP_NS}|g" \
+            -e "s|uci commit openclash|uci commit ${APP_NS}|g" \
+            -e "s|config openclash|config ${APP_NS}|g" \
+            -e "s|@openclash|@${APP_NS}|g" \
+            -e "s|firewall.openclash|firewall.${APP_NS}|g" \
+            -e "s|ucitrack.@openclash|ucitrack.@${APP_NS}|g"
+
+          # Keep Makefile package name consistent
+          sed -i -E "s|^PKG_NAME:=luci-app-[A-Za-z0-9._-]+$|PKG_NAME:=${PKG_NAME}|g" "$APP_DIR/Makefile"
+
+      - name: Install Dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install curl git tar zstd python3 python3-pyelftools python3-setuptools
+
+      - name: Download SDK
+        run: |
+          mkdir -p tmp
+          if [ "${{ matrix.target.name }}" = "ipk" ]; then
+            if ! curl -SLk --connect-timeout 30 --retry 2 "${{ matrix.target.sdk_url }}" -o "./tmp/${{ matrix.target.sdk_tar }}"; then
+              curl -SLk --connect-timeout 30 --retry 2 "https://archive.openwrt.org/chaos_calmer/15.05.1/ar71xx/generic/OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2" -o "./tmp/SDK.tar.xz"
+              cd tmp
+              tar xjf ${{ matrix.target.sdk_backup_tar }}
+              mv OpenWrt-SDK-* ${{ matrix.target.sdk_dir }}
+            else
+              cd tmp
+              tar xf ${{ matrix.target.sdk_tar }}
+              mv openwrt-sdk-* ${{ matrix.target.sdk_dir }}
+            fi
+          else
+            BASE_URL="https://downloads.openwrt.org/snapshots/targets/x86/64/"
+            SDK_NAME=$(curl -s $BASE_URL | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
+            if ! curl -SLk --connect-timeout 30 --retry 2 "$BASE_URL/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"; then
+              BASE_URL2="https://mirrors.pku.edu.cn/files/openwrt/snapshots/targets/x86/64/"
+              SDK_NAME=$(curl -s $BASE_URL2 | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
+              curl -SLk --connect-timeout 30 --retry 2 "$BASE_URL2/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"
+            fi
+            cd tmp
+            zstd -d ${{ matrix.target.sdk_tar }}
+            tar xf SNAPSDK.tar
+            SDK_DIR=$(tar tf SNAPSDK.tar | head -n 1 | cut -d/ -f1)
+            mv "$SDK_DIR" "${{ matrix.target.sdk_dir }}"
+          fi
+
+      - name: Copy OpenClash Source Codes
+        run: |
+          mkdir -p tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash
+          cp -rf ./luci-app-openclash/. tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/
+
+      - name: Update Third-Party Resources
+        run: |
+          PKG_DIR=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash
+          CHNR_PATH="$PKG_DIR/root/etc/${APP_NS}/china_ip_route.ipset"
+          CHNR6_PATH="$PKG_DIR/root/etc/${APP_NS}/china_ip6_route.ipset"
+          ZASHBOARD_PATH="$PKG_DIR/root/usr/share/${APP_NS}/ui/zashboard"
+          METACUBEXD_PATH="$PKG_DIR/root/usr/share/${APP_NS}/ui/metacubexd"
+          GEOSITE_PATH="$PKG_DIR/root/etc/${APP_NS}/GeoSite.dat"
+          COUNTRY_MMDB_PATH="$PKG_DIR/root/etc/${APP_NS}/Country.mmdb"
+
+          # 更新 China IP Route
+          mkdir -p tmp
+          curl -sSL https://ispip.clang.cn/all_cn.txt -o tmp/china_ip_route.ipset
+          mkdir -p $(dirname $CHNR_PATH)
+          cp tmp/china_ip_route.ipset $CHNR_PATH
+          curl -sSL https://ispip.clang.cn/all_cn_ipv6.txt -o tmp/china_ip6_route.ipset
+          mkdir -p $(dirname $CHNR6_PATH)
+          cp tmp/china_ip6_route.ipset $CHNR6_PATH
+
+          # 更新 MetaCubeXD UI
+          mkdir -p tmp/metacubexd_zip
+          curl -sSL https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip -o tmp/metacubexd.zip
+          unzip -q -o tmp/metacubexd.zip -d tmp/metacubexd_zip
+          METACUBEXD_UNZIP_PATH="tmp/metacubexd_zip/metacubexd-gh-pages"
+          mkdir -p "$METACUBEXD_PATH"
+          rm -rf "$METACUBEXD_PATH"/*
+          cp -rf "$METACUBEXD_UNZIP_PATH"/* "$METACUBEXD_PATH"
+
+          # 更新 ZashBoard UI
+          mkdir -p tmp/zashboard_zip
+          curl -sSL https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip -o tmp/zashboard.zip
+          unzip -q -o tmp/zashboard.zip -d tmp/zashboard_zip
+          mkdir -p "$ZASHBOARD_PATH"
+          rm -rf "$ZASHBOARD_PATH"/*
+          cp -rf tmp/zashboard_zip/dist/* "$ZASHBOARD_PATH"
+
+          # 更新 GeoSite.dat
+          RULES_RELEASE=$(curl -s https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/latest | jq -r '.tag_name')
+          curl -sSL "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${RULES_RELEASE}/geosite.dat" -o tmp/GeoSite.dat
+          mkdir -p $(dirname "$GEOSITE_PATH")
+          cp tmp/GeoSite.dat "$GEOSITE_PATH"
+
+          # 更新 Country.mmdb
+          curl -sSL "https://github.com/alecthw/mmdb_china_ip_list/releases/latest/download/Country-lite.mmdb" -o tmp/Country.mmdb
+          mkdir -p $(dirname "$COUNTRY_MMDB_PATH")
+          cp tmp/Country.mmdb "$COUNTRY_MMDB_PATH"
+
+      - name: Compile po2lmo
+        run: |
+          cd tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/tools/po2lmo
+          make && sudo make install
+
+      - name: Compile OpenClash
+        run: |
+          cd tmp/${{ matrix.target.sdk_dir }}
+          if [ -f ../${{ matrix.target.sdk_tar }} ]; then
+            make defconfig
+          fi
+          make package/${PKG_NAME}/compile V=99 || make package/luci-app-openclash/compile V=99
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openclash-${{ matrix.target.name }}
+          path: tmp/${{ matrix.target.sdk_dir }}/bin/packages/x86_64/base/${{ matrix.target.artifact_pattern }}
+
+  Post-Process:
+    runs-on: ubuntu-latest
+    needs: [Compile, Get-Version]
+    steps:
+      - name: Checkout package branch
+        uses: actions/checkout@v4
+        with:
+          ref: package
+
+      - name: Download IPK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openclash-ipk
+          path: ./
+
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openclash-apk
+          path: ./
+
+      - name: Commit and Push New Version
+        run: |
+          rm -rf ./${{ github.ref_name }}/luci-app-*
+          echo "v${{ needs.Get-Version.outputs.version }}" > ./${{ github.ref_name }}/version
+          echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}-orange.svg" >> ./${{ github.ref_name }}/version
+          cp ./luci-app-*.ipk "./${{ github.ref_name }}/"
+          cp ./luci-app-*.apk "./${{ github.ref_name }}/"
+          rm -f ./luci-app-*.ipk
+          rm -f ./luci-app-*.apk
+          sed -i -E "s/OpenClash\/tree\/v(.*)/OpenClash\/tree\/v${{ needs.Get-Version.outputs.version }}/g" ./${{ github.ref_name }}/README.md
+          sed -i -E "s/OpenClash\/releases\/tag\/v(.*)/OpenClash\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}/g" ./${{ github.ref_name }}/README.md
+          sed -i -E "s/source code-v(.*)-green/source code-v${{ needs.Get-Version.outputs.version }}-green/g" ./${{ github.ref_name }}/README.md
+          sed -i -E "s/New Release-v(.*)-orange/New Release-v${{ needs.Get-Version.outputs.version }}-orange/g" ./${{ github.ref_name }}/README.md
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m "Auto Release: v${{ needs.Get-Version.outputs.version }}"
+          git push

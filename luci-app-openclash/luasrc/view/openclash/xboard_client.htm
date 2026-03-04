@@ -1,0 +1,435 @@
+<%
+local fs = require "luci.openclash"
+local jsonc = require "luci.jsonc"
+local branding = (fs.get_branding and fs.get_branding()) or {}
+
+local i18n = {
+  account_settings_saved = translate("Account settings saved"),
+  amount = translate("Amount"),
+  api_connected = translate("API Connected"),
+  api_disconnected = translate("API Disconnected"),
+  api_endpoint = translate("API: {url}"),
+  api_not_configured = translate("API Not Configured"),
+  api_not_checked = translate("API Not Checked"),
+  base_not_configured = translate("API_BASE_URL / API_TEXT_DOMAIN not configured. Configure GitHub Actions secrets."),
+  brand_meta_default = translate("OpenClash XBoard Client"),
+  buy = translate("Buy"),
+  cancel_order = translate("Cancel Order"),
+  cancel_order_failed = translate("Cancel order failed"),
+  cannot_get_payment_link = translate("Cannot get payment link, complete payment on panel site"),
+  change_password_failed = translate("Change password failed"),
+  close_ticket_failed = translate("Close ticket failed"),
+  commission_transferred = translate("Commission transferred"),
+  confirm_cancel_order = translate("Are you sure to cancel order {trade_no}?"),
+  copy = translate("Copy"),
+  copy_failed_manual = translate("Copy failed, please copy manually"),
+  coupon_code_required = translate("Please input coupon code"),
+  coupon_optional_placeholder = translate("Coupon Code (Optional)"),
+  coupon_valid_summary = translate("Coupon valid: {name}, discount {value}{unit}"),
+  coupon_validation_failed = translate("Coupon validation failed"),
+  coupon_verify = translate("Verify"),
+  coupon_verifying = translate("Verifying..."),
+  create_ticket_failed = translate("Create ticket failed"),
+  created = translate("Created"),
+  currency_unit = translate("CNY"),
+  discount = translate("Discount"),
+  get_order_detail_failed = translate("Failed to get order detail"),
+  guest_plan_traffic = translate("Traffic"),
+  home_refreshed = translate("Home data refreshed"),
+  init_failed = translate("Initialization failed"),
+  initializing = translate("Initializing XBoard client..."),
+  input_email_first = translate("Please input email first"),
+  input_valid_amount = translate("Please input a valid amount"),
+  input_withdraw_account = translate("Please input withdraw account"),
+  invite_code_copied = translate("Invite code copied"),
+  invite_code_create_failed = translate("Create invite code failed"),
+  invite_code_created = translate("Invite code created"),
+  invite_code_optional = translate("Invite Code (Optional)"),
+  invite_code_required = translate("Invite Code (Required)"),
+  invite_refreshed = translate("Invite data refreshed"),
+  load_failed = translate("Load failed"),
+  logged_out = translate("Logged out"),
+  login_failed = translate("Login failed"),
+  login_first = translate("Please login XBoard account first"),
+  login_no_token = translate("Login succeeded but token is missing"),
+  login_success_loading = translate("Login succeeded, loading dashboard..."),
+  me = translate("Me"),
+  no_invite_codes = translate("No invite codes"),
+  no_invite_details = translate("No invite details"),
+  no_notices = translate("No notices"),
+  no_orders = translate("No orders"),
+  no_payment_method = translate("No payment method available, complete payment on panel site"),
+  no_plans_available = translate("No plans available"),
+  no_pricing = translate("No pricing"),
+  no_subscription_link = translate("No subscription link for current account"),
+  no_ticket_messages = translate("No ticket messages"),
+  no_tickets = translate("No tickets"),
+  no_traffic_logs = translate("No traffic logs"),
+  not_logged_in = translate("Not logged in, please login first"),
+  order_cancelled = translate("Order cancelled"),
+  order_created_complete_payment_panel = translate("Order created. Complete payment on panel site. Order: {trade_no}"),
+  order_created_finish_payment_in_orders = translate("Order created. Please complete payment in order page. Order: {trade_no}"),
+  order_created_no_trade = translate("Order created but trade_no is missing"),
+  order_no = translate("Order"),
+  order_status_cancelled = translate("Cancelled"),
+  order_status_completed = translate("Completed"),
+  order_status_pending = translate("Pending"),
+  order_status_processing = translate("Processing"),
+  order_status_unknown = translate("Unknown"),
+  orders_refreshed = translate("Orders refreshed"),
+  password_changed = translate("Password changed"),
+  pay_failed = translate("Payment failed"),
+  pay_now = translate("Pay Now"),
+  payment_check_timeout = translate("Payment check timeout, please refresh orders manually"),
+  payment_opened = translate("Payment page opened"),
+  payment_page_opened = translate("Payment page opened. Order: {trade_no}"),
+  payment_succeeded = translate("Payment succeeded"),
+  period = translate("Period"),
+  period_half_year = translate("Half Year"),
+  period_month = translate("Month"),
+  period_onetime = translate("One Time"),
+  period_quarter = translate("Quarter"),
+  period_three_year = translate("Three Years"),
+  period_two_year = translate("Two Years"),
+  period_year = translate("Year"),
+  plan = translate("Plan"),
+  plan_no_period = translate("No billing period available"),
+  plan_with_id = translate("Plan #{plan_id}"),
+  plans_refreshed = translate("Plans refreshed"),
+  processing = translate("Processing..."),
+  proxy_request_failed = translate("Proxy request failed"),
+  purchase_failed = translate("Purchase failed"),
+  refresh_failed = translate("Refresh failed"),
+  register_failed = translate("Register failed"),
+  register_success_back_login = translate("Register succeeded, please login"),
+  reply_failed = translate("Reply failed"),
+  reply_sent = translate("Reply sent"),
+  request_failed = translate("Request failed"),
+  reset_password_failed = translate("Password reset failed"),
+  reset_password_success_login = translate("Password reset succeeded, please login"),
+  response_not_json = translate("Response is not JSON"),
+  save_failed = translate("Save failed"),
+  select_ticket_first = translate("Please select ticket first"),
+  select_ticket_left = translate("Please select a ticket from the left"),
+  select_withdraw_method = translate("Please select withdraw method"),
+  send_code_failed = translate("Send code failed"),
+  session_expired_login_again = translate("Session expired, please login again"),
+  session_restored = translate("Session restored"),
+  status = translate("Status"),
+  subscription_copied = translate("Subscription link copied"),
+  subscription_reset = translate("Subscription link reset"),
+  subscription_reset_failed = translate("Reset failed"),
+  support = translate("Support"),
+  table_date = translate("Date"),
+  table_download = translate("Download"),
+  table_total = translate("Total"),
+  table_upload = translate("Upload"),
+  ticket_closed = translate("Ticket closed"),
+  ticket_created = translate("Ticket created"),
+  ticket_with_id = translate("Ticket #{ticket_id}"),
+  tickets_refreshed = translate("Tickets refreshed"),
+  traffic_limit = translate("Traffic Limit"),
+  transfer_amount_prompt = translate("Please input transfer amount"),
+  transfer_failed = translate("Transfer failed"),
+  untitled_notice = translate("Untitled notice"),
+  updated_at = translate("Updated"),
+  verification_code_sent = translate("Verification code sent, please check your email"),
+  withdraw_failed = translate("Withdraw request failed"),
+  withdraw_submitted = translate("Withdraw request submitted")
+}
+
+local cfg = {
+  app_name = branding.app_name or "XBoard",
+  app_icon_url = branding.app_icon_url or "",
+  theme_color = branding.theme_color or "",
+  crisp_website_id = branding.crisp_website_id or "",
+  app_package_name = branding.app_package_name or "",
+  config_url = luci.dispatcher.build_url("admin", "services", "openclash", "xboard", "config"),
+  proxy_url = luci.dispatcher.build_url("admin", "services", "openclash", "xboard", "proxy"),
+  i18n = i18n
+}
+%>
+<head>
+  <link rel="stylesheet" href="/luci-static/resources/openclash/xboard/client.css">
+</head>
+<div class="xb" id="xbApp">
+  <div class="xb-header">
+    <div class="xb-brand">
+      <img id="brandIcon" class="xb-brand-icon hidden" alt="brand">
+      <span id="brandDot" class="xb-brand-dot"></span>
+      <div>
+        <div id="brandTitle" class="xb-brand-title">XBoard</div>
+        <div id="brandMeta" class="xb-brand-meta"><%:OpenClash XBoard Client%></div>
+      </div>
+    </div>
+    <div class="xb-api-status">
+      <span id="apiDot" class="xb-api-dot"></span>
+      <span id="apiStatus"><%:API Not Checked%></span>
+    </div>
+  </div>
+
+  <div id="noticeBox" class="xb-notice info hidden"></div>
+
+  <div id="authPane" class="xb-auth-wrap">
+    <div class="xb-auth-card">
+      <div class="xb-auth-tabs">
+        <button type="button" class="xb-auth-tab active" data-auth-tab="login"><%:Login%></button>
+        <button type="button" class="xb-auth-tab" data-auth-tab="register"><%:Register%></button>
+        <button type="button" class="xb-auth-tab" data-auth-tab="forget"><%:Forgot Password%></button>
+      </div>
+
+      <form id="loginForm" class="xb-form-grid">
+        <div class="xb-form-block">
+          <label><%:Email%></label>
+          <input class="xb-input" type="email" name="email" required>
+        </div>
+        <div class="xb-form-block">
+          <label><%:Password%></label>
+          <input class="xb-input" type="password" name="password" required>
+        </div>
+        <div class="xb-form-block full">
+          <button type="submit" class="xb-btn"><%:Login and Enter Dashboard%></button>
+        </div>
+      </form>
+
+      <form id="registerForm" class="xb-form-grid hidden">
+        <div class="xb-form-block">
+          <label><%:Email%></label>
+          <input class="xb-input" type="email" name="email" required>
+        </div>
+        <div class="xb-form-block">
+          <label><%:Password%></label>
+          <input class="xb-input" type="password" name="password" required>
+        </div>
+        <div class="xb-form-block" id="regInviteBlock">
+          <label><%:Invite Code (Optional)%></label>
+          <input class="xb-input" type="text" name="invite_code">
+        </div>
+        <div class="xb-form-block hidden" id="regEmailCodeBlock">
+          <label><%:Email Verification Code (Optional)%></label>
+          <div class="xb-actions">
+            <input class="xb-input" style="flex:1;" type="text" name="email_code">
+            <button type="button" class="xb-btn-ghost" id="sendRegisterCodeBtn"><%:Send Code%></button>
+          </div>
+        </div>
+        <div class="xb-form-block full">
+          <button type="submit" class="xb-btn"><%:Submit Registration%></button>
+        </div>
+      </form>
+
+      <form id="forgetForm" class="xb-form-grid hidden">
+        <div class="xb-form-block">
+          <label><%:Email%></label>
+          <input class="xb-input" type="email" name="email" required>
+        </div>
+        <div class="xb-form-block">
+          <label><%:New Password%></label>
+          <input class="xb-input" type="password" name="password" required>
+        </div>
+        <div class="xb-form-block full">
+          <label><%:Email Verification Code (Optional)%></label>
+          <div class="xb-actions">
+            <input class="xb-input" style="flex:1;" type="text" name="email_code" required>
+            <button type="button" class="xb-btn-ghost" id="sendForgetCodeBtn"><%:Send Code%></button>
+          </div>
+        </div>
+        <div class="xb-form-block full">
+          <button type="submit" class="xb-btn"><%:Reset Password%></button>
+        </div>
+      </form>
+    </div>
+    <div class="xb-auth-card hidden" id="guestPlansSection" style="margin-top:12px;">
+      <h3 class="xb-card-title"><%:Available Plans Preview%></h3>
+      <div id="guestPlansList" class="xb-plan-list"></div>
+    </div>
+  </div>
+
+  <div id="panelPane" class="xb-body hidden">
+    <div class="xb-sidebar">
+      <button class="xb-nav-btn active" data-page="home"><%:Home%></button>
+      <button class="xb-nav-btn" data-page="plans"><%:Plans%></button>
+      <button class="xb-nav-btn" data-page="orders"><%:Orders%></button>
+      <button class="xb-nav-btn" data-page="tickets"><%:Tickets%></button>
+      <button class="xb-nav-btn" data-page="invite"><%:Invite%></button>
+      <button class="xb-nav-btn" data-page="settings"><%:Settings%></button>
+    </div>
+    <div class="xb-content">
+      <section class="xb-page" data-page="home">
+        <div class="xb-grid two">
+          <div class="xb-card">
+            <h3 class="xb-card-title"><%:Account Info%></h3>
+            <div class="xb-row"><span class="xb-label"><%:Email%></span><span class="xb-value" id="homeUserEmail">-</span></div>
+            <div class="xb-row"><span class="xb-label"><%:Balance%></span><span class="xb-value" id="homeUserBalance">-</span></div>
+            <div class="xb-row"><span class="xb-label"><%:Commission%></span><span class="xb-value" id="homeUserCommission">-</span></div>
+            <div class="xb-actions"><button type="button" class="xb-btn-ghost" id="refreshHomeBtn"><%:Refresh%></button></div>
+          </div>
+          <div class="xb-card">
+            <h3 class="xb-card-title"><%:Subscription Status%></h3>
+            <div class="xb-row"><span class="xb-label"><%:Plan%></span><span class="xb-value" id="homePlanName">-</span></div>
+            <div class="xb-row"><span class="xb-label"><%:Remaining Traffic%></span><span class="xb-value" id="homeRemainTraffic">-</span></div>
+            <div class="xb-row"><span class="xb-label"><%:Expire Time%></span><span class="xb-value" id="homeExpiredAt">-</span></div>
+            <div class="xb-actions">
+              <button type="button" class="xb-btn-ghost" id="copySubBtn"><%:Copy Subscription URL%></button>
+              <button type="button" class="xb-btn-ghost" id="resetSubBtn"><%:Reset Subscription URL%></button>
+            </div>
+          </div>
+        </div>
+        <div class="xb-card" style="margin-top:10px;">
+          <h3 class="xb-card-title"><%:Notices%></h3>
+          <div id="noticeList" class="xb-empty"><%:No notices%></div>
+        </div>
+        <div class="xb-card" style="margin-top:10px;">
+          <h3 class="xb-card-title"><%:Traffic Usage Logs%></h3>
+          <div id="trafficLogList" class="xb-empty"><%:No records%></div>
+          <div class="xb-actions" id="trafficLogMore" style="display:none;">
+            <button type="button" class="xb-btn-ghost" id="loadMoreTrafficBtn"><%:Load More%></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="xb-page hidden" data-page="plans">
+        <div class="xb-card">
+          <div class="xb-row">
+            <h3 class="xb-card-title" style="margin:0;"><%:Plan List%></h3>
+            <button type="button" class="xb-btn-ghost" id="refreshPlansBtn"><%:Refresh%></button>
+          </div>
+          <div id="plansList" class="xb-plan-list"><div class="xb-empty"><%:Loading plans...%></div></div>
+        </div>
+      </section>
+
+      <section class="xb-page hidden" data-page="orders">
+        <div class="xb-card">
+          <div class="xb-row">
+            <h3 class="xb-card-title" style="margin:0;"><%:Order List%></h3>
+            <button type="button" class="xb-btn-ghost" id="refreshOrdersBtn"><%:Refresh%></button>
+          </div>
+          <div class="xb-filter-bar" id="orderFilterBar">
+            <button type="button" class="xb-filter-btn active" data-order-filter="-1"><%:All%></button>
+            <button type="button" class="xb-filter-btn" data-order-filter="0"><%:Pending%></button>
+            <button type="button" class="xb-filter-btn" data-order-filter="1"><%:Processing%></button>
+            <button type="button" class="xb-filter-btn" data-order-filter="2"><%:Completed%></button>
+            <button type="button" class="xb-filter-btn" data-order-filter="3"><%:Cancelled%></button>
+          </div>
+          <div id="ordersList" class="xb-order-list"><div class="xb-empty"><%:Loading orders...%></div></div>
+        </div>
+        <div class="xb-card hidden" id="orderDetailCard" style="margin-top:10px;">
+          <h3 class="xb-card-title"><%:Order Detail%></h3>
+          <div id="orderDetailContent"></div>
+        </div>
+      </section>
+
+      <section class="xb-page hidden" data-page="tickets">
+        <div class="xb-grid two">
+          <div class="xb-card">
+            <div class="xb-row">
+              <h3 class="xb-card-title" style="margin:0;"><%:Ticket List%></h3>
+              <button type="button" class="xb-btn-ghost" id="refreshTicketsBtn"><%:Refresh%></button>
+            </div>
+            <div id="ticketsList" class="xb-ticket-list"><div class="xb-empty"><%:No tickets%></div></div>
+          </div>
+          <div class="xb-card">
+            <h3 class="xb-card-title"><%:Ticket Detail%></h3>
+            <div id="ticketDetail" class="xb-empty"><%:Please select a ticket from the left%></div>
+            <div id="ticketReplyBox" class="hidden">
+              <div class="xb-msg-list" id="ticketMessages"></div>
+              <form id="ticketReplyForm" class="xb-form-grid" style="margin-top:10px;">
+                <div class="xb-form-block full">
+                  <label><%:Reply Content%></label>
+                  <textarea class="xb-textarea" name="message" required></textarea>
+                </div>
+                <div class="xb-form-block full">
+                  <div class="xb-actions">
+                    <button class="xb-btn" type="submit"><%:Send Reply%></button>
+                    <button class="xb-btn-ghost" type="button" id="closeTicketBtn"><%:Close Ticket%></button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="xb-card" style="margin-top:10px;">
+          <h3 class="xb-card-title"><%:Create Ticket%></h3>
+          <form id="createTicketForm" class="xb-form-grid">
+            <div class="xb-form-block"><label><%:Subject%></label><input class="xb-input" type="text" name="subject" required></div>
+            <div class="xb-form-block">
+              <label><%:Priority%></label>
+              <select class="xb-select" name="level"><option value="0"><%:Low%></option><option value="1"><%:Medium%></option><option value="2"><%:High%></option></select>
+            </div>
+            <div class="xb-form-block full"><label><%:Message%></label><textarea class="xb-textarea" name="message" required></textarea></div>
+            <div class="xb-form-block full"><button class="xb-btn" type="submit"><%:Submit Ticket%></button></div>
+          </form>
+        </div>
+      </section>
+
+      <section class="xb-page hidden" data-page="invite">
+        <div class="xb-grid two">
+          <div class="xb-card">
+            <h3 class="xb-card-title"><%:Invite Stats%></h3>
+            <div class="xb-row"><span class="xb-label"><%:Transferable Commission%></span><span class="xb-value" id="inviteBalance">-</span></div>
+            <div class="xb-row"><span class="xb-label"><%:Total Invited Users%></span><span class="xb-value" id="inviteCount">-</span></div>
+            <div class="xb-actions">
+              <button type="button" class="xb-btn-ghost" id="refreshInviteBtn"><%:Refresh%></button>
+              <button type="button" class="xb-btn-ghost" id="transferInviteBtn"><%:Transfer Commission%></button>
+            </div>
+          </div>
+          <div class="xb-card">
+            <h3 class="xb-card-title"><%:Invite Codes%></h3>
+            <div id="inviteCodes" class="xb-empty"><%:No invite codes%></div>
+            <div class="xb-actions"><button type="button" class="xb-btn" id="createInviteBtn"><%:Generate Invite Code%></button></div>
+          </div>
+        </div>
+        <div class="xb-card" style="margin-top:10px;">
+          <h3 class="xb-card-title"><%:Invite Details%></h3>
+          <div id="inviteDetails" class="xb-empty"><%:No invite details%></div>
+        </div>
+        <div class="xb-card hidden" id="withdrawSection" style="margin-top:10px;">
+          <h3 class="xb-card-title"><%:Commission Withdraw%></h3>
+          <div class="xb-form-grid">
+            <div class="xb-form-block">
+              <label><%:Withdraw Method%></label>
+              <select class="xb-select" id="withdrawMethodSelect"></select>
+            </div>
+            <div class="xb-form-block">
+              <label><%:Withdraw Account%></label>
+              <input class="xb-input" type="text" id="withdrawAccount" placeholder="<%=translate('Please input withdraw account info')%>">
+            </div>
+            <div class="xb-form-block full">
+              <button type="button" class="xb-btn" id="submitWithdrawBtn"><%:Submit Withdraw Request%></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="xb-page hidden" data-page="settings">
+        <div class="xb-grid two">
+          <div class="xb-card">
+            <h3 class="xb-card-title"><%:Account Settings%></h3>
+            <form id="updateUserForm" class="xb-form-grid">
+              <div class="xb-form-block"><label><%:Telegram ID%></label><input class="xb-input" type="text" name="telegram_id"></div>
+              <div class="xb-form-block"><label><%:Expiry Reminder Days%></label><input class="xb-input" type="number" name="remind_expire" min="0" step="1"></div>
+              <div class="xb-form-block"><label><%:Traffic Reminder (GB)%></label><input class="xb-input" type="number" name="remind_traffic" min="0" step="1"></div>
+              <div class="xb-form-block full"><button class="xb-btn" type="submit"><%:Save Account Settings%></button></div>
+            </form>
+          </div>
+          <div class="xb-card">
+            <h3 class="xb-card-title"><%:Security Settings%></h3>
+            <form id="changePasswordForm" class="xb-form-grid">
+              <div class="xb-form-block"><label><%:Old Password%></label><input class="xb-input" type="password" name="old_password" required></div>
+              <div class="xb-form-block"><label><%:New Password%></label><input class="xb-input" type="password" name="new_password" required></div>
+              <div class="xb-form-block full">
+                <div class="xb-actions">
+                  <button class="xb-btn" type="submit"><%:Change Password%></button>
+                  <button class="xb-btn-ghost" type="button" id="logoutBtn"><%:Logout%></button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+<script>
+window.__OC_XBOARD_BOOTSTRAP__ = <%=jsonc.stringify(cfg)%>;
+</script>
+<script src="/luci-static/resources/openclash/xboard/client.js"></script>

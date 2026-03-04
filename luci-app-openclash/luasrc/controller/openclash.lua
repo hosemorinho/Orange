@@ -6,8 +6,15 @@ function index()
 	end
 
 	local page
+	local app_name = "XBoard"
+	if luci.openclash and luci.openclash.get_branding then
+		local branding = luci.openclash.get_branding()
+		if branding and branding.app_name then
+			app_name = branding.app_name
+		end
+	end
 
-	page = entry({"admin", "services", "openclash"}, alias("admin", "services", "openclash", "xboard"), _("XBoard"), 50)
+	page = entry({"admin", "services", "openclash"}, alias("admin", "services", "openclash", "xboard"), _(app_name), 50)
 	page.dependent = true
 	page.acl_depends = { "luci-app-openclash" }
 	entry({"admin", "services", "openclash", "xboard"},form("openclash/xboard-client"),_("Dashboard"), 20).leaf = true

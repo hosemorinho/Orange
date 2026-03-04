@@ -374,7 +374,14 @@ function get_branding()
 		show_branding = false
 	}
 
-	local ok, constants = pcall(dofile, "/usr/share/openclash/openclash_xboard_constants.lua")
+	local constants = nil
+	local ok = false
+	if pcall then
+		ok, constants = pcall(dofile, "/usr/share/openclash/openclash_xboard_constants.lua")
+	else
+		ok = true
+		constants = dofile("/usr/share/openclash/openclash_xboard_constants.lua")
+	end
 	if ok and type(constants) == "table" then
 		local app_name = _trim(constants.APP_NAME)
 		local icon_url = _valid_http_url(constants.APP_ICON_URL)

@@ -417,7 +417,7 @@ jobs:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           THEME_COLOR: ${{ secrets.THEME_COLOR }}
         run: |
-          target_path="${APP_DIR}/root/usr/share/openclash/openclash_xboard_constants.lua"
+          target_path="${APP_DIR}/root/usr/share/${APP_NS}/${APP_NS}_xboard_constants.lua"
 
           lua_escape() {
             local value="$1"
@@ -484,6 +484,12 @@ jobs:
           [ -d "$APP_DIR/luasrc/view/openclash" ] && mv "$APP_DIR/luasrc/view/openclash" "$APP_DIR/luasrc/view/${APP_NS}"
           [ -d "$APP_DIR/luasrc/model/cbi/openclash" ] && mv "$APP_DIR/luasrc/model/cbi/openclash" "$APP_DIR/luasrc/model/cbi/${APP_NS}"
 
+          # Rename openclash.lua to ${APP_NS}.lua in luasrc
+          [ -f "$APP_DIR/luasrc/openclash.lua" ] && mv "$APP_DIR/luasrc/openclash.lua" "$APP_DIR/luasrc/${APP_NS}.lua"
+
+          # Rename controller file
+          [ -f "$APP_DIR/luasrc/controller/openclash.lua" ] && mv "$APP_DIR/luasrc/controller/openclash.lua" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
+
           # XBoard route/static path namespace rewrite (targeted)
           perl -0777 -i -pe '
             my $ns = $ENV{"APP_NS"};
@@ -495,15 +501,25 @@ jobs:
               "entry({\"admin\", \"services\", \"$ns\", \"xboard\", \"config\"}, call(\"action_xboard_config\")).leaf = true"/eg;
             s/entry\(\{"admin",\s*"services",\s*"[^"]*",\s*"xboard",\s*"proxy"\},\s*call\("action_xboard_proxy"\)\)\.leaf = true/
               "entry({\"admin\", \"services\", \"$ns\", \"xboard\", \"proxy\"}, call(\"action_xboard_proxy\")).leaf = true"/eg;
-          ' "$APP_DIR/luasrc/controller/openclash.lua"
+          ' "$APP_DIR/luasrc/controller/${APP_NS}.lua"
 
           # Replace main menu path from openclash to ${APP_NS}
-          sed -i -E "s|\{\"admin\", \"services\", \"openclash\"|\{\"admin\", \"services\", \"${APP_NS}\"|g" "$APP_DIR/luasrc/controller/openclash.lua"
-          sed -i -E "s|alias\(\"admin\", \"services\", \"openclash\"|alias(\"admin\", \"services\", \"${APP_NS}\"|g" "$APP_DIR/luasrc/controller/openclash.lua"
+          sed -i -E "s|\{\"admin\", \"services\", \"openclash\"|\{\"admin\", \"services\", \"${APP_NS}\"|g" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
+          sed -i -E "s|alias\(\"admin\", \"services\", \"openclash\"|alias(\"admin\", \"services\", \"${APP_NS}\"|g" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
 
           # Replace all form and cbi references from openclash to ${APP_NS}
-          sed -i -E "s|form\\(\"openclash/|form(\"${APP_NS}/|g" "$APP_DIR/luasrc/controller/openclash.lua"
-          sed -i -E "s|cbi\\(\"openclash/|cbi(\"${APP_NS}/|g" "$APP_DIR/luasrc/controller/openclash.lua"
+          sed -i -E "s|form\\(\"openclash/|form(\"${APP_NS}/|g" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
+          sed -i -E "s|cbi\\(\"openclash/|cbi(\"${APP_NS}/|g" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
+
+          # Replace module name in controller
+          sed -i -E "s|module\\(\"luci\.controller\.openclash\"|module(\"luci.controller.${APP_NS}\"|g" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
+          sed -i -E "s|luci\.controller\.openclash|luci.controller.${APP_NS}|g" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
+          sed -i -E "s|luci\.openclash|luci.${APP_NS}|g" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
+          sed -i -E "s|luci\.model\.uci|luci.model.uci|g" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
+
+          # Update constant file path in ${APP_NS}.lua
+          sed -i -E "s|/usr/share/openclash/openclash_xboard_constants|/usr/share/${APP_NS}/${APP_NS}_xboard_constants|g" "$APP_DIR/luasrc/${APP_NS}.lua"
+          sed -i -E "s|/usr/share/openclash|/usr/share/${APP_NS}|g" "$APP_DIR/luasrc/${APP_NS}.lua"
 
           # Update view file references
           find "$APP_DIR/luasrc" -type f -name "*.htm" -exec sed -i -E "s|/luci-static/resources/openclash/|/luci-static/resources/${APP_NS}/|g" {} \;
@@ -520,14 +536,21 @@ jobs:
           [ -f "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" "$APP_DIR/root/usr/share/ucitrack/${PKG_NAME}.json"
           [ -d "$APP_DIR/root/www/luci-static/resources/openclash" ] && mv "$APP_DIR/root/www/luci-static/resources/openclash" "$APP_DIR/root/www/luci-static/resources/${APP_NS}"
 
-          # Rewrite internal paths/names
+          # Rewrite internal paths/names (including root/ prefixed paths in Makefile)
           replace_tree "/usr/share/openclash" "/usr/share/${APP_NS}"
           replace_tree "/etc/openclash" "/etc/${APP_NS}"
           replace_tree "/etc/init.d/openclash" "/etc/init.d/${APP_NS}"
           replace_tree "/www/luci-static/resources/openclash" "/www/luci-static/resources/${APP_NS}"
           replace_tree "/luci-static/resources/openclash" "/luci-static/resources/${APP_NS}"
+          replace_tree "root/usr/share/openclash" "root/usr/share/${APP_NS}"
+          replace_tree "root/etc/openclash" "root/etc/${APP_NS}"
+          replace_tree "root/etc/init.d/openclash" "root/etc/init.d/${APP_NS}"
+          replace_tree "root/etc/config/openclash" "root/etc/config/${APP_NS}"
+          replace_tree "root/www/luci-static/resources/openclash" "root/www/luci-static/resources/${APP_NS}"
           replace_tree "luci-app-openclash" "${PKG_NAME}"
           replace_tree "luci-openclash" "luci-${APP_NS}"
+          replace_tree "openclash_" "${APP_NS}_"
+          replace_tree "/openclash/" "/${APP_NS}/"
 
           # Replace UCI config section name for coexistence
           # This allows luci-app-openclash and luci-app-${APP_NS} to be installed together

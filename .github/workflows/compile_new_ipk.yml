@@ -435,7 +435,8 @@ jobs:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           THEME_COLOR: ${{ secrets.THEME_COLOR }}
         run: |
-          target_path="${APP_DIR}/root/usr/share/${APP_NS}/${APP_NS}_xboard_constants.lua"
+          # Write to source namespace first; it will be renamed/migrated later.
+          target_path="${APP_DIR}/root/usr/share/openclash/openclash_xboard_constants.lua"
 
           lua_escape() {
             local value="$1"
@@ -499,9 +500,22 @@ jobs:
           }
 
           # Move runtime directories first so file renames happen in final namespace paths.
-          [ -d "$APP_DIR/root/usr/share/openclash" ] && mv "$APP_DIR/root/usr/share/openclash" "$APP_DIR/root/usr/share/${APP_NS}"
-          [ -d "$APP_DIR/root/etc/openclash" ] && mv "$APP_DIR/root/etc/openclash" "$APP_DIR/root/etc/${APP_NS}"
-          [ -d "$APP_DIR/root/www/luci-static/resources/openclash" ] && mv "$APP_DIR/root/www/luci-static/resources/openclash" "$APP_DIR/root/www/luci-static/resources/${APP_NS}"
+          # Use merge-copy to avoid nested paths when destination already exists.
+          if [ -d "$APP_DIR/root/usr/share/openclash" ]; then
+            mkdir -p "$APP_DIR/root/usr/share/${APP_NS}"
+            cp -a "$APP_DIR/root/usr/share/openclash/." "$APP_DIR/root/usr/share/${APP_NS}/"
+            rm -rf "$APP_DIR/root/usr/share/openclash"
+          fi
+          if [ -d "$APP_DIR/root/etc/openclash" ]; then
+            mkdir -p "$APP_DIR/root/etc/${APP_NS}"
+            cp -a "$APP_DIR/root/etc/openclash/." "$APP_DIR/root/etc/${APP_NS}/"
+            rm -rf "$APP_DIR/root/etc/openclash"
+          fi
+          if [ -d "$APP_DIR/root/www/luci-static/resources/openclash" ]; then
+            mkdir -p "$APP_DIR/root/www/luci-static/resources/${APP_NS}"
+            cp -a "$APP_DIR/root/www/luci-static/resources/openclash/." "$APP_DIR/root/www/luci-static/resources/${APP_NS}/"
+            rm -rf "$APP_DIR/root/www/luci-static/resources/openclash"
+          fi
 
           # Rename LuCI view and model directories
           [ -d "$APP_DIR/luasrc/view/openclash" ] && mv "$APP_DIR/luasrc/view/openclash" "$APP_DIR/luasrc/view/${APP_NS}"

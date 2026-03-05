@@ -49,7 +49,9 @@ jobs:
 
       - name: Resolve Namespace
         env:
+          APP_NAMESPACE: ${{ secrets.APP_NAMESPACE }}
           APP_NAME: ${{ secrets.APP_NAME }}
+          APP_PACKAGE_NAME: ${{ secrets.APP_PACKAGE_NAME }}
         run: |
           slugify() {
             local raw="$1"
@@ -58,19 +60,25 @@ jobs:
             printf '%s' "$raw"
           }
 
-          # Derive all values from APP_NAME only
-          # APP_NAMESPACE: slugified APP_NAME (e.g., "XBoard Clash" → "xboard-clash")
-          # APP_PACKAGE_NAME: same as APP_NAMESPACE (for package naming)
-          # PKG_NAME: luci-app-${APP_NAMESPACE}
-          APP_NS="$(slugify "${APP_NAME:-openclash}")"
+          # Resolve namespace priority:
+          # APP_NAMESPACE > APP_NAME > APP_PACKAGE_NAME > openclash
+          APP_NS=""
+          [ -n "${APP_NAMESPACE:-}" ] && APP_NS="$(slugify "${APP_NAMESPACE}")"
+          [ -z "$APP_NS" ] && [ -n "${APP_NAME:-}" ] && APP_NS="$(slugify "${APP_NAME}")"
+          [ -z "$APP_NS" ] && [ -n "${APP_PACKAGE_NAME:-}" ] && APP_NS="$(slugify "${APP_PACKAGE_NAME}")"
           [ -z "$APP_NS" ] && APP_NS="openclash"
+
+          if [ "$APP_NS" = "openclash" ] && [ -n "${APP_NAMESPACE:-}${APP_NAME:-}${APP_PACKAGE_NAME:-}" ]; then
+            echo "::warning::Namespace resolved to openclash. Check APP_NAMESPACE/APP_NAME/APP_PACKAGE_NAME values."
+          fi
+
           PKG_NAME="luci-app-${APP_NS}"
           APP_DIR="./luci-app-openclash"
 
           echo "APP_NS=${APP_NS}" >> "$GITHUB_ENV"
           echo "PKG_NAME=${PKG_NAME}" >> "$GITHUB_ENV"
           echo "APP_DIR=${APP_DIR}" >> "$GITHUB_ENV"
-          echo "resolved APP_NS=${APP_NS} from APP_NAME=${APP_NAME}"
+          echo "resolved APP_NS=${APP_NS} (APP_NAMESPACE=${APP_NAMESPACE:-}, APP_NAME=${APP_NAME:-}, APP_PACKAGE_NAME=${APP_PACKAGE_NAME:-})"
 
       - name: Inject XBoard Constants (Optional)
         env:
@@ -187,7 +195,7 @@ jobs:
           API_BASE_URL: ${{ secrets.API_BASE_URL }}
           API_TEXT_DOMAIN: ${{ secrets.API_TEXT_DOMAIN }}
           APP_ICON_URL: ${{ secrets.APP_ICON_URL }}
-          APP_PACKAGE_NAME: ${{ secrets.APP_NAME }}
+          APP_PACKAGE_NAME: ${{ secrets.APP_PACKAGE_NAME }}
           CRISP_WEBSITE_ID: ${{ secrets.CRISP_WEBSITE_ID }}
           KEYSTORE: ${{ secrets.KEYSTORE }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -232,6 +240,7 @@ jobs:
           MAKEFILE_PATH="${APP_DIR}/Makefile"
           OPENCLASH_SH="${APP_DIR}/root/usr/share/${APP_NS}/openclash.sh"
           XBOARD_LUA="${APP_DIR}/root/usr/share/${APP_NS}/openclash_xboard.lua"
+          PS_SCRIPT_PATH="${APP_DIR}/root/usr/share/${APP_NS}/${APP_NS}_ps.sh"
 
           assert_file "$CONST_PATH"
           assert_file "$CONTROLLER_PATH"
@@ -239,6 +248,7 @@ jobs:
           assert_file "$MAKEFILE_PATH"
           assert_file "$OPENCLASH_SH"
           assert_file "$XBOARD_LUA"
+          assert_file "$PS_SCRIPT_PATH"
 
           assert_contains "$MAKEFILE_PATH" "PKG_NAME:=${PKG_NAME}"
           assert_contains "$CONTROLLER_PATH" "{\"admin\", \"services\", \"${APP_NS}\"}, alias(\"admin\", \"services\", \"${APP_NS}\", \"xboard\")"
@@ -366,7 +376,7 @@ jobs:
   Compile:
     runs-on: ubuntu-latest
     needs: Get-Version
-    if: ${{ needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version }}
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version }}
     strategy:
       matrix:
         target:
@@ -380,7 +390,9 @@ jobs:
 
       - name: Resolve Namespace
         env:
+          APP_NAMESPACE: ${{ secrets.APP_NAMESPACE }}
           APP_NAME: ${{ secrets.APP_NAME }}
+          APP_PACKAGE_NAME: ${{ secrets.APP_PACKAGE_NAME }}
         run: |
           slugify() {
             local raw="$1"
@@ -389,19 +401,25 @@ jobs:
             printf '%s' "$raw"
           }
 
-          # Derive all values from APP_NAME only
-          # APP_NAMESPACE: slugified APP_NAME (e.g., "XBoard Clash" → "xboard-clash")
-          # APP_PACKAGE_NAME: same as APP_NAMESPACE (for package naming)
-          # PKG_NAME: luci-app-${APP_NAMESPACE}
-          APP_NS="$(slugify "${APP_NAME:-openclash}")"
+          # Resolve namespace priority:
+          # APP_NAMESPACE > APP_NAME > APP_PACKAGE_NAME > openclash
+          APP_NS=""
+          [ -n "${APP_NAMESPACE:-}" ] && APP_NS="$(slugify "${APP_NAMESPACE}")"
+          [ -z "$APP_NS" ] && [ -n "${APP_NAME:-}" ] && APP_NS="$(slugify "${APP_NAME}")"
+          [ -z "$APP_NS" ] && [ -n "${APP_PACKAGE_NAME:-}" ] && APP_NS="$(slugify "${APP_PACKAGE_NAME}")"
           [ -z "$APP_NS" ] && APP_NS="openclash"
+
+          if [ "$APP_NS" = "openclash" ] && [ -n "${APP_NAMESPACE:-}${APP_NAME:-}${APP_PACKAGE_NAME:-}" ]; then
+            echo "::warning::Namespace resolved to openclash. Check APP_NAMESPACE/APP_NAME/APP_PACKAGE_NAME values."
+          fi
+
           PKG_NAME="luci-app-${APP_NS}"
           APP_DIR="./luci-app-openclash"
 
           echo "APP_NS=${APP_NS}" >> "$GITHUB_ENV"
           echo "PKG_NAME=${PKG_NAME}" >> "$GITHUB_ENV"
           echo "APP_DIR=${APP_DIR}" >> "$GITHUB_ENV"
-          echo "resolved APP_NS=${APP_NS} from APP_NAME=${APP_NAME}"
+          echo "resolved APP_NS=${APP_NS} (APP_NAMESPACE=${APP_NAMESPACE:-}, APP_NAME=${APP_NAME:-}, APP_PACKAGE_NAME=${APP_PACKAGE_NAME:-})"
 
       - name: Inject XBoard Constants (Optional)
         env:
@@ -480,6 +498,11 @@ jobs:
               -print0 | xargs -0 sed -i "s|$from|$to|g"
           }
 
+          # Move runtime directories first so file renames happen in final namespace paths.
+          [ -d "$APP_DIR/root/usr/share/openclash" ] && mv "$APP_DIR/root/usr/share/openclash" "$APP_DIR/root/usr/share/${APP_NS}"
+          [ -d "$APP_DIR/root/etc/openclash" ] && mv "$APP_DIR/root/etc/openclash" "$APP_DIR/root/etc/${APP_NS}"
+          [ -d "$APP_DIR/root/www/luci-static/resources/openclash" ] && mv "$APP_DIR/root/www/luci-static/resources/openclash" "$APP_DIR/root/www/luci-static/resources/${APP_NS}"
+
           # Rename LuCI view and model directories
           [ -d "$APP_DIR/luasrc/view/openclash" ] && mv "$APP_DIR/luasrc/view/openclash" "$APP_DIR/luasrc/view/${APP_NS}"
           [ -d "$APP_DIR/luasrc/model/cbi/openclash" ] && mv "$APP_DIR/luasrc/model/cbi/openclash" "$APP_DIR/luasrc/model/cbi/${APP_NS}"
@@ -491,30 +514,24 @@ jobs:
           [ -f "$APP_DIR/luasrc/controller/openclash.lua" ] && mv "$APP_DIR/luasrc/controller/openclash.lua" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
 
           # Rename all openclash_* files in root/usr/share/${APP_NS} to ${APP_NS}_*
-          for f in "$APP_DIR"/root/usr/share/openclash/openclash_*.sh "$APP_DIR"/root/usr/share/openclash/openclash_*.lua; do
+          for f in "$APP_DIR"/root/usr/share/${APP_NS}/openclash_*.sh "$APP_DIR"/root/usr/share/${APP_NS}/openclash_*.lua; do
             [ -f "$f" ] && mv "$f" "$(echo "$f" | sed "s/openclash_/${APP_NS}_/g")"
           done
 
-          # Copy non-prefixed helper scripts (ruby.sh, log.sh, uci.sh) to ${APP_NS} directory
-          # These are referenced by init script but don't have openclash_ prefix
-          for f in ruby.sh log.sh uci.sh; do
-            if [ -f "$APP_DIR/root/usr/share/openclash/$f" ]; then
-              cp -f "$APP_DIR/root/usr/share/openclash/$f" "$APP_DIR/root/usr/share/${APP_NS}/$f"
-            fi
-          done
+          # Ensure namespace runtime directory exists.
+          mkdir -p "$APP_DIR/root/usr/share/${APP_NS}"
 
           # Update ${APP_NS}_ps.sh internal paths
           PS_FILE="$APP_DIR/root/usr/share/${APP_NS}/${APP_NS}_ps.sh"
-          if [ -f "$PS_FILE" ]; then
-            # Replace /usr/share/openclash/ with /usr/share/${APP_NS}/
-            sed -i "s|/usr/share/openclash/|/usr/share/${APP_NS}/|g" "$PS_FILE"
-            # Replace /etc/init.d/openclash with /etc/init.d/${APP_NS}
-            sed -i "s|/etc/init.d/openclash|/etc/init.d/${APP_NS}|g" "$PS_FILE"
-            # Replace /etc/openclash with /etc/${APP_NS}
-            sed -i "s|/etc/openclash|/etc/${APP_NS}|g" "$PS_FILE"
-            # Replace openclash_uci.sh to ${APP_NS}_uci.sh
-            sed -i "s|openclash_uci\.sh|${APP_NS}_uci.sh|g" "$PS_FILE"
-          fi
+          [ -f "$PS_FILE" ] || { echo "::error::missing file: $PS_FILE"; exit 1; }
+          # Replace /usr/share/openclash/ with /usr/share/${APP_NS}/
+          sed -i "s|/usr/share/openclash/|/usr/share/${APP_NS}/|g" "$PS_FILE"
+          # Replace /etc/init.d/openclash with /etc/init.d/${APP_NS}
+          sed -i "s|/etc/init.d/openclash|/etc/init.d/${APP_NS}|g" "$PS_FILE"
+          # Replace /etc/openclash with /etc/${APP_NS}
+          sed -i "s|/etc/openclash|/etc/${APP_NS}|g" "$PS_FILE"
+          # Replace openclash_uci.sh to ${APP_NS}_uci.sh
+          sed -i "s|openclash_uci\.sh|${APP_NS}_uci.sh|g" "$PS_FILE"
 
           # Update ${APP_NS}_uci.sh internal UCI references
           UCI_FILE="$APP_DIR/root/usr/share/${APP_NS}/${APP_NS}_uci.sh"
@@ -526,7 +543,7 @@ jobs:
           fi
 
           # Rename custom config files
-          for f in "$APP_DIR"/root/etc/openclash/custom/openclash_custom_*; do
+          for f in "$APP_DIR"/root/etc/${APP_NS}/custom/openclash_custom_*; do
             [ -f "$f" ] && mv "$f" "$(echo "$f" | sed "s/openclash_custom/${APP_NS}_custom/g")"
           done
 

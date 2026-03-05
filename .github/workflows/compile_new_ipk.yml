@@ -185,6 +185,8 @@ jobs:
           replace_tree "/etc/init.d/openclash" "/etc/init.d/${APP_NS}"
           replace_tree "/www/luci-static/resources/openclash" "/www/luci-static/resources/${APP_NS}"
           replace_tree "/luci-static/resources/openclash" "/luci-static/resources/${APP_NS}"
+          replace_tree "/tmp/openclash" "/tmp/${APP_NS}"
+          replace_tree "/var/etc/openclash.include" "/var/etc/${APP_NS}.include"
           replace_tree "luci-app-openclash" "${PKG_NAME}"
           replace_tree "luci-openclash" "luci-${APP_NS}"
           sed -i -E "s|^PKG_NAME:=luci-app-[A-Za-z0-9._-]+$|PKG_NAME:=${PKG_NAME}|g" "$APP_DIR/Makefile"
@@ -279,6 +281,8 @@ jobs:
             grep -Fq "/usr/share/openclash/" "${APP_DIR}/root/etc/uci-defaults/luci-${APP_NS}" && { echo "::error::Found unreplaced /usr/share/openclash/ in uci-defaults script"; exit 1; } || true
             grep -Fq "config openclash" "$CONFIG_FILE_PATH" && { echo "::error::Found unreplaced config openclash in config file"; exit 1; } || true
             grep -Fq "/etc/openclash/" "$OVERWRITE_FILE_PATH" && { echo "::error::Found unreplaced /etc/openclash/ in overwrite default"; exit 1; } || true
+            grep -Fq "/tmp/openclash" "${APP_DIR}/root/etc/uci-defaults/luci-${APP_NS}" && { echo "::error::Found unreplaced /tmp/openclash in uci-defaults script"; exit 1; } || true
+            grep -Fq "/var/etc/openclash.include" "${APP_DIR}/root/etc/init.d/${APP_NS}" && { echo "::error::Found unreplaced /var/etc/openclash.include in init script"; exit 1; } || true
           fi
 
           assert_contains "$CONST_PATH" "API_BASE_URL = \"$(lua_escape "${API_BASE_URL:-}")\""
@@ -635,6 +639,8 @@ jobs:
           replace_tree "/etc/init.d/openclash" "/etc/init.d/${APP_NS}"
           replace_tree "/www/luci-static/resources/openclash" "/www/luci-static/resources/${APP_NS}"
           replace_tree "/luci-static/resources/openclash" "/luci-static/resources/${APP_NS}"
+          replace_tree "/tmp/openclash" "/tmp/${APP_NS}"
+          replace_tree "/var/etc/openclash.include" "/var/etc/${APP_NS}.include"
           replace_tree "root/usr/share/openclash" "root/usr/share/${APP_NS}"
           replace_tree "root/etc/openclash" "root/etc/${APP_NS}"
           replace_tree "root/etc/init.d/openclash" "root/etc/init.d/${APP_NS}"

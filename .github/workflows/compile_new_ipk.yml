@@ -564,6 +564,8 @@ jobs:
           replace_tree "luci-openclash" "luci-${APP_NS}"
           replace_tree "openclash_" "${APP_NS}_"
           replace_tree "/openclash/" "/${APP_NS}/"
+          # Replace backup file name (e.g., backup/openclash -> backup/${APP_NS})
+          sed -i -E "s|/backup/openclash\"|/backup/${APP_NS}\"|g" "$APP_DIR/Makefile"
 
           # Replace UCI config section name for coexistence
           # This allows luci-app-openclash and luci-app-${APP_NS} to be installed together

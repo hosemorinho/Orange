@@ -22,6 +22,18 @@ mkdir -p /etc/openclash/core
 mkdir -p /etc/openclash/history
 mkdir -p /usr/share/openclash/backup/overwrite
 
+sync_custom_alias() {
+	local custom_file custom_name custom_suffix target_name
+	[ -d "/etc/openclash/custom" ] || return 0
+	for custom_file in /etc/openclash/custom/*_custom_*; do
+		[ -f "$custom_file" ] || continue
+		custom_name="${custom_file##*/}"
+		custom_suffix="${custom_name#*_custom_}"
+		target_name="openclash_custom_${custom_suffix}"
+		[ "$target_name" = "$custom_name" ] || [ -f "/etc/openclash/custom/${target_name}" ] || cp -f "$custom_file" "/etc/openclash/custom/${target_name}" >/dev/null 2>&1
+	done
+}
+
 mkdir -p /lib/upgrade/keep.d
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
 /etc/openclash/
@@ -125,22 +137,9 @@ fi
 uci -q commit openclash
 
 #Backup
+sync_custom_alias
 cp -f "/etc/config/openclash" "/usr/share/openclash/backup/openclash" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_rules.list" "/usr/share/openclash/backup/openclash_custom_rules.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_rules_2.list" "/usr/share/openclash/backup/openclash_custom_rules_2.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_hosts.list" "/usr/share/openclash/backup/openclash_custom_hosts.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_fake_filter.list" "/usr/share/openclash/backup/openclash_custom_fake_filter.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_domain_dns.list" "/usr/share/openclash/backup/openclash_custom_domain_dns.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_domain_dns_policy.list" "/usr/share/openclash/backup/openclash_custom_domain_dns_policy.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_proxy_server_dns_policy.list" "/usr/share/openclash/backup/openclash_custom_proxy_server_dns_policy.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_fallback_filter.yaml" "/usr/share/openclash/backup/openclash_custom_fallback_filter.yaml" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_sniffer.yaml" "/usr/share/openclash/backup/openclash_custom_sniffer.yaml" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list" "/usr/share/openclash/backup/openclash_custom_localnetwork_ipv4.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list" "/usr/share/openclash/backup/openclash_custom_localnetwork_ipv6.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_chnroute_pass.list" "/usr/share/openclash/backup/openclash_custom_chnroute_pass.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_chnroute6_pass.list" "/usr/share/openclash/backup/openclash_custom_chnroute6_pass.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_firewall_rules.sh" "/usr/share/openclash/backup/openclash_custom_firewall_rules.sh" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_overwrite.sh" "/usr/share/openclash/backup/openclash_custom_overwrite.sh" >/dev/null 2>&1
+[ -d "/etc/openclash/custom" ] && cp -f /etc/openclash/custom/* "/usr/share/openclash/backup/" >/dev/null 2>&1
 cp -f "/etc/openclash/china_ip_route.ipset" "/usr/share/openclash/backup/china_ip_route.ipset" >/dev/null 2>&1
 cp -f "/etc/openclash/china_ip6_route.ipset" "/usr/share/openclash/backup/china_ip6_route.ipset" >/dev/null 2>&1
 cp -f "/etc/openclash/overwrite/default" "/usr/share/openclash/backup/overwrite/default" >/dev/null 2>&1
@@ -165,6 +164,7 @@ if [ -f "/tmp/openclash.bak" ]; then
 	fi
 	mv -f "/tmp/openclash.bak" "/etc/config/openclash" >/dev/null 2>&1
 	cp -rf "/tmp/openclash/." "/etc/openclash/" >/dev/null 2>&1
+	sync_custom_alias
 	#ui
 	if [ -d "/tmp/openclash_ui/" ]; then
 		rm -rf "/usr/share/openclash/ui/" >/dev/null 2>&1

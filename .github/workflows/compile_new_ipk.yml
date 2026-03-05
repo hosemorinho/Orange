@@ -490,6 +490,25 @@ jobs:
           # Rename controller file
           [ -f "$APP_DIR/luasrc/controller/openclash.lua" ] && mv "$APP_DIR/luasrc/controller/openclash.lua" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
 
+          # Rename all openclash_* files in root/usr/share/${APP_NS}
+          for f in "$APP_DIR"/root/usr/share/openclash/openclash_*.sh "$APP_DIR"/root/usr/share/openclash/openclash_*.lua; do
+            [ -f "$f" ] && mv "$f" "$(echo "$f" | sed "s/openclash_/${APP_NS}_/g")"
+          done
+
+          # Rename custom config files
+          for f in "$APP_DIR"/root/etc/openclash/custom/openclash_custom_*; do
+            [ -f "$f" ] && mv "$f" "$(echo "$f" | sed "s/openclash_custom/${APP_NS}_custom/g")"
+          done
+
+          # Rename init.d, config, uci-defaults, and po files
+          [ -f "$APP_DIR/root/etc/init.d/openclash" ] && mv "$APP_DIR/root/etc/init.d/openclash" "$APP_DIR/root/etc/init.d/${APP_NS}"
+          [ -f "$APP_DIR/root/etc/config/openclash" ] && mv "$APP_DIR/root/etc/config/openclash" "$APP_DIR/root/etc/config/${APP_NS}"
+          [ -f "$APP_DIR/root/etc/uci-defaults/luci-openclash" ] && mv "$APP_DIR/root/etc/uci-defaults/luci-openclash" "$APP_DIR/root/etc/uci-defaults/luci-${APP_NS}"
+          [ -f "$APP_DIR/po/zh-cn/openclash.zh-cn.po" ] && mv "$APP_DIR/po/zh-cn/openclash.zh-cn.po" "$APP_DIR/po/zh-cn/${APP_NS}.zh-cn.po"
+          [ -f "$APP_DIR/po/es/openclash.es.po" ] && mv "$APP_DIR/po/es/openclash.es.po" "$APP_DIR/po/es/${APP_NS}.es.po"
+          [ -f "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" "$APP_DIR/root/usr/share/rpcd/acl.d/${PKG_NAME}.json"
+          [ -f "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" "$APP_DIR/root/usr/share/ucitrack/${PKG_NAME}.json"
+
           # XBoard route/static path namespace rewrite (targeted)
           perl -0777 -i -pe '
             my $ns = $ENV{"APP_NS"};
@@ -527,13 +546,7 @@ jobs:
           sed -i -E "s|build_url\\(\"admin\", \"services\", \"[^\"]+\", \"xboard\", \"proxy\"\\)|build_url(\"admin\", \"services\", \"${APP_NS}\", \"xboard\", \"proxy\")|g" "$APP_DIR/luasrc/view/${APP_NS}/xboard_client.htm"
           sed -i -E "s|/luci-static/resources/[^/]+/xboard/|/luci-static/resources/${APP_NS}/xboard/|g" "$APP_DIR/luasrc/view/${APP_NS}/xboard_client.htm"
 
-          # Move runtime directories/files shipped in package tree
-          [ -d "$APP_DIR/root/usr/share/openclash" ] && mv "$APP_DIR/root/usr/share/openclash" "$APP_DIR/root/usr/share/${APP_NS}"
-          [ -d "$APP_DIR/root/etc/openclash" ] && mv "$APP_DIR/root/etc/openclash" "$APP_DIR/root/etc/${APP_NS}"
-          [ -f "$APP_DIR/root/etc/init.d/openclash" ] && mv "$APP_DIR/root/etc/init.d/openclash" "$APP_DIR/root/etc/init.d/${APP_NS}"
-          [ -f "$APP_DIR/root/etc/uci-defaults/luci-openclash" ] && mv "$APP_DIR/root/etc/uci-defaults/luci-openclash" "$APP_DIR/root/etc/uci-defaults/luci-${APP_NS}"
-          [ -f "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" "$APP_DIR/root/usr/share/rpcd/acl.d/${PKG_NAME}.json"
-          [ -f "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" "$APP_DIR/root/usr/share/ucitrack/${PKG_NAME}.json"
+          # Move remaining runtime directories
           [ -d "$APP_DIR/root/www/luci-static/resources/openclash" ] && mv "$APP_DIR/root/www/luci-static/resources/openclash" "$APP_DIR/root/www/luci-static/resources/${APP_NS}"
 
           # Rewrite internal paths/names (including root/ prefixed paths in Makefile)

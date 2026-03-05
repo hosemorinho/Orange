@@ -1,11 +1,9 @@
 name: Compile The New Version OpenClash
 
-on: 
+on:
   push:
     branches:
       - openclash
-    paths:
-      - 'luci-app-openclash/Makefile'
   workflow_dispatch:
     inputs:
       run_minimal_acceptance:
@@ -15,6 +13,31 @@ on:
         type: boolean
 
 jobs:
+  jsDelivr:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Apt Update
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install jq
+
+    - uses: actions/checkout@v4
+
+    # https://github.com/marketplace/actions/git-changesets
+    - id: changed_files
+      name: git-changesets
+      uses: collin-miller/git-changesets@v1
+      with:
+          format: json
+
+    - name: Clean jsDelivr Cache
+      run: |
+        echo '${{ steps.changed_files.outputs.added_modified }}' | jq -r '.[]' | while read file; do
+            curl -sL --retry 3 "https://purge.jsdelivr.net/gh/${{ github.repository }}@${{ github.ref_name }}/${file}"
+        done
+
   Minimal-Acceptance:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' && (inputs.run_minimal_acceptance == true || inputs.run_minimal_acceptance == 'true') }}

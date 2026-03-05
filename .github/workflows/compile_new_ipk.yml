@@ -493,6 +493,11 @@ jobs:
               "entry({\"admin\", \"services\", \"$ns\", \"xboard\", \"proxy\"}, call(\"action_xboard_proxy\")).leaf = true"/eg;
           ' "$APP_DIR/luasrc/controller/openclash.lua"
 
+          # Replace main menu path from openclash to ${APP_NS}
+          sed -i -E "s|\{\"admin\", \"services\", \"openclash\"|\{\"admin\", \"services\", \"${APP_NS}\"|g" "$APP_DIR/luasrc/controller/openclash.lua"
+          sed -i -E "s|alias\(\"admin\", \"services\", \"openclash\"|alias(\"admin\", \"services\", \"${APP_NS}\"|g" "$APP_DIR/luasrc/controller/openclash.lua"
+          sed -i -E "s|\{\"admin\", \"services\", \"openclash\"|\{\"admin\", \"services\", \"${APP_NS}\"|g" "$APP_DIR/luasrc/view/openclash/*.htm"
+
           sed -i -E "s|build_url\\(\"admin\", \"services\", \"[^\"]+\", \"xboard\", \"config\"\\)|build_url(\"admin\", \"services\", \"${APP_NS}\", \"xboard\", \"config\")|g" "$APP_DIR/luasrc/view/openclash/xboard_client.htm"
           sed -i -E "s|build_url\\(\"admin\", \"services\", \"[^\"]+\", \"xboard\", \"proxy\"\\)|build_url(\"admin\", \"services\", \"${APP_NS}\", \"xboard\", \"proxy\")|g" "$APP_DIR/luasrc/view/openclash/xboard_client.htm"
           sed -i -E "s|/luci-static/resources/[^/]+/xboard/|/luci-static/resources/${APP_NS}/xboard/|g" "$APP_DIR/luasrc/view/openclash/xboard_client.htm"

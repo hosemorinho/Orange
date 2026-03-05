@@ -376,11 +376,14 @@ function get_branding()
 
 	local constants = nil
 	local ok = false
-	if pcall then
-		ok, constants = pcall(dofile, "/usr/share/openclash/openclash_xboard_constants.lua")
-	else
-		ok = true
-		constants = dofile("/usr/share/openclash/openclash_xboard_constants.lua")
+	local load_func = loadfile or dofile
+	if load_func then
+		if pcall then
+			ok, constants = pcall(load_func, "/usr/share/openclash/openclash_xboard_constants.lua")
+		else
+			ok = true
+			constants = load_func("/usr/share/openclash/openclash_xboard_constants.lua")
+		end
 	end
 	if ok and type(constants) == "table" then
 		local app_name = _trim(constants.APP_NAME)

@@ -495,6 +495,14 @@ jobs:
             [ -f "$f" ] && mv "$f" "$(echo "$f" | sed "s/openclash_/${APP_NS}_/g")"
           done
 
+          # Copy non-prefixed helper scripts (ruby.sh, log.sh, uci.sh) to ${APP_NS} directory
+          # These are referenced by init script but don't have openclash_ prefix
+          for f in ruby.sh log.sh uci.sh; do
+            if [ -f "$APP_DIR/root/usr/share/openclash/$f" ]; then
+              cp -f "$APP_DIR/root/usr/share/openclash/$f" "$APP_DIR/root/usr/share/${APP_NS}/$f"
+            fi
+          done
+
           # Update ${APP_NS}_ps.sh internal paths
           PS_FILE="$APP_DIR/root/usr/share/${APP_NS}/${APP_NS}_ps.sh"
           if [ -f "$PS_FILE" ]; then
@@ -524,6 +532,18 @@ jobs:
 
           # Rename init.d, config, uci-defaults, and po files
           [ -f "$APP_DIR/root/etc/init.d/openclash" ] && mv "$APP_DIR/root/etc/init.d/openclash" "$APP_DIR/root/etc/init.d/${APP_NS}"
+          # Update init script internal paths after renaming
+          INIT_FILE="$APP_DIR/root/etc/init.d/${APP_NS}"
+          if [ -f "$INIT_FILE" ]; then
+            # Replace $IPKG_INSTROOT/usr/share/openclash/ with $IPKG_INSTROOT/usr/share/${APP_NS}/
+            sed -i "s|\$IPKG_INSTROOT/usr/share/openclash/|\$IPKG_INSTROOT/usr/share/${APP_NS}/|g" "$INIT_FILE"
+            # Replace openclash_ps.sh with ${APP_NS}_ps.sh (file is renamed)
+            sed -i "s|openclash_ps\.sh|${APP_NS}_ps.sh|g" "$INIT_FILE"
+            # Replace openclash_uci.sh with ${APP_NS}_uci.sh (file is renamed)
+            sed -i "s|openclash_uci\.sh|${APP_NS}_uci.sh|g" "$INIT_FILE"
+            # Note: ruby.sh, log.sh, uci.sh (without openclash_ prefix) are NOT renamed
+            # but they are accessed via ${APP_NS} directory path which is handled above
+          fi
           [ -f "$APP_DIR/root/etc/config/openclash" ] && mv "$APP_DIR/root/etc/config/openclash" "$APP_DIR/root/etc/config/${APP_NS}"
           [ -f "$APP_DIR/root/etc/uci-defaults/luci-openclash" ] && mv "$APP_DIR/root/etc/uci-defaults/luci-openclash" "$APP_DIR/root/etc/uci-defaults/luci-${APP_NS}"
           [ -f "$APP_DIR/po/zh-cn/openclash.zh-cn.po" ] && mv "$APP_DIR/po/zh-cn/openclash.zh-cn.po" "$APP_DIR/po/zh-cn/${APP_NS}.zh-cn.po"

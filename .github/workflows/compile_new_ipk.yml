@@ -490,10 +490,32 @@ jobs:
           # Rename controller file
           [ -f "$APP_DIR/luasrc/controller/openclash.lua" ] && mv "$APP_DIR/luasrc/controller/openclash.lua" "$APP_DIR/luasrc/controller/${APP_NS}.lua"
 
-          # Rename all openclash_* files in root/usr/share/${APP_NS}
+          # Rename all openclash_* files in root/usr/share/${APP_NS} to ${APP_NS}_*
           for f in "$APP_DIR"/root/usr/share/openclash/openclash_*.sh "$APP_DIR"/root/usr/share/openclash/openclash_*.lua; do
             [ -f "$f" ] && mv "$f" "$(echo "$f" | sed "s/openclash_/${APP_NS}_/g")"
           done
+
+          # Update ${APP_NS}_ps.sh internal paths
+          PS_FILE="$APP_DIR/root/usr/share/${APP_NS}/${APP_NS}_ps.sh"
+          if [ -f "$PS_FILE" ]; then
+            # Replace /usr/share/openclash/ with /usr/share/${APP_NS}/
+            sed -i "s|/usr/share/openclash/|/usr/share/${APP_NS}/|g" "$PS_FILE"
+            # Replace /etc/init.d/openclash with /etc/init.d/${APP_NS}
+            sed -i "s|/etc/init.d/openclash|/etc/init.d/${APP_NS}|g" "$PS_FILE"
+            # Replace /etc/openclash with /etc/${APP_NS}
+            sed -i "s|/etc/openclash|/etc/${APP_NS}|g" "$PS_FILE"
+            # Replace openclash_uci.sh to ${APP_NS}_uci.sh
+            sed -i "s|openclash_uci\.sh|${APP_NS}_uci.sh|g" "$PS_FILE"
+          fi
+
+          # Update ${APP_NS}_uci.sh internal UCI references
+          UCI_FILE="$APP_DIR/root/usr/share/${APP_NS}/${APP_NS}_uci.sh"
+          if [ -f "$UCI_FILE" ]; then
+            # Replace uci get "openclash" with "${APP_NS}" (various formats)
+            sed -i "s|uci -q get openclash\.|uci -q get ${APP_NS}.|g" "$UCI_FILE"
+            sed -i "s|uci -q get openclash |uci -q get ${APP_NS} |g" "$UCI_FILE"
+            sed -i "s|get openclash\.@overwrite|get ${APP_NS}.@overwrite|g" "$UCI_FILE"
+          fi
 
           # Rename custom config files
           for f in "$APP_DIR"/root/etc/openclash/custom/openclash_custom_*; do

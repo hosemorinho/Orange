@@ -208,6 +208,17 @@ jobs:
           replace_tree "luci.openclash" "luci.${APP_NS}"
           replace_tree "luci-app-openclash" "${PKG_NAME}"
           replace_tree "luci-openclash" "luci-${APP_NS}"
+
+          # Keep Minimal rewrite parity with Compile for UCI API namespace references.
+          find "$APP_DIR" -type f \
+            \( -name "Makefile" -o -name "*.sh" -o -name "*.lua" -o -name "*.htm" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" -o -name "*.uc" -o -path "*/root/etc/uci-defaults/*" -o -path "*/root/etc/init.d/*" -o -path "*/root/etc/config/*" -o -path "*/root/etc/*/overwrite/*" \) \
+            -print0 | xargs -0 sed -i \
+            -e "s|uci:get(\"openclash\"|uci:get(\"${APP_NS}\"|g" \
+            -e "s|uci:get_all(\"openclash\"|uci:get_all(\"${APP_NS}\"|g" \
+            -e "s|uci:foreach(\"openclash\"|uci:foreach(\"${APP_NS}\"|g" \
+            -e "s|uci:delete(\"openclash\"|uci:delete(\"${APP_NS}\"|g" \
+            -e "s|uci:set(\"openclash\"|uci:set(\"${APP_NS}\"|g"
+
           sed -i -E "s|^PKG_NAME:=luci-app-[A-Za-z0-9._-]+$|PKG_NAME:=${PKG_NAME}|g" "$APP_DIR/Makefile"
 
       - name: Minimal Acceptance Checks

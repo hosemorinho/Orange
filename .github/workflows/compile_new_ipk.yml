@@ -621,7 +621,7 @@ jobs:
             s/page = entry\(\{"admin",\s*"services",\s*"[^"]*"\},\s*alias\("admin",\s*"services",\s*"[^"]*",\s*"xboard"\),\s*_\("XBoard"\),\s*50\)/
               "page = entry({\"admin\", \"services\", \"$ns\"}, alias(\"admin\", \"services\", \"$ns\", \"xboard\"), _(\"XBoard\"), 50)"/eg;
             s/entry\(\{"admin",\s*"services",\s*"[^"]*",\s*"xboard"\},form\("openclash\/xboard-client"\),_\("Dashboard"\),\s*20\)\.leaf = true/
-              "entry({\"admin\", \"services\", \"$ns\", \"xboard\"},form(\"${APP_NS}\/xboard-client\"),_(\"Dashboard\"), 20).leaf = true"/eg;
+              "entry({\"admin\", \"services\", \"$ns\", \"xboard\"},form(\"$ns\/xboard-client\"),_(\"Dashboard\"), 20).leaf = true"/eg;
             s/entry\(\{"admin",\s*"services",\s*"[^"]*",\s*"xboard",\s*"config"\},\s*call\("action_xboard_config"\)\)\.leaf = true/
               "entry({\"admin\", \"services\", \"$ns\", \"xboard\", \"config\"}, call(\"action_xboard_config\")).leaf = true"/eg;
             s/entry\(\{"admin",\s*"services",\s*"[^"]*",\s*"xboard",\s*"proxy"\},\s*call\("action_xboard_proxy"\)\)\.leaf = true/

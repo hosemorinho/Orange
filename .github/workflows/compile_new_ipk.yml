@@ -181,6 +181,9 @@ jobs:
           [ -d "$APP_DIR/root/etc/openclash" ] && mv "$APP_DIR/root/etc/openclash" "$APP_DIR/root/etc/${APP_NS}"
           [ -f "$APP_DIR/root/etc/init.d/openclash" ] && mv "$APP_DIR/root/etc/init.d/openclash" "$APP_DIR/root/etc/init.d/${APP_NS}"
           [ -f "$APP_DIR/root/etc/config/openclash" ] && mv "$APP_DIR/root/etc/config/openclash" "$APP_DIR/root/etc/config/${APP_NS}"
+          if [ -f "$APP_DIR/root/etc/config/${APP_NS}" ]; then
+            sed -i -E "s|^config[[:space:]]+openclash|config ${APP_NS}|g" "$APP_DIR/root/etc/config/${APP_NS}"
+          fi
           [ -f "$APP_DIR/root/etc/uci-defaults/luci-openclash" ] && mv "$APP_DIR/root/etc/uci-defaults/luci-openclash" "$APP_DIR/root/etc/uci-defaults/luci-${APP_NS}"
           [ -f "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" "$APP_DIR/root/usr/share/rpcd/acl.d/${PKG_NAME}.json"
           [ -f "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" "$APP_DIR/root/usr/share/ucitrack/${PKG_NAME}.json"
@@ -604,6 +607,9 @@ jobs:
             # but they are accessed via ${APP_NS} directory path which is handled above
           fi
           [ -f "$APP_DIR/root/etc/config/openclash" ] && mv "$APP_DIR/root/etc/config/openclash" "$APP_DIR/root/etc/config/${APP_NS}"
+          if [ -f "$APP_DIR/root/etc/config/${APP_NS}" ]; then
+            sed -i -E "s|^config[[:space:]]+openclash|config ${APP_NS}|g" "$APP_DIR/root/etc/config/${APP_NS}"
+          fi
           [ -f "$APP_DIR/root/etc/uci-defaults/luci-openclash" ] && mv "$APP_DIR/root/etc/uci-defaults/luci-openclash" "$APP_DIR/root/etc/uci-defaults/luci-${APP_NS}"
           [ -f "$APP_DIR/po/zh-cn/openclash.zh-cn.po" ] && mv "$APP_DIR/po/zh-cn/openclash.zh-cn.po" "$APP_DIR/po/zh-cn/${APP_NS}.zh-cn.po"
           [ -f "$APP_DIR/po/es/openclash.es.po" ] && mv "$APP_DIR/po/es/openclash.es.po" "$APP_DIR/po/es/${APP_NS}.es.po"

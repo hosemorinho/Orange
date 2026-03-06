@@ -354,18 +354,6 @@ jobs:
             echo "PASS UCI namespace replaced to ${APP_NS}"
           fi
 
-          {
-            echo "### Minimal Acceptance Passed"
-            echo "- APP_NAME: \`${APP_NAME}\`"
-            echo "- APP_NS: \`${APP_NS}\` (derived from APP_NAME)"
-            echo "- PKG_NAME: \`${PKG_NAME}\`"
-            echo "- Constants: \`${CONST_PATH}\`"
-            echo "- Checked secrets: API_BASE_URL, API_TEXT_DOMAIN, APP_ICON_URL, APP_NAME, CRISP_WEBSITE_ID, THEME_COLOR, KEYSTORE, KEY_ALIAS, KEY_PASSWORD, STORE_PASSWORD"
-            echo "- Checked namespace rewrite: routes, static path, package name, runtime dirs/files"
-            echo "- Checked security hardening: secure_cleanup, trap, chmod 600, FIFO decode"
-            echo "- Checked UCI config section: config ${APP_NS}, @${APP_NS}, firewall.${APP_NS}"
-          } >> "$GITHUB_STEP_SUMMARY"
-
   Get-Version:
     runs-on: ubuntu-latest
     outputs:

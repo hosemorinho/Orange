@@ -3,7 +3,7 @@
 
   var boot = window.__OC_XBOARD_BOOTSTRAP__ || {};
   var i18n = boot.i18n || {};
-  var TOKEN_KEY = "oc_xboard_token";
+  var TOKEN_KEY = "oc_xboard_auth_data";
 
   var ORDER_STATUS = {
     0: "order_status_pending",
@@ -169,7 +169,7 @@
     var body = new URLSearchParams();
     body.set("method", method);
     body.set("path", path);
-    if (auth) body.set("token", state.token);
+    if (auth) body.set("auth_data", state.token);
     if (opts.data !== undefined) body.set("data", JSON.stringify(opts.data));
     if (opts.query !== undefined) body.set("query", JSON.stringify(opts.query));
 
@@ -500,7 +500,9 @@
 
   async function loadConfig() {
     var cfg = await fetchJson(boot.config_url, { credentials: "same-origin" });
-    initBranding(cfg || {});
+    // Use branding from boot (injected by Lua) instead of API response
+    // to avoid exposing internal configuration like crisp_website_id, app_package_name, etc.
+    initBranding(boot || {});
     state.baseUrl = cfg && cfg.base_url ? cfg.base_url : "";
     setApiState(!!state.baseUrl, state.baseUrl ? tf("api_endpoint", { url: state.baseUrl }, "API: {url}") : t("api_not_configured", "API Not Configured"));
   }
@@ -555,7 +557,7 @@
       proxy("/api/v1/user/info"),
       proxy("/api/v1/user/getSubscribe"),
       proxy("/api/v1/user/getStat"),
-      proxy("/api/v1/user/notice/fetch")
+      proxy("/api/v1/user/notice/fetch").catch(function () { return {}; })
     ]);
     state.user = safeData(out[0]);
     state.subscribe = safeData(out[1]);
@@ -1119,7 +1121,7 @@
 
     $("logoutBtn").addEventListener("click", async function () {
       try {
-        await proxy("/api/v1/user/logout").catch(function () {});
+        // v2board does not have a logout API, just clear local state
       } finally {
         stopPaymentPolling();
         state.token = "";
@@ -1185,9 +1187,15 @@
     }
 
     try {
-      await proxy("/api/v1/passport/auth/check");
-      await bootstrapPanel();
-      setNotice(t("session_restored", "Session restored"), "ok");
+      // v2board uses checkLogin instead of auth/check
+      var checkRes = await proxy("/api/v1/user/checkLogin");
+      var checkData = safeData(checkRes);
+      if (checkData && checkData.is_login) {
+        await bootstrapPanel();
+        setNotice(t("session_restored", "Session restored"), "ok");
+      } else {
+        throw new Error("Not logged in");
+      }
     } catch (_e) {
       stopPaymentPolling();
       state.token = "";

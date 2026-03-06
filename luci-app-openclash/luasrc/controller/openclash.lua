@@ -4642,15 +4642,15 @@ local function xboard_parse_proxy_payload()
 	return json.stringify(parsed) or body_json
 end
 
-local function xboard_http_request(method, request_url, token, payload)
+local function xboard_http_request(method, request_url, auth_data, payload)
 	local ua = fs.uci_get_config("config", "common_browser_ua") or "openclash-xboard/1.0"
 	local cmd = "curl -sS -L --connect-timeout 10 -m 25" ..
 		" -X " .. xboard_shell_quote(method) ..
 		" -H " .. xboard_shell_quote("Accept: application/json") ..
 		" -H " .. xboard_shell_quote("User-Agent: " .. ua)
 
-	if token and token ~= "" then
-		cmd = cmd .. " -H " .. xboard_shell_quote("Authorization: " .. token)
+	if auth_data and auth_data ~= "" then
+		cmd = cmd .. " -H " .. xboard_shell_quote("Authorization: " .. auth_data)
 	end
 
 	if method == "POST" then
@@ -4688,21 +4688,13 @@ function action_xboard_config()
 	xboard_cleanup_legacy_base_url()
 	local base_url, constants = xboard_resolve_base_url()
 	local branding = (fs.get_branding and fs.get_branding()) or {}
-	local package_name = xboard_trim(constants.APP_PACKAGE_NAME)
-	if package_name == "" then
-		package_name = xboard_trim(branding.app_package_name)
-	end
 
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 		ok = base_url ~= "",
-		base_url = base_url,
-		api_text_domain = xboard_trim(constants.API_TEXT_DOMAIN),
 		app_name = branding.app_name or "XBoard",
 		app_icon_url = branding.app_icon_url or "",
 		theme_color = branding.theme_color or "",
-		crisp_website_id = branding.crisp_website_id or "",
-		app_package_name = package_name,
 		show_branding = branding.show_branding == true
 	})
 end
@@ -4710,7 +4702,7 @@ end
 function action_xboard_proxy()
 	local method = string.upper(luci.http.formvalue("method") or "GET")
 	local path = xboard_trim(luci.http.formvalue("path") or "")
-	local token = xboard_trim(luci.http.formvalue("token") or "")
+	local auth_data = xboard_trim(luci.http.formvalue("auth_data") or "")
 	local query_json = xboard_trim(luci.http.formvalue("query") or "")
 	local payload = xboard_parse_proxy_payload()
 
@@ -4746,7 +4738,7 @@ function action_xboard_proxy()
 		request_url = request_url .. "?" .. query_string
 	end
 
-	local status_code, raw_body, parsed = xboard_http_request(method, request_url, token, payload)
+	local status_code, raw_body, parsed = xboard_http_request(method, request_url, auth_data, payload)
 	local ok = status_code >= 200 and status_code < 300
 
 	luci.http.prepare_content("application/json")

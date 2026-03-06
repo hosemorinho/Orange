@@ -1,4 +1,4 @@
-"Content-Type: text/plain; charset=UTF-8\n"
+﻿"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: zh_CN\n"
 
@@ -4245,571 +4245,571 @@ msgstr "禁用 Qtype"
 # XBoard i18n additions
 
 msgid "API Connected"
-msgstr "API ???"
+msgstr "API 已连接"
 
 msgid "API Disconnected"
-msgstr "API ???"
+msgstr "API 已断开"
 
 msgid "API Not Checked"
-msgstr "API ???"
+msgstr "API 未检查"
 
 msgid "API Not Configured"
-msgstr "API ???"
+msgstr "API 未配置"
 
 msgid "API: {url}"
-msgstr "API?{url}"
+msgstr "API: {url}"
 
 msgid "API_BASE_URL / API_TEXT_DOMAIN not configured. Configure GitHub Actions secrets."
-msgstr "??? API_BASE_URL / API_TEXT_DOMAIN??? GitHub Actions secrets ????"
+msgstr "API_BASE_URL / API_TEXT_DOMAIN 未配置。请配置 GitHub Actions secrets。"
 
 msgid "Account Info"
-msgstr "????"
+msgstr "账户信息"
 
 msgid "Account Settings"
-msgstr "????"
+msgstr "账户设置"
 
 msgid "Account settings saved"
-msgstr "???????"
+msgstr "账户设置已保存"
 
 msgid "All"
-msgstr "??"
+msgstr "全部"
 
 msgid "Amount"
-msgstr "??"
+msgstr "金额"
 
 msgid "Are you sure to cancel order {trade_no}?"
-msgstr "?????? {trade_no} ??"
+msgstr "确定要取消订单 {trade_no} 吗？"
 
 msgid "Available Plans Preview"
-msgstr "??????"
+msgstr "可用套餐预览"
 
 msgid "Balance"
-msgstr "??"
+msgstr "余额"
 
 msgid "Buy"
-msgstr "??"
+msgstr "购买"
 
 msgid "CNY"
-msgstr "?"
+msgstr "元"
 
 msgid "Cancel Order"
-msgstr "????"
+msgstr "取消订单"
 
 msgid "Cancel order failed"
-msgstr "??????"
+msgstr "取消订单失败"
 
 msgid "Cancelled"
-msgstr "???"
+msgstr "已取消"
 
 msgid "Cannot get payment link, complete payment on panel site"
-msgstr "????????????????????"
+msgstr "无法获取支付链接，请在面板站点完成支付"
 
 msgid "Change Password"
-msgstr "????"
+msgstr "修改密码"
 
 msgid "Change password failed"
-msgstr "??????"
+msgstr "修改密码失败"
 
 msgid "Close Ticket"
-msgstr "????"
+msgstr "关闭工单"
 
 msgid "Close ticket failed"
-msgstr "??????"
+msgstr "关闭工单失败"
 
 msgid "Commission"
-msgstr "??"
+msgstr "佣金"
 
 msgid "Commission Withdraw"
-msgstr "????"
+msgstr "佣金提现"
 
 msgid "Commission transferred"
-msgstr "??????"
+msgstr "佣金已转账"
 
 msgid "Completed"
-msgstr "???"
+msgstr "已完成"
 
 msgid "Copy Subscription URL"
-msgstr "??????"
+msgstr "复制订阅地址"
 
 msgid "Copy failed, please copy manually"
-msgstr "??????????"
+msgstr "复制失败，请手动复制"
 
 msgid "Coupon Code (Optional)"
-msgstr "????????"
+msgstr "优惠码（可选）"
 
 msgid "Coupon valid: {name}, discount {value}{unit}"
-msgstr "??????{name}??? {value}{unit}"
+msgstr "优惠券有效：{name}，折扣 {value}{unit}"
 
 msgid "Coupon validation failed"
-msgstr "???????"
+msgstr "优惠券验证失败"
 
 msgid "Create Ticket"
-msgstr "????"
+msgstr "创建工单"
 
 msgid "Create invite code failed"
-msgstr "???????"
+msgstr "创建邀请码失败"
 
 msgid "Create ticket failed"
-msgstr "??????"
+msgstr "创建工单失败"
 
 msgid "Created"
-msgstr "????"
+msgstr "创建时间"
 
 msgid "Date"
-msgstr "??"
+msgstr "日期"
 
 msgid "Discount"
-msgstr "??"
+msgstr "折扣"
 
 msgid "Email"
-msgstr "??"
+msgstr "邮箱"
 
 msgid "Email Verification Code (Optional)"
-msgstr "?????????"
+msgstr "邮箱验证码（可选）"
 
 msgid "Expiry Reminder Days"
-msgstr "??????"
+msgstr "到期提醒天数"
 
 msgid "Failed to get order detail"
-msgstr "????????"
+msgstr "获取订单详情失败"
 
 msgid "Forgot Password"
-msgstr "????"
+msgstr "忘记密码"
 
 msgid "Generate Invite Code"
-msgstr "?????"
+msgstr "生成邀请码"
 
 msgid "Half Year"
-msgstr "??"
+msgstr "半年"
 
 msgid "High"
-msgstr "?"
+msgstr "高"
 
 msgid "Home"
-msgstr "??"
+msgstr "首页"
 
 msgid "Home data refreshed"
-msgstr "???????"
+msgstr "首页数据已刷新"
 
 msgid "Initialization failed"
-msgstr "?????"
+msgstr "初始化失败"
 
 msgid "Initializing XBoard client..."
-msgstr "????? XBoard ???..."
+msgstr "正在初始化 XBoard 客户端..."
 
 msgid "Invite"
-msgstr "??"
+msgstr "邀请"
 
 msgid "Invite Code (Optional)"
-msgstr "???????"
+msgstr "邀请码（可选）"
 
 msgid "Invite Code (Required)"
-msgstr "???????"
+msgstr "邀请码（必填）"
 
 msgid "Invite Codes"
-msgstr "???"
+msgstr "邀请码"
 
 msgid "Invite Details"
-msgstr "????"
+msgstr "邀请详情"
 
 msgid "Invite Stats"
-msgstr "????"
+msgstr "邀请统计"
 
 msgid "Invite code copied"
-msgstr "??????"
+msgstr "邀请码已复制"
 
 msgid "Invite code created"
-msgstr "??????"
+msgstr "邀请码已创建"
 
 msgid "Invite data refreshed"
-msgstr "???????"
+msgstr "邀请数据已刷新"
 
 msgid "Load More"
-msgstr "????"
+msgstr "加载更多"
 
 msgid "Loading orders..."
-msgstr "??????..."
+msgstr "正在加载订单..."
 
 msgid "Loading plans..."
-msgstr "??????..."
+msgstr "正在加载套餐..."
 
 msgid "Logged out"
-msgstr "?????"
+msgstr "已退出登录"
 
 msgid "Login"
-msgstr "??"
+msgstr "登录"
 
 msgid "Login and Enter Dashboard"
-msgstr "???????"
+msgstr "登录并进入控制面板"
 
 msgid "Login failed"
-msgstr "????"
+msgstr "登录失败"
 
 msgid "Login succeeded but token is missing"
-msgstr "??????? token"
+msgstr "登录成功但 token 缺失"
 
 msgid "Login succeeded, loading dashboard..."
-msgstr "???????????..."
+msgstr "登录成功，正在加载控制面板..."
 
 msgid "Logout"
-msgstr "????"
+msgstr "退出登录"
 
 msgid "Low"
-msgstr "?"
+msgstr "低"
 
 msgid "Me"
-msgstr "?"
+msgstr "我的"
 
 msgid "Medium"
-msgstr "?"
+msgstr "中"
 
 msgid "Message"
-msgstr "??"
+msgstr "消息"
 
 msgid "Month"
-msgstr "??"
+msgstr "月"
 
 msgid "New Password"
-msgstr "???"
+msgstr "新密码"
 
 msgid "No billing period available"
-msgstr "????????"
+msgstr "无可用计费周期"
 
 msgid "No invite codes"
-msgstr "?????"
+msgstr "无邀请码"
 
 msgid "No invite details"
-msgstr "??????"
+msgstr "无邀请详情"
 
 msgid "No notices"
-msgstr "????"
+msgstr "暂无公告"
 
 msgid "No orders"
-msgstr "????"
+msgstr "暂无订单"
 
 msgid "No payment method available, complete payment on panel site"
-msgstr "????????????????????"
+msgstr "暂无可用支付方式，请在面板站点完成支付"
 
 msgid "No plans available"
-msgstr "??????"
+msgstr "暂无可用套餐"
 
 msgid "No pricing"
-msgstr "????"
+msgstr "无价格"
 
 msgid "No records"
-msgstr "????"
+msgstr "暂无记录"
 
 msgid "No subscription link for current account"
-msgstr "??????????"
+msgstr "当前账户无订阅链接"
 
 msgid "No ticket messages"
-msgstr "??????"
+msgstr "工单无消息"
 
 msgid "No tickets"
-msgstr "????"
+msgstr "暂无工单"
 
 msgid "No traffic logs"
-msgstr "??????"
+msgstr "暂无流量日志"
 
 msgid "Not logged in, please login first"
-msgstr "????????"
+msgstr "未登录，请先登录"
 
 msgid "Notices"
-msgstr "??"
+msgstr "公告"
 
 msgid "Old Password"
-msgstr "???"
+msgstr "旧密码"
 
 msgid "One Time"
-msgstr "???"
+msgstr "一次性"
 
 msgid "OpenClash XBoard Client"
-msgstr "OpenClash XBoard ???"
+msgstr "OpenClash XBoard 客户端"
 
 msgid "Order"
-msgstr "??"
+msgstr "订单"
 
 msgid "Order Detail"
-msgstr "????"
+msgstr "订单详情"
 
 msgid "Order List"
-msgstr "????"
+msgstr "订单列表"
 
 msgid "Order cancelled"
-msgstr "?????"
+msgstr "订单已取消"
 
 msgid "Order created but trade_no is missing"
-msgstr "???????? trade_no"
+msgstr "订单已创建但 trade_no 缺失"
 
 msgid "Order created. Complete payment on panel site. Order: {trade_no}"
-msgstr "?????????????????????{trade_no}"
+msgstr "订单已创建。请在面板站点完成支付。订单号：{trade_no}"
 
 msgid "Order created. Please complete payment in order page. Order: {trade_no}"
-msgstr "????????????????????{trade_no}"
+msgstr "订单已创建。请在订单页面完成支付。订单号：{trade_no}"
 
 msgid "Orders"
-msgstr "??"
+msgstr "订单"
 
 msgid "Orders refreshed"
-msgstr "?????"
+msgstr "订单已刷新"
 
 msgid "Password changed"
-msgstr "?????"
+msgstr "密码已修改"
 
 msgid "Password reset failed"
-msgstr "??????"
+msgstr "密码重置失败"
 
 msgid "Password reset succeeded, please login"
-msgstr "??????????"
+msgstr "密码重置成功，请登录"
 
 msgid "Pay Now"
-msgstr "????"
+msgstr "立即支付"
 
 msgid "Payment check timeout, please refresh orders manually"
-msgstr "????????????????"
+msgstr "支付检查超时，请手动刷新订单"
 
 msgid "Payment failed"
-msgstr "????"
+msgstr "支付失败"
 
 msgid "Payment page opened"
-msgstr "???????"
+msgstr "支付页面已打开"
 
 msgid "Payment page opened. Order: {trade_no}"
-msgstr "???????????{trade_no}"
+msgstr "支付页面已打开。订单号：{trade_no}"
 
 msgid "Payment succeeded"
-msgstr "????"
+msgstr "支付成功"
 
 msgid "Pending"
-msgstr "???"
+msgstr "待支付"
 
 msgid "Period"
-msgstr "??"
+msgstr "周期"
 
 msgid "Plan"
-msgstr "??"
+msgstr "套餐"
 
 msgid "Plan #{plan_id}"
-msgstr "?? #{plan_id}"
+msgstr "套餐 #{plan_id}"
 
 msgid "Plan List"
-msgstr "????"
+msgstr "套餐列表"
 
 msgid "Plans"
-msgstr "??"
+msgstr "套餐"
 
 msgid "Plans refreshed"
-msgstr "?????"
+msgstr "套餐已刷新"
 
 msgid "Please input a valid amount"
-msgstr "???????"
+msgstr "请输入有效金额"
 
 msgid "Please input coupon code"
-msgstr "???????"
+msgstr "请输入优惠码"
 
 msgid "Please input email first"
-msgstr "??????"
+msgstr "请先输入邮箱"
 
 msgid "Please input transfer amount"
-msgstr "???????"
+msgstr "请输入转账金额"
 
 msgid "Please input withdraw account"
-msgstr "???????"
+msgstr "请输入提现账户"
 
 msgid "Please login XBoard account first"
-msgstr "???? XBoard ??"
+msgstr "请先登录 XBoard 账户"
 
 msgid "Please select a ticket from the left"
-msgstr "????????"
+msgstr "请从左侧选择工单"
 
 msgid "Please select ticket first"
-msgstr "??????"
+msgstr "请先选择工单"
 
 msgid "Please select withdraw method"
-msgstr "???????"
+msgstr "请选择提现方式"
 
 msgid "Priority"
-msgstr "???"
+msgstr "优先级"
 
 msgid "Processing"
-msgstr "???"
+msgstr "处理中"
 
 msgid "Proxy request failed"
-msgstr "??????"
+msgstr "代理请求失败"
 
 msgid "Purchase failed"
-msgstr "????"
+msgstr "购买失败"
 
 msgid "Quarter"
-msgstr "??"
+msgstr "季度"
 
 msgid "Refresh failed"
-msgstr "????"
+msgstr "刷新失败"
 
 msgid "Register"
-msgstr "??"
+msgstr "注册"
 
 msgid "Register failed"
-msgstr "????"
+msgstr "注册失败"
 
 msgid "Register succeeded, please login"
-msgstr "????????"
+msgstr "注册成功，请登录"
 
 msgid "Reply Content"
-msgstr "????"
+msgstr "回复内容"
 
 msgid "Reply failed"
-msgstr "????"
+msgstr "回复失败"
 
 msgid "Reply sent"
-msgstr "?????"
+msgstr "回复已发送"
 
 msgid "Request failed"
-msgstr "????"
+msgstr "请求失败"
 
 msgid "Reset Password"
-msgstr "????"
+msgstr "重置密码"
 
 msgid "Reset Subscription URL"
-msgstr "??????"
+msgstr "重置订阅地址"
 
 msgid "Reset failed"
-msgstr "????"
+msgstr "重置失败"
 
 msgid "Response is not JSON"
-msgstr "???? JSON"
+msgstr "响应不是 JSON 格式"
 
 msgid "Save Account Settings"
-msgstr "??????"
+msgstr "保存账户设置"
 
 msgid "Security Settings"
-msgstr "????"
+msgstr "安全设置"
 
 msgid "Send Code"
-msgstr "?????"
+msgstr "发送验证码"
 
 msgid "Send Reply"
-msgstr "????"
+msgstr "发送回复"
 
 msgid "Send code failed"
-msgstr "???????"
+msgstr "发送验证码失败"
 
 msgid "Session expired, please login again"
-msgstr "???????????"
+msgstr "会话已过期，请重新登录"
 
 msgid "Session restored"
-msgstr "?????"
+msgstr "会话已恢复"
 
 msgid "Status"
-msgstr "??"
+msgstr "状态"
 
 msgid "Subject"
-msgstr "??"
+msgstr "主题"
 
 msgid "Submit Registration"
-msgstr "????"
+msgstr "提交注册"
 
 msgid "Submit Ticket"
-msgstr "????"
+msgstr "提交工单"
 
 msgid "Submit Withdraw Request"
-msgstr "??????"
+msgstr "提交提现申请"
 
 msgid "Subscription Status"
-msgstr "????"
+msgstr "订阅状态"
 
 msgid "Subscription link copied"
-msgstr "???????"
+msgstr "订阅链接已复制"
 
 msgid "Subscription link reset"
-msgstr "???????"
+msgstr "订阅链接已重置"
 
 msgid "Support"
-msgstr "??"
+msgstr "支持"
 
 msgid "Telegram ID"
-msgstr "Telegram ?? ID"
+msgstr "Telegram 账号 ID"
 
 msgid "Three Years"
-msgstr "??"
+msgstr "三年"
 
 msgid "Ticket #{ticket_id}"
-msgstr "?? #{ticket_id}"
+msgstr "工单 #{ticket_id}"
 
 msgid "Ticket Detail"
-msgstr "????"
+msgstr "工单详情"
 
 msgid "Ticket List"
-msgstr "????"
+msgstr "工单列表"
 
 msgid "Ticket closed"
-msgstr "?????"
+msgstr "工单已关闭"
 
 msgid "Ticket created"
-msgstr "?????"
+msgstr "工单已创建"
 
 msgid "Tickets"
-msgstr "??"
+msgstr "工单"
 
 msgid "Tickets refreshed"
-msgstr "?????"
+msgstr "工单已刷新"
 
 msgid "Total"
-msgstr "??"
+msgstr "总计"
 
 msgid "Total Invited Users"
-msgstr "?????"
+msgstr "邀请用户总数"
 
 msgid "Traffic"
-msgstr "??"
+msgstr "流量"
 
 msgid "Traffic Limit"
-msgstr "????"
+msgstr "流量限制"
 
 msgid "Traffic Reminder (GB)"
-msgstr "?????GB?"
+msgstr "流量提醒 (GB)"
 
 msgid "Traffic Usage Logs"
-msgstr "??????"
+msgstr "流量使用日志"
 
 msgid "Transfer Commission"
-msgstr "????"
+msgstr "转账佣金"
 
 msgid "Transfer failed"
-msgstr "????"
+msgstr "转账失败"
 
 msgid "Transferable Commission"
-msgstr "?????"
+msgstr "可转账佣金"
 
 msgid "Two Years"
-msgstr "??"
+msgstr "两年"
 
 msgid "Untitled notice"
-msgstr "?????"
+msgstr "无标题公告"
 
 msgid "Updated"
-msgstr "????"
+msgstr "更新时间"
 
 msgid "Verification code sent, please check your email"
-msgstr "????????????"
+msgstr "验证码已发送，请检查邮箱"
 
 msgid "Verify"
-msgstr "??"
+msgstr "验证"
 
 msgid "Verifying..."
-msgstr "???..."
+msgstr "验证中..."
 
 msgid "Withdraw Account"
-msgstr "????"
+msgstr "提现账户"
 
 msgid "Withdraw Method"
-msgstr "????"
+msgstr "提现方式"
 
 msgid "Withdraw request failed"
-msgstr "??????"
+msgstr "提现请求失败"
 
 msgid "Withdraw request submitted"
-msgstr "???????"
+msgstr "提现请求已提交"
 
 msgid "Year"
-msgstr "??"
+msgstr "年"

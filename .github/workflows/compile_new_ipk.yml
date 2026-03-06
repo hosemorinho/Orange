@@ -15,6 +15,7 @@ on:
 jobs:
   jsDelivr:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
     steps:
     - name: Apt Update
       env:
@@ -179,6 +180,15 @@ jobs:
           [ -f "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/rpcd/acl.d/luci-app-openclash.json" "$APP_DIR/root/usr/share/rpcd/acl.d/${PKG_NAME}.json"
           [ -f "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" ] && mv "$APP_DIR/root/usr/share/ucitrack/luci-app-openclash.json" "$APP_DIR/root/usr/share/ucitrack/${PKG_NAME}.json"
           [ -d "$APP_DIR/root/www/luci-static/resources/openclash" ] && mv "$APP_DIR/root/www/luci-static/resources/openclash" "$APP_DIR/root/www/luci-static/resources/${APP_NS}"
+
+          # Minimal acceptance also needs prefixed helper scripts in target namespace.
+          [ -f "$APP_DIR/root/usr/share/${APP_NS}/openclash_ps.sh" ] && mv "$APP_DIR/root/usr/share/${APP_NS}/openclash_ps.sh" "$APP_DIR/root/usr/share/${APP_NS}/${APP_NS}_ps.sh"
+          [ -f "$APP_DIR/root/usr/share/${APP_NS}/openclash_uci.sh" ] && mv "$APP_DIR/root/usr/share/${APP_NS}/openclash_uci.sh" "$APP_DIR/root/usr/share/${APP_NS}/${APP_NS}_uci.sh"
+          INIT_FILE="$APP_DIR/root/etc/init.d/${APP_NS}"
+          if [ -f "$INIT_FILE" ]; then
+            sed -i "s|openclash_ps\\.sh|${APP_NS}_ps.sh|g" "$INIT_FILE"
+            sed -i "s|openclash_uci\\.sh|${APP_NS}_uci.sh|g" "$INIT_FILE"
+          fi
 
           replace_tree "/usr/share/openclash" "/usr/share/${APP_NS}"
           replace_tree "/etc/openclash" "/etc/${APP_NS}"

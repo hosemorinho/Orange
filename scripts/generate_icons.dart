@@ -14,26 +14,29 @@ class IconGenerator {
   final String projectRoot;
   final String tempDir;
   late String _magickCmd;
+  final Map<String, String> _processEnvironment = Map<String, String>.from(
+    Platform.environment,
+  );
 
   IconGenerator(this.projectRoot)
-      : tempDir = path.join(projectRoot, '.icon_temp') {
+    : tempDir = path.join(projectRoot, '.icon_temp') {
     // On Windows, use 'magick' command; on other platforms, use 'convert'
     _magickCmd = Platform.isWindows ? 'magick' : 'convert';
   }
 
   /// Find ImageMagick executable on Windows
   Future<String?> _findImageMagickOnWindows() async {
-    // Check Chocolatey bin path first (most likely on CI)
-    final chocoPath = r'C:\ProgramData\chocolatey\bin\magick.exe';
-    if (await File(chocoPath).exists()) {
-      return chocoPath;
-    }
+    final programFiles =
+        Platform.environment['ProgramFiles'] ?? r'C:\Program Files';
+    final programFilesX86 =
+        Platform.environment['ProgramFiles(x86)'] ?? r'C:\Program Files (x86)';
+    final localAppData = Platform.environment['LocalAppData'];
 
-    // Check common installation paths
-    final programFiles = Platform.environment['ProgramFiles'] ?? r'C:\Program Files';
-    final programFilesX86 = Platform.environment['ProgramFiles(x86)'] ?? r'C:\Program Files (x86)';
-
-    for (final baseDir in [programFiles, programFilesX86]) {
+    for (final baseDir in [
+      programFiles,
+      programFilesX86,
+      if (localAppData != null) path.join(localAppData, 'Programs'),
+    ]) {
       final dir = Directory(baseDir);
       if (!await dir.exists()) continue;
 
@@ -46,26 +49,59 @@ class IconGenerator {
             }
           }
         }
-      } catch (e) {
-        // Skip directories we can't access
+      } catch (_) {
         continue;
       }
     }
 
-    // Also check Chocolatey lib path
     final chocoLibPath = r'C:\ProgramData\chocolatey\lib\imagemagick\tools';
     final chocoLibDir = Directory(chocoLibPath);
     if (await chocoLibDir.exists()) {
       try {
         await for (final entity in chocoLibDir.list(recursive: true)) {
-          if (entity is File && entity.path.endsWith('magick.exe')) {
+          if (entity is File &&
+              entity.path.toLowerCase().endsWith('magick.exe') &&
+              !entity.path.toLowerCase().contains(r'\chocolatey\bin\')) {
             return entity.path;
           }
         }
       } catch (_) {}
     }
 
+    final whereResult = await Process.run('where', [
+      'magick',
+    ], environment: _processEnvironment);
+    if (whereResult.exitCode == 0) {
+      final candidates = whereResult.stdout
+          .toString()
+          .split(RegExp(r'\r?\n'))
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty)
+          .toList();
+      for (final candidate in candidates) {
+        final lower = candidate.toLowerCase();
+        if (!lower.contains(r'\chocolatey\bin\')) {
+          return candidate;
+        }
+      }
+      if (candidates.isNotEmpty) {
+        return candidates.first;
+      }
+    }
+
     return null;
+  }
+
+  void _configureImageMagickEnvironment(String executablePath) {
+    if (!Platform.isWindows) return;
+
+    final magickDir = path.dirname(executablePath);
+    _processEnvironment['MAGICK_HOME'] = magickDir;
+
+    final currentPath = _processEnvironment['PATH'] ?? '';
+    if (!currentPath.toLowerCase().contains(magickDir.toLowerCase())) {
+      _processEnvironment['PATH'] = '$magickDir;$currentPath';
+    }
   }
 
   /// Icon sizes for each platform
@@ -84,10 +120,10 @@ class IconGenerator {
   /// Adaptive icon foreground sizes per density (108dp canvas)
   /// Icon content occupies inner 72dp; outer 18dp each side is safe zone.
   static const Map<String, Map<String, int>> adaptiveForegroundSizes = {
-    'drawable-mdpi':    {'canvas': 108, 'icon': 72},
-    'drawable-hdpi':    {'canvas': 162, 'icon': 108},
-    'drawable-xhdpi':   {'canvas': 216, 'icon': 144},
-    'drawable-xxhdpi':  {'canvas': 324, 'icon': 216},
+    'drawable-mdpi': {'canvas': 108, 'icon': 72},
+    'drawable-hdpi': {'canvas': 162, 'icon': 108},
+    'drawable-xhdpi': {'canvas': 216, 'icon': 144},
+    'drawable-xxhdpi': {'canvas': 324, 'icon': 216},
     'drawable-xxxhdpi': {'canvas': 432, 'icon': 288},
   };
 
@@ -160,35 +196,44 @@ class IconGenerator {
   }
 
   Future<void> _checkImageMagick() async {
-    final checkCmd = Platform.isWindows ? 'where' : 'which';
-    final result = await Process.run(checkCmd, [_magickCmd]);
-    if (result.exitCode != 0) {
-      // On Windows, try to find ImageMagick in common installation paths
-      if (Platform.isWindows) {
-        print('⚠️ magick not found in PATH, searching for ImageMagick installation...');
-        final magickPath = await _findImageMagickOnWindows();
-        if (magickPath != null) {
-          print('✅ Found ImageMagick at: $magickPath');
-          _magickCmd = magickPath;
-          return;
-        }
-        print('❌ Could not find ImageMagick in common paths');
+    if (Platform.isWindows) {
+      print('🔍 Resolving ImageMagick installation...');
+      final magickPath = await _findImageMagickOnWindows();
+      if (magickPath != null) {
+        _magickCmd = magickPath;
+        _configureImageMagickEnvironment(magickPath);
+        print('✅ Using ImageMagick at: $magickPath');
+      } else {
+        print(
+          '⚠️ Could not resolve a full ImageMagick installation, falling back to PATH',
+        );
       }
+    }
+
+    final result = await Process.run(_magickCmd, [
+      '-version',
+    ], environment: _processEnvironment);
+    if (result.exitCode != 0) {
       throw 'ImageMagick is not installed. Please install it first:\n'
           '  Ubuntu/Debian: sudo apt install imagemagick\n'
           '  macOS: brew install imagemagick\n'
-          '  Windows: choco install imagemagick';
+          '  Windows: choco install imagemagick\n'
+          'ImageMagick validation failed: ${result.stderr}';
     } else {
       print('✅ Found ImageMagick command: $_magickCmd');
     }
   }
 
-  Future<void> _exec(String command, List<String> args,
-      {String? workingDirectory}) async {
+  Future<void> _exec(
+    String command,
+    List<String> args, {
+    String? workingDirectory,
+  }) async {
     final result = await Process.run(
       command,
       args,
       workingDirectory: workingDirectory,
+      environment: _processEnvironment,
     );
     if (result.exitCode != 0) {
       print('Command failed: $command ${args.join(' ')}');
@@ -201,8 +246,13 @@ class IconGenerator {
     print('🪟 Generating Windows icons...');
 
     // Windows app icon (256x256 ICO)
-    final windowsIconPath =
-        path.join(projectRoot, 'windows', 'runner', 'resources', 'app_icon.ico');
+    final windowsIconPath = path.join(
+      projectRoot,
+      'windows',
+      'runner',
+      'resources',
+      'app_icon.ico',
+    );
 
     // Ensure directory exists
     final windowsIconDir = Directory(path.dirname(windowsIconPath));
@@ -246,8 +296,14 @@ class IconGenerator {
   Future<void> _generateAndroidIcons(String sourcePath) async {
     print('🤖 Generating Android icons...');
 
-    final androidResDir =
-        path.join(projectRoot, 'android', 'app', 'src', 'main', 'res');
+    final androidResDir = path.join(
+      projectRoot,
+      'android',
+      'app',
+      'src',
+      'main',
+      'res',
+    );
 
     // Replace the default vector foreground with custom icon PNGs.
     // This makes adaptive icons (app icon + splash screen) all use the custom logo.
@@ -256,8 +312,14 @@ class IconGenerator {
     await _replaceAdaptiveForeground(sourcePath, androidResDir);
 
     // Generate Play Store icon (512x512)
-    final playStorePath =
-        path.join(projectRoot, 'android', 'app', 'src', 'main', 'ic_launcher-playstore.png');
+    final playStorePath = path.join(
+      projectRoot,
+      'android',
+      'app',
+      'src',
+      'main',
+      'ic_launcher-playstore.png',
+    );
     await _resizePng(sourcePath, playStorePath, 512);
 
     // Generate mipmap icons
@@ -292,9 +354,16 @@ class IconGenerator {
   ///
   /// Adaptive icon canvas is 108dp (icon content in inner 72dp, 18dp safe zone each side).
   /// Generates PNGs for each density so @drawable/ic_launcher_foreground resolves to them.
-  Future<void> _replaceAdaptiveForeground(String sourcePath, String androidResDir) async {
+  Future<void> _replaceAdaptiveForeground(
+    String sourcePath,
+    String androidResDir,
+  ) async {
     // Delete the original vector foreground
-    final vectorPath = path.join(androidResDir, 'drawable', 'ic_launcher_foreground.xml');
+    final vectorPath = path.join(
+      androidResDir,
+      'drawable',
+      'ic_launcher_foreground.xml',
+    );
     final vectorFile = File(vectorPath);
     if (await vectorFile.exists()) {
       await vectorFile.delete();
@@ -316,10 +385,14 @@ class IconGenerator {
       // Resize icon to inner area, then center on transparent canvas
       await _exec(_magickCmd, [
         sourcePath,
-        '-resize', '${iconSize}x$iconSize',
-        '-background', 'none',
-        '-gravity', 'center',
-        '-extent', '${canvasSize}x$canvasSize',
+        '-resize',
+        '${iconSize}x$iconSize',
+        '-background',
+        'none',
+        '-gravity',
+        'center',
+        '-extent',
+        '${canvasSize}x$canvasSize',
         outputPath,
       ]);
     }
@@ -337,8 +410,18 @@ class IconGenerator {
 
     // Delete the old notification icon vector XML
     final serviceResDir = path.join(
-      projectRoot, 'android', 'service', 'src', 'main', 'res');
-    final oldNotificationIconPath = path.join(serviceResDir, 'drawable', 'ic.xml');
+      projectRoot,
+      'android',
+      'service',
+      'src',
+      'main',
+      'res',
+    );
+    final oldNotificationIconPath = path.join(
+      serviceResDir,
+      'drawable',
+      'ic.xml',
+    );
     final oldNotificationIconFile = File(oldNotificationIconPath);
     if (await oldNotificationIconFile.exists()) {
       await oldNotificationIconFile.delete();
@@ -362,12 +445,18 @@ class IconGenerator {
       // Android notification system renders icons in white
       await _exec(_magickCmd, [
         sourcePath,
-        '-resize', '${size}x$size',
-        '-background', 'black',
-        '-gravity', 'center',
-        '-extent', '${size}x$size',
-        '-colorspace', 'Gray',
-        '-alpha', 'copy',
+        '-resize',
+        '${size}x$size',
+        '-background',
+        'black',
+        '-gravity',
+        'center',
+        '-extent',
+        '${size}x$size',
+        '-colorspace',
+        'Gray',
+        '-alpha',
+        'copy',
         '-negate',
         outputPath,
       ]);
@@ -382,16 +471,24 @@ class IconGenerator {
       // Use xhdpi size (48dp) as default
       await _exec(_magickCmd, [
         sourcePath,
-        '-resize', '48x48',
-        '-background', 'black',
-        '-gravity', 'center',
-        '-extent', '48x48',
-        '-colorspace', 'Gray',
-        '-alpha', 'copy',
+        '-resize',
+        '48x48',
+        '-background',
+        'black',
+        '-gravity',
+        'center',
+        '-extent',
+        '48x48',
+        '-colorspace',
+        'Gray',
+        '-alpha',
+        'copy',
         '-negate',
         drawableDefaultFile.path,
       ]);
-      print('  ✅ Generated default notification icon: ${drawableDefaultFile.path}');
+      print(
+        '  ✅ Generated default notification icon: ${drawableDefaultFile.path}',
+      );
     }
 
     print('  ✅ Notification icons generated');
@@ -405,16 +502,26 @@ class IconGenerator {
     print('📺 Generating TV banner icon...');
 
     final bannerPath = path.join(
-      projectRoot, 'android', 'app', 'src', 'main', 'res',
-      'mipmap-xhdpi', 'ic_banner.png',
+      projectRoot,
+      'android',
+      'app',
+      'src',
+      'main',
+      'res',
+      'mipmap-xhdpi',
+      'ic_banner.png',
     );
 
     await _exec(_magickCmd, [
       sourcePath,
-      '-resize', '180x180',
-      '-background', 'none',
-      '-gravity', 'center',
-      '-extent', '320x180',
+      '-resize',
+      '180x180',
+      '-background',
+      'none',
+      '-gravity',
+      'center',
+      '-extent',
+      '320x180',
       bannerPath,
     ]);
 
@@ -429,10 +536,20 @@ class IconGenerator {
     print('📂 Generating service icons...');
 
     final serviceResDir = path.join(
-      projectRoot, 'android', 'service', 'src', 'main', 'res');
+      projectRoot,
+      'android',
+      'service',
+      'src',
+      'main',
+      'res',
+    );
 
     // Delete the old vector XML
-    final oldServiceIconPath = path.join(serviceResDir, 'drawable', 'ic_service.xml');
+    final oldServiceIconPath = path.join(
+      serviceResDir,
+      'drawable',
+      'ic_service.xml',
+    );
     final oldServiceIconFile = File(oldServiceIconPath);
     if (await oldServiceIconFile.exists()) {
       await oldServiceIconFile.delete();
@@ -514,7 +631,11 @@ class IconGenerator {
     print('✅ Tray icons generated');
   }
 
-  Future<void> _generateGrayscalePng(String input, String output, int size) async {
+  Future<void> _generateGrayscalePng(
+    String input,
+    String output,
+    int size,
+  ) async {
     await _exec(_magickCmd, [
       input,
       '-resize',
@@ -531,7 +652,11 @@ class IconGenerator {
     ]);
   }
 
-  Future<void> _generateEnhancedPng(String input, String output, int size) async {
+  Future<void> _generateEnhancedPng(
+    String input,
+    String output,
+    int size,
+  ) async {
     await _exec(_magickCmd, [
       input,
       '-resize',

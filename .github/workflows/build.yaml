@@ -264,7 +264,8 @@ jobs:
         run: |
           pod --version
           cd macos
-          pod install --repo-update
+          pod update sqlite3 --repo-update
+          pod install
 
       - name: Install ImageMagick
         if: env.APP_ICON_URL != ''

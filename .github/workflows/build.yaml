@@ -202,6 +202,29 @@ jobs:
         with:
           channel: stable
           cache: true
+          # Flutter doesn't provide Windows arm64 SDK, use x64 on arm64 runners
+          architecture: ${{ matrix.platform == 'windows' && matrix.arch == 'arm64' && 'x64' || '' }}
+
+      - name: Setup Inno Setup 6
+        if: matrix.platform == 'windows'
+        shell: powershell
+        run: |
+          # Check if Inno Setup is already installed
+          $innoPath = "C:\Program Files\Inno Setup 6\ISCC.exe"
+          $innoPathX86 = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          
+          if (Test-Path $innoPath) {
+            Write-Host "Inno Setup 6 already installed at: $innoPath"
+          } elseif (Test-Path $innoPathX86) {
+            Write-Host "Inno Setup 6 already installed at: $innoPathX86"
+          } else {
+            Write-Host "Installing Inno Setup 6..."
+            $installerUrl = "https://jrsoftware.org/download.php/is.exe"
+            $installerPath = "$env:TEMP\innosetup.exe"
+            Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
+            Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" -Wait
+            Write-Host "Inno Setup 6 installed successfully"
+          }
 
       - name: Setup Windows Path
         if: matrix.platform == 'windows'

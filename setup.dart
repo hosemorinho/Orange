@@ -303,8 +303,9 @@ class Build {
   static Future<void> downloadVCRedist({Arch arch = Arch.amd64}) async {
     final isArm64 = arch == Arch.arm64;
     final vcRedistUrl = isArm64 ? _vcRedistArm64Url : _vcRedistX64Url;
-    final vcRedistFileName =
-        isArm64 ? _vcRedistArm64FileName : _vcRedistX64FileName;
+    final vcRedistFileName = isArm64
+        ? _vcRedistArm64FileName
+        : _vcRedistX64FileName;
 
     final packagingDir = join(current, 'windows', 'packaging', 'exe');
     final packagingVcRedistPath = join(packagingDir, vcRedistFileName);
@@ -657,11 +658,19 @@ class BuildCommand extends Command {
     // Generate custom icons if APP_ICON_URL is set
     final appIconUrl = (Platform.environment['APP_ICON_URL'] ?? '').trim();
     if (appIconUrl.isNotEmpty) {
-      print('🎨 APP_ICON_URL detected, generating icons...');
-      await Build.exec(
-        name: 'generate icons',
-        Build.getExecutable('dart scripts/generate_icons.dart $appIconUrl'),
-      );
+      final shouldSkipCustomIcons =
+          target == Target.windows && arch == Arch.arm64 && Platform.isWindows;
+      if (shouldSkipCustomIcons) {
+        print(
+          '🎨 APP_ICON_URL detected, but skipping custom icon generation on Windows arm64 runner; using checked-in icons instead.',
+        );
+      } else {
+        print('🎨 APP_ICON_URL detected, generating icons...');
+        await Build.exec(
+          name: 'generate icons',
+          Build.getExecutable('dart scripts/generate_icons.dart $appIconUrl'),
+        );
+      }
     }
 
     if (out != 'app') {

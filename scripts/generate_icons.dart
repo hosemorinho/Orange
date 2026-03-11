@@ -92,6 +92,61 @@ class IconGenerator {
     return null;
   }
 
+  String? _findImageMagickDirectoryByName(
+    String rootPath,
+    String directoryName,
+  ) {
+    try {
+      final rootDirectory = Directory(rootPath);
+      if (!rootDirectory.existsSync()) return null;
+
+      final directDirectory = Directory(path.join(rootPath, directoryName));
+      if (directDirectory.existsSync()) {
+        return directDirectory.path;
+      }
+
+      for (final entity in rootDirectory.listSync(
+        recursive: true,
+        followLinks: false,
+      )) {
+        if (entity is Directory &&
+            path.basename(entity.path).toLowerCase() ==
+                directoryName.toLowerCase()) {
+          return entity.path;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  String? _findImageMagickConfigurePath(String rootPath) {
+    bool hasConfigureFiles(String directoryPath) {
+      return File(path.join(directoryPath, 'coder.xml')).existsSync() ||
+          (File(path.join(directoryPath, 'delegates.xml')).existsSync() &&
+              File(path.join(directoryPath, 'magic.xml')).existsSync());
+    }
+
+    try {
+      if (hasConfigureFiles(rootPath)) {
+        return rootPath;
+      }
+
+      final rootDirectory = Directory(rootPath);
+      if (!rootDirectory.existsSync()) return null;
+
+      for (final entity in rootDirectory.listSync(
+        recursive: true,
+        followLinks: false,
+      )) {
+        if (entity is Directory && hasConfigureFiles(entity.path)) {
+          return entity.path;
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
   void _configureImageMagickEnvironment(String executablePath) {
     if (!Platform.isWindows) return;
 
@@ -101,6 +156,28 @@ class IconGenerator {
     final currentPath = _processEnvironment['PATH'] ?? '';
     if (!currentPath.toLowerCase().contains(magickDir.toLowerCase())) {
       _processEnvironment['PATH'] = '$magickDir;$currentPath';
+    }
+
+    final coderPath = _findImageMagickDirectoryByName(magickDir, 'coders');
+    if (coderPath != null) {
+      _processEnvironment['MAGICK_CODER_MODULE_PATH'] = coderPath;
+      print('🔧 MAGICK_CODER_MODULE_PATH=$coderPath');
+    }
+
+    final filterPath = _findImageMagickDirectoryByName(magickDir, 'filters');
+    if (filterPath != null) {
+      _processEnvironment['MAGICK_FILTER_MODULE_PATH'] = filterPath;
+      print('🔧 MAGICK_FILTER_MODULE_PATH=$filterPath');
+    }
+
+    final configurePath = _findImageMagickConfigurePath(magickDir);
+    if (configurePath != null) {
+      _processEnvironment['MAGICK_CONFIGURE_PATH'] = configurePath == magickDir
+          ? configurePath
+          : '$configurePath;$magickDir';
+      print(
+        '🔧 MAGICK_CONFIGURE_PATH=${_processEnvironment['MAGICK_CONFIGURE_PATH']}',
+      );
     }
   }
 
@@ -167,8 +244,8 @@ class IconGenerator {
         throw 'Failed to download icon';
       }
 
-      // Check ImageMagick is available
-      await _checkImageMagick();
+      // Check ImageMagick is available and can read the downloaded PNG
+      await _checkImageMagick(sourcePath);
 
       // Generate icons for each platform
       await _generateWindowsIcons(sourcePath);
@@ -195,7 +272,7 @@ class IconGenerator {
     print('✅ Downloaded source icon');
   }
 
-  Future<void> _checkImageMagick() async {
+  Future<void> _checkImageMagick(String sourcePath) async {
     if (Platform.isWindows) {
       print('🔍 Resolving ImageMagick installation...');
       final magickPath = await _findImageMagickOnWindows();
@@ -210,18 +287,28 @@ class IconGenerator {
       }
     }
 
-    final result = await Process.run(_magickCmd, [
+    final versionResult = await Process.run(_magickCmd, [
       '-version',
     ], environment: _processEnvironment);
-    if (result.exitCode != 0) {
+    if (versionResult.exitCode != 0) {
       throw 'ImageMagick is not installed. Please install it first:\n'
           '  Ubuntu/Debian: sudo apt install imagemagick\n'
           '  macOS: brew install imagemagick\n'
           '  Windows: choco install imagemagick\n'
-          'ImageMagick validation failed: ${result.stderr}';
-    } else {
-      print('✅ Found ImageMagick command: $_magickCmd');
+          'ImageMagick validation failed: ${versionResult.stderr}';
     }
+
+    final identifyResult = await Process.run(_magickCmd, [
+      'identify',
+      sourcePath,
+    ], environment: _processEnvironment);
+    if (identifyResult.exitCode != 0) {
+      throw 'ImageMagick could not read the downloaded icon.\n'
+          'Please verify the ImageMagick module/configuration paths on this runner.\n'
+          'stderr: ${identifyResult.stderr}';
+    }
+
+    print('✅ Found ImageMagick command: $_magickCmd');
   }
 
   Future<void> _exec(

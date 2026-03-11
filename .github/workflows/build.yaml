@@ -260,7 +260,7 @@ jobs:
         run: npm install -g appdmg
 
       - name: Install ImageMagick
-        if: env.APP_ICON_URL != '' && !(matrix.platform == 'windows' && matrix.arch == 'arm64')
+        if: env.APP_ICON_URL != ''
         shell: bash
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
@@ -272,7 +272,7 @@ jobs:
           fi
 
       - name: Generate Custom Icons
-        if: env.APP_ICON_URL != '' && !(matrix.platform == 'windows' && matrix.arch == 'arm64')
+        if: env.APP_ICON_URL != ''
         shell: bash
         env:
           APP_ICON_URL: ${{ env.APP_ICON_URL }}

@@ -658,19 +658,11 @@ class BuildCommand extends Command {
     // Generate custom icons if APP_ICON_URL is set
     final appIconUrl = (Platform.environment['APP_ICON_URL'] ?? '').trim();
     if (appIconUrl.isNotEmpty) {
-      final shouldSkipCustomIcons =
-          target == Target.windows && arch == Arch.arm64 && Platform.isWindows;
-      if (shouldSkipCustomIcons) {
-        print(
-          '🎨 APP_ICON_URL detected, but skipping custom icon generation on Windows arm64 runner; using checked-in icons instead.',
-        );
-      } else {
-        print('🎨 APP_ICON_URL detected, generating icons...');
-        await Build.exec(
-          name: 'generate icons',
-          Build.getExecutable('dart scripts/generate_icons.dart $appIconUrl'),
-        );
-      }
+      print('🎨 APP_ICON_URL detected, generating icons...');
+      await Build.exec(
+        name: 'generate icons',
+        Build.getExecutable('dart scripts/generate_icons.dart $appIconUrl'),
+      );
     }
 
     if (out != 'app') {

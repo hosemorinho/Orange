@@ -298,10 +298,15 @@ class IconGenerator {
           'ImageMagick validation failed: ${versionResult.stderr}';
     }
 
-    final identifyResult = await Process.run(_magickCmd, [
-      'identify',
-      sourcePath,
-    ], environment: _processEnvironment);
+    final identifyCommand = Platform.isWindows ? _magickCmd : 'identify';
+    final identifyArgs = Platform.isWindows
+        ? ['identify', sourcePath]
+        : [sourcePath];
+    final identifyResult = await Process.run(
+      identifyCommand,
+      identifyArgs,
+      environment: _processEnvironment,
+    );
     if (identifyResult.exitCode != 0) {
       throw 'ImageMagick could not read the downloaded icon.\n'
           'Please verify the ImageMagick module/configuration paths on this runner.\n'

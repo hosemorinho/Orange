@@ -41,6 +41,7 @@ env:
   API_TEXT_DOMAIN: ${{ inputs.api_text_domain || secrets.API_TEXT_DOMAIN || '' }}
   APP_ICON_URL: ${{ inputs.icon_url || secrets.APP_ICON_URL || '' }}
   CRISP_WEBSITE_ID: ${{ inputs.crisp_website_id || secrets.CRISP_WEBSITE_ID || '' }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   codegen:
@@ -51,7 +52,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           submodules: recursive
@@ -113,7 +114,7 @@ jobs:
             })
 
       - name: Upload Generated Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: codegen-output
           path: |
@@ -158,12 +159,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
 
       - name: Download Generated Files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: codegen-output
           path: lib
@@ -259,6 +260,13 @@ jobs:
         shell: bash
         run: npm install -g appdmg
 
+      - name: Update CocoaPods Specs
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          pod --version
+          pod repo update
+
       - name: Install ImageMagick
         if: env.APP_ICON_URL != ''
         shell: bash
@@ -304,7 +312,7 @@ jobs:
         run: rm -f env.json
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: artifact-${{ matrix.platform }}${{ matrix.arch && format('-{0}', matrix.arch) }}
           path: ./dist
@@ -318,7 +326,7 @@ jobs:
     if: github.event_name == 'release'
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ./dist/
           pattern: artifact-*

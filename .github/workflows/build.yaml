@@ -146,6 +146,9 @@ jobs:
           - platform: windows
             os: windows-latest
             arch: amd64
+          - platform: windows
+            os: windows-11-arm
+            arch: arm64
           - platform: macos
             os: macos-15-intel
             arch: amd64
@@ -190,6 +193,10 @@ jobs:
           cache-dependency-path: |
             core/go.sum
 
+      - name: Setup Rust
+        if: matrix.platform == 'windows'
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -200,8 +207,13 @@ jobs:
         if: matrix.platform == 'windows'
         shell: bash
         run: |
-          echo "C:\Program Files (x86)\Inno Setup 6" >> $GITHUB_PATH
-          echo "$LOCALAPPDATA\Pub\Cache\bin" >> $GITHUB_PATH
+          # Add Inno Setup 6 path (location varies between x64 and arm64)
+          if [ -d "C:/Program Files/Inno Setup 6" ]; then
+            echo "C:/Program Files/Inno Setup 6" >> $GITHUB_PATH
+          elif [ -d "C:/Program Files (x86)/Inno Setup 6" ]; then
+            echo "C:/Program Files (x86)/Inno Setup 6" >> $GITHUB_PATH
+          fi
+          echo "$LOCALAPPDATA/Pub/Cache/bin" >> $GITHUB_PATH
 
       - name: Get Flutter Dependencies
         run: |

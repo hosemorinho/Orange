@@ -293,22 +293,30 @@ class Build {
     await File(outPath).copy(targetPath);
   }
 
-  static const String _vcRedistUrl =
+  static const String _vcRedistX64Url =
       'https://aka.ms/vs/17/release/vc_redist.x64.exe';
-  static const String _vcRedistFileName = 'vc_redist.x64.exe';
+  static const String _vcRedistArm64Url =
+      'https://aka.ms/vs/17/release/vc_redist.arm64.exe';
+  static const String _vcRedistX64FileName = 'vc_redist.x64.exe';
+  static const String _vcRedistArm64FileName = 'vc_redist.arm64.exe';
 
-  static Future<void> downloadVCRedist() async {
+  static Future<void> downloadVCRedist({Arch arch = Arch.amd64}) async {
+    final isArm64 = arch == Arch.arm64;
+    final vcRedistUrl = isArm64 ? _vcRedistArm64Url : _vcRedistX64Url;
+    final vcRedistFileName =
+        isArm64 ? _vcRedistArm64FileName : _vcRedistX64FileName;
+
     final packagingDir = join(current, 'windows', 'packaging', 'exe');
-    final packagingVcRedistPath = join(packagingDir, _vcRedistFileName);
+    final packagingVcRedistPath = join(packagingDir, vcRedistFileName);
     final distDirectory = Directory(join(current, 'dist'));
-    final distVcRedistPath = join(distDirectory.path, _vcRedistFileName);
+    final distVcRedistPath = join(distDirectory.path, vcRedistFileName);
     final packagingVcRedistFile = File(packagingVcRedistPath);
 
     if (!await packagingVcRedistFile.exists()) {
-      print('Downloading VC++ runtime from $_vcRedistUrl...');
+      print('Downloading VC++ runtime from $vcRedistUrl...');
       final client = HttpClient();
       try {
-        final request = await client.getUrl(Uri.parse(_vcRedistUrl));
+        final request = await client.getUrl(Uri.parse(vcRedistUrl));
         final response = await request.close();
 
         if (response.statusCode != 200) {
@@ -662,7 +670,7 @@ class BuildCommand extends Command {
 
     switch (target) {
       case Target.windows:
-        await Build.downloadVCRedist();
+        await Build.downloadVCRedist(arch: arch!);
         await _buildDistributor(
           target: target,
           targets: 'exe,zip',

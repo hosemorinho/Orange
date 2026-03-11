@@ -19,6 +19,11 @@ ArchitecturesAllowed=x64 arm64
 ArchitecturesInstallIn64BitMode=x64 arm64
 
 [Code]
+function IsArm64(): Boolean;
+begin
+  Result := (ProcessorArchitecture = paARM64);
+end;
+
 function IsVCRuntimeInstalled(): Boolean;
 var
   SysDir: String;
@@ -86,12 +91,14 @@ Name: "chineseSimplified"; MessagesFile: {% if locale.file %}{{ locale.file }}{%
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: {% if CREATE_DESKTOP_ICON != true %}unchecked{% else %}checkedonce{% endif %}
 [Files]
 Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: ignoreversion
+Source: "vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "vc_redist.arm64.exe"; DestDir: "{tmp}"; Flags: ignoreversion skipifsourcedoesntexist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
 Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; Tasks: desktopicon
 [Run]
-Filename: "{tmp}\\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing VC++ Runtime..."; Flags: skipifdoesntexist; Check: not IsVCRuntimeInstalled()
+Filename: "{tmp}\\vc_redist.arm64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing VC++ Runtime (ARM64)..."; Flags: skipifdoesntexist; Check: not IsVCRuntimeInstalled() and IsArm64
+Filename: "{tmp}\\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing VC++ Runtime (x64)..."; Flags: skipifdoesntexist; Check: not IsVCRuntimeInstalled() and not IsArm64
 Filename: "{app}\\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; Flags: {% if PRIVILEGES_REQUIRED == 'admin' %}runascurrentuser{% endif %} nowait postinstall skipifsilent

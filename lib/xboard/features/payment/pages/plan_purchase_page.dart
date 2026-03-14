@@ -3,6 +3,7 @@ import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
@@ -22,6 +23,10 @@ import '../widgets/plan_conflict_dialog.dart';
 import '../widgets/order_confirm_dialog.dart';
 import '../utils/price_calculator.dart';
 import '../models/payment_step.dart';
+
+import '../utils/purchase_error_handler.dart';
+import '../widgets/mobile/mobile_sticky_action_panel.dart';
+import '../widgets/mobile/purchase_error_sheet.dart';
 import 'package:fl_clash/xboard/adapter/state/subscription_state.dart';
 
 // 初始化文件级日志器
@@ -499,13 +504,23 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       _logger.error('购买流程出错: $e');
       if (mounted) {
         PaymentWaitingManager.hide();
-        XBoardNotification.showError(
-          AppLocalizations.of(
-            context,
-          ).xboardOperationFailedError(ErrorSanitizer.sanitize(e.toString())),
+        
+        // 使用新的错误处理机制
+        final recovery = PurchaseErrorHandler.handle(e);
+        
+        await PurchaseErrorSheet.show(
+          context,
+          recovery: recovery,
+          onRetry: recovery.canRetry ? _handleRetryFromError : null,
         );
       }
     }
+  }
+  /// 导航到订单列表
+  void _navigateToOrderList() {
+    Navigator.of(context).pop();
+    // 导航到订单页面
+    context.push('/xboard/orders');
   }
 
   void _showPaymentWaiting(String? tradeNo) {
@@ -774,12 +789,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
           currentPrice,
           colorScheme,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         _buildCouponCard(context, colorScheme),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         _buildPaymentDetailsCard(context, currentPrice, colorScheme),
         if (widget.embedded) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           _buildActionButtons(context, colorScheme),
         ],
       ],
@@ -790,72 +805,39 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     BuildContext context,
     ColorScheme colorScheme,
   ) {
-    final l10n = AppLocalizations.of(context);
     final totalAmount = _getOrderTotalAmount();
     final hasPeriodSelected = _selectedPeriod != null;
+    final basePrice = _getCurrentPrice();
+    
+    // 计算折扣金额
+    final couponDiscount = _couponType != null
+        ? PriceCalculator.calculateDiscountAmount(
+            basePrice,
+            _couponType,
+            _couponValue,
+          )
+        : 0.0;
 
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          border: Border(
-            top: BorderSide(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.45),
-            ),
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 46,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(
-                    alpha: 0.5,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.45),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.xboardTotal,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      hasPeriodSelected
-                          ? PriceCalculator.formatPrice(totalAmount)
-                          : '--',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: hasPeriodSelected
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(flex: 2, child: _buildActionButtons(context, colorScheme)),
-          ],
-        ),
-      ),
+    // 检查是否正在处理中
+    final isProcessing = ref.read(paymentUIStateNotifierProvider).isLoading;
+
+    return MobileStickyActionPanel(
+      originalPrice: basePrice,
+      discountAmount: couponDiscount > 0 ? couponDiscount : null,
+      totalAmount: totalAmount,
+      balanceToUse: null,
+      isProcessing: isProcessing,
+      hasPeriodSelected: hasPeriodSelected,
+      onPurchase: _proceedToPurchase,
     );
+  }
+
+  /// 从错误弹窗重试
+  void _handleRetryFromError() {
+    // 清除之前的错误状态
+    ref.read(paymentUIStateNotifierProvider.notifier).clearError();
+    // 重新尝试购买
+    _proceedToPurchase();
   }
 
   Widget _buildMobilePlanAndPeriodSection(
@@ -864,91 +846,13 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     double currentPrice,
     ColorScheme colorScheme,
   ) {
-    final selectedLabel = _getSelectedPeriodLabel();
-    final subtitle = selectedLabel.isNotEmpty
-        ? '$selectedLabel · ${PriceCalculator.formatPrice(currentPrice)}'
-        : AppLocalizations.of(context).xboardPleaseSelectPaymentPeriod;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () {
-              setState(() {
-                _isMobilePlanSectionExpanded = !_isMobilePlanSectionExpanded;
-              });
-            },
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${AppLocalizations.of(context).xboardPlanSummary} / '
-                          '${AppLocalizations.of(context).xboardSelectPaymentPeriod}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  AnimatedRotation(
-                    turns: _isMobilePlanSectionExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 180),
-                    child: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-              child: Column(
-                children: [
-                  _buildPlanSummaryCard(context, colorScheme),
-                  const SizedBox(height: 8),
-                  _buildPeriodSelectorCard(context, periods, colorScheme),
-                ],
-              ),
-            ),
-            crossFadeState: _isMobilePlanSectionExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildPlanSummaryCard(context, colorScheme),
+        const SizedBox(height: 12),
+        _buildPeriodSelectorCard(context, periods, colorScheme),
+      ],
     );
   }
 
@@ -957,7 +861,8 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     final currentPrice = _getCurrentPrice();
     return XBPurchaseCard(
       showShadow: false,
-      showBorder: true,
+      showBorder: false,
+      backgroundColor: colorScheme.surfaceContainerLow,
       child: CouponInputSection(
         controller: _couponController,
         isValidating: _isCouponValidating,
@@ -978,7 +883,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
   // Plan summary card
   Widget _buildPlanSummaryCard(BuildContext context, ColorScheme colorScheme) {
-    return const SizedBox.shrink();
+    return PlanHeaderCard(plan: widget.plan);
   }
 
   // Period selector card
@@ -989,7 +894,8 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   ) {
     return XBPurchaseCard(
       showShadow: false,
-      showBorder: true,
+      showBorder: false,
+      backgroundColor: colorScheme.surfaceContainerLow,
       child: PeriodSelector(
         periods: periods,
         selectedPeriod: _selectedPeriod,
@@ -1033,65 +939,97 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
     return XBPurchaseCard(
       showShadow: false,
-      showBorder: true,
+      showBorder: false,
+      backgroundColor: colorScheme.surfaceContainerLow,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Payment method section
-          Text(
-            l10n.xboardPaymentMethod,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurfaceVariant,
-            ),
+          Row(
+            children: [
+              Icon(Icons.payment, size: 18, color: colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                l10n.xboardPaymentMethod,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           if (paymentMethods.isEmpty)
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.xboardNoPaymentMethodsAvailable,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () => _loadPaymentMethods(forceRefresh: true),
-                  icon: const Icon(Icons.refresh, size: 16),
-                  label: Text(l10n.xboardRefresh),
-                ),
-              ],
-            )
-          else
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
               child: Row(
                 children: [
-                  for (final method in paymentMethods)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        label: Text(method.name),
-                        selected:
-                            method.id ==
-                            (_selectedPaymentMethodId ??
-                                paymentMethods.first.id),
-                        onSelected: (selected) {
-                          if (!selected) return;
-                          setState(() {
-                            _selectedPaymentMethodId = method.id;
-                          });
-                        },
+                  Icon(Icons.warning_amber_rounded, color: colorScheme.error, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.xboardNoPaymentMethodsAvailable,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _loadPaymentMethods(forceRefresh: true),
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: Text(l10n.xboardRefresh),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
                 ],
               ),
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final method in paymentMethods)
+                  ChoiceChip(
+                    label: Text(method.name),
+                    selected: method.id == (_selectedPaymentMethodId ?? paymentMethods.first.id),
+                    onSelected: (selected) {
+                      if (!selected) return;
+                      setState(() {
+                        _selectedPaymentMethodId = method.id;
+                      });
+                    },
+                    labelStyle: TextStyle(
+                      color: method.id == (_selectedPaymentMethodId ?? paymentMethods.first.id)
+                          ? colorScheme.onPrimary
+                          : colorScheme.onSurfaceVariant,
+                      fontWeight: method.id == (_selectedPaymentMethodId ?? paymentMethods.first.id)
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                    selectedColor: colorScheme.primary,
+                    backgroundColor: colorScheme.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(
+                        color: method.id == (_selectedPaymentMethodId ?? paymentMethods.first.id)
+                            ? Colors.transparent
+                            : colorScheme.outlineVariant,
+                      ),
+                    ),
+                  ),
+              ],
             ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           // Price summary
           if (_selectedPeriod != null)
             PriceSummaryCard(

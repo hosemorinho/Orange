@@ -1422,6 +1422,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Account Settings",
     ),
     "xboardActive": MessageLookupByLibrary.simpleMessage("Active"),
+    "xboardActualPayment": MessageLookupByLibrary.simpleMessage(
+      "Actual Payment",
+    ),
     "xboardAddLinkToConfig": MessageLookupByLibrary.simpleMessage(
       "Add this subscription link to your configuration",
     ),
@@ -1465,6 +1468,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardBack": MessageLookupByLibrary.simpleMessage("Back"),
     "xboardBalanceAmount": MessageLookupByLibrary.simpleMessage(
       "Balance Payment",
+    ),
+    "xboardBalanceDeduct": MessageLookupByLibrary.simpleMessage(
+      "Balance Deduction",
     ),
     "xboardBalancePaymentFailed": MessageLookupByLibrary.simpleMessage(
       "Balance payment failed",
@@ -1622,6 +1628,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardConfirmPassword": MessageLookupByLibrary.simpleMessage(
       "Confirm Password",
     ),
+    "xboardConfirmPayment": MessageLookupByLibrary.simpleMessage(
+      "Confirm Payment",
+    ),
+    "xboardConfirmPaymentDesc": MessageLookupByLibrary.simpleMessage(
+      "Are you sure you want to pay for this order?",
+    ),
     "xboardConfirmPurchase": MessageLookupByLibrary.simpleMessage(
       "Confirm purchase",
     ),
@@ -1684,6 +1696,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardCustomCommissionRate": MessageLookupByLibrary.simpleMessage(
       "Custom Rate",
+    ),
+    "xboardCustomerService": MessageLookupByLibrary.simpleMessage(
+      "Contact Support",
     ),
     "xboardDailyTraffic": MessageLookupByLibrary.simpleMessage("Daily Traffic"),
     "xboardDays": MessageLookupByLibrary.simpleMessage("days"),
@@ -2149,6 +2164,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Processing",
     ),
     "xboardOrderSummary": MessageLookupByLibrary.simpleMessage("Order Summary"),
+    "xboardOriginalPrice": MessageLookupByLibrary.simpleMessage(
+      "Original Price",
+    ),
     "xboardPassword": MessageLookupByLibrary.simpleMessage("Password"),
     "xboardPasswordChangeError": MessageLookupByLibrary.simpleMessage(
       "Failed to change password",
@@ -2168,6 +2186,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardPaymentCompleted": MessageLookupByLibrary.simpleMessage(
       "Payment completed!",
+    ),
+    "xboardPaymentConfirmDesc": MessageLookupByLibrary.simpleMessage(
+      "Continue with payment?",
+    ),
+    "xboardPaymentConfirmTitle": MessageLookupByLibrary.simpleMessage(
+      "Confirm Payment",
     ),
     "xboardPaymentDetails": MessageLookupByLibrary.simpleMessage(
       "Payment Details",
@@ -2310,6 +2334,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Preparing payment page, redirecting soon",
     ),
     "xboardPrevious": MessageLookupByLibrary.simpleMessage("Previous"),
+    "xboardPriceDetail": MessageLookupByLibrary.simpleMessage("Price Details"),
     "xboardPriority": MessageLookupByLibrary.simpleMessage("Priority"),
     "xboardPriorityLabel": MessageLookupByLibrary.simpleMessage("Priority"),
     "xboardProcessing": MessageLookupByLibrary.simpleMessage("Processing..."),
@@ -2618,6 +2643,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardTickets": MessageLookupByLibrary.simpleMessage("Tickets"),
     "xboardTimeInfo": MessageLookupByLibrary.simpleMessage("Time Information"),
     "xboardTimeout": MessageLookupByLibrary.simpleMessage("Timeout"),
+    "xboardTimeoutErrorDesc": MessageLookupByLibrary.simpleMessage(
+      "Network response time is too long, please check your network and retry",
+    ),
+    "xboardTimeoutErrorTitle": MessageLookupByLibrary.simpleMessage(
+      "Request Timeout",
+    ),
     "xboardToday": MessageLookupByLibrary.simpleMessage("Today"),
     "xboardTokenExpiredContent": MessageLookupByLibrary.simpleMessage(
       "Your login session has expired. Please login again to continue.",

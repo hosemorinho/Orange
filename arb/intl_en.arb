@@ -1579,5 +1579,18 @@
   "xboardResetTrafficDescription": "Reset traffic usage",
   "xboardPaymentMethod": "Payment Method",
   "xboardPaymentSubmittedCheckOrder": "Payment submitted. Please check order status later.",
-  "xboardPaymentDoneButton": "I've Paid"
+  "xboardPaymentDoneButton": "I've Paid",
+  "xboardTimeoutErrorTitle": "Request Timeout",
+  "xboardTimeoutErrorDesc": "Network response time is too long, please check your network and retry",
+  "xboardConfirmPayment": "Confirm Payment",
+  "xboardConfirmPaymentDesc": "Are you sure you want to pay for this order?",
+  "xboardPriceDetail": "Price Details",
+  "xboardBalanceDeduct": "Balance Deduction",
+  "xboardActualPayment": "Actual Payment",
+  "xboardCustomerService": "Contact Support",
+  "xboardOriginalPrice": "Original Price",
+  "xboardDiscount": "Discount",
+  "xboardHandlingFee": "Handling Fee",
+  "xboardPaymentConfirmTitle": "Confirm Payment",
+  "xboardPaymentConfirmDesc": "Continue with payment?"
 }

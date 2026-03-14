@@ -11378,6 +11378,116 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Request Timeout`
+  String get xboardTimeoutErrorTitle {
+    return Intl.message(
+      'Request Timeout',
+      name: 'xboardTimeoutErrorTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network response time is too long, please check your network and retry`
+  String get xboardTimeoutErrorDesc {
+    return Intl.message(
+      'Network response time is too long, please check your network and retry',
+      name: 'xboardTimeoutErrorDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm Payment`
+  String get xboardConfirmPayment {
+    return Intl.message(
+      'Confirm Payment',
+      name: 'xboardConfirmPayment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Are you sure you want to pay for this order?`
+  String get xboardConfirmPaymentDesc {
+    return Intl.message(
+      'Are you sure you want to pay for this order?',
+      name: 'xboardConfirmPaymentDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Price Details`
+  String get xboardPriceDetail {
+    return Intl.message(
+      'Price Details',
+      name: 'xboardPriceDetail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Balance Deduction`
+  String get xboardBalanceDeduct {
+    return Intl.message(
+      'Balance Deduction',
+      name: 'xboardBalanceDeduct',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Actual Payment`
+  String get xboardActualPayment {
+    return Intl.message(
+      'Actual Payment',
+      name: 'xboardActualPayment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Contact Support`
+  String get xboardCustomerService {
+    return Intl.message(
+      'Contact Support',
+      name: 'xboardCustomerService',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Original Price`
+  String get xboardOriginalPrice {
+    return Intl.message(
+      'Original Price',
+      name: 'xboardOriginalPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm Payment`
+  String get xboardPaymentConfirmTitle {
+    return Intl.message(
+      'Confirm Payment',
+      name: 'xboardPaymentConfirmTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Continue with payment?`
+  String get xboardPaymentConfirmDesc {
+    return Intl.message(
+      'Continue with payment?',
+      name: 'xboardPaymentConfirmDesc',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

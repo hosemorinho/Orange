@@ -220,10 +220,12 @@ class Build {
       } else {
         env['CGO_ENABLED'] = '0';
       }
+      final ldflags = '-w -s${item.target == Target.windows ? ' -H windowsgui' : ''}';
       final execLines = [
         'go',
         'build',
-        '-ldflags=-w -s',
+        '-ldflags=$ldflags',
+        '-trimpath',
         '-tags=$tags',
         if (isLib) '-buildmode=c-shared',
         '-o',

@@ -64,7 +64,7 @@ func (p *platformBridge) OpenInterface(options *tun.Options, platformOptions opt
 	}
 	options.FileDescriptor = fd
 	options.Name = "Orange"
-	return tun.Open(*options)
+	return tun.New(*options)
 }
 
 func (p *platformBridge) UsePlatformDefaultInterfaceMonitor() bool {

@@ -5,6 +5,7 @@ library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
+import 'package:fl_clash/xboard/features/payment/utils/purchase_action_state_resolver.dart';
 import '../xboard/test_helper.dart';
 
 void main() {
@@ -124,6 +125,24 @@ void main() {
 
         // Assert
         expect(remaining, equals(91268055040)); // 85 GB
+      });
+    });
+
+    group('购买按钮状态', () {
+      test('初始化加载时不应显示购买处理中状态', () {
+        final result = PurchaseActionStateResolver.shouldShowProcessing(
+          isSubmittingPurchase: false,
+        );
+
+        expect(result, isFalse);
+      });
+
+      test('实际提交购买时应显示处理中状态', () {
+        final result = PurchaseActionStateResolver.shouldShowProcessing(
+          isSubmittingPurchase: true,
+        );
+
+        expect(result, isTrue);
       });
     });
   });

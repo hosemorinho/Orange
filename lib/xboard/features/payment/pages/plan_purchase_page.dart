@@ -3,7 +3,7 @@ import 'package:fl_clash/xboard/utils/xboard_notification.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:go_router/go_router.dart';
+
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
@@ -22,6 +22,7 @@ import '../widgets/price_summary_card.dart';
 import '../widgets/plan_conflict_dialog.dart';
 import '../widgets/order_confirm_dialog.dart';
 import '../utils/price_calculator.dart';
+import '../utils/purchase_action_state_resolver.dart';
 import '../models/payment_step.dart';
 
 import '../utils/purchase_error_handler.dart';
@@ -52,7 +53,7 @@ class PlanPurchasePage extends ConsumerStatefulWidget {
 class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   // 周期选择
   String? _selectedPeriod;
-  bool _isMobilePlanSectionExpanded = true;
+  bool _isPurchaseSubmitting = false;
 
   // 用户余额
   double? _userBalance;
@@ -366,11 +367,16 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   // ========== 购买流程 ==========
 
   Future<void> _proceedToPurchase() async {
+    final l10n = AppLocalizations.of(context);
     if (_selectedPeriod == null) {
-      XBoardNotification.showError(
-        AppLocalizations.of(context).xboardPleaseSelectPaymentPeriod,
-      );
+      XBoardNotification.showError(l10n.xboardPleaseSelectPaymentPeriod);
       return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isPurchaseSubmitting = true;
+      });
     }
 
     try {
@@ -400,9 +406,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         final errorMessage = ref
             .read(paymentUIStateNotifierProvider)
             .errorMessage;
-        throw Exception(
-          '${AppLocalizations.of(context).xboardOrderCreationFailed}: $errorMessage',
-        );
+        throw Exception('${l10n.xboardOrderCreationFailed}: $errorMessage');
       }
 
       _logger.debug('[购买] 订单创建成功: $tradeNo');
@@ -449,16 +453,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       }
 
       if (paymentMethods.isEmpty) {
-        throw Exception(
-          AppLocalizations.of(context).xboardNoPaymentMethodsAvailable,
-        );
+        throw Exception(l10n.xboardNoPaymentMethodsAvailable);
       }
 
       final selectedMethod = _getSelectedPaymentMethod(paymentMethods);
       if (selectedMethod == null) {
-        throw Exception(
-          AppLocalizations.of(context).xboardNoPaymentMethodsAvailable,
-        );
+        throw Exception(l10n.xboardNoPaymentMethodsAvailable);
       }
 
       _logger.debug(
@@ -504,23 +504,23 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       _logger.error('购买流程出错: $e');
       if (mounted) {
         PaymentWaitingManager.hide();
-        
+
         // 使用新的错误处理机制
         final recovery = PurchaseErrorHandler.handle(e);
-        
+
         await PurchaseErrorSheet.show(
           context,
           recovery: recovery,
           onRetry: recovery.canRetry ? _handleRetryFromError : null,
         );
       }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPurchaseSubmitting = false;
+        });
+      }
     }
-  }
-  /// 导航到订单列表
-  void _navigateToOrderList() {
-    Navigator.of(context).pop();
-    // 导航到订单页面
-    context.push('/xboard/orders');
   }
 
   void _showPaymentWaiting(String? tradeNo) {
@@ -562,6 +562,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     String tradeNo,
     DomainPaymentMethod method,
   ) async {
+    final l10n = AppLocalizations.of(context);
     _logger.debug('[支付] 提交支付: $tradeNo, 方式: ${method.id}');
     PaymentWaitingManager.updateStep(PaymentStep.loadingPayment);
     PaymentWaitingManager.updateStep(PaymentStep.verifyPayment);
@@ -573,9 +574,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     );
 
     if (paymentResult == null) {
-      throw Exception(
-        AppLocalizations.of(context).xboardPaymentFailedEmptyResult,
-      );
+      throw Exception(l10n.xboardPaymentFailedEmptyResult);
     }
 
     if (!mounted) return;
@@ -595,9 +594,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       if (paymentData == true) {
         await _handleBalancePaymentSuccess();
       } else {
-        throw Exception(
-          AppLocalizations.of(context).xboardPaymentFailedBalanceError,
-        );
+        throw Exception(l10n.xboardPaymentFailedBalanceError);
       }
     } else if (paymentData != null &&
         paymentData is String &&
@@ -606,9 +603,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       PaymentWaitingManager.updateStep(PaymentStep.waitingPayment);
       await _launchPaymentUrl(paymentData, tradeNo);
     } else {
-      throw Exception(
-        AppLocalizations.of(context).xboardPaymentFailedInvalidData,
-      );
+      throw Exception(l10n.xboardPaymentFailedInvalidData);
     }
   }
 
@@ -641,6 +636,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   }
 
   Future<void> _launchPaymentUrl(String url, String tradeNo) async {
+    final l10n = AppLocalizations.of(context);
     try {
       if (!mounted) return;
 
@@ -648,9 +644,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       final uri = Uri.parse(url);
 
       if (!await canLaunchUrl(uri)) {
-        throw Exception(
-          AppLocalizations.of(context).xboardCannotOpenPaymentUrl,
-        );
+        throw Exception(l10n.xboardCannotOpenPaymentUrl);
       }
 
       final launched = await launchUrl(
@@ -659,7 +653,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       );
 
       if (!launched) {
-        throw Exception(AppLocalizations.of(context).xboardCannotLaunchBrowser);
+        throw Exception(l10n.xboardCannotLaunchBrowser);
       }
 
       _logger.debug('[支付] 支付页面已在浏览器中打开: $tradeNo');
@@ -667,9 +661,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       if (mounted) {
         PaymentWaitingManager.hide();
         XBoardNotification.showError(
-          AppLocalizations.of(
-            context,
-          ).xboardOpenPaymentPageError(ErrorSanitizer.sanitize(e.toString())),
+          l10n.xboardOpenPaymentPageError(
+            ErrorSanitizer.sanitize(e.toString()),
+          ),
         );
       }
     }
@@ -808,7 +802,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     final totalAmount = _getOrderTotalAmount();
     final hasPeriodSelected = _selectedPeriod != null;
     final basePrice = _getCurrentPrice();
-    
+
     // 计算折扣金额
     final couponDiscount = _couponType != null
         ? PriceCalculator.calculateDiscountAmount(
@@ -818,8 +812,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
           )
         : 0.0;
 
-    // 检查是否正在处理中
-    final isProcessing = ref.read(paymentUIStateNotifierProvider).isLoading;
+    final isProcessing = PurchaseActionStateResolver.shouldShowProcessing(
+      isSubmittingPurchase: _isPurchaseSubmitting,
+    );
 
     return MobileStickyActionPanel(
       originalPrice: basePrice,
@@ -964,12 +959,18 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.5,
+                ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: colorScheme.error, size: 20),
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: colorScheme.error,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -985,7 +986,10 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                     icon: const Icon(Icons.refresh, size: 16),
                     label: Text(l10n.xboardRefresh),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -1001,7 +1005,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                 for (final method in paymentMethods)
                   ChoiceChip(
                     label: Text(method.name),
-                    selected: method.id == (_selectedPaymentMethodId ?? paymentMethods.first.id),
+                    selected:
+                        method.id ==
+                        (_selectedPaymentMethodId ?? paymentMethods.first.id),
                     onSelected: (selected) {
                       if (!selected) return;
                       setState(() {
@@ -1009,10 +1015,16 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                       });
                     },
                     labelStyle: TextStyle(
-                      color: method.id == (_selectedPaymentMethodId ?? paymentMethods.first.id)
+                      color:
+                          method.id ==
+                              (_selectedPaymentMethodId ??
+                                  paymentMethods.first.id)
                           ? colorScheme.onPrimary
                           : colorScheme.onSurfaceVariant,
-                      fontWeight: method.id == (_selectedPaymentMethodId ?? paymentMethods.first.id)
+                      fontWeight:
+                          method.id ==
+                              (_selectedPaymentMethodId ??
+                                  paymentMethods.first.id)
                           ? FontWeight.w600
                           : FontWeight.normal,
                     ),
@@ -1021,7 +1033,10 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                       side: BorderSide(
-                        color: method.id == (_selectedPaymentMethodId ?? paymentMethods.first.id)
+                        color:
+                            method.id ==
+                                (_selectedPaymentMethodId ??
+                                    paymentMethods.first.id)
                             ? Colors.transparent
                             : colorScheme.outlineVariant,
                       ),
@@ -1058,57 +1073,56 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
   // Action buttons
   Widget _buildActionButtons(BuildContext context, ColorScheme colorScheme) {
+    final isProcessing = PurchaseActionStateResolver.shouldShowProcessing(
+      isSubmittingPurchase: _isPurchaseSubmitting,
+    );
+
     return SizedBox(
       width: double.infinity,
       height: 48,
-      child: Consumer(
-        builder: (context, ref, child) {
-          final paymentState = ref.watch(paymentUIStateNotifierProvider);
-          return FilledButton(
-            onPressed: paymentState.isLoading ? null : _proceedToPurchase,
-            style: FilledButton.styleFrom(
-              backgroundColor: colorScheme.primary,
-              foregroundColor: colorScheme.onPrimary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            child: paymentState.isLoading
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            colorScheme.onPrimary,
-                          ),
-                        ),
+      child: FilledButton(
+        onPressed: isProcessing ? null : _proceedToPurchase,
+        style: FilledButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+        child: isProcessing
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        colorScheme.onPrimary,
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        AppLocalizations.of(context).xboardProcessing,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
-                  )
-                : Text(
-                    AppLocalizations.of(context).xboardContinueToPayment,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
                     ),
                   ),
-          );
-        },
+                  const SizedBox(width: 10),
+                  Text(
+                    AppLocalizations.of(context).xboardProcessing,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              )
+            : Text(
+                AppLocalizations.of(context).xboardContinueToPayment,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
       ),
     );
   }

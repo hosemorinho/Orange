@@ -317,6 +317,30 @@ class Build {
     print('VC++ runtime prepared for Inno Setup at $distVcRedistPath');
   }
 
+  static Future<void> verifyWindowsDistOutputs() async {
+    final distDir = Directory(distPath);
+    if (!await distDir.exists()) {
+      throw 'dist directory not found';
+    }
+    final files = distDir
+        .listSync(recursive: false)
+        .whereType<File>()
+        .map((file) => basename(file.path))
+        .toList();
+    final packageExe = files.where((name) {
+      final lower = name.toLowerCase();
+      return lower.endsWith('.exe') && !lower.startsWith('vc_redist');
+    }).toList();
+    final portableZip = files
+        .where((name) => name.toLowerCase().endsWith('.zip'))
+        .toList();
+    if (packageExe.isEmpty || portableZip.isEmpty) {
+      throw 'windows packaging outputs missing: '
+          'installer exe=${packageExe.join(",")} zip=${portableZip.join(",")} '
+          'dist=${files.join(",")}';
+    }
+  }
+
   static List<String> getExecutable(String command) {
     return command.split(' ');
   }
@@ -634,6 +658,7 @@ class BuildCommand extends Command {
           args: ' --description $archName',
           env: env,
         );
+        await Build.verifyWindowsDistOutputs();
         return;
       case Target.linux:
         final targetMap = {Arch.arm64: 'linux-arm64', Arch.amd64: 'linux-x64'};

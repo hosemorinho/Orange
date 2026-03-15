@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
@@ -32,6 +33,11 @@ var (
 
 	// observable log factory reference, set after Box creation
 	logFactory log.ObservableFactory
+
+	// platformInterfaceProvider is set by lib.go init() on CGO/Android builds.
+	// It is registered in the Box context before box.New() so sing-box can
+	// use it during initialization (TUN, socket protection, etc.).
+	platformInterfaceProvider adapter.PlatformInterface
 )
 
 const inlineConfigPrefix = "inline-b64://"
@@ -85,8 +91,8 @@ func getOutboundManager() adapter.OutboundManager {
 	return currentBox.Outbound()
 }
 
-// applyConfig consumes the committed config session, converts Clash YAML to
-// sing-box options, creates a new Box, and starts it.
+// applyConfig consumes the committed config session, parses sing-box JSON,
+// creates a new Box, and starts it.
 func applyConfig(params *SetupParams) error {
 	runLock.Lock()
 	defer runLock.Unlock()
@@ -110,19 +116,28 @@ func applyConfig(params *SetupParams) error {
 	currentOpts = opts
 
 	// Shut down existing box if running
-	if currentBox != nil {
-		_ = currentBox.Close()
-		if currentCancel != nil {
-			currentCancel()
-		}
-		currentBox = nil
-		currentCtx = nil
-		currentCancel = nil
+	shutdownBox()
+
+	if err := startBoxFromOpts(opts); err != nil {
+		return err
 	}
 
-	// Create new box
+	// Patch proxy group selections
+	patchSelectGroup(params.SelectedMap)
+
+	return nil
+}
+
+// startBoxFromOpts creates and starts a new Box from the given options.
+// Caller must hold runLock. Sets currentBox, currentCtx, currentCancel, logFactory.
+func startBoxFromOpts(opts *option.Options) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = service.ContextWithDefaultRegistry(ctx)
+
+	// Register platform interface before box.New() — sing-box reads it from context
+	if platformInterfaceProvider != nil {
+		service.MustRegister[adapter.PlatformInterface](ctx, platformInterfaceProvider)
+	}
 
 	boxInstance, err := box.New(box.Options{
 		Context: ctx,
@@ -143,17 +158,32 @@ func applyConfig(params *SetupParams) error {
 	currentCtx = ctx
 	currentCancel = cancel
 
-	// Try to get observable log factory for log streaming
+	// Capture observable log factory for log streaming
 	if lf := boxInstance.LogFactory(); lf != nil {
 		if of, ok := lf.(log.ObservableFactory); ok {
 			logFactory = of
 		}
 	}
 
-	// Patch proxy group selections
-	patchSelectGroup(params.SelectedMap)
+	// Reset traffic rate tracking
+	prevUp, prevDown = 0, 0
+	prevTime = time.Time{}
 
 	return nil
+}
+
+// shutdownBox closes the current Box and cancels its context.
+// Caller must hold runLock.
+func shutdownBox() {
+	if currentBox != nil {
+		_ = currentBox.Close()
+		currentBox = nil
+	}
+	if currentCancel != nil {
+		currentCancel()
+		currentCancel = nil
+		currentCtx = nil
+	}
 }
 
 // patchSelectGroup iterates outbounds and force-selects the specified proxy in selector groups.

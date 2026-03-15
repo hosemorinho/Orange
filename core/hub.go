@@ -3,24 +3,32 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"runtime"
 	"runtime/debug"
 	"strconv"
+	"sync"
 	"time"
 
+	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/urltest"
 	"github.com/sagernet/sing-box/experimental/clashapi/trafficontrol"
+	sbLog "github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common/observable"
 	"github.com/sagernet/sing/service"
-
-	sbLog "github.com/sagernet/sing-box/log"
 )
 
 var (
 	logSubscription observable.Subscription[sbLog.Entry]
 	logDone         <-chan struct{}
+	logLock         sync.Mutex // protects logSubscription, logDone
+
+	// Traffic rate tracking — protected by trafficLock
+	trafficLock          sync.Mutex
+	prevUp, prevDown     int64
+	prevTime             time.Time
 )
 
 func handleInitClash(paramsString string) bool {
@@ -47,6 +55,17 @@ func handleInitClash(paramsString string) bool {
 func handleStartListener() bool {
 	runLock.Lock()
 	defer runLock.Unlock()
+	if currentOpts == nil {
+		return false
+	}
+	if currentBox != nil {
+		// Already running
+		isRunning = true
+		return true
+	}
+	if err := startBoxFromOpts(currentOpts); err != nil {
+		return false
+	}
 	isRunning = true
 	return true
 }
@@ -55,6 +74,7 @@ func handleStopListener() bool {
 	runLock.Lock()
 	defer runLock.Unlock()
 	isRunning = false
+	shutdownBox()
 	return true
 }
 
@@ -69,19 +89,11 @@ func handleForceGC() {
 
 func handleShutdown() bool {
 	runLock.Lock()
-	defer runLock.Unlock()
-	if currentBox != nil {
-		_ = currentBox.Close()
-		currentBox = nil
-	}
-	if currentCancel != nil {
-		currentCancel()
-		currentCancel = nil
-		currentCtx = nil
-	}
-	handleForceGC()
+	shutdownBox()
 	isInit = false
 	isRunning = false
+	runLock.Unlock()
+	handleForceGC()
 	return true
 }
 
@@ -90,10 +102,23 @@ func handleValidateConfig(path string) string {
 	if err != nil {
 		return err.Error()
 	}
-	_, err = ParseSingboxConfig(buf)
+	opts, err := ParseSingboxConfig(buf)
 	if err != nil {
 		return err.Error()
 	}
+	// Semantic validation: create a temporary Box to catch bad outbound refs, etc.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx = service.ContextWithDefaultRegistry(ctx)
+	// Register a stub PlatformInterface to avoid nil panics during validation.
+	if platformInterfaceProvider != nil {
+		service.MustRegister[adapter.PlatformInterface](ctx, platformInterfaceProvider)
+	}
+	tmpBox, err := box.New(box.Options{Context: ctx, Options: *opts})
+	if err != nil {
+		return err.Error()
+	}
+	_ = tmpBox.Close()
 	return ""
 }
 
@@ -158,12 +183,32 @@ func handleGetTraffic(onlyStatisticsProxy bool) string {
 	if tm == nil {
 		return `{"up":0,"down":0}`
 	}
-	// sing-box trafficontrol.Manager only has Total() - no NowTraffic concept
-	// We track by diff in the Dart side or use 0 for instant traffic
 	up, down := tm.Total()
+	now := time.Now()
+
+	trafficLock.Lock()
+	var rateUp, rateDown int64
+	if !prevTime.IsZero() {
+		elapsed := now.Sub(prevTime).Seconds()
+		if elapsed > 0 {
+			rateUp = int64(float64(up-prevUp) / elapsed)
+			rateDown = int64(float64(down-prevDown) / elapsed)
+		}
+	}
+	if rateUp < 0 {
+		rateUp = 0
+	}
+	if rateDown < 0 {
+		rateDown = 0
+	}
+	prevUp = up
+	prevDown = down
+	prevTime = now
+	trafficLock.Unlock()
+
 	traffic := map[string]int64{
-		"up":   up,
-		"down": down,
+		"up":   rateUp,
+		"down": rateDown,
 	}
 	data, err := json.Marshal(traffic)
 	if err != nil {
@@ -372,28 +417,33 @@ func handleStartLog() {
 	// Stop existing subscription
 	handleStopLog()
 
+	logLock.Lock()
 	var err error
 	logSubscription, logDone, err = logFactory.Subscribe()
 	if err != nil {
+		logLock.Unlock()
 		return
 	}
+	sub := logSubscription
+	done := logDone
+	logLock.Unlock()
 
 	go func() {
 		for {
 			select {
-			case entry, ok := <-logSubscription:
+			case entry, ok := <-sub:
 				if !ok {
 					return
 				}
 				message := &Message{
 					Type: LogMessage,
 					Data: map[string]interface{}{
-						"level":   sbLog.FormatLevel(entry.Level),
-						"message": entry.Message,
+						"LogLevel": sbLog.FormatLevel(entry.Level),
+						"Payload":  entry.Message,
 					},
 				}
 				sendMessage(*message)
-			case <-logDone:
+			case <-done:
 				return
 			}
 		}
@@ -401,6 +451,8 @@ func handleStartLog() {
 }
 
 func handleStopLog() {
+	logLock.Lock()
+	defer logLock.Unlock()
 	if logSubscription != nil && logFactory != nil {
 		logFactory.UnSubscribe(logSubscription)
 		logSubscription = nil
@@ -428,11 +480,9 @@ func handleGetConfig(path string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Parse as YAML and return raw map for Dart side
 	var result map[string]interface{}
 	if err := json.Unmarshal(bytes, &result); err != nil {
-		// Try treating as Clash YAML
-		return map[string]interface{}{}, nil
+		return nil, fmt.Errorf("parse config JSON: %w", err)
 	}
 	return result, nil
 }
@@ -447,9 +497,36 @@ func handleUpdateConfig(bytes []byte) string {
 	if err != nil {
 		return err.Error()
 	}
-	// Partial config updates are limited with sing-box.
-	// Most settings require a Box restart.
-	// For now, store params and they'll take effect on next full config apply.
+
+	runLock.Lock()
+	defer runLock.Unlock()
+
+	// Mode change: lightweight, no restart needed
+	if params.Mode != nil {
+		type modeSettable interface {
+			SetMode(mode string)
+		}
+		if ms, ok := getClashServer().(modeSettable); ok {
+			ms.SetMode(*params.Mode)
+		}
+	}
+
+	// Log level change: lightweight, no restart needed
+	if params.LogLevel != nil {
+		if logFactory != nil {
+			level, parseErr := sbLog.ParseLevel(*params.LogLevel)
+			if parseErr == nil {
+				logFactory.SetLevel(level)
+			}
+		}
+	}
+
+	// Other structural changes (mixed-port, allow-lan, TUN, etc.) require a
+	// full config reload via setupConfig. They are not applied here because
+	// sing-box inbound options are typed structs that can't be patched after
+	// deserialization without re-parsing. The Dart side should trigger a full
+	// config reload for these changes.
+
 	return ""
 }
 
@@ -457,22 +534,23 @@ func handleDelFile(path string, result ActionResult) {
 	go func() {
 		fileInfo, err := os.Stat(path)
 		if err != nil {
-			if !os.IsNotExist(err) {
-				result.success(err.Error())
+			if os.IsNotExist(err) {
+				result.success("")
+				return
 			}
-			result.success("")
+			result.error(err.Error())
 			return
 		}
 		if fileInfo.IsDir() {
 			err = os.RemoveAll(path)
 			if err != nil {
-				result.success(err.Error())
+				result.error(err.Error())
 				return
 			}
 		} else {
 			err = os.Remove(path)
 			if err != nil {
-				result.success(err.Error())
+				result.error(err.Error())
 				return
 			}
 		}
@@ -513,13 +591,3 @@ func getTrafficManager() *trafficontrol.Manager {
 	return nil
 }
 
-// init sets up hooks that send events to the Dart side.
-// sing-box uses a different event model than Clash.Meta.
-// We hook into the observable log factory and connection tracker for notifications.
-func init() {
-	// Unlike Clash.Meta, sing-box hooks are set up after Box creation.
-	// See applyConfig() for where logFactory is captured.
-	// The URL test hook equivalent is done in handleAsyncTestDelay where we
-	// manually send DelayMessage after each test.
-	_ = service.ContextWithDefaultRegistry // ensure import
-}

@@ -85,200 +85,85 @@ Future<Map<String, dynamic>> makeRealProfileTask(
 Future<Map<String, dynamic>> _makeRealProfileTask(
   MakeRealProfileState data,
 ) async {
-  final rawConfig = Map.from(data.rawConfig);
+  final rawConfig = Map<String, dynamic>.from(data.rawConfig);
   final realPatchConfig = data.realPatchConfig;
-  final profilesPath = data.profilesPath;
-  final profileId = data.profileId;
-  final overrideDns = data.overrideDns;
-  final addedRules = data.addedRules;
-  final appendSystemDns = data.appendSystemDns;
-  final defaultUA = data.defaultUA;
-  String getProvidersFilePathInner(String type, String url) {
-    return join(
-      profilesPath,
-      'providers',
-      profileId.toString(),
-      type,
-      url.toMd5(),
-    );
-  }
 
-  rawConfig['external-controller'] = realPatchConfig.externalController.value;
-  rawConfig['external-ui'] = '';
-  rawConfig['interface-name'] = '';
-  rawConfig['external-ui-url'] = '';
-  rawConfig['tcp-concurrent'] = realPatchConfig.tcpConcurrent;
-  rawConfig['unified-delay'] = realPatchConfig.unifiedDelay;
-  rawConfig['ipv6'] = realPatchConfig.ipv6;
-  rawConfig['log-level'] = realPatchConfig.logLevel.name;
-  rawConfig['port'] = 0;
-  rawConfig['socks-port'] = 0;
-  rawConfig['keep-alive-interval'] = realPatchConfig.keepAliveInterval;
-  rawConfig['mixed-port'] = realPatchConfig.mixedPort;
-  rawConfig['port'] = realPatchConfig.port;
-  rawConfig['socks-port'] = realPatchConfig.socksPort;
-  rawConfig['redir-port'] = realPatchConfig.redirPort;
-  rawConfig['tproxy-port'] = realPatchConfig.tproxyPort;
-  rawConfig['find-process-mode'] = realPatchConfig.findProcessMode.name;
-  rawConfig['allow-lan'] = realPatchConfig.allowLan;
-  rawConfig['mode'] = realPatchConfig.mode.name;
-  if (rawConfig['tun'] == null) {
-    rawConfig['tun'] = {};
+  // --- Log ---
+  if (rawConfig['log'] == null) {
+    rawConfig['log'] = <String, dynamic>{};
   }
-  rawConfig['tun']['enable'] = realPatchConfig.tun.enable;
-  rawConfig['tun']['device'] = realPatchConfig.tun.device;
-  rawConfig['tun']['dns-hijack'] = realPatchConfig.tun.dnsHijack;
-  rawConfig['tun']['stack'] = realPatchConfig.tun.stack.name;
-  rawConfig['tun']['route-address'] = realPatchConfig.tun.routeAddress;
-  rawConfig['tun']['auto-route'] = realPatchConfig.tun.autoRoute;
-  rawConfig['geodata-loader'] = realPatchConfig.geodataLoader.name;
-  if (rawConfig['sniffer']?['sniff'] != null) {
-    for (final value in (rawConfig['sniffer']?['sniff'] as Map).values) {
-      if (value['ports'] != null && value['ports'] is List) {
-        value['ports'] =
-            value['ports']?.map((item) => item.toString()).toList() ?? [];
-      }
-    }
-  }
-  if (rawConfig['profile'] == null) {
-    rawConfig['profile'] = {};
-  }
-  if (rawConfig['proxy-providers'] != null) {
-    final proxyProviders = rawConfig['proxy-providers'] as Map;
-    for (final key in proxyProviders.keys) {
-      final proxyProvider = proxyProviders[key];
-      if (proxyProvider['type'] != 'http') {
-        continue;
-      }
-      if (proxyProvider['url'] != null) {
-        proxyProvider['path'] = getProvidersFilePathInner(
-          'proxies',
-          proxyProvider['url'],
-        );
-      }
-    }
-  }
-  if (rawConfig['rule-providers'] != null) {
-    final ruleProviders = rawConfig['rule-providers'] as Map;
-    for (final key in ruleProviders.keys) {
-      final ruleProvider = ruleProviders[key];
-      if (ruleProvider['type'] != 'http') {
-        continue;
-      }
-      if (ruleProvider['url'] != null) {
-        ruleProvider['path'] = getProvidersFilePathInner(
-          'rules',
-          ruleProvider['url'],
-        );
-      }
-    }
-  }
-  rawConfig['profile']['store-selected'] = false;
-  rawConfig['geox-url'] = realPatchConfig.geoXUrl.toJson();
-  rawConfig['global-ua'] = realPatchConfig.globalUa ?? defaultUA;
-  if (rawConfig['hosts'] == null) {
-    rawConfig['hosts'] = {};
-  }
-  for (final host in realPatchConfig.hosts.entries) {
-    rawConfig['hosts'][host.key] = host.value.splitByMultipleSeparators;
-  }
-  if (rawConfig['dns'] == null) {
-    rawConfig['dns'] = {};
-  }
-  final isEnableDns = rawConfig['dns']['enable'] == true;
-  final systemDns = 'system://';
-  const defaultProxyServerDoh = [
-    'https://223.5.5.5/dns-query',
-    'https://223.6.6.6/dns-query',
-    'https://1.1.1.1/dns-query',
-    'https://1.0.0.1/dns-query',
-    'tls://223.5.5.5',
-  ];
-  if (overrideDns || !isEnableDns) {
-    final dns = switch (!isEnableDns) {
-      true => realPatchConfig.dns.copyWith(
-        nameserver: [...realPatchConfig.dns.nameserver, systemDns],
-      ),
-      false => realPatchConfig.dns,
-    };
-    rawConfig['dns'] = dns.toJson();
-    rawConfig['dns']['nameserver-policy'] = {};
-    for (final entry in dns.nameserverPolicy.entries) {
-      rawConfig['dns']['nameserver-policy'][entry.key] =
-          entry.value.splitByMultipleSeparators;
-    }
-  }
-  if (appendSystemDns) {
-    final List<String> nameserver = List<String>.from(
-      rawConfig['dns']['nameserver'] ?? [],
-    );
-    if (!nameserver.contains(systemDns)) {
-      rawConfig['dns']['nameserver'] = [...nameserver, systemDns];
-    }
-  }
-  final configuredProxyServerDoh = realPatchConfig.dns.proxyServerNameserver
-      .map((item) => item.trim())
-      .where(
-        (item) =>
-            item.isNotEmpty &&
-            (item.toLowerCase().startsWith('https://') ||
-                item.toLowerCase().startsWith('tls://')),
-      )
-      .toSet()
-      .toList();
-  // Always use encrypted DNS endpoints (DoH/TLS) for proxy node domains.
-  final proxyServerNameserver = {
-    ...configuredProxyServerDoh,
-    ...defaultProxyServerDoh,
-  }.toList();
-  rawConfig['dns']['proxy-server-nameserver'] = proxyServerNameserver;
-  List<String> rules = [];
-  if (rawConfig['rules'] != null) {
-    rules = List<String>.from(rawConfig['rules']);
-  }
-  rawConfig.remove('rules');
-  if (addedRules.isNotEmpty) {
-    final parsedNewRules = addedRules
-        .map((item) => ParsedRule.parseString(item.value))
-        .toList();
-    final hasMatchPlaceholder = parsedNewRules.any(
-      (item) => item.ruleTarget?.toUpperCase() == 'MATCH',
-    );
-    String? replacementTarget;
+  (rawConfig['log'] as Map)['level'] = realPatchConfig.logLevel.name;
 
-    if (hasMatchPlaceholder) {
-      for (int i = rules.length - 1; i >= 0; i--) {
-        final parsed = ParsedRule.parseString(rules[i]);
-        if (parsed.ruleAction == RuleAction.MATCH) {
-          final target = parsed.ruleTarget;
-          if (target != null && target.isNotEmpty) {
-            replacementTarget = target;
-            break;
-          }
-        }
-      }
-    }
-    final List<String> finalAddedRules;
+  // --- Experimental / Clash API ---
+  final experimental =
+      Map<String, dynamic>.from(rawConfig['experimental'] as Map? ?? {});
+  final clashApi =
+      Map<String, dynamic>.from(experimental['clash_api'] as Map? ?? {});
+  if (realPatchConfig.externalController.value.isNotEmpty) {
+    clashApi['external_controller'] = realPatchConfig.externalController.value;
+  }
+  clashApi['default_mode'] = realPatchConfig.mode.name;
+  experimental['clash_api'] = clashApi;
+  rawConfig['experimental'] = experimental;
 
-    if (replacementTarget?.isNotEmpty == true) {
-      finalAddedRules = [];
-      for (int i = 0; i < parsedNewRules.length; i++) {
-        final parsed = parsedNewRules[i];
-        if (parsed.ruleTarget?.toUpperCase() == 'MATCH') {
-          finalAddedRules.add(
-            parsed.copyWith(ruleTarget: replacementTarget).value,
-          );
-        } else {
-          finalAddedRules.add(addedRules[i].value);
-        }
-      }
+  // --- Inbounds: mixed-port and allow-lan ---
+  final listenAddr = realPatchConfig.allowLan ? '0.0.0.0' : '127.0.0.1';
+  List<dynamic> inbounds = List.from(rawConfig['inbounds'] as List? ?? []);
+
+  // Find or create the mixed inbound
+  bool hasMixed = false;
+  for (int i = 0; i < inbounds.length; i++) {
+    final inbound = Map<String, dynamic>.from(inbounds[i] as Map);
+    if (inbound['type'] == 'mixed') {
+      inbound['listen'] = listenAddr;
+      inbound['listen_port'] = realPatchConfig.mixedPort;
+      inbounds[i] = inbound;
+      hasMixed = true;
     } else {
-      finalAddedRules = addedRules.map((e) => e.value).toList();
+      // Update listen address for all inbounds
+      inbound['listen'] = listenAddr;
+      inbounds[i] = inbound;
     }
-    rules = [...finalAddedRules, ...rules];
   }
-  rawConfig['rules'] = rules;
-  return Map<String, dynamic>.from(rawConfig);
+  if (!hasMixed && realPatchConfig.mixedPort > 0) {
+    inbounds.add(<String, dynamic>{
+      'type': 'mixed',
+      'tag': 'mixed-in',
+      'listen': listenAddr,
+      'listen_port': realPatchConfig.mixedPort,
+    });
+  }
+
+  // --- TUN inbound ---
+  final tunConfig = realPatchConfig.tun;
+  // Remove existing tun inbound if any
+  inbounds.removeWhere((ib) => (ib as Map)['type'] == 'tun');
+  if (tunConfig.enable) {
+    final tunInbound = <String, dynamic>{
+      'type': 'tun',
+      'tag': 'tun-in',
+      'auto_route': tunConfig.autoRoute,
+      'stack': tunConfig.stack.name,
+      'sniff': true,
+      'sniff_override_destination': false,
+    };
+    if (tunConfig.routeAddress.isNotEmpty) {
+      tunInbound['address'] = tunConfig.routeAddress;
+    }
+    inbounds.add(tunInbound);
+  }
+
+  rawConfig['inbounds'] = inbounds;
+
+  // --- Route: find_process ---
+  if (rawConfig['route'] != null) {
+    final route = Map<String, dynamic>.from(rawConfig['route'] as Map);
+    route['find_process'] =
+        realPatchConfig.findProcessMode.name == 'always' ? true : false;
+    rawConfig['route'] = route;
+  }
+
+  return rawConfig;
 }
 
 Future<List<String>> shakingProfileTask(

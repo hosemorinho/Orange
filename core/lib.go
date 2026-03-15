@@ -10,7 +10,6 @@ import "C"
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/netip"
 	"strings"
 	"sync"
@@ -18,9 +17,7 @@ import (
 
 	"golang.org/x/sync/semaphore"
 
-	"github.com/sagernet/sing-box/adapter"
 	sbLog "github.com/sagernet/sing-box/log"
-	"github.com/sagernet/sing/service"
 )
 
 var eventListener unsafe.Pointer
@@ -39,8 +36,10 @@ func (th *TunHandler) start(fd int, stack, address, dns string) {
 	defer th.limit.Release(4)
 
 	// Store fd and callback in the platform bridge for sing-box to use
+	th.bridge.mu.Lock()
 	th.bridge.tunFd = fd
 	th.bridge.tunCallback = th.callback
+	th.bridge.mu.Unlock()
 
 	// Set up socket protection hook
 	th.initHook()
@@ -76,8 +75,10 @@ func (th *TunHandler) clear() {
 	}
 	th.callback = nil
 	if th.bridge != nil {
+		th.bridge.mu.Lock()
 		th.bridge.tunCallback = nil
 		th.bridge.tunFd = 0
+		th.bridge.mu.Unlock()
 	}
 }
 
@@ -93,11 +94,8 @@ func (th *TunHandler) handleProtect(fd int) {
 }
 
 func (th *TunHandler) initHook() {
-	// Register the platform bridge with the sing-box context if available.
-	// The platform bridge handles socket protection via AutoDetectInterfaceControl.
-	if currentCtx != nil && th.bridge != nil {
-		service.MustRegister[adapter.PlatformInterface](currentCtx, th.bridge)
-	}
+	// Platform bridge is already registered in the Box context by applyConfig().
+	// Nothing else needed here — TUN fd and callback are set in start().
 }
 
 func (th *TunHandler) removeHook() {
@@ -105,14 +103,14 @@ func (th *TunHandler) removeHook() {
 }
 
 var (
-	tunLock    sync.Mutex
-	errBlocked = errors.New("blocked")
-	tunHandler *TunHandler
+	tunLock      sync.Mutex
+	tunHandler   *TunHandler
 	globalBridge *platformBridge
 )
 
 func init() {
 	globalBridge = newPlatformBridge()
+	platformInterfaceProvider = globalBridge
 }
 
 func handleStopTun() {

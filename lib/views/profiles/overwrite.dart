@@ -1,5 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:convert';
+
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -35,7 +37,7 @@ class _OverwriteViewState extends ConsumerState<OverwriteView> {
       return;
     }
     final configMap = await appController.getProfileWithId(profile.id);
-    final content = await encodeYamlTask(configMap);
+    final content = const JsonEncoder.withIndent('  ').convert(configMap);
     if (!mounted) {
       return;
     }

@@ -919,34 +919,34 @@ extension SetupControllerExt on AppController {
     return res;
   }
 
-  /// Read profile config, decrypting if the file is encrypted on disk.
-  /// Decrypted bytes are passed to core in-memory (no temp file persistence).
+  /// Read profile config as sing-box JSON, decrypting if needed.
   Future<Map<String, dynamic>> _getConfigDecrypted(int profileId) async {
     final profilePath = await appPath.getProfilePath(profileId.toString());
     final profileFile = File(profilePath);
 
     if (!await profileFile.exists()) {
-      return await coreController.getConfig(profileId);
+      return {};
     }
 
-    final bytes = await profileFile.readAsBytes();
-    if (!ProfileCipher.isEncryptedFormat(bytes)) {
-      return await coreController.getConfig(profileId);
+    Uint8List bytes = await profileFile.readAsBytes();
+
+    // Decrypt if encrypted
+    if (ProfileCipher.isEncryptedFormat(bytes)) {
+      final profile = _ref.read(profilesProvider).getProfile(profileId);
+      final token = profile != null
+          ? ProfileCipher.extractToken(profile.url)
+          : null;
+      if (token != null && token.isNotEmpty) {
+        bytes = ProfileCipher.decrypt(bytes, token);
+      }
     }
 
-    // File is encrypted — find the subscription token from the profile URL
-    final profile = _ref.read(profilesProvider).getProfile(profileId);
-    final token = profile != null
-        ? ProfileCipher.extractToken(profile.url)
-        : null;
-    if (token == null || token.isEmpty) {
-      // Can't decrypt, try loading as-is (will likely fail)
-      return await coreController.getConfig(profileId);
+    // Parse as JSON directly (sing-box native format)
+    try {
+      return json.decode(utf8.decode(bytes)) as Map<String, dynamic>;
+    } catch (_) {
+      return {};
     }
-
-    // Decrypt in-memory and pass raw bytes directly to core.
-    final yamlBytes = ProfileCipher.decrypt(bytes, token);
-    return await coreController.getConfig(profileId, overrideBytes: yamlBytes);
   }
 
   Future<Map> getProfileWithId(int profileId) async {
@@ -989,8 +989,8 @@ extension SetupControllerExt on AppController {
       setupState: setupState,
       patchConfig: realPatchConfig,
     );
-    final yamlString = await encodeYamlTask(config);
-    final configBytes = Uint8List.fromList(utf8.encode(yamlString));
+    final jsonString = await encodeJSONTask(config);
+    final configBytes = Uint8List.fromList(utf8.encode(jsonString));
     final message = await coreController.setupConfigWithBytes(
       configBytes: configBytes,
       setupState: setupState,

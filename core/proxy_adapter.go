@@ -44,41 +44,11 @@ func BuildProxiesData(outboundManager adapter.OutboundManager, clashServer adapt
 		proxies[tag] = info
 	}
 
-	// Build GLOBAL group from all groups + proxies
-	// Also ensure group order matches Clash expectations
-	allNames := make([]string, 0, len(groupNames)+1)
-
-	// Add GLOBAL pseudo-group if not already present
-	hasGlobal := false
-	for _, name := range groupNames {
-		if name == "GLOBAL" {
-			hasGlobal = true
-		}
-		allNames = append(allNames, name)
-	}
-
-	if !hasGlobal {
-		// Create a virtual GLOBAL group
-		allTags := make([]string, 0)
-		for _, ob := range outbounds {
-			allTags = append(allTags, ob.Tag())
-		}
-		globalNow := ""
-		if len(allTags) > 0 {
-			globalNow = allTags[0]
-		}
-		proxies["GLOBAL"] = &ProxyInfo{
-			Name: "GLOBAL",
-			Type: "Selector",
-			All:  allTags,
-			Now:  &globalNow,
-		}
-		allNames = append([]string{"GLOBAL"}, allNames...)
-	}
-
+	// Return only groups that actually exist in the Box outbounds.
+	// If the subscription JSON defines a GLOBAL selector, it appears naturally.
 	return ProxiesData{
 		Proxies: proxies,
-		All:     allNames,
+		All:     groupNames,
 	}
 }
 
@@ -113,7 +83,7 @@ func mapOutboundType(sbType string) string {
 		return "SSH"
 	default:
 		if len(sbType) == 0 {
-			return sbType
+			return "Unknown"
 		}
 		return strings.ToUpper(sbType[:1]) + sbType[1:]
 	}

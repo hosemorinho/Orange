@@ -3,8 +3,9 @@
 package main
 
 import (
-	"net/netip"
+	"fmt"
 	"os"
+	"sync"
 	"unsafe"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -17,6 +18,7 @@ import (
 // It bridges sing-box platform calls to the JNI callbacks via the existing
 // bride.go protect/resolveProcess functions.
 type platformBridge struct {
+	mu          sync.RWMutex
 	tunCallback unsafe.Pointer
 	tunFd       int
 }
@@ -34,8 +36,11 @@ func (p *platformBridge) UsePlatformAutoDetectInterfaceControl() bool {
 }
 
 func (p *platformBridge) AutoDetectInterfaceControl(fd int) error {
-	if p.tunCallback != nil {
-		protect(p.tunCallback, fd)
+	p.mu.RLock()
+	cb := p.tunCallback
+	p.mu.RUnlock()
+	if cb != nil {
+		protect(cb, fd)
 	}
 	return nil
 }
@@ -45,9 +50,13 @@ func (p *platformBridge) UsePlatformInterface() bool {
 }
 
 func (p *platformBridge) OpenInterface(options *tun.Options, platformOptions option.TunPlatformOptions) (tun.Tun, error) {
-	// On Android, the TUN fd is provided by the Java VPN service.
-	// We use the fd stored in platformBridge.
-	options.FileDescriptor = p.tunFd
+	p.mu.RLock()
+	fd := p.tunFd
+	p.mu.RUnlock()
+	if fd == 0 {
+		return nil, fmt.Errorf("TUN fd not set")
+	}
+	options.FileDescriptor = fd
 	options.Name = "Orange"
 	return tun.Open(*options)
 }
@@ -92,34 +101,24 @@ func (p *platformBridge) SystemCertificates() []string {
 }
 
 func (p *platformBridge) UsePlatformConnectionOwnerFinder() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 	return p.tunCallback != nil
 }
 
 func (p *platformBridge) FindConnectionOwner(request *adapter.FindConnectionOwnerRequest) (*adapter.ConnectionOwner, error) {
-	if p.tunCallback == nil {
+	p.mu.RLock()
+	cb := p.tunCallback
+	p.mu.RUnlock()
+	if cb == nil {
 		return nil, os.ErrNotExist
 	}
-	var protocol int
-	srcAddr := request.Source
-	dstAddr := request.Destination
-	switch request.Network {
-	case "udp":
-		protocol = 17 // IPPROTO_UDP
-	default:
-		protocol = 6 // IPPROTO_TCP
-	}
-
-	srcStr := formatAddrPort(srcAddr)
-	dstStr := formatAddrPort(dstAddr)
+	protocol := int(request.IpProtocol)
+	srcStr := fmt.Sprintf("%s:%d", request.SourceAddress, request.SourcePort)
+	dstStr := fmt.Sprintf("%s:%d", request.DestinationAddress, request.DestinationPort)
 
 	uid := -1
-	// on older Android, query /proc/net for uid
-	if version < 29 {
-		// Use procfs if available
-		uid = queryUIDFromProcFs(srcAddr)
-	}
-
-	packageName := resolveProcess(p.tunCallback, protocol, srcStr, dstStr, uid)
+	packageName := resolveProcess(cb, protocol, srcStr, dstStr, uid)
 	return &adapter.ConnectionOwner{
 		AndroidPackageName: packageName,
 	}, nil
@@ -135,26 +134,4 @@ func (p *platformBridge) UsePlatformNotification() bool {
 
 func (p *platformBridge) SendNotification(notification *adapter.Notification) error {
 	return nil
-}
-
-func (p *platformBridge) UsePlatformNeighborResolver() bool {
-	return false
-}
-
-func (p *platformBridge) StartNeighborMonitor(listener adapter.NeighborUpdateListener) error {
-	return nil
-}
-
-func (p *platformBridge) CloseNeighborMonitor(listener adapter.NeighborUpdateListener) error {
-	return nil
-}
-
-func formatAddrPort(ap netip.AddrPort) string {
-	return ap.String()
-}
-
-func queryUIDFromProcFs(srcAddr netip.AddrPort) int {
-	// Simplified — on Android < 29 use /proc/net lookup.
-	// This is a best-effort; returning -1 tells Java side to use its own lookup.
-	return -1
 }

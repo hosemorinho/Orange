@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -182,7 +184,7 @@ class ProfileItem extends StatelessWidget {
 
   Future<void> _handlePreview(BuildContext context) async {
     final configMap = await appController.getProfileWithId(profile.id);
-    final content = await encodeYamlTask(configMap);
+    final content = const JsonEncoder.withIndent('  ').convert(configMap);
     if (!context.mounted) {
       return;
     }

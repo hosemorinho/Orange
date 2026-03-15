@@ -151,6 +151,7 @@ object State {
         GlobalState.application.showToast(sharedState.startTip)
         val initParams = mutableMapOf<String, Any>()
         initParams["home-dir"] = GlobalState.application.filesDir.path
+        initParams["app-name"] = GlobalState.appName
         initParams["version"] = android.os.Build.VERSION.SDK_INT
         val initParamsString = Gson().toJson(initParams)
         val setupParams = try {

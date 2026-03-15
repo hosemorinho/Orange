@@ -61,6 +61,7 @@ abstract class VpnOptions with _$VpnOptions {
 abstract class InitParams with _$InitParams {
   const factory InitParams({
     @JsonKey(name: 'home-dir') required String homeDir,
+    @JsonKey(name: 'app-name') required String appName,
     required int version,
   }) = _InitParams;
 

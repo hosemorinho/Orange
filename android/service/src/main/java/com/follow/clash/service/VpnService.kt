@@ -192,7 +192,7 @@ class VpnService : SystemVpnService(), IBaseService,
                     }
                 }
             }
-            setSession("Orange")
+            setSession(GlobalState.appName)
             setBlocking(false)
             if (Build.VERSION.SDK_INT >= 29) {
                 setMetered(false)

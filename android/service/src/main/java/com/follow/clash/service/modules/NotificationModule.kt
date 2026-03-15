@@ -87,11 +87,11 @@ class NotificationModule(private val service: Service) : Module() {
         val intent = Intent().setComponent(Components.MAIN_ACTIVITY)
         with(
             NotificationCompat.Builder(
-                service, GlobalState.NOTIFICATION_CHANNEL
+                service, GlobalState.notificationChannelId
             )
         ) {
             setSmallIcon(R.drawable.ic)
-            setContentTitle("Orange")
+            setContentTitle(GlobalState.appName)
             setContentIntent(intent.toPendingIntent)
             setPriority(NotificationCompat.PRIORITY_HIGH)
             setCategory(NotificationCompat.CATEGORY_SERVICE)

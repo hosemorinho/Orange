@@ -65,7 +65,7 @@ class CoreController {
     await initGeo();
     final homeDirPath = await appPath.homeDirPath;
     return await _interface.init(
-      InitParams(homeDir: homeDirPath, version: version),
+      InitParams(homeDir: homeDirPath, appName: appName, version: version),
     );
   }
 

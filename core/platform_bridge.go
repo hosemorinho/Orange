@@ -63,7 +63,7 @@ func (p *platformBridge) OpenInterface(options *tun.Options, platformOptions opt
 		return nil, fmt.Errorf("TUN fd not set")
 	}
 	options.FileDescriptor = fd
-	options.Name = "Orange"
+	options.Name = appName
 	return tun.New(*options)
 }
 

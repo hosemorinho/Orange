@@ -8,6 +8,7 @@ import (
 
 type InitParams struct {
 	HomeDir string `json:"home-dir"`
+	AppName string `json:"app-name"`
 	Version int    `json:"version"`
 }
 

@@ -47,6 +47,9 @@ func handleInitClash(paramsString string) bool {
 	}
 	version = params.Version
 	homeDir = params.HomeDir
+	if params.AppName != "" {
+		appName = params.AppName
+	}
 
 	// Set working directory to homeDir so sing-box resolves relative paths
 	if homeDir != "" {

@@ -42,6 +42,8 @@ android {
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        resValue("string", "app_name", appName)
+        resValue("string", "app_name_debug", "$appName Debug")
     }
 
     signingConfigs {

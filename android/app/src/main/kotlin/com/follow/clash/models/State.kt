@@ -1,12 +1,13 @@
 package com.follow.clash.models
 
+import com.follow.clash.common.GlobalState
 import com.follow.clash.service.models.VpnOptions
 import com.google.gson.annotations.SerializedName
 
 data class SharedState(
     val startTip: String = "Starting VPN...",
     val stopTip: String = "Stopping VPN...",
-    val currentProfileName: String = "Orange",
+    val currentProfileName: String = GlobalState.appName,
     val stopText: String = "Stop",
     val onlyStatisticsProxy: Boolean = false,
     val vpnOptions: VpnOptions? = null,

@@ -28,6 +28,7 @@ var (
 
 	version   = 0
 	homeDir   = ""
+	appName   = "Orange"
 	isRunning = false
 	isInit    = false
 	runLock   sync.Mutex

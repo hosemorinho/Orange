@@ -8,9 +8,20 @@ import kotlinx.coroutines.Dispatchers
 
 object GlobalState : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
-    const val NOTIFICATION_CHANNEL = "Orange"
-
     const val NOTIFICATION_ID = 1
+
+    val appName: String
+        get() = try {
+            application.applicationInfo.loadLabel(application.packageManager)
+                ?.toString()
+                ?.takeIf { it.isNotBlank() }
+                ?: "Orange"
+        } catch (_: Throwable) {
+            "Orange"
+        }
+
+    val notificationChannelId: String
+        get() = "${packageName}.service"
 
     val packageName: String
         get() = application.packageName

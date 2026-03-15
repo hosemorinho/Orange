@@ -6,6 +6,7 @@ import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.provider.DocumentsProvider
+import com.follow.clash.common.GlobalState
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -41,7 +42,7 @@ class FilesProvider : DocumentsProvider() {
                 add(DocumentsContract.Root.COLUMN_ROOT_ID, DEFAULT_ROOT_ID)
                 add(DocumentsContract.Root.COLUMN_FLAGS, DocumentsContract.Root.FLAG_LOCAL_ONLY)
                 add(DocumentsContract.Root.COLUMN_ICON, R.drawable.ic_service)
-                add(DocumentsContract.Root.COLUMN_TITLE, "Orange")
+                add(DocumentsContract.Root.COLUMN_TITLE, GlobalState.appName)
                 add(DocumentsContract.Root.COLUMN_SUMMARY, "Data")
                 add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, "/")
             }

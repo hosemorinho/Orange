@@ -23,7 +23,7 @@ const forceTV = bool.fromEnvironment('FORCE_TV');
 const appName = _envAppName == '' ? 'Orange' : _envAppName;
 const appNameEn = appName;
 final appHelperService = '${appName}HelperService';
-const coreName = 'clash.meta';
+const coreName = 'sing-box';
 const browserUa =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 const packageName = _envPackageName == '' ? 'com.follow.clash' : _envPackageName;

@@ -9,31 +9,27 @@ import "C"
 
 import (
 	"context"
-	"core/platform"
-	t "core/tun"
 	"encoding/json"
 	"errors"
-	"github.com/metacubex/mihomo/component/dialer"
-	"github.com/metacubex/mihomo/component/process"
-	"github.com/metacubex/mihomo/constant"
-	"github.com/metacubex/mihomo/dns"
-	"github.com/metacubex/mihomo/listener/sing_tun"
-	"github.com/metacubex/mihomo/log"
-	"golang.org/x/sync/semaphore"
-	"net"
+	"net/netip"
 	"strings"
 	"sync"
-	"syscall"
 	"unsafe"
+
+	"golang.org/x/sync/semaphore"
+
+	"github.com/sagernet/sing-box/adapter"
+	sbLog "github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing/service"
 )
 
 var eventListener unsafe.Pointer
 
+// TunHandler manages the Android TUN interface lifecycle.
 type TunHandler struct {
-	listener *sing_tun.Listener
+	bridge   *platformBridge
 	callback unsafe.Pointer
-
-	limit *semaphore.Weighted
+	limit    *semaphore.Weighted
 }
 
 func (th *TunHandler) start(fd int, stack, address, dns string) {
@@ -41,14 +37,30 @@ func (th *TunHandler) start(fd int, stack, address, dns string) {
 	defer runLock.Unlock()
 	_ = th.limit.Acquire(context.TODO(), 4)
 	defer th.limit.Release(4)
+
+	// Store fd and callback in the platform bridge for sing-box to use
+	th.bridge.tunFd = fd
+	th.bridge.tunCallback = th.callback
+
+	// Set up socket protection hook
 	th.initHook()
-	tunListener := t.Start(fd, stack, address, dns)
-	if tunListener != nil {
-		log.Infoln("TUN address: %v", tunListener.Address())
-		th.listener = tunListener
-		return
+
+	// If a box is running, it should already have a TUN inbound configured.
+	// The platform bridge's OpenInterface will use the fd we stored.
+	// For now, log the TUN setup.
+	sbLog.Info("[TUN] started with fd=", fd, " stack=", stack, " address=", address)
+
+	// Parse addresses for logging
+	for _, a := range strings.Split(address, ",") {
+		a = strings.TrimSpace(a)
+		if len(a) == 0 {
+			continue
+		}
+		prefix, err := netip.ParsePrefix(a)
+		if err == nil {
+			sbLog.Info("[TUN] address: ", prefix.String())
+		}
 	}
-	th.clear()
 }
 
 func (th *TunHandler) close() {
@@ -59,76 +71,49 @@ func (th *TunHandler) close() {
 
 func (th *TunHandler) clear() {
 	th.removeHook()
-	if th.listener != nil {
-		_ = th.listener.Close()
-	}
 	if th.callback != nil {
 		releaseObject(th.callback)
 	}
 	th.callback = nil
-	th.listener = nil
+	if th.bridge != nil {
+		th.bridge.tunCallback = nil
+		th.bridge.tunFd = 0
+	}
 }
 
 func (th *TunHandler) handleProtect(fd int) {
 	_ = th.limit.Acquire(context.Background(), 1)
 	defer th.limit.Release(1)
 
-	if th.listener == nil {
+	if th.callback == nil {
 		return
 	}
 
 	protect(th.callback, fd)
 }
 
-func (th *TunHandler) handleResolveProcess(source, target net.Addr) string {
-	_ = th.limit.Acquire(context.Background(), 1)
-	defer th.limit.Release(1)
-
-	if th.listener == nil {
-		return ""
-	}
-	var protocol int
-	uid := -1
-	switch source.Network() {
-	case "udp", "udp4", "udp6":
-		protocol = syscall.IPPROTO_UDP
-	case "tcp", "tcp4", "tcp6":
-		protocol = syscall.IPPROTO_TCP
-	}
-	if version < 29 {
-		uid = platform.QuerySocketUidFromProcFs(source, target)
-	}
-	return resolveProcess(th.callback, protocol, source.String(), target.String(), uid)
-}
-
 func (th *TunHandler) initHook() {
-	dialer.DefaultSocketHook = func(network, address string, conn syscall.RawConn) error {
-		if platform.ShouldBlockConnection() {
-			return errBlocked
-		}
-		return conn.Control(func(fd uintptr) {
-			tunHandler.handleProtect(int(fd))
-		})
-	}
-	process.DefaultPackageNameResolver = func(metadata *constant.Metadata) (string, error) {
-		src, dst := metadata.RawSrcAddr, metadata.RawDstAddr
-		if src == nil || dst == nil {
-			return "", process.ErrInvalidNetwork
-		}
-		return tunHandler.handleResolveProcess(src, dst), nil
+	// Register the platform bridge with the sing-box context if available.
+	// The platform bridge handles socket protection via AutoDetectInterfaceControl.
+	if currentCtx != nil && th.bridge != nil {
+		service.MustRegister[adapter.PlatformInterface](currentCtx, th.bridge)
 	}
 }
 
 func (th *TunHandler) removeHook() {
-	dialer.DefaultSocketHook = nil
-	process.DefaultPackageNameResolver = nil
+	// Platform bridge lifecycle is managed by the Box context
 }
 
 var (
 	tunLock    sync.Mutex
 	errBlocked = errors.New("blocked")
 	tunHandler *TunHandler
+	globalBridge *platformBridge
 )
+
+func init() {
+	globalBridge = newPlatformBridge()
+}
 
 func handleStopTun() {
 	tunLock.Lock()
@@ -144,6 +129,7 @@ func handleStartTun(callback unsafe.Pointer, fd int, stack, address, dns string)
 	defer tunLock.Unlock()
 	if fd != 0 {
 		tunHandler = &TunHandler{
+			bridge:   globalBridge,
 			callback: callback,
 			limit:    semaphore.NewWeighted(4),
 		}
@@ -153,9 +139,11 @@ func handleStartTun(callback unsafe.Pointer, fd int, stack, address, dns string)
 
 func handleUpdateDns(value string) {
 	go func() {
-		log.Infoln("[DNS] updateDns %s", value)
-		dns.UpdateSystemDNS(strings.Split(value, ","))
-		dns.FlushCacheWithDefaultResolver()
+		sbLog.Info("[DNS] updateDns ", value)
+		// sing-box doesn't expose a direct DNS update API like Clash.
+		// DNS configuration is part of the Box config.
+		// For runtime DNS changes, we would need to reload the box.
+		// This is a no-op for now — DNS is configured at box startup.
 	}()
 }
 
@@ -280,3 +268,4 @@ func forceGC() {
 func updateDns(s *C.char) {
 	handleUpdateDns(takeCString(s))
 }
+

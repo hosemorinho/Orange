@@ -3,14 +3,19 @@
 /// 说明：不同的 User-Agent 是有意设计的，服务端会根据 UA 返回不同格式的数据
 ///
 /// 使用场景：
-/// 1. 订阅下载：必须使用 'FlClash' 才能获取 Clash 配置格式（硬编码）
-/// 2. API/域名竞速：使用标准 UA（硬编码）
-/// 3. 其他服务：使用特定版本号标识（硬编码）
+/// 1. 订阅下载：使用 sing-box UA 获取 sing-box JSON 配置格式
+/// 2. API/域名竞速：使用标准 UA
+/// 3. 其他服务：使用特定版本号标识
 library;
+
+import 'dart:io';
+
+import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/state.dart';
 
 /// User-Agent 配置类
 ///
-/// 所有 UA 使用硬编码，V2Board 不需要特殊认证
+/// 订阅下载使用动态 UA（包含 sing-box 标识），其他场景使用固定 UA
 ///
 /// 使用方式:
 /// ```dart
@@ -18,12 +23,29 @@ library;
 /// request.headers.set(HttpHeaders.userAgentHeader, ua);
 /// ```
 class UserAgentConfig {
-  // 硬编码的 User-Agent
-  static const String _subscription = 'FlClash';
-  static const String _subscriptionRacing = 'FlClash/1.0 (V2Board Race Subscription Client)';
-  static const String _attachment = 'FlClash/1.0';
-  static const String _api = 'FlClash/1.0 (V2Board API Client)';
-  static const String _domainRacing = 'FlClash/1.0 (Domain Racing Test)';
+  /// 获取订阅下载 UA（动态生成）
+  /// 格式: appName/vVersion sing-box/1.13.3 Platform/xxx
+  static String get _subscription {
+    try {
+      final info = globalState.packageInfo;
+      return '$appNameEn/v${info.version} sing-box/1.13.3 Platform/${Platform.operatingSystem}';
+    } catch (_) {
+      return '$appNameEn sing-box/1.13.3 Platform/${Platform.operatingSystem}';
+    }
+  }
+
+  static String get _subscriptionRacing {
+    try {
+      final info = globalState.packageInfo;
+      return '$appNameEn/v${info.version} sing-box/1.13.3 Platform/${Platform.operatingSystem}';
+    } catch (_) {
+      return '$appNameEn sing-box/1.13.3 Platform/${Platform.operatingSystem}';
+    }
+  }
+
+  static const String _attachment = 'sing-box/1.13.3';
+  static const String _api = '$appNameEn/1.0 (V2Board API Client)';
+  static const String _domainRacing = '$appNameEn/1.0 (Domain Racing Test)';
 
   /// 获取指定场景的 User-Agent
   ///
@@ -53,18 +75,18 @@ class UserAgentConfig {
 
 /// User-Agent 使用场景枚举
 enum UserAgentScenario {
-  /// 订阅下载（硬编码：'FlClash'）
+  /// 订阅下载（sing-box JSON 格式）
   subscription,
 
-  /// API 请求/域名竞速（硬编码：'FlClash/1.0 (V2Board API Client)'）
+  /// API 请求
   api,
 
-  /// 并发订阅竞速（硬编码：'FlClash/1.0 (V2Board Race Subscription Client)'）
+  /// 并发订阅竞速
   subscriptionRacing,
 
-  /// 域名竞速测试（硬编码：'FlClash/1.0 (Domain Racing Test)'）
+  /// 域名竞速测试
   domainRacingTest,
 
-  /// 消息附件下载（硬编码：'FlClash/1.0'）
+  /// 消息附件下载
   attachment,
 }

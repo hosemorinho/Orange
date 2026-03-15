@@ -7,161 +7,35 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/metacubex/mihomo/adapter"
-	"github.com/metacubex/mihomo/adapter/inbound"
-	"github.com/metacubex/mihomo/adapter/outboundgroup"
-	"github.com/metacubex/mihomo/adapter/provider"
-	"github.com/metacubex/mihomo/common/batch"
-	"github.com/metacubex/mihomo/component/dialer"
-	"github.com/metacubex/mihomo/component/resolver"
-	"github.com/metacubex/mihomo/config"
-	"github.com/metacubex/mihomo/constant"
-	"github.com/metacubex/mihomo/constant/features"
-	cp "github.com/metacubex/mihomo/constant/provider"
-	"github.com/metacubex/mihomo/hub"
-	"github.com/metacubex/mihomo/hub/executor"
-	"github.com/metacubex/mihomo/hub/route"
-	"github.com/metacubex/mihomo/listener"
-	"github.com/metacubex/mihomo/log"
-	rp "github.com/metacubex/mihomo/rules/provider"
-	"github.com/metacubex/mihomo/tunnel"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/sagernet/sing-box"
+	"github.com/sagernet/sing-box/adapter"
+	"github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/service"
 )
 
 var (
-	currentConfig *config.Config
-	version       = 0
-	isRunning     = false
-	runLock       sync.Mutex
-	mBatch, _     = batch.New[bool](context.Background(), batch.WithConcurrencyNum[bool](50))
+	currentBox    *box.Box
+	currentCtx    context.Context
+	currentCancel context.CancelFunc
+	currentOpts   *option.Options // last applied options, for partial update
+
+	version   = 0
+	homeDir   = ""
+	isRunning = false
+	isInit    = false
+	runLock   sync.Mutex
+
+	// observable log factory reference, set after Box creation
+	logFactory log.ObservableFactory
 )
 
 const inlineConfigPrefix = "inline-b64://"
 const sessionConfigPrefix = "session://"
-
-func getExternalProvidersRaw() map[string]cp.Provider {
-	eps := make(map[string]cp.Provider)
-	for n, p := range tunnel.Providers() {
-		if p.VehicleType() != cp.Compatible {
-			eps[n] = p
-		}
-	}
-	for n, p := range tunnel.RuleProviders() {
-		if p.VehicleType() != cp.Compatible {
-			eps[n] = p
-		}
-	}
-	return eps
-}
-
-func toExternalProvider(p cp.Provider) (*ExternalProvider, error) {
-	switch p.(type) {
-	case *provider.ProxySetProvider:
-		psp := p.(*provider.ProxySetProvider)
-		return &ExternalProvider{
-			Name:             psp.Name(),
-			Type:             psp.Type().String(),
-			VehicleType:      psp.VehicleType().String(),
-			Count:            psp.Count(),
-			UpdateAt:         psp.UpdatedAt(),
-			Path:             psp.Vehicle().Path(),
-			SubscriptionInfo: psp.GetSubscriptionInfo(),
-		}, nil
-	case *rp.RuleSetProvider:
-		rsp := p.(*rp.RuleSetProvider)
-		return &ExternalProvider{
-			Name:        rsp.Name(),
-			Type:        rsp.Type().String(),
-			VehicleType: rsp.VehicleType().String(),
-			Count:       rsp.Count(),
-			UpdateAt:    rsp.UpdatedAt(),
-			Path:        rsp.Vehicle().Path(),
-		}, nil
-	default:
-		return nil, errors.New("not external provider")
-	}
-}
-
-func sideUpdateExternalProvider(p cp.Provider, bytes []byte) error {
-	switch p.(type) {
-	case *provider.ProxySetProvider:
-		psp := p.(*provider.ProxySetProvider)
-		_, _, err := psp.SideUpdate(bytes)
-		if err == nil {
-			return err
-		}
-		return nil
-	case rp.RuleSetProvider:
-		rsp := p.(*rp.RuleSetProvider)
-		_, _, err := rsp.SideUpdate(bytes)
-		if err == nil {
-			return err
-		}
-		return nil
-	default:
-		return errors.New("not external provider")
-	}
-}
-
-func updateListeners() {
-	if !isRunning {
-		return
-	}
-	if currentConfig == nil {
-		return
-	}
-	listeners := currentConfig.Listeners
-	general := currentConfig.General
-	listener.PatchInboundListeners(listeners, tunnel.Tunnel, true)
-
-	allowLan := general.AllowLan
-	listener.SetAllowLan(allowLan)
-	inbound.SetSkipAuthPrefixes(general.SkipAuthPrefixes)
-	inbound.SetAllowedIPs(general.LanAllowedIPs)
-	inbound.SetDisAllowedIPs(general.LanDisAllowedIPs)
-
-	bindAddress := general.BindAddress
-	listener.SetBindAddress(bindAddress)
-	listener.ReCreateHTTP(general.Port, tunnel.Tunnel)
-	listener.ReCreateSocks(general.SocksPort, tunnel.Tunnel)
-	listener.ReCreateRedir(general.RedirPort, tunnel.Tunnel)
-	listener.ReCreateTProxy(general.TProxyPort, tunnel.Tunnel)
-	listener.ReCreateMixed(general.MixedPort, tunnel.Tunnel)
-	listener.ReCreateShadowSocks(general.ShadowSocksConfig, tunnel.Tunnel)
-	listener.ReCreateVmess(general.VmessConfig, tunnel.Tunnel)
-	listener.ReCreateTuic(general.TuicServer, tunnel.Tunnel)
-	if !features.Android {
-		listener.ReCreateTun(general.Tun, tunnel.Tunnel)
-	}
-}
-
-func stopListeners() {
-	listener.StopListener()
-}
-
-func patchSelectGroup(mapping map[string]string) {
-	for name, proxy := range tunnel.ProxiesWithProviders() {
-		outbound, ok := proxy.(*adapter.Proxy)
-		if !ok {
-			continue
-		}
-
-		selector, ok := outbound.ProxyAdapter.(outboundgroup.SelectAble)
-		if !ok {
-			continue
-		}
-
-		selected, exist := mapping[name]
-		if !exist {
-			continue
-		}
-
-		selector.ForceSet(selected)
-	}
-}
 
 func defaultSetupParams() *SetupParams {
 	return &SetupParams{
@@ -178,7 +52,6 @@ func readFile(path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return data, err
 }
 
@@ -196,73 +69,27 @@ func readConfigBytes(pathOrInline string) ([]byte, error) {
 	return readFile(pathOrInline)
 }
 
-func updateConfig(params *UpdateParams) {
-	runLock.Lock()
-	defer runLock.Unlock()
-	general := currentConfig.General
-	if params.MixedPort != nil {
-		general.MixedPort = *params.MixedPort
+// getClashServer retrieves the ClashServer from the running Box context.
+func getClashServer() adapter.ClashServer {
+	if currentCtx == nil {
+		return nil
 	}
-	if params.AllowLan != nil {
-		general.AllowLan = *params.AllowLan
-	}
-	if params.Sniffing != nil {
-		general.Sniffing = *params.Sniffing
-		tunnel.SetSniffing(general.Sniffing)
-	}
-	if params.FindProcessMode != nil {
-		general.FindProcessMode = *params.FindProcessMode
-		tunnel.SetFindProcessMode(general.FindProcessMode)
-	}
-	if params.TCPConcurrent != nil {
-		general.TCPConcurrent = *params.TCPConcurrent
-		dialer.SetTcpConcurrent(general.TCPConcurrent)
-	}
-	if params.Interface != nil {
-		general.Interface = *params.Interface
-		dialer.DefaultInterface.Store(general.Interface)
-	}
-	if params.UnifiedDelay != nil {
-		general.UnifiedDelay = *params.UnifiedDelay
-		adapter.UnifiedDelay.Store(general.UnifiedDelay)
-	}
-	if params.Mode != nil {
-		general.Mode = *params.Mode
-		tunnel.SetMode(general.Mode)
-	}
-	if params.LogLevel != nil {
-		general.LogLevel = *params.LogLevel
-		log.SetLevel(general.LogLevel)
-	}
-	if params.IPv6 != nil {
-		general.IPv6 = *params.IPv6
-		resolver.DisableIPv6 = !general.IPv6
-	}
-	if params.ExternalController != nil {
-		currentConfig.Controller.ExternalController = *params.ExternalController
-		route.ReCreateServer(&route.Config{
-			Addr: currentConfig.Controller.ExternalController,
-		})
-	}
-
-	if params.Tun != nil {
-		general.Tun.Enable = params.Tun.Enable
-		general.Tun.AutoRoute = *params.Tun.AutoRoute
-		general.Tun.Device = *params.Tun.Device
-		general.Tun.RouteAddress = *params.Tun.RouteAddress
-		general.Tun.DNSHijack = *params.Tun.DNSHijack
-		general.Tun.Stack = *params.Tun.Stack
-	}
-
-	updateListeners()
+	return service.FromContext[adapter.ClashServer](currentCtx)
 }
 
+// getOutboundManager retrieves the OutboundManager from the running Box.
+func getOutboundManager() adapter.OutboundManager {
+	if currentBox == nil {
+		return nil
+	}
+	return currentBox.Outbound()
+}
+
+// applyConfig consumes the committed config session, converts Clash YAML to
+// sing-box options, creates a new Box, and starts it.
 func applyConfig(params *SetupParams) error {
-	runtime.GC()
 	runLock.Lock()
 	defer runLock.Unlock()
-	var err error
-	constant.DefaultTestURL = params.TestURL
 
 	if params.ConfigSessionId == "" {
 		return errors.New("config session id required; file-based config fallback is disabled")
@@ -272,14 +99,90 @@ func applyConfig(params *SetupParams) error {
 		return fmt.Errorf("config session error: %w", consumeErr)
 	}
 	defer zeroBytes(buf)
-	currentConfig, err = executor.ParseWithBytes(buf)
+
+	// Parse sing-box JSON config directly
+	opts, err := ParseSingboxConfig(buf)
 	if err != nil {
-		currentConfig, _ = config.ParseRawConfig(config.DefaultRawConfig())
+		return fmt.Errorf("config parse error: %w", err)
 	}
-	hub.ApplyConfig(currentConfig)
+
+	// Store for partial updates
+	currentOpts = opts
+
+	// Shut down existing box if running
+	if currentBox != nil {
+		_ = currentBox.Close()
+		if currentCancel != nil {
+			currentCancel()
+		}
+		currentBox = nil
+		currentCtx = nil
+		currentCancel = nil
+	}
+
+	// Create new box
+	ctx, cancel := context.WithCancel(context.Background())
+	ctx = service.ContextWithDefaultRegistry(ctx)
+
+	boxInstance, err := box.New(box.Options{
+		Context: ctx,
+		Options: *opts,
+	})
+	if err != nil {
+		cancel()
+		return fmt.Errorf("create box: %w", err)
+	}
+
+	if err := boxInstance.Start(); err != nil {
+		_ = boxInstance.Close()
+		cancel()
+		return fmt.Errorf("start box: %w", err)
+	}
+
+	currentBox = boxInstance
+	currentCtx = ctx
+	currentCancel = cancel
+
+	// Try to get observable log factory for log streaming
+	if lf := boxInstance.LogFactory(); lf != nil {
+		if of, ok := lf.(log.ObservableFactory); ok {
+			logFactory = of
+		}
+	}
+
+	// Patch proxy group selections
 	patchSelectGroup(params.SelectedMap)
-	updateListeners()
-	return err
+
+	return nil
+}
+
+// patchSelectGroup iterates outbounds and force-selects the specified proxy in selector groups.
+func patchSelectGroup(mapping map[string]string) {
+	if currentBox == nil || len(mapping) == 0 {
+		return
+	}
+	outboundMgr := currentBox.Outbound()
+	for _, ob := range outboundMgr.Outbounds() {
+		selected, exist := mapping[ob.Tag()]
+		if !exist {
+			continue
+		}
+		if group, ok := ob.(adapter.OutboundGroup); ok {
+			selectOutbound(group, selected)
+		}
+	}
+}
+
+// selectOutbound tries to select the named outbound in a group.
+// It checks if the group implements SelectOutbound (selector groups).
+func selectOutbound(group adapter.OutboundGroup, name string) bool {
+	type selectorGroup interface {
+		SelectOutbound(tag string) bool
+	}
+	if sel, ok := group.(selectorGroup); ok {
+		return sel.SelectOutbound(name)
+	}
+	return false
 }
 
 func UnmarshalJson(data []byte, v any) error {

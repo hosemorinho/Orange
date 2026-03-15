@@ -226,7 +226,7 @@ extension ProfileExtension on Profile {
     var responseBytes = response.data ?? Uint8List.fromList([]);
 
     // Handle encrypted response and determine storage format
-    Uint8List yamlBytes;
+    Uint8List configBytes;
     Uint8List? storageBytes;
     final token = ProfileCipher.extractToken(url);
 
@@ -235,15 +235,15 @@ extension ProfileExtension on Profile {
       if (token == null || token.isEmpty) {
         throw 'Cannot decrypt: no subscription token in URL';
       }
-      yamlBytes = ProfileCipher.decrypt(responseBytes, token);
+      configBytes = ProfileCipher.decrypt(responseBytes, token);
       storageBytes = responseBytes;
     } else if (token != null && token.isNotEmpty) {
-      // Backend sent plain YAML → encrypt for local storage
-      yamlBytes = responseBytes;
+      // Backend sent plain config → encrypt for local storage
+      configBytes = responseBytes;
       storageBytes = ProfileCipher.encrypt(responseBytes, token);
     } else {
       // No token (non-subscription profile) → store plain
-      yamlBytes = responseBytes;
+      configBytes = responseBytes;
     }
 
     return await copyWith(
@@ -253,7 +253,7 @@ extension ProfileExtension on Profile {
       ]),
       subscriptionInfo: SubscriptionInfo.formHString(userinfo),
       selectedMap: selectedMap, // Preserve selected proxy map during updates
-    ).saveFile(yamlBytes, storageBytes: storageBytes);
+    ).saveFile(configBytes, storageBytes: storageBytes);
   }
 
   Future<Profile> saveFile(Uint8List bytes, {Uint8List? storageBytes}) async {

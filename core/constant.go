@@ -2,11 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/metacubex/mihomo/adapter/provider"
-	P "github.com/metacubex/mihomo/component/process"
-	"github.com/metacubex/mihomo/constant"
-	"github.com/metacubex/mihomo/log"
-	"github.com/metacubex/mihomo/tunnel"
 	"net/netip"
 	"time"
 )
@@ -23,27 +18,27 @@ type SetupParams struct {
 }
 
 type UpdateParams struct {
-	Tun                *tunSchema         `json:"tun"`
-	AllowLan           *bool              `json:"allow-lan"`
-	MixedPort          *int               `json:"mixed-port"`
-	FindProcessMode    *P.FindProcessMode `json:"find-process-mode"`
-	Mode               *tunnel.TunnelMode `json:"mode"`
-	LogLevel           *log.LogLevel      `json:"log-level"`
-	IPv6               *bool              `json:"ipv6"`
-	Sniffing           *bool              `json:"sniffing"`
-	TCPConcurrent      *bool              `json:"tcp-concurrent"`
-	ExternalController *string            `json:"external-controller"`
-	Interface          *string            `json:"interface-name"`
-	UnifiedDelay       *bool              `json:"unified-delay"`
+	Tun                *tunSchema `json:"tun"`
+	AllowLan           *bool      `json:"allow-lan"`
+	MixedPort          *int       `json:"mixed-port"`
+	FindProcessMode    *string    `json:"find-process-mode"`
+	Mode               *string    `json:"mode"`
+	LogLevel           *string    `json:"log-level"`
+	IPv6               *bool      `json:"ipv6"`
+	Sniffing           *bool      `json:"sniffing"`
+	TCPConcurrent      *bool      `json:"tcp-concurrent"`
+	ExternalController *string    `json:"external-controller"`
+	Interface          *string    `json:"interface-name"`
+	UnifiedDelay       *bool      `json:"unified-delay"`
 }
 
 type tunSchema struct {
-	Enable       bool               `yaml:"enable" json:"enable"`
-	Device       *string            `yaml:"device" json:"device"`
-	Stack        *constant.TUNStack `yaml:"stack" json:"stack"`
-	DNSHijack    *[]string          `yaml:"dns-hijack" json:"dns-hijack"`
-	AutoRoute    *bool              `yaml:"auto-route" json:"auto-route"`
-	RouteAddress *[]netip.Prefix    `yaml:"route-address" json:"route-address,omitempty"`
+	Enable       bool            `json:"enable"`
+	Device       *string         `json:"device"`
+	Stack        *string         `json:"stack"`
+	DNSHijack    *[]string       `json:"dns-hijack"`
+	AutoRoute    *bool           `json:"auto-route"`
+	RouteAddress *[]netip.Prefix `json:"route-address,omitempty"`
 }
 
 type ChangeProxyParams struct {
@@ -57,19 +52,43 @@ type TestDelayParams struct {
 	Timeout   int64  `json:"timeout"`
 }
 
+// SubscriptionInfo mirrors the upstream provider subscription info for JSON compatibility.
+type SubscriptionInfo struct {
+	Upload   int64 `json:"Upload"`
+	Download int64 `json:"Download"`
+	Total    int64 `json:"Total"`
+	Expire   int64 `json:"Expire"`
+}
+
 type ExternalProvider struct {
-	Name             string                     `json:"name"`
-	Type             string                     `json:"type"`
-	VehicleType      string                     `json:"vehicle-type"`
-	Count            int                        `json:"count"`
-	Path             string                     `json:"path"`
-	UpdateAt         time.Time                  `json:"update-at"`
-	SubscriptionInfo *provider.SubscriptionInfo `json:"subscription-info"`
+	Name             string            `json:"name"`
+	Type             string            `json:"type"`
+	VehicleType      string            `json:"vehicle-type"`
+	Count            int               `json:"count"`
+	Path             string            `json:"path"`
+	UpdateAt         time.Time         `json:"update-at"`
+	SubscriptionInfo *SubscriptionInfo `json:"subscription-info"`
+}
+
+// ProxyInfo represents a proxy's JSON-serializable data matching Clash API format.
+type ProxyInfo struct {
+	Name    string      `json:"name"`
+	Type    string      `json:"type"`
+	UDP     bool        `json:"udp"`
+	History []DelayHist `json:"history"`
+	// group-only fields
+	Now *string  `json:"now,omitempty"`
+	All []string `json:"all,omitempty"`
+}
+
+type DelayHist struct {
+	Time  string `json:"time"`
+	Delay uint16 `json:"delay"`
 }
 
 type ProxiesData struct {
-	Proxies map[string]constant.Proxy `json:"proxies"`
-	All     []string                  `json:"all"`
+	Proxies map[string]*ProxyInfo `json:"proxies"`
+	All     []string              `json:"all"`
 }
 
 const (

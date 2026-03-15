@@ -163,7 +163,116 @@ Future<Map<String, dynamic>> _makeRealProfileTask(
     rawConfig['route'] = route;
   }
 
+  _mergeAddedRules(rawConfig, data.addedRules);
+
   return rawConfig;
+}
+
+void _mergeAddedRules(Map<String, dynamic> rawConfig, List<Rule> addedRules) {
+  if (addedRules.isEmpty) return;
+  final translated = addedRules
+      .map(_translateAddedRule)
+      .whereType<Map<String, dynamic>>()
+      .toList();
+  if (translated.isEmpty) return;
+  final route = Map<String, dynamic>.from(rawConfig['route'] as Map? ?? {});
+  final existingRules = List<dynamic>.from(route['rules'] as List? ?? const []);
+  route['rules'] = [...translated, ...existingRules];
+  rawConfig['route'] = route;
+}
+
+Map<String, dynamic>? _translateAddedRule(Rule rule) {
+  final parsed = ParsedRule.parseString(rule.value);
+  final target = parsed.ruleTarget;
+  if (target == null || target.isEmpty) return null;
+
+  final content = parsed.content?.trim();
+  final routeRule = <String, dynamic>{};
+  switch (parsed.ruleAction) {
+    case RuleAction.DOMAIN:
+      if (content == null || content.isEmpty) return null;
+      routeRule['domain'] = [content];
+      break;
+    case RuleAction.DOMAIN_SUFFIX:
+      if (content == null || content.isEmpty) return null;
+      routeRule['domain_suffix'] = [content];
+      break;
+    case RuleAction.DOMAIN_KEYWORD:
+      if (content == null || content.isEmpty) return null;
+      routeRule['domain_keyword'] = [content];
+      break;
+    case RuleAction.DOMAIN_REGEX:
+      if (content == null || content.isEmpty) return null;
+      routeRule['domain_regex'] = [content];
+      break;
+    case RuleAction.GEOSITE:
+      if (content == null || content.isEmpty) return null;
+      routeRule['geosite'] = [content];
+      break;
+    case RuleAction.GEOIP:
+      if (content == null || content.isEmpty) return null;
+      routeRule[parsed.src ? 'source_geoip' : 'geoip'] = [content];
+      break;
+    case RuleAction.SRC_GEOIP:
+      if (content == null || content.isEmpty) return null;
+      routeRule['source_geoip'] = [content];
+      break;
+    case RuleAction.IP_CIDR:
+    case RuleAction.IP_CIDR6:
+      if (content == null || content.isEmpty) return null;
+      routeRule[parsed.src ? 'source_ip_cidr' : 'ip_cidr'] = [content];
+      break;
+    case RuleAction.SRC_IP_CIDR:
+      if (content == null || content.isEmpty) return null;
+      routeRule['source_ip_cidr'] = [content];
+      break;
+    case RuleAction.DST_PORT:
+      final port = int.tryParse(content ?? '');
+      if (port == null) return null;
+      routeRule['port'] = [port];
+      break;
+    case RuleAction.SRC_PORT:
+      final port = int.tryParse(content ?? '');
+      if (port == null) return null;
+      routeRule['source_port'] = [port];
+      break;
+    case RuleAction.PROCESS_PATH:
+      if (content == null || content.isEmpty) return null;
+      routeRule['process_path'] = [content];
+      break;
+    case RuleAction.PROCESS_PATH_REGEX:
+      if (content == null || content.isEmpty) return null;
+      routeRule['process_path_regex'] = [content];
+      break;
+    case RuleAction.PROCESS_NAME:
+      if (content == null || content.isEmpty) return null;
+      routeRule['process_name'] = [content];
+      break;
+    case RuleAction.UID:
+      final uid = int.tryParse(content ?? '');
+      if (uid == null) return null;
+      routeRule['user_id'] = [uid];
+      break;
+    case RuleAction.NETWORK:
+      if (content == null || content.isEmpty) return null;
+      routeRule['network'] = [content.toLowerCase()];
+      break;
+    case RuleAction.MATCH:
+      break;
+    default:
+      return null;
+  }
+
+  final normalizedTarget = target.toUpperCase();
+  if (normalizedTarget == 'DIRECT') {
+    routeRule['action'] = 'direct';
+  } else if (normalizedTarget == 'REJECT' ||
+      normalizedTarget == 'REJECT-DROP') {
+    routeRule['action'] = 'reject';
+  } else {
+    routeRule['outbound'] = target;
+  }
+  return routeRule;
 }
 
 Future<List<String>> shakingProfileTask(

@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:crypto/crypto.dart';
 import 'package:path/path.dart';
 
 enum Target { windows, linux, android, macos }
@@ -106,8 +105,6 @@ class Build {
 
   static String get _coreDir => join(current, 'core');
 
-  static String get _servicesDir => join(current, 'services', 'helper');
-
   static String get distPath => join(current, 'dist');
 
   static String _getCc(BuildItem buildItem) {
@@ -160,15 +157,6 @@ class Build {
     });
     final exitCode = await process.exitCode;
     if (exitCode != 0 && name != null) throw '$name error';
-  }
-
-  static Future<String> calcSha256(String filePath) async {
-    final file = File(filePath);
-    if (!await file.exists()) {
-      throw 'File not exists';
-    }
-    final stream = file.openRead();
-    return sha256.convert(await stream.reduce((a, b) => a + b)).toString();
   }
 
   static Future<List<String>> buildCore({
@@ -271,28 +259,6 @@ class Build {
       }
       await realFile.delete();
     }
-  }
-
-  static Future<void> buildHelper(Target target, String token) async {
-    final serviceName = '${appName}HelperService';
-    await exec(
-      ['cargo', 'build', '--release', '--features', 'windows-service'],
-      environment: {'TOKEN': token, 'SERVICE_NAME': serviceName},
-      name: 'build helper',
-      workingDirectory: _servicesDir,
-    );
-    final outPath = join(
-      _servicesDir,
-      'target',
-      'release',
-      'helper${target.executableExtensionName}',
-    );
-    final targetPath = join(
-      outDir,
-      target.name,
-      '${appName}HelperService${target.executableExtensionName}',
-    );
-    await File(outPath).copy(targetPath);
   }
 
   static const String _vcRedistX64Url =
@@ -398,10 +364,7 @@ class Build {
     if (name == 'Orange') return;
 
     final core = coreName;
-    final helper = '${name}HelperService';
-    print(
-      'Updating platform binary names: app=$name core=$core helper=$helper',
-    );
+    print('Updating platform binary names: app=$name core=$core');
 
     // distribute_options.yaml
     await _replaceInFile('distribute_options.yaml', {
@@ -414,7 +377,6 @@ class Build {
           'project(Orange ': 'project($name ',
           'set(BINARY_NAME "Orange")': 'set(BINARY_NAME "$name")',
           'OrangeCore.exe': '$core.exe',
-          'OrangeHelperService.exe': '$helper.exe',
         });
         await _replaceInFile('windows/runner/main.cpp', {
           'L"Orange"': 'L"$name"',
@@ -435,7 +397,6 @@ class Build {
         await _replaceInFile('windows/packaging/exe/inno_setup.iss', {
           "'Orange.exe'": "'$name.exe'",
           "'OrangeCore.exe'": "'$core.exe'",
-          "'OrangeHelperService.exe'": "'$helper.exe'",
         });
         break;
       case Target.linux:
@@ -536,7 +497,7 @@ class BuildCommand extends Command {
       .map((e) => e.arch!)
       .toList();
 
-  Future<void> _buildEnvFile(String env, {String? coreSha256}) async {
+  Future<void> _buildEnvFile(String env) async {
     final apiBaseUrl = (Platform.environment['API_BASE_URL'] ?? '').trim();
     final apiTextDomain = (Platform.environment['API_TEXT_DOMAIN'] ?? '')
         .trim();
@@ -555,7 +516,6 @@ class BuildCommand extends Command {
 
     final data = {
       'APP_ENV': env,
-      if (coreSha256 != null) 'CORE_SHA256': coreSha256,
       if (apiBaseUrl.isNotEmpty) 'API_BASE_URL': apiBaseUrl,
       if (apiTextDomain.isNotEmpty) 'API_TEXT_DOMAIN': apiTextDomain,
       if (appName.isNotEmpty) 'APP_NAME': appName,
@@ -643,19 +603,13 @@ class BuildCommand extends Command {
 
     await Build.updatePlatformBinaryNames(target);
 
-    final corePaths = await Build.buildCore(
+    await Build.buildCore(
       target: target,
       arch: arch,
       mode: mode,
     );
 
-    String? coreSha256;
-
-    if (Platform.isWindows) {
-      coreSha256 = await Build.calcSha256(corePaths.first);
-      await Build.buildHelper(target, coreSha256);
-    }
-    await _buildEnvFile(env, coreSha256: coreSha256);
+    await _buildEnvFile(env);
 
     // Generate custom icons if APP_ICON_URL is set
     final appIconUrl = (Platform.environment['APP_ICON_URL'] ?? '').trim();

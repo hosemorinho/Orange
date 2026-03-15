@@ -260,8 +260,6 @@ enum ActionMethod {
 
 enum AuthorizeCode { none, success, error }
 
-enum WindowsHelperServiceStatus { none, presence, running }
-
 enum FunctionTag {
   updateConfig,
   setupConfig,

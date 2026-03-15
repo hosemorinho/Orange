@@ -37,33 +37,6 @@ class LogLevelItem extends ConsumerWidget {
   }
 }
 
-class UaItem extends ConsumerWidget {
-  const UaItem({super.key});
-
-  @override
-  Widget build(BuildContext context, ref) {
-    final globalUa = ref.watch(
-      patchClashConfigProvider.select((state) => state.globalUa),
-    );
-    return ListItem<String?>.options(
-      leading: const Icon(Icons.computer_outlined),
-      title: const Text('UA'),
-      subtitle: Text(globalUa ?? appLocalizations.defaultText),
-      delegate: OptionsDelegate<String?>(
-        title: 'UA',
-        options: [null, 'clash-verge/v2.4.2', 'ClashforWindows/0.19.23'],
-        value: globalUa,
-        onChanged: (value) {
-          ref
-              .read(patchClashConfigProvider.notifier)
-              .update((state) => state.copyWith(globalUa: value));
-        },
-        textBuilder: (ua) => ua ?? appLocalizations.defaultText,
-      ),
-    );
-  }
-}
-
 class KeepAliveIntervalItem extends ConsumerWidget {
   const KeepAliveIntervalItem({super.key});
 
@@ -446,7 +419,6 @@ class ExternalControllerItem extends ConsumerWidget {
 
 final generalItems = <Widget>[
   LogLevelItem(),
-  UaItem(),
   if (system.isDesktop) KeepAliveIntervalItem(),
   TestUrlItem(),
   PortItem(),

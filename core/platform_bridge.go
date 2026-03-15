@@ -10,8 +10,8 @@ import (
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/option"
-	"github.com/sagernet/sing/common/logger"
 	tun "github.com/sagernet/sing-tun"
+	"github.com/sagernet/sing/common/logger"
 )
 
 // platformBridge implements adapter.PlatformInterface for Android.
@@ -25,6 +25,12 @@ type platformBridge struct {
 
 func newPlatformBridge() *platformBridge {
 	return &platformBridge{}
+}
+
+func (p *platformBridge) TunReady() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.tunFd != 0
 }
 
 func (p *platformBridge) Initialize(networkManager adapter.NetworkManager) error {

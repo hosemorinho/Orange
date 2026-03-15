@@ -14,6 +14,7 @@ import (
 
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
+	"github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/service"
@@ -38,6 +39,9 @@ var (
 	// It is registered in the Box context before box.New() so sing-box can
 	// use it during initialization (TUN, socket protection, etc.).
 	platformInterfaceProvider adapter.PlatformInterface
+
+	// selectedMapSnapshot is applied when a delayed or restarted box comes up.
+	selectedMapSnapshot = map[string]string{}
 )
 
 const inlineConfigPrefix = "inline-b64://"
@@ -114,16 +118,21 @@ func applyConfig(params *SetupParams) error {
 
 	// Store for partial updates
 	currentOpts = opts
+	selectedMapSnapshot = cloneSelectedMap(params.SelectedMap)
 
-	// Shut down existing box if running
+	// Shut down existing box if running, but keep currentOpts/current selections
+	// so a later startListener/startTUN can bring the box up with the same config.
 	shutdownBox()
+
+	if !isRunning || shouldDelayBoxStart(opts) {
+		return nil
+	}
 
 	if err := startBoxFromOpts(opts); err != nil {
 		return err
 	}
 
-	// Patch proxy group selections
-	patchSelectGroup(params.SelectedMap)
+	patchSelectGroup(selectedMapSnapshot)
 
 	return nil
 }
@@ -132,6 +141,7 @@ func applyConfig(params *SetupParams) error {
 // Caller must hold runLock. Sets currentBox, currentCtx, currentCancel, logFactory.
 func startBoxFromOpts(opts *option.Options) error {
 	ctx, cancel := context.WithCancel(context.Background())
+	ctx = include.Context(ctx)
 	ctx = service.ContextWithDefaultRegistry(ctx)
 
 	// Register platform interface before box.New() — sing-box reads it from context
@@ -168,6 +178,9 @@ func startBoxFromOpts(opts *option.Options) error {
 	// Reset traffic rate tracking
 	prevUp, prevDown = 0, 0
 	prevTime = time.Time{}
+	if logStreamingRequested {
+		handleStartLog()
+	}
 
 	return nil
 }
@@ -175,6 +188,7 @@ func startBoxFromOpts(opts *option.Options) error {
 // shutdownBox closes the current Box and cancels its context.
 // Caller must hold runLock.
 func shutdownBox() {
+	stopLogSubscription(false)
 	if currentBox != nil {
 		_ = currentBox.Close()
 		currentBox = nil
@@ -184,6 +198,9 @@ func shutdownBox() {
 		currentCancel = nil
 		currentCtx = nil
 	}
+	logFactory = nil
+	prevUp, prevDown = 0, 0
+	prevTime = time.Time{}
 }
 
 // patchSelectGroup iterates outbounds and force-selects the specified proxy in selector groups.
@@ -211,6 +228,42 @@ func selectOutbound(group adapter.OutboundGroup, name string) bool {
 	}
 	if sel, ok := group.(selectorGroup); ok {
 		return sel.SelectOutbound(name)
+	}
+	return false
+}
+
+func cloneSelectedMap(src map[string]string) map[string]string {
+	if len(src) == 0 {
+		return map[string]string{}
+	}
+	dst := make(map[string]string, len(src))
+	for key, value := range src {
+		dst[key] = value
+	}
+	return dst
+}
+
+func hasTunInbound(opts *option.Options) bool {
+	if opts == nil {
+		return false
+	}
+	for _, inbound := range opts.Inbounds {
+		if inbound.Type == "tun" {
+			return true
+		}
+	}
+	return false
+}
+
+func shouldDelayBoxStart(opts *option.Options) bool {
+	if !hasTunInbound(opts) || platformInterfaceProvider == nil {
+		return false
+	}
+	type tunReadyProvider interface {
+		TunReady() bool
+	}
+	if provider, ok := platformInterfaceProvider.(tunReadyProvider); ok {
+		return !provider.TunReady()
 	}
 	return false
 }

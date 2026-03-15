@@ -59,8 +59,7 @@ class System {
   Future<bool> checkIsAdmin() async {
     final corePath = appPath.corePath.replaceAll(' ', '\\\\ ');
     if (system.isWindows) {
-      final result = await windows?.checkService();
-      return result == WindowsHelperServiceStatus.running;
+      return windows?.isProcessElevated() ?? false;
     } else if (system.isMacOS) {
       final result = await Process.run('stat', ['-f', '%Su:%Sg %Sp', corePath]);
       final output = result.stdout.trim();
@@ -92,10 +91,6 @@ class System {
     }
 
     if (system.isWindows) {
-      final result = await windows?.registerService();
-      if (result == true) {
-        return AuthorizeCode.success;
-      }
       return AuthorizeCode.error;
     }
 
@@ -158,6 +153,14 @@ class Windows {
   factory Windows() {
     _instance ??= Windows._internal();
     return _instance!;
+  }
+
+  bool isProcessElevated() {
+    final isUserAnAdmin = _shell32.lookupFunction<
+      Int32 Function(),
+      int Function()
+    >('IsUserAnAdmin');
+    return isUserAnAdmin() != 0;
   }
 
   bool runas(String command, String arguments) {
@@ -223,89 +226,6 @@ class Windows {
   //     }
   //   }
   // }
-
-  Future<WindowsHelperServiceStatus> checkService() async {
-    // final qcResult = await Process.run('sc', ['qc', appHelperService]);
-    // final qcOutput = qcResult.stdout.toString();
-    // if (qcResult.exitCode != 0 || !qcOutput.contains(appPath.helperPath)) {
-    //   return WindowsHelperServiceStatus.none;
-    // }
-    final result = await Process.run('sc', ['query', appHelperService]);
-    if (result.exitCode != 0) {
-      return WindowsHelperServiceStatus.none;
-    }
-    final output = result.stdout.toString();
-    if (output.contains('RUNNING') && await request.pingHelper()) {
-      return WindowsHelperServiceStatus.running;
-    }
-    return WindowsHelperServiceStatus.presence;
-  }
-
-  Future<bool> registerService() async {
-    final status = await checkService();
-
-    if (status == WindowsHelperServiceStatus.running) {
-      return true;
-    }
-
-    // Verify helper binary exists
-    final helperFile = File(appPath.helperPath);
-    if (!await helperFile.exists()) {
-      commonPrint.log(
-        'Helper binary not found at: ${appPath.helperPath}',
-        logLevel: LogLevel.error,
-      );
-      return false;
-    }
-
-    final command = [
-      '/c',
-      if (status == WindowsHelperServiceStatus.presence) ...[
-        'taskkill',
-        '/F',
-        '/IM',
-        '$appHelperService.exe'
-            ' & '
-            'sc',
-        'delete',
-        appHelperService,
-        '&',
-      ],
-      'sc',
-      'create',
-      appHelperService,
-      'binPath= "${appPath.helperPath}"',
-      'start= auto',
-      '&&',
-      'sc',
-      'start',
-      appHelperService,
-    ].join(' ');
-
-    final res = runas('cmd.exe', command);
-    if (!res) {
-      commonPrint.log(
-        'Failed to execute service registration command',
-        logLevel: LogLevel.error,
-      );
-      return false;
-    }
-
-    await Future.delayed(Duration(milliseconds: 500));
-    final retryStatus = await retry(
-      task: checkService,
-      maxAttempts: 8,
-      retryIf: (status) => status != WindowsHelperServiceStatus.running,
-      delay: Duration(seconds: 1),
-    );
-    if (retryStatus != WindowsHelperServiceStatus.running) {
-      commonPrint.log(
-        'Helper service failed to start after retries, status: $retryStatus',
-        logLevel: LogLevel.error,
-      );
-    }
-    return retryStatus == WindowsHelperServiceStatus.running;
-  }
 
   Future<bool> registerTask(String appName) async {
     final taskXml =

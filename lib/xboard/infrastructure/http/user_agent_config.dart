@@ -3,7 +3,7 @@
 /// 说明：不同的 User-Agent 是有意设计的，服务端会根据 UA 返回不同格式的数据
 ///
 /// 使用场景：
-/// 1. 订阅下载：使用 sing-box UA 获取 sing-box JSON 配置格式
+/// 1. 订阅下载：使用应用 UA 获取配置格式
 /// 2. API/域名竞速：使用标准 UA
 /// 3. 其他服务：使用特定版本号标识
 library;
@@ -15,7 +15,7 @@ import 'package:fl_clash/state.dart';
 
 /// User-Agent 配置类
 ///
-/// 订阅下载使用动态 UA（包含 sing-box 标识），其他场景使用固定 UA
+/// 订阅下载使用动态应用 UA，其他场景使用固定 UA
 ///
 /// 使用方式:
 /// ```dart
@@ -24,26 +24,26 @@ import 'package:fl_clash/state.dart';
 /// ```
 class UserAgentConfig {
   /// 获取订阅下载 UA（动态生成）
-  /// 格式: appName/vVersion sing-box/1.13.3 Platform/xxx
+  /// 格式: appName/vVersion Platform/xxx
   static String get _subscription {
     try {
       final info = globalState.packageInfo;
-      return '$appNameEn/v${info.version} sing-box/1.13.3 Platform/${Platform.operatingSystem}';
+      return '$appNameEn/v${info.version} Platform/${Platform.operatingSystem}';
     } catch (_) {
-      return '$appNameEn sing-box/1.13.3 Platform/${Platform.operatingSystem}';
+      return '$appNameEn Platform/${Platform.operatingSystem}';
     }
   }
 
   static String get _subscriptionRacing {
     try {
       final info = globalState.packageInfo;
-      return '$appNameEn/v${info.version} sing-box/1.13.3 Platform/${Platform.operatingSystem}';
+      return '$appNameEn/v${info.version} Platform/${Platform.operatingSystem}';
     } catch (_) {
-      return '$appNameEn sing-box/1.13.3 Platform/${Platform.operatingSystem}';
+      return '$appNameEn Platform/${Platform.operatingSystem}';
     }
   }
 
-  static const String _attachment = 'sing-box/1.13.3';
+  static const String _attachment = '$appNameEn/1.0';
   static const String _api = '$appNameEn/1.0 (V2Board API Client)';
   static const String _domainRacing = '$appNameEn/1.0 (Domain Racing Test)';
 
@@ -75,7 +75,7 @@ class UserAgentConfig {
 
 /// User-Agent 使用场景枚举
 enum UserAgentScenario {
-  /// 订阅下载（sing-box JSON 格式）
+  /// 订阅下载
   subscription,
 
   /// API 请求

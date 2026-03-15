@@ -21,6 +21,17 @@ class CoreManager extends ConsumerStatefulWidget {
 
 class _CoreContainerState extends ConsumerState<CoreManager>
     with CoreEventListener {
+  bool _requiresFullReload(UpdateParams previous, UpdateParams next) {
+    return previous.tun != next.tun ||
+        previous.mixedPort != next.mixedPort ||
+        previous.allowLan != next.allowLan ||
+        previous.findProcessMode != next.findProcessMode ||
+        previous.ipv6 != next.ipv6 ||
+        previous.tcpConcurrent != next.tcpConcurrent ||
+        previous.externalController != next.externalController ||
+        previous.unifiedDelay != next.unifiedDelay;
+  }
+
   @override
   Widget build(BuildContext context) {
     return widget.child;
@@ -40,7 +51,15 @@ class _CoreContainerState extends ConsumerState<CoreManager>
     );
     ref.listenManual(updateParamsProvider, (prev, next) {
       if (prev != next) {
-        appController.updateConfigDebounce();
+        if (!ref.read(isStartProvider)) {
+          appController.applyProfileDebounce(silence: true, force: true);
+          return;
+        }
+        if (prev != null && _requiresFullReload(prev, next)) {
+          appController.applyProfileDebounce(silence: true, force: true);
+        } else {
+          appController.updateConfigDebounce();
+        }
       }
     });
     ref.listenManual(appSettingProvider.select((state) => state.openLogs), (

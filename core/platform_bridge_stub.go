@@ -9,8 +9,8 @@ import (
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/option"
-	"github.com/sagernet/sing/common/logger"
 	tun "github.com/sagernet/sing-tun"
+	"github.com/sagernet/sing/common/logger"
 )
 
 // platformBridge stub for non-Android CGO builds.
@@ -24,6 +24,10 @@ type platformBridge struct {
 
 func newPlatformBridge() *platformBridge {
 	return &platformBridge{}
+}
+
+func (p *platformBridge) TunReady() bool {
+	return true
 }
 
 func (p *platformBridge) Initialize(_ adapter.NetworkManager) error {

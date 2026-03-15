@@ -6,8 +6,7 @@ import 'common.dart';
 
 extension PackageInfoExtension on PackageInfo {
   String get ua => [
-        "$appNameEn/v$version",
-        "sing-box/1.13.3",
-        "Platform/${Platform.operatingSystem}",
-      ].join(" ");
+        '$appNameEn/v$version',
+        'Platform/${Platform.operatingSystem}',
+      ].join(' ');
 }

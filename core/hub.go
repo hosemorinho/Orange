@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/netip"
 	"os"
 	"runtime"
 	"runtime/debug"
@@ -15,20 +16,25 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/urltest"
 	"github.com/sagernet/sing-box/experimental/clashapi/trafficontrol"
+	"github.com/sagernet/sing-box/include"
 	sbLog "github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common"
+	"github.com/sagernet/sing/common/json/badoption"
 	"github.com/sagernet/sing/common/observable"
 	"github.com/sagernet/sing/service"
 )
 
 var (
-	logSubscription observable.Subscription[sbLog.Entry]
-	logDone         <-chan struct{}
-	logLock         sync.Mutex // protects logSubscription, logDone
+	logSubscription       observable.Subscription[sbLog.Entry]
+	logDone               <-chan struct{}
+	logLock               sync.Mutex // protects logSubscription, logDone
+	logStreamingRequested bool
 
 	// Traffic rate tracking — protected by trafficLock
-	trafficLock          sync.Mutex
-	prevUp, prevDown     int64
-	prevTime             time.Time
+	trafficLock      sync.Mutex
+	prevUp, prevDown int64
+	prevTime         time.Time
 )
 
 func handleInitClash(paramsString string) bool {
@@ -55,18 +61,18 @@ func handleInitClash(paramsString string) bool {
 func handleStartListener() bool {
 	runLock.Lock()
 	defer runLock.Unlock()
-	if currentOpts == nil {
-		return false
-	}
+	isRunning = true
 	if currentBox != nil {
-		// Already running
-		isRunning = true
+		return true
+	}
+	if currentOpts == nil || shouldDelayBoxStart(currentOpts) {
 		return true
 	}
 	if err := startBoxFromOpts(currentOpts); err != nil {
+		isRunning = false
 		return false
 	}
-	isRunning = true
+	patchSelectGroup(selectedMapSnapshot)
 	return true
 }
 
@@ -90,6 +96,8 @@ func handleForceGC() {
 func handleShutdown() bool {
 	runLock.Lock()
 	shutdownBox()
+	currentOpts = nil
+	selectedMapSnapshot = map[string]string{}
 	isInit = false
 	isRunning = false
 	runLock.Unlock()
@@ -109,6 +117,7 @@ func handleValidateConfig(path string) string {
 	// Semantic validation: create a temporary Box to catch bad outbound refs, etc.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	ctx = include.Context(ctx)
 	ctx = service.ContextWithDefaultRegistry(ctx)
 	// Register a stub PlatformInterface to avoid nil panics during validation.
 	if platformInterfaceProvider != nil {
@@ -173,6 +182,7 @@ func handleChangeProxy(data string, fn func(string)) {
 			fn("Failed to select outbound")
 			return
 		}
+		selectedMapSnapshot[groupName] = proxyName
 
 		fn("")
 	}()
@@ -410,12 +420,13 @@ func handleSuspend(suspended bool) bool {
 }
 
 func handleStartLog() {
+	logStreamingRequested = true
 	if logFactory == nil {
 		return
 	}
 
 	// Stop existing subscription
-	handleStopLog()
+	stopLogSubscription(false)
 
 	logLock.Lock()
 	var err error
@@ -438,7 +449,7 @@ func handleStartLog() {
 				message := &Message{
 					Type: LogMessage,
 					Data: map[string]interface{}{
-						"LogLevel": sbLog.FormatLevel(entry.Level),
+						"LogLevel": formatAppLogLevel(entry.Level),
 						"Payload":  entry.Message,
 					},
 				}
@@ -451,13 +462,20 @@ func handleStartLog() {
 }
 
 func handleStopLog() {
+	stopLogSubscription(true)
+}
+
+func stopLogSubscription(clearRequest bool) {
 	logLock.Lock()
 	defer logLock.Unlock()
+	if clearRequest {
+		logStreamingRequested = false
+	}
 	if logSubscription != nil && logFactory != nil {
 		logFactory.UnSubscribe(logSubscription)
-		logSubscription = nil
-		logDone = nil
 	}
+	logSubscription = nil
+	logDone = nil
 }
 
 func handleGetCountryCode(ip string, fn func(value string)) {
@@ -500,34 +518,206 @@ func handleUpdateConfig(bytes []byte) string {
 
 	runLock.Lock()
 	defer runLock.Unlock()
+	if currentOpts == nil {
+		return "not initialized"
+	}
 
 	// Mode change: lightweight, no restart needed
 	if params.Mode != nil {
+		ensureClashAPIOptions(currentOpts)
+		currentOpts.Experimental.ClashAPI.DefaultMode = *params.Mode
 		type modeSettable interface {
 			SetMode(mode string)
 		}
-		if ms, ok := getClashServer().(modeSettable); ok {
-			ms.SetMode(*params.Mode)
+		if clashServer := getClashServer(); clashServer != nil {
+			if ms, ok := clashServer.(modeSettable); ok {
+				ms.SetMode(*params.Mode)
+			}
 		}
 	}
 
 	// Log level change: lightweight, no restart needed
 	if params.LogLevel != nil {
+		ensureLogOptions(currentOpts)
+		currentOpts.Log.Level = normalizeCoreLogLevel(*params.LogLevel)
 		if logFactory != nil {
-			level, parseErr := sbLog.ParseLevel(*params.LogLevel)
+			level, parseErr := sbLog.ParseLevel(currentOpts.Log.Level)
 			if parseErr == nil {
 				logFactory.SetLevel(level)
 			}
 		}
 	}
 
-	// Other structural changes (mixed-port, allow-lan, TUN, etc.) require a
-	// full config reload via setupConfig. They are not applied here because
-	// sing-box inbound options are typed structs that can't be patched after
-	// deserialization without re-parsing. The Dart side should trigger a full
-	// config reload for these changes.
+	if params.ExternalController != nil {
+		ensureClashAPIOptions(currentOpts)
+		currentOpts.Experimental.ClashAPI.ExternalController = *params.ExternalController
+	}
 
+	if params.FindProcessMode != nil {
+		ensureRouteOptions(currentOpts)
+		currentOpts.Route.FindProcess = *params.FindProcessMode == "always"
+	}
+
+	structuralReload := false
+	if params.AllowLan != nil {
+		patchInboundListenAddress(currentOpts, *params.AllowLan)
+		structuralReload = true
+	}
+	if params.MixedPort != nil {
+		patchMixedInboundPort(currentOpts, uint16(*params.MixedPort))
+		structuralReload = true
+	}
+	if params.Tun != nil {
+		patchTunInbound(currentOpts, params.Tun)
+		structuralReload = true
+	}
+
+	if !structuralReload || !isRunning {
+		return ""
+	}
+
+	shutdownBox()
+	if shouldDelayBoxStart(currentOpts) {
+		return ""
+	}
+	if err := startBoxFromOpts(currentOpts); err != nil {
+		return err.Error()
+	}
+	patchSelectGroup(selectedMapSnapshot)
 	return ""
+}
+
+func formatAppLogLevel(level sbLog.Level) string {
+	logLevel := sbLog.FormatLevel(level)
+	if logLevel == "warn" {
+		return "warning"
+	}
+	if logLevel == "fatal" || logLevel == "panic" {
+		return "error"
+	}
+	return logLevel
+}
+
+func normalizeCoreLogLevel(level string) string {
+	if level == "warning" {
+		return "warn"
+	}
+	if level == "silent" {
+		return "error"
+	}
+	return level
+}
+
+func ensureLogOptions(opts *option.Options) {
+	if opts.Log == nil {
+		opts.Log = &option.LogOptions{}
+	}
+}
+
+func ensureRouteOptions(opts *option.Options) {
+	if opts.Route == nil {
+		opts.Route = &option.RouteOptions{}
+	}
+}
+
+func ensureClashAPIOptions(opts *option.Options) {
+	if opts.Experimental == nil {
+		opts.Experimental = &option.ExperimentalOptions{}
+	}
+	if opts.Experimental.ClashAPI == nil {
+		opts.Experimental.ClashAPI = &option.ClashAPIOptions{}
+	}
+}
+
+func patchInboundListenAddress(opts *option.Options, allowLan bool) {
+	listenAddr := "127.0.0.1"
+	if allowLan {
+		listenAddr = "0.0.0.0"
+	}
+	addr := parseListenAddr(listenAddr)
+	for index := range opts.Inbounds {
+		if wrapper, ok := opts.Inbounds[index].Options.(option.ListenOptionsWrapper); ok {
+			listenOptions := wrapper.TakeListenOptions()
+			listenOptions.Listen = addr
+			wrapper.ReplaceListenOptions(listenOptions)
+		}
+	}
+}
+
+func patchMixedInboundPort(opts *option.Options, port uint16) {
+	for index := range opts.Inbounds {
+		if opts.Inbounds[index].Type != "mixed" {
+			continue
+		}
+		if wrapper, ok := opts.Inbounds[index].Options.(option.ListenOptionsWrapper); ok {
+			listenOptions := wrapper.TakeListenOptions()
+			listenOptions.ListenPort = port
+			wrapper.ReplaceListenOptions(listenOptions)
+		}
+	}
+}
+
+func patchTunInbound(opts *option.Options, tunConfig *tunSchema) {
+	for index := range opts.Inbounds {
+		if opts.Inbounds[index].Type != "tun" {
+			continue
+		}
+		if !tunConfig.Enable {
+			opts.Inbounds = append(opts.Inbounds[:index], opts.Inbounds[index+1:]...)
+			return
+		}
+		tunOptions, ok := opts.Inbounds[index].Options.(*option.TunInboundOptions)
+		if !ok {
+			continue
+		}
+		if tunConfig.Device != nil {
+			tunOptions.InterfaceName = *tunConfig.Device
+		}
+		if tunConfig.Stack != nil {
+			tunOptions.Stack = *tunConfig.Stack
+		}
+		if tunConfig.AutoRoute != nil {
+			tunOptions.AutoRoute = *tunConfig.AutoRoute
+		}
+		if tunConfig.RouteAddress != nil {
+			tunOptions.Address = *tunConfig.RouteAddress
+		}
+		return
+	}
+	if !tunConfig.Enable {
+		return
+	}
+	tunOptions := &option.TunInboundOptions{
+		InboundOptions: option.InboundOptions{
+			SniffEnabled:             true,
+			SniffOverrideDestination: false,
+		},
+	}
+	if tunConfig.Device != nil {
+		tunOptions.InterfaceName = *tunConfig.Device
+	}
+	if tunConfig.Stack != nil {
+		tunOptions.Stack = *tunConfig.Stack
+	}
+	if tunConfig.AutoRoute != nil {
+		tunOptions.AutoRoute = *tunConfig.AutoRoute
+	}
+	if tunConfig.RouteAddress != nil {
+		tunOptions.Address = *tunConfig.RouteAddress
+	}
+	opts.Inbounds = append(opts.Inbounds, option.Inbound{
+		Type:    "tun",
+		Tag:     "tun-in",
+		Options: tunOptions,
+	})
+}
+
+func parseListenAddr(value string) *badoption.Addr {
+	addr, err := netip.ParseAddr(value)
+	if err != nil {
+		return nil
+	}
+	return common.Ptr(badoption.Addr(addr))
 }
 
 func handleDelFile(path string, result ActionResult) {
@@ -590,4 +780,3 @@ func getTrafficManager() *trafficontrol.Manager {
 	}
 	return nil
 }
-

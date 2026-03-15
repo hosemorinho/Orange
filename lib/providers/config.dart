@@ -106,10 +106,11 @@ Config _config(Ref ref) {
   final themeProps = ref.watch(themeSettingProvider);
   final currentProfileId = ref.watch(currentProfileIdProvider);
   final davProps = ref.watch(davSettingProvider);
-  final overrideDns = ref.watch(overrideDnsProvider);
   final hotKeyActions = ref.watch(hotKeyActionsProvider);
   final proxiesStyleProps = ref.watch(proxiesStyleSettingProvider);
-  final patchClashConfig = ref.watch(patchClashConfigProvider);
+  final patchClashConfig = ref.watch(patchClashConfigProvider).copyWith(
+    globalUa: null,
+  );
   return Config(
     appSettingProps: appSettingProps,
     windowProps: windowProps,
@@ -118,7 +119,7 @@ Config _config(Ref ref) {
     themeProps: themeProps,
     currentProfileId: currentProfileId,
     davProps: davProps,
-    overrideDns: overrideDns,
+    overrideDns: false,
     hotKeyActions: hotKeyActions,
     proxiesStyleProps: proxiesStyleProps,
     patchClashConfig: patchClashConfig,
@@ -136,13 +137,13 @@ List<Override> buildConfigOverrides(Config config) {
       (_, _) => config.currentProfileId,
     ),
     davSettingProvider.overrideWithBuild((_, _) => config.davProps),
-    overrideDnsProvider.overrideWithBuild((_, _) => config.overrideDns),
+    overrideDnsProvider.overrideWithBuild((_, _) => false),
     hotKeyActionsProvider.overrideWithBuild((_, _) => config.hotKeyActions),
     proxiesStyleSettingProvider.overrideWithBuild(
       (_, _) => config.proxiesStyleProps,
     ),
     patchClashConfigProvider.overrideWithBuild(
-      (_, _) => config.patchClashConfig,
+      (_, _) => config.patchClashConfig.copyWith(globalUa: null),
     ),
   ];
 }

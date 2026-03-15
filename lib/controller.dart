@@ -162,9 +162,7 @@ extension StateControllerExt on AppController {
     return _ref.read(groupsProvider);
   }
 
-  String get ua => _ref.read(patchClashConfigProvider).globalUa.takeFirstValid([
-    globalState.packageInfo.ua,
-  ]);
+  String get ua => globalState.packageInfo.ua;
 
   Profile? get currentProfile {
     return _ref.read(currentProfileProvider);
@@ -885,7 +883,6 @@ extension SetupControllerExt on AppController {
         (state) => VM2(state.appendSystemDns, state.routeMode),
       ),
     );
-    final overrideDns = _ref.read(overrideDnsProvider);
     final appendSystemDns = networkVM2.a;
     final routeMode = networkVM2.b;
     final configMap = await _getConfigDecrypted(profileId);
@@ -910,7 +907,7 @@ extension SetupControllerExt on AppController {
         profileId: profileId,
         rawConfig: rawConfig,
         realPatchConfig: realPatchConfig,
-        overrideDns: overrideDns,
+        overrideDns: false,
         appendSystemDns: appendSystemDns,
         addedRules: addedRules,
         defaultUA: defaultUA,
@@ -1261,7 +1258,7 @@ extension BackupControllerExt on AppController {
       }
       final config = Config.fromJson(configMap);
       _ref.read(patchClashConfigProvider.notifier).value =
-          config.patchClashConfig;
+          config.patchClashConfig.copyWith(globalUa: null);
       _ref.read(appSettingProvider.notifier).value = config.appSettingProps;
       _ref.read(currentProfileIdProvider.notifier).value =
           config.currentProfileId;
@@ -1271,7 +1268,7 @@ extension BackupControllerExt on AppController {
       _ref.read(vpnSettingProvider.notifier).value = config.vpnProps;
       _ref.read(proxiesStyleSettingProvider.notifier).value =
           config.proxiesStyleProps;
-      _ref.read(overrideDnsProvider.notifier).value = config.overrideDns;
+      _ref.read(overrideDnsProvider.notifier).value = false;
       _ref.read(networkSettingProvider.notifier).value = config.networkProps;
       _ref.read(hotKeyActionsProvider.notifier).value = config.hotKeyActions;
       return;

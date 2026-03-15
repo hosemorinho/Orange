@@ -5,25 +5,6 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class OverrideItem extends ConsumerWidget {
-  const OverrideItem({super.key});
-
-  @override
-  Widget build(BuildContext context, ref) {
-    final override = ref.watch(overrideDnsProvider);
-    return ListItem.switchItem(
-      title: Text(appLocalizations.overrideDns),
-      subtitle: Text(appLocalizations.overrideDnsDesc),
-      delegate: SwitchDelegate(
-        value: override,
-        onChanged: (bool value) async {
-          ref.read(overrideDnsProvider.notifier).value = value;
-        },
-      ),
-    );
-  }
-}
-
 class StatusItem extends ConsumerWidget {
   const StatusItem({super.key});
 
@@ -647,7 +628,6 @@ class FallbackFilterOptions extends StatelessWidget {
 }
 
 const dnsItems = <Widget>[
-  OverrideItem(),
   DnsOptions(),
   FallbackFilterOptions(),
 ];
